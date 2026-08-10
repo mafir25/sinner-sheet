@@ -605,7 +605,7 @@
     window.createDots = () => { let d = ''; for(let i=1; i<=5; i++) d += `<div class="dot" data-val="${i}"></div>`; return `<div class="dots-container">${d}</div>`; };
 
     window.renderAttributes = () => {
-        const cats = [{ i: 'phis.jpg', s: ['Тело', 'Сила'] }, { i: 'unde.jpg', s: ['Понимание', 'Логика'] }, { i: 'vide.jpg', s: ['Выдержка', 'Интуиция', 'Убеждение'] }, { i: 'spra.jpg', s: ['Рефлексы', 'Фокус'] }];
+        const cats = [{ i: 'phis.jpg', s: ['Тело', 'Сила'] }, { i: 'unde.jpg', s: ['Понимание', 'Хладнокровие'] }, { i: 'vide.jpg', s: ['Выдержка', 'Интуиция', 'Убеждение'] }, { i: 'spra.jpg', s: ['Рефлексы', 'Фокус'] }];
         document.getElementById('attributes-container').innerHTML = cats.map(c => `
             <div class="stat-category">
                 <div class="img-upload stat-icon" onclick="window.triggerImageUpload(this)" style="background-image: url('${c.i}');"></div>
