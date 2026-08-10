@@ -65,12 +65,24 @@
         .scale-header { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; margin-bottom: 4px; }
         .health-grid, .sanity-grid, .energy-grid { display: flex; flex-wrap: wrap; gap: 4px; }
         
+        /* --- СИСТЕМА СОСТОЯНИЙ И АНИМАЦИИ --- */
         .health-box, .sanity-box, .energy-box { 
             width: 18px; height: 18px; cursor: pointer; background-color: transparent; 
             position: relative; display: flex; justify-content: center; align-items: center;
             font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 700; user-select: none;
+            transition: transform 0.2s ease-out, opacity 0.2s ease-out, width 0.2s ease-out, margin 0.2s ease-out, border-width 0.2s ease-out;
         }
         
+        /* Класс для анимации выезда из предыдущего блока */
+        .scale-anim-hidden {
+            transform: translateX(-15px);
+            opacity: 0;
+            width: 0 !important;
+            margin-right: -4px !important; /* Убирает gap в flex контейнере */
+            border-width: 0 !important;
+            overflow: hidden;
+        }
+
         /* Здоровье (5 состояний) */
         .health-box { border: 1px solid var(--color-red); color: var(--color-red); }
         .health-box.normal { background-color: var(--color-red); }
@@ -85,13 +97,14 @@
         .sanity-box.cross::after { content: "X"; }
 
         /* Энергия (Фиолетовый бар, 2 состояния) */
-        .energy-box { border: 1px solid #9B59B6; color: #9B59B6; transition: 0.1s; }
+        .energy-box { border: 1px solid #9B59B6; color: #9B59B6; }
         .energy-box.normal { background-color: #9B59B6; }
 
-        /* Очки Защиты (Индиго, 2 состояния) */
-        .defense-grid { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+        /* Очки Защиты (Индиго, 2 состояния, растянуты по ширине) */
+        .defense-grid { display: flex; gap: 6px; margin-bottom: 16px; width: 100%; }
         .defense-box { 
-            width: 22px; height: 22px; cursor: pointer; background-color: transparent; 
+            flex: 1; /* РАСТЯГИВАЕТСЯ НА ВСЮ ШИРИНУ */
+            height: 22px; cursor: pointer; background-color: transparent; 
             border: 2px solid var(--color-indigo); transition: background-color 0.1s;
         }
         .defense-box.normal { background-color: var(--color-indigo); }
@@ -158,6 +171,9 @@
 
 <button class="btn-small save-menu-btn" onclick="window.toggleSaveMenu()"><i class="fa-solid fa-cloud"></i> СЕТЬ СИНХРОНИЗАЦИИ</button>
 
+<!-- Скрытый инпут для импорта JSON -->
+<input type="file" id="import-json-input" accept=".json" style="display: none;" onchange="window.importFromJson(event)">
+
 <!-- Модальное окно Cloud -->
 <div class="modal-overlay" id="saveModal" onclick="window.closeModalOnBg(event)">
     <div class="panel-outer cut-tl modal-box">
@@ -198,7 +214,10 @@
             
             <!-- Оффлайн/Локальный бекап -->
             <hr style="border: 0; border-top: 1px solid #222; margin: 15px 0;">
-            <button class="modal-btn btn-small" style="color: var(--color-yellow); border-color: var(--color-yellow); padding: 8px; font-size: 0.8rem;" onclick="window.exportToJson()"><i class="fa-solid fa-file-export"></i> Экспорт листа в JSON</button>
+            <div style="display: flex; gap: 8px;">
+                <button class="modal-btn btn-small" style="color: var(--color-yellow); border-color: var(--color-yellow); padding: 8px; font-size: 0.8rem; flex: 1;" onclick="window.exportToJson()"><i class="fa-solid fa-file-export"></i> Экспорт</button>
+                <button class="modal-btn btn-small" style="color: var(--color-yellow); border-color: var(--color-yellow); padding: 8px; font-size: 0.8rem; flex: 1;" onclick="document.getElementById('import-json-input').click()"><i class="fa-solid fa-file-import"></i> Импорт</button>
+            </div>
         </div>
     </div>
 </div>
@@ -251,7 +270,7 @@
         <div class="panel-inner cut-tl">
             <div class="panel-title">ЗАЩИТА И Э.Г.О.</div>
             
-            <!-- Очки Защиты -->
+            <!-- Растянутые Очки Защиты -->
             <div class="scale-header oswald" style="margin-top: 0; margin-bottom: 8px;"><span style="color: var(--color-indigo)">ОЧКИ ЗАЩИТЫ</span></div>
             <div class="defense-grid" id="defense-grid">
                 <div class="defense-box normal"></div>
@@ -317,7 +336,7 @@
     window.toggleSaveMenu = () => document.getElementById('saveModal').classList.toggle('active');
     window.closeModalOnBg = (e) => { if (e.target.id === 'saveModal') window.toggleSaveMenu(); };
 
-    // Экспорт в JSON (Локально)
+    // ЭКСПОРТ JSON
     window.exportToJson = () => {
         document.querySelectorAll('select').forEach(sel => {
             Array.from(sel.options).forEach(opt => {
@@ -347,7 +366,33 @@
         downloadAnchorNode.remove();
     };
 
-    // Отрисовка шкал
+    // ИМПОРТ JSON
+    window.importFromJson = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const data = JSON.parse(event.target.result);
+                if (data.html) {
+                    document.getElementById('main-character-sheet').innerHTML = data.html;
+                    window.healthMax = data.healthMax || 10;
+                    window.sanityMax = data.sanityMax || 12;
+                    window.energyMax = data.energyMax || 5;
+                    window.toggleSaveMenu();
+                    alert("Профиль успешно загружен из JSON!");
+                } else {
+                    alert("Неверный формат файла.");
+                }
+            } catch (err) {
+                alert("Ошибка чтения файла JSON. Возможно, файл поврежден.");
+            }
+        };
+        reader.readAsText(file);
+        e.target.value = ''; // Сброс инпута
+    };
+
+    // Отрисовка базовых шкал при старте
     window.renderHealth = () => {
         const g = document.getElementById('health-grid'); g.innerHTML = '';
         for (let i=0; i<window.healthMax; i++) g.insertAdjacentHTML('beforeend', `<div class="health-box normal"></div>`);
@@ -363,10 +408,31 @@
         for (let i=0; i<window.energyMax; i++) g.insertAdjacentHTML('beforeend', `<div class="energy-box normal"></div>`);
     };
 
+    // АНИМИРОВАННОЕ ДОБАВЛЕНИЕ/УДАЛЕНИЕ ЯЧЕЕК
     window.adjustScale = (t, a) => {
-        if (t === 'health') { window.healthMax = Math.max(1, window.healthMax + a); window.renderHealth(); } 
-        else if (t === 'sanity') { window.sanityMax = Math.max(1, window.sanityMax + a); window.renderSanity(); }
-        else if (t === 'energy') { window.energyMax = Math.max(1, window.energyMax + a); window.renderEnergy(); }
+        let gridId, boxClass, maxVar;
+        if (t === 'health') { gridId = 'health-grid'; boxClass = 'health-box'; maxVar = 'healthMax'; }
+        else if (t === 'sanity') { gridId = 'sanity-grid'; boxClass = 'sanity-box'; maxVar = 'sanityMax'; }
+        else if (t === 'energy') { gridId = 'energy-grid'; boxClass = 'energy-box'; maxVar = 'energyMax'; }
+
+        const g = document.getElementById(gridId);
+
+        if (a > 0) {
+            window[maxVar]++;
+            const el = document.createElement('div');
+            el.className = `${boxClass} normal scale-anim-hidden`;
+            g.appendChild(el);
+            // Принудительный перерасчет для запуска анимации
+            void el.offsetWidth;
+            el.classList.remove('scale-anim-hidden');
+        } else if (a < 0 && window[maxVar] > 1) {
+            window[maxVar]--;
+            const lastEl = g.lastElementChild;
+            if (lastEl) {
+                lastEl.classList.add('scale-anim-hidden');
+                setTimeout(() => lastEl.remove(), 200); // Удаляем после завершения CSS-перехода
+            }
+        }
     };
 
     document.addEventListener('click', e => {
@@ -444,7 +510,6 @@
     };
 
     window.renderResistances = () => {
-        // Заменены типы урона по умолчанию (Красный, Белый, Чёрный, Бледный)
         const dt = [
             {n:'Красный',c:'var(--color-red)'},
             {n:'Белый',c:'#FFFFFF'},
@@ -481,7 +546,6 @@
     window.createDots = () => { let d = ''; for(let i=1; i<=5; i++) d += `<div class="dot" data-val="${i}"></div>`; return `<div class="dots-container">${d}</div>`; };
 
     window.renderAttributes = () => {
-        // "Воля" переименована в "Интуиция"
         const cats = [{ i: 'phis.jpg', s: ['Тело', 'Сила'] }, { i: 'unde.jpg', s: ['Понимание', 'Логика'] }, { i: 'vide.jpg', s: ['Выдержка', 'Интуиция', 'Убеждение'] }, { i: 'spra.jpg', s: ['Рефлексы', 'Фокус'] }];
         document.getElementById('attributes-container').innerHTML = cats.map(c => `
             <div class="stat-category">
