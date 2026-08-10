@@ -73,12 +73,11 @@
             transition: transform 0.2s ease-out, opacity 0.2s ease-out, width 0.2s ease-out, margin 0.2s ease-out, border-width 0.2s ease-out;
         }
         
-        /* Класс для анимации выезда из предыдущего блока */
         .scale-anim-hidden {
             transform: translateX(-15px);
             opacity: 0;
             width: 0 !important;
-            margin-right: -4px !important; /* Убирает gap в flex контейнере */
+            margin-right: -4px !important;
             border-width: 0 !important;
             overflow: hidden;
         }
@@ -96,14 +95,14 @@
         .sanity-box.slash::after { content: "/"; }
         .sanity-box.cross::after { content: "X"; }
 
-        /* Энергия (Фиолетовый бар, 2 состояния) */
-        .energy-box { border: 1px solid #9B59B6; color: #9B59B6; }
-        .energy-box.normal { background-color: #9B59B6; }
+        /* Динамическая Энергия */
+        .energy-box { border: 1px solid var(--res-color, #9B59B6); color: var(--res-color, #9B59B6); }
+        .energy-box.normal { background-color: var(--res-color, #9B59B6); }
 
         /* Очки Защиты (Индиго, 2 состояния, растянуты по ширине) */
         .defense-grid { display: flex; gap: 6px; margin-bottom: 16px; width: 100%; }
         .defense-box { 
-            flex: 1; /* РАСТЯГИВАЕТСЯ НА ВСЮ ШИРИНУ */
+            flex: 1; 
             height: 22px; cursor: pointer; background-color: transparent; 
             border: 2px solid var(--color-indigo); transition: background-color 0.1s;
         }
@@ -171,7 +170,6 @@
 
 <button class="btn-small save-menu-btn" onclick="window.toggleSaveMenu()"><i class="fa-solid fa-cloud"></i> СЕТЬ СИНХРОНИЗАЦИИ</button>
 
-<!-- Скрытый инпут для импорта JSON -->
 <input type="file" id="import-json-input" accept=".json" style="display: none;" onchange="window.importFromJson(event)">
 
 <!-- Модальное окно Cloud -->
@@ -251,8 +249,32 @@
             <div class="scale-header oswald"><span style="color: var(--color-cyan)">РАССУДОК (SP)</span><div><button class="btn-small" onclick="window.adjustScale('sanity', -1)">-</button><button class="btn-small" onclick="window.adjustScale('sanity', 1)">+</button></div></div>
             <div class="sanity-grid" id="sanity-grid"></div>
 
-            <div class="scale-header oswald"><span style="color: #9B59B6" contenteditable="true">ОСОБЫЙ РЕСУРС</span><div><button class="btn-small" onclick="window.adjustScale('energy', -1)">-</button><button class="btn-small" onclick="window.adjustScale('energy', 1)">+</button></div></div>
-            <div class="energy-grid" id="energy-grid"></div>
+            <!-- БЛОК ОСОБЫХ РЕСУРСОВ -->
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 24px; margin-bottom: 8px; border-bottom: 1px solid #222; padding-bottom: 4px;">
+                <span class="oswald" style="color: var(--text-dim); font-size: 0.9rem;">ОСОБЫЕ РЕСУРСЫ</span>
+                <button class="btn-small" style="border-color: var(--color-cyan); color: var(--color-cyan);" onclick="window.addCustomResource()">+ ДОБАВИТЬ</button>
+            </div>
+            
+            <div id="custom-resources-container">
+                <div class="custom-resource-block" style="--res-color: #9B59B6; margin-bottom: 12px;">
+                    <div class="scale-header oswald" style="margin-top: 0;">
+                        <span style="color: var(--res-color)" contenteditable="true">ОСОБЫЙ РЕСУРС</span>
+                        <div>
+                            <button class="btn-small" title="Изменить цвет (HEX)" onclick="window.changeResourceColor(this)"><i class="fa-solid fa-eye-dropper"></i></button>
+                            <button class="btn-small" onclick="window.adjustCustomScale(this, -1)">-</button>
+                            <button class="btn-small" onclick="window.adjustCustomScale(this, 1)">+</button>
+                        </div>
+                    </div>
+                    <div class="energy-grid">
+                        <div class="energy-box normal"></div>
+                        <div class="energy-box normal"></div>
+                        <div class="energy-box normal"></div>
+                        <div class="energy-box normal"></div>
+                        <div class="energy-box normal"></div>
+                    </div>
+                </div>
+            </div>
+            <!-- КОНЕЦ БЛОКА -->
         </div>
     </div>
     
@@ -309,7 +331,6 @@
 <script>
     window.healthMax = 10;
     window.sanityMax = 12;
-    window.energyMax = 5; 
     let currentUploadTarget = null;
     
     window.setRandomFavicon = () => {
@@ -344,18 +365,9 @@
                 else opt.removeAttribute('selected');
             });
         });
-
         const mainSheet = document.getElementById('main-character-sheet').innerHTML;
         const agentName = document.getElementById('agent-name').innerText.trim() || 'Sinner';
-        
-        const saveObj = {
-            html: mainSheet,
-            healthMax: window.healthMax,
-            sanityMax: window.sanityMax,
-            energyMax: window.energyMax,
-            agentName: agentName,
-            timestamp: new Date().toISOString()
-        };
+        const saveObj = { html: mainSheet, healthMax: window.healthMax, sanityMax: window.sanityMax, agentName: agentName, timestamp: new Date().toISOString() };
 
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(saveObj, null, 2));
         const downloadAnchorNode = document.createElement('a');
@@ -378,18 +390,69 @@
                     document.getElementById('main-character-sheet').innerHTML = data.html;
                     window.healthMax = data.healthMax || 10;
                     window.sanityMax = data.sanityMax || 12;
-                    window.energyMax = data.energyMax || 5;
                     window.toggleSaveMenu();
                     alert("Профиль успешно загружен из JSON!");
-                } else {
-                    alert("Неверный формат файла.");
-                }
-            } catch (err) {
-                alert("Ошибка чтения файла JSON. Возможно, файл поврежден.");
-            }
+                } else { alert("Неверный формат файла."); }
+            } catch (err) { alert("Ошибка чтения файла JSON."); }
         };
         reader.readAsText(file);
-        e.target.value = ''; // Сброс инпута
+        e.target.value = '';
+    };
+
+    // ДИНАМИЧЕСКИЕ РЕСУРСЫ: Добавление
+    window.addCustomResource = () => {
+        const colors = ['#C7243A', '#E67E22', '#F1C40F', '#40E0D0', '#45B3CB', '#1E3A8A', '#9B59B6'];
+        const randColor = colors[Math.floor(Math.random() * colors.length)];
+        
+        const html = `
+        <div class="custom-resource-block" style="--res-color: ${randColor}; margin-bottom: 12px;">
+            <div class="scale-header oswald" style="margin-top: 0;">
+                <span style="color: var(--res-color)" contenteditable="true">НОВЫЙ РЕСУРС</span>
+                <div>
+                    <button class="btn-small" title="Изменить цвет (HEX)" onclick="window.changeResourceColor(this)"><i class="fa-solid fa-eye-dropper"></i></button>
+                    <button class="btn-small" onclick="window.adjustCustomScale(this, -1)">-</button>
+                    <button class="btn-small" onclick="window.adjustCustomScale(this, 1)">+</button>
+                    <button class="btn-small" style="color: var(--color-red); border-color: var(--color-red);" onclick="this.closest('.custom-resource-block').remove()"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            </div>
+            <div class="energy-grid">
+                <div class="energy-box normal"></div>
+                <div class="energy-box normal"></div>
+                <div class="energy-box normal"></div>
+            </div>
+        </div>`;
+        document.getElementById('custom-resources-container').insertAdjacentHTML('beforeend', html);
+    };
+
+    // ДИНАМИЧЕСКИЕ РЕСУРСЫ: Изменение цвета (Пипетка)
+    window.changeResourceColor = (btn) => {
+        const block = btn.closest('.custom-resource-block');
+        const currentHex = block.style.getPropertyValue('--res-color').trim();
+        const newHex = prompt("Введите HEX код цвета (Например: #C7243A для красного, #45B3CB для синего):", currentHex || "#9B59B6");
+        
+        if (newHex !== null) {
+            if (/^#([0-9A-Fa-f]{3}){1,2}$/.test(newHex.trim())) {
+                block.style.setProperty('--res-color', newHex.trim());
+            } else {
+                alert("Ошибка! Неверный формат HEX кода. Используйте формат #RRGGBB");
+            }
+        }
+    };
+
+    // ДИНАМИЧЕСКИЕ РЕСУРСЫ: Анимация шкал +/-
+    window.adjustCustomScale = (btn, a) => {
+        const grid = btn.closest('.custom-resource-block').querySelector('.energy-grid');
+        if (a > 0) {
+            const el = document.createElement('div');
+            el.className = 'energy-box normal scale-anim-hidden';
+            grid.appendChild(el);
+            void el.offsetWidth;
+            el.classList.remove('scale-anim-hidden');
+        } else if (a < 0 && grid.children.length > 1) {
+            const lastEl = grid.lastElementChild;
+            lastEl.classList.add('scale-anim-hidden');
+            setTimeout(() => lastEl.remove(), 200);
+        }
     };
 
     // Отрисовка базовых шкал при старте
@@ -403,26 +466,22 @@
         for (let i=0; i<window.sanityMax; i++) g.insertAdjacentHTML('beforeend', `<div class="sanity-box normal"></div>`);
     };
 
-    window.renderEnergy = () => {
-        const g = document.getElementById('energy-grid'); g.innerHTML = '';
-        for (let i=0; i<window.energyMax; i++) g.insertAdjacentHTML('beforeend', `<div class="energy-box normal"></div>`);
-    };
-
-    // АНИМИРОВАННОЕ ДОБАВЛЕНИЕ/УДАЛЕНИЕ ЯЧЕЕК
+    // АНИМИРОВАННОЕ ДОБАВЛЕНИЕ/УДАЛЕНИЕ ЯЧЕЕК ДЛЯ HP И SP
     window.adjustScale = (t, a) => {
         let gridId, boxClass, maxVar;
+        
+        // Поддержка старых сейвов, где энергия была завязана на window.adjustScale
+        if (t === 'energy') return; 
+
         if (t === 'health') { gridId = 'health-grid'; boxClass = 'health-box'; maxVar = 'healthMax'; }
         else if (t === 'sanity') { gridId = 'sanity-grid'; boxClass = 'sanity-box'; maxVar = 'sanityMax'; }
-        else if (t === 'energy') { gridId = 'energy-grid'; boxClass = 'energy-box'; maxVar = 'energyMax'; }
 
         const g = document.getElementById(gridId);
-
         if (a > 0) {
             window[maxVar]++;
             const el = document.createElement('div');
             el.className = `${boxClass} normal scale-anim-hidden`;
             g.appendChild(el);
-            // Принудительный перерасчет для запуска анимации
             void el.offsetWidth;
             el.classList.remove('scale-anim-hidden');
         } else if (a < 0 && window[maxVar] > 1) {
@@ -430,7 +489,7 @@
             const lastEl = g.lastElementChild;
             if (lastEl) {
                 lastEl.classList.add('scale-anim-hidden');
-                setTimeout(() => lastEl.remove(), 200); // Удаляем после завершения CSS-перехода
+                setTimeout(() => lastEl.remove(), 200);
             }
         }
     };
@@ -568,7 +627,6 @@
     window.setRandomFavicon();
     window.renderHealth();
     window.renderSanity();
-    window.renderEnergy();
     window.renderResistances();
     for(let i=0; i<4; i++) window.addTrait(`АНОМАЛИЯ ${i+1}`);
     window.renderAttributes();
@@ -664,7 +722,6 @@
                 html: mainSheet,
                 healthMax: window.healthMax,
                 sanityMax: window.sanityMax,
-                energyMax: window.energyMax,
                 agentName: agentName,
                 ownerEmail: currentUser.email,
                 timestamp: new Date().toISOString()
@@ -694,7 +751,6 @@
                 document.getElementById('main-character-sheet').innerHTML = data.html;
                 window.healthMax = data.healthMax || 10;
                 window.sanityMax = data.sanityMax || 12;
-                window.energyMax = data.energyMax || 5;
                 window.toggleSaveMenu();
             } else {
                 alert("Профиль не найден.");
