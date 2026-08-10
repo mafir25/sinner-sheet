@@ -65,7 +65,6 @@
         .scale-header { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; margin-bottom: 4px; }
         .health-grid, .sanity-grid, .energy-grid { display: flex; flex-wrap: wrap; gap: 4px; }
         
-        /* --- СИСТЕМА СОСТОЯНИЙ HP, SP, И НОВОЙ ЭНЕРГИИ --- */
         .health-box, .sanity-box, .energy-box { 
             width: 18px; height: 18px; cursor: pointer; background-color: transparent; 
             position: relative; display: flex; justify-content: center; align-items: center;
@@ -196,6 +195,10 @@
 
                 <button class="modal-btn btn-logout" style="margin-top: 15px;" onclick="window.firebaseLogout()"><i class="fa-solid fa-power-off"></i> Отключиться</button>
             </div>
+            
+            <!-- Оффлайн/Локальный бекап -->
+            <hr style="border: 0; border-top: 1px solid #222; margin: 15px 0;">
+            <button class="modal-btn btn-small" style="color: var(--color-yellow); border-color: var(--color-yellow); padding: 8px; font-size: 0.8rem;" onclick="window.exportToJson()"><i class="fa-solid fa-file-export"></i> Экспорт листа в JSON</button>
         </div>
     </div>
 </div>
@@ -287,7 +290,7 @@
 <script>
     window.healthMax = 10;
     window.sanityMax = 12;
-    window.energyMax = 5; // Стартовое значение нового ресурса
+    window.energyMax = 5; 
     let currentUploadTarget = null;
     
     window.setRandomFavicon = () => {
@@ -314,6 +317,36 @@
     window.toggleSaveMenu = () => document.getElementById('saveModal').classList.toggle('active');
     window.closeModalOnBg = (e) => { if (e.target.id === 'saveModal') window.toggleSaveMenu(); };
 
+    // Экспорт в JSON (Локально)
+    window.exportToJson = () => {
+        document.querySelectorAll('select').forEach(sel => {
+            Array.from(sel.options).forEach(opt => {
+                if (opt.value === sel.value) opt.setAttribute('selected', 'selected');
+                else opt.removeAttribute('selected');
+            });
+        });
+
+        const mainSheet = document.getElementById('main-character-sheet').innerHTML;
+        const agentName = document.getElementById('agent-name').innerText.trim() || 'Sinner';
+        
+        const saveObj = {
+            html: mainSheet,
+            healthMax: window.healthMax,
+            sanityMax: window.sanityMax,
+            energyMax: window.energyMax,
+            agentName: agentName,
+            timestamp: new Date().toISOString()
+        };
+
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(saveObj, null, 2));
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", agentName + "_sheet.json");
+        document.body.appendChild(downloadAnchorNode); 
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+    };
+
     // Отрисовка шкал
     window.renderHealth = () => {
         const g = document.getElementById('health-grid'); g.innerHTML = '';
@@ -337,7 +370,7 @@
     };
 
     document.addEventListener('click', e => {
-        // Логика здоровья (5 состояний)
+        // Логика здоровья
         if (e.target.classList.contains('health-box')) {
             const b = e.target;
             const states = ['normal', 'slash', 'hash', 'cross', 'empty'];
@@ -351,7 +384,7 @@
             if (states[nextIndex] !== 'empty') b.classList.add(states[nextIndex]);
         }
         
-        // Логика рассудка (4 состояния)
+        // Логика рассудка
         if (e.target.classList.contains('sanity-box')) {
             const b = e.target;
             const states = ['normal', 'slash', 'cross', 'empty'];
@@ -364,12 +397,12 @@
             if (states[nextIndex] !== 'empty') b.classList.add(states[nextIndex]);
         }
 
-        // Логика энергии (2 состояния)
+        // Логика энергии
         if (e.target.classList.contains('energy-box')) {
             e.target.classList.toggle('normal');
         }
 
-        // Логика очков защиты (2 состояния)
+        // Логика очков защиты
         if (e.target.classList.contains('defense-box')) {
             e.target.classList.toggle('normal');
         }
@@ -411,7 +444,16 @@
     };
 
     window.renderResistances = () => {
-        const dt = [{n:'Проникающий',c:'var(--accent-primary)'},{n:'Режущий',c:'var(--accent-primary)'},{n:'Дробящий',c:'var(--accent-primary)'},{n:'Чёрный',c:'#9B59B6'},{n:'Белый',c:'#FFFFFF'},{n:'Красный',c:'var(--color-red)'},{n:'Бледный',c:'#ADD8E6'}];
+        // Заменены типы урона по умолчанию (Красный, Белый, Чёрный, Бледный)
+        const dt = [
+            {n:'Красный',c:'var(--color-red)'},
+            {n:'Белый',c:'#FFFFFF'},
+            {n:'Чёрный',c:'#9B59B6'},
+            {n:'Бледный',c:'#ADD8E6'},
+            {n:'Проникающий',c:'var(--accent-primary)'},
+            {n:'Режущий',c:'var(--accent-primary)'},
+            {n:'Дробящий',c:'var(--accent-primary)'}
+        ];
         const st = [{n:'Смертельно',v:'fatal'},{n:'Уязвимость',v:'weak'},{n:'Стойкость',v:'endured'},{n:'Неэффективно',v:'ineffective'}];
         let h = '';
         for(let i=0; i<4; i++) {
@@ -439,7 +481,8 @@
     window.createDots = () => { let d = ''; for(let i=1; i<=5; i++) d += `<div class="dot" data-val="${i}"></div>`; return `<div class="dots-container">${d}</div>`; };
 
     window.renderAttributes = () => {
-        const cats = [{ i: 'phis.jpg', s: ['Тело', 'Сила'] }, { i: 'unde.jpg', s: ['Понимание', 'Логика'] }, { i: 'vide.jpg', s: ['Выдержка', 'Воля', 'Убеждение'] }, { i: 'spra.jpg', s: ['Рефлексы', 'Фокус'] }];
+        // "Воля" переименована в "Интуиция"
+        const cats = [{ i: 'phis.jpg', s: ['Тело', 'Сила'] }, { i: 'unde.jpg', s: ['Понимание', 'Логика'] }, { i: 'vide.jpg', s: ['Выдержка', 'Интуиция', 'Убеждение'] }, { i: 'spra.jpg', s: ['Рефлексы', 'Фокус'] }];
         document.getElementById('attributes-container').innerHTML = cats.map(c => `
             <div class="stat-category">
                 <div class="img-upload stat-icon" onclick="window.triggerImageUpload(this)" style="background-image: url('${c.i}');"></div>
