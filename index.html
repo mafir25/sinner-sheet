@@ -63,10 +63,10 @@
         .info-label { color: var(--text-dim); text-transform: uppercase; font-size: 0.7rem; margin-right: 8px; min-width: 90px; }
         
         .scale-header { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; margin-bottom: 4px; }
-        .health-grid, .sanity-grid { display: flex; flex-wrap: wrap; gap: 4px; }
+        .health-grid, .sanity-grid, .energy-grid { display: flex; flex-wrap: wrap; gap: 4px; }
         
-        /* --- НОВАЯ СИСТЕМА СОСТОЯНИЙ HP И SP --- */
-        .health-box, .sanity-box { 
+        /* --- СИСТЕМА СОСТОЯНИЙ HP, SP, И НОВОЙ ЭНЕРГИИ --- */
+        .health-box, .sanity-box, .energy-box { 
             width: 18px; height: 18px; cursor: pointer; background-color: transparent; 
             position: relative; display: flex; justify-content: center; align-items: center;
             font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 700; user-select: none;
@@ -84,6 +84,18 @@
         .sanity-box.normal { background-color: var(--color-cyan); }
         .sanity-box.slash::after { content: "/"; }
         .sanity-box.cross::after { content: "X"; }
+
+        /* Энергия (Фиолетовый бар, 2 состояния) */
+        .energy-box { border: 1px solid #9B59B6; color: #9B59B6; transition: 0.1s; }
+        .energy-box.normal { background-color: #9B59B6; }
+
+        /* Очки Защиты (Индиго, 2 состояния) */
+        .defense-grid { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+        .defense-box { 
+            width: 22px; height: 22px; cursor: pointer; background-color: transparent; 
+            border: 2px solid var(--color-indigo); transition: background-color 0.1s;
+        }
+        .defense-box.normal { background-color: var(--color-indigo); }
 
         .hazard-tape { height: 14px; background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--accent-primary) 10px, var(--accent-primary) 20px); border-bottom: 1px solid var(--accent-primary); }
         .combat-skills-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 16px; }
@@ -216,6 +228,9 @@
             
             <div class="scale-header oswald"><span style="color: var(--color-cyan)">РАССУДОК (SP)</span><div><button class="btn-small" onclick="window.adjustScale('sanity', -1)">-</button><button class="btn-small" onclick="window.adjustScale('sanity', 1)">+</button></div></div>
             <div class="sanity-grid" id="sanity-grid"></div>
+
+            <div class="scale-header oswald"><span style="color: #9B59B6" contenteditable="true">ОСОБЫЙ РЕСУРС</span><div><button class="btn-small" onclick="window.adjustScale('energy', -1)">-</button><button class="btn-small" onclick="window.adjustScale('energy', 1)">+</button></div></div>
+            <div class="energy-grid" id="energy-grid"></div>
         </div>
     </div>
     
@@ -232,7 +247,17 @@
     <div class="panel-outer cut-tl block-3">
         <div class="panel-inner cut-tl">
             <div class="panel-title">ЗАЩИТА И Э.Г.О.</div>
-            <div class="img-upload" style="width:100%; height: 80px; margin-bottom: 16px;" onclick="window.triggerImageUpload(this)"></div>
+            
+            <!-- Очки Защиты -->
+            <div class="scale-header oswald" style="margin-top: 0; margin-bottom: 8px;"><span style="color: var(--color-indigo)">ОЧКИ ЗАЩИТЫ</span></div>
+            <div class="defense-grid" id="defense-grid">
+                <div class="defense-box normal"></div>
+                <div class="defense-box normal"></div>
+                <div class="defense-box normal"></div>
+                <div class="defense-box normal"></div>
+                <div class="defense-box normal"></div>
+            </div>
+
             <div id="resistances"></div>
             <div class="panel-title" style="margin-top: 20px; font-size: 1rem;">ПАССИВНЫЕ ЧЕРТЫ<button class="btn-small" onclick="window.addTrait()">+ ДОБАВИТЬ ЧЕРТУ</button></div>
             <div id="traits-container"></div>
@@ -262,6 +287,7 @@
 <script>
     window.healthMax = 10;
     window.sanityMax = 12;
+    window.energyMax = 5; // Стартовое значение нового ресурса
     let currentUploadTarget = null;
     
     window.setRandomFavicon = () => {
@@ -288,7 +314,7 @@
     window.toggleSaveMenu = () => document.getElementById('saveModal').classList.toggle('active');
     window.closeModalOnBg = (e) => { if (e.target.id === 'saveModal') window.toggleSaveMenu(); };
 
-    // Отрисовка новых квадратов HP/SP
+    // Отрисовка шкал
     window.renderHealth = () => {
         const g = document.getElementById('health-grid'); g.innerHTML = '';
         for (let i=0; i<window.healthMax; i++) g.insertAdjacentHTML('beforeend', `<div class="health-box normal"></div>`);
@@ -299,9 +325,15 @@
         for (let i=0; i<window.sanityMax; i++) g.insertAdjacentHTML('beforeend', `<div class="sanity-box normal"></div>`);
     };
 
+    window.renderEnergy = () => {
+        const g = document.getElementById('energy-grid'); g.innerHTML = '';
+        for (let i=0; i<window.energyMax; i++) g.insertAdjacentHTML('beforeend', `<div class="energy-box normal"></div>`);
+    };
+
     window.adjustScale = (t, a) => {
         if (t === 'health') { window.healthMax = Math.max(1, window.healthMax + a); window.renderHealth(); } 
-        else { window.sanityMax = Math.max(1, window.sanityMax + a); window.renderSanity(); }
+        else if (t === 'sanity') { window.sanityMax = Math.max(1, window.sanityMax + a); window.renderSanity(); }
+        else if (t === 'energy') { window.energyMax = Math.max(1, window.energyMax + a); window.renderEnergy(); }
     };
 
     document.addEventListener('click', e => {
@@ -309,14 +341,11 @@
         if (e.target.classList.contains('health-box')) {
             const b = e.target;
             const states = ['normal', 'slash', 'hash', 'cross', 'empty'];
-            
-            // Поддержка старых сохранений
             if (b.classList.contains('full')) { b.classList.remove('full'); b.classList.add('normal'); }
             if (b.classList.contains('damaged')) { b.classList.remove('damaged'); b.classList.add('slash'); }
             
             let current = 'empty';
             for (let s of states) if (b.classList.contains(s)) current = s;
-            
             let nextIndex = (states.indexOf(current) + 1) % states.length;
             b.classList.remove(...states);
             if (states[nextIndex] !== 'empty') b.classList.add(states[nextIndex]);
@@ -326,19 +355,26 @@
         if (e.target.classList.contains('sanity-box')) {
             const b = e.target;
             const states = ['normal', 'slash', 'cross', 'empty'];
-            
-            // Поддержка старых сохранений
             if (b.classList.contains('filled')) { b.classList.remove('filled'); b.classList.add('normal'); }
             
             let current = 'empty';
             for (let s of states) if (b.classList.contains(s)) current = s;
-            
             let nextIndex = (states.indexOf(current) + 1) % states.length;
             b.classList.remove(...states);
             if (states[nextIndex] !== 'empty') b.classList.add(states[nextIndex]);
         }
+
+        // Логика энергии (2 состояния)
+        if (e.target.classList.contains('energy-box')) {
+            e.target.classList.toggle('normal');
+        }
+
+        // Логика очков защиты (2 состояния)
+        if (e.target.classList.contains('defense-box')) {
+            e.target.classList.toggle('normal');
+        }
         
-        // Логика точек
+        // Логика точек навыков
         if(e.target.classList.contains('dot')) {
             const val = parseInt(e.target.dataset.val);
             const dots = e.target.parentElement.querySelectorAll('.dot');
@@ -425,6 +461,7 @@
     window.setRandomFavicon();
     window.renderHealth();
     window.renderSanity();
+    window.renderEnergy();
     window.renderResistances();
     for(let i=0; i<4; i++) window.addTrait(`АНОМАЛИЯ ${i+1}`);
     window.renderAttributes();
@@ -520,6 +557,7 @@
                 html: mainSheet,
                 healthMax: window.healthMax,
                 sanityMax: window.sanityMax,
+                energyMax: window.energyMax,
                 agentName: agentName,
                 ownerEmail: currentUser.email,
                 timestamp: new Date().toISOString()
@@ -549,6 +587,7 @@
                 document.getElementById('main-character-sheet').innerHTML = data.html;
                 window.healthMax = data.healthMax || 10;
                 window.sanityMax = data.sanityMax || 12;
+                window.energyMax = data.energyMax || 5;
                 window.toggleSaveMenu();
             } else {
                 alert("Профиль не найден.");
