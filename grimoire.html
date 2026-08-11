@@ -38,12 +38,12 @@
         /* --- Разделенные блоки Поиска и Фильтров --- */
         .filters-section { width: 100%; max-width: 1200px; margin-bottom: 24px; display: flex; flex-direction: column; gap: 16px; }
         
-        /* Поиск (с правильным скосом и рамкой) */
+        /* Поиск (Тонкая строка) */
         .search-wrapper { background-color: var(--accent-muted); padding: var(--border-width); transition: background-color 0.2s; }
         .search-wrapper:focus-within { background-color: var(--accent-primary); }
         .search-inner { background: rgba(0,0,0,0.7); padding: 0; display: flex; align-items: center; flex-direction: row; }
-        .search-icon { padding-left: 16px; color: var(--text-dim); }
-        .search-input { width: 100%; background: transparent; border: none; color: var(--text-main); padding: 14px 14px 14px 14px; font-family: 'Inter', sans-serif; font-size: 1rem; outline: none; }
+        .search-icon { padding-left: 14px; font-size: 0.9rem; color: var(--text-dim); }
+        .search-input { width: 100%; background: transparent; border: none; color: var(--text-main); padding: 8px 14px 8px 10px; font-family: 'Inter', sans-serif; font-size: 0.95rem; outline: none; }
         .search-input::placeholder { color: var(--text-dim); }
 
         /* Кнопки Фильтров */
@@ -99,7 +99,7 @@
 
     <!-- Разделенный блок фильтров и поиска -->
     <div class="filters-section">
-        <!-- Поиск -->
+        <!-- Поиск (Тонкая строка) -->
         <div class="panel-outer cut-tl search-wrapper">
             <div class="panel-inner cut-tl search-inner">
                 <i class="fa-solid fa-magnifying-glass search-icon"></i>
@@ -126,8 +126,8 @@
             "Sinking": { name: "Утопание", color: "#45B3CB", icon: "Sinking.png" },
             "Poise": { name: "Уверенность", color: "#1E3A8A", icon: "Poise.png" },
             "Charge": { name: "Заряд", color: "#9B59B6", icon: "Charge.png" },
-            "Other": { name: "Иное", color: "#00CED1", icon: "Other.png" }, // Иконка переименована
-            "None": { name: "Нет", color: "#696969", icon: "" } // Перемещено в конец
+            "Other": { name: "Иное", color: "#00CED1", icon: "Other.png" }, 
+            "None": { name: "Нет", color: "#696969", icon: "" } 
         };
 
         let currentTypeFilter = 'all';
