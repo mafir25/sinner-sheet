@@ -910,7 +910,7 @@
   {
     "No": 25,
     "Name": "Кольцо - Пуантилист",
-    "Type": ["Other"],
+    "Type": ["Other", "Burn", "Bleed", "Tremor", "Rupture", "Sinking"],
     "Talents": [
       {
         "name": "Художественная среда (Art Medium)",
@@ -984,7 +984,7 @@
   {
     "No": 27,
     "Name": "Команда Пекод",
-    "Type": ["Bleed"],
+    "Type": ["Bleed", "Poise"],
     "Talents": [
       {
         "name": "Матрос (Deckhand)",
@@ -1137,7 +1137,7 @@
   {
     "No": 31,
     "Name": "Офис Полная Остановка",
-    "Type": ["Poise"],
+    "Type": ["Poise", "Rupture"],
     "Talents": [
       {
         "name": "Заряженное оружие (Loaded Gun)",
@@ -1532,7 +1532,7 @@
   {
     "No": 41,
     "Name": "Улыбающиеся Лица",
-    "Type": ["Other"],
+    "Type": ["Other", "Bleed"],
     "Talents": [
       {
         "name": "Вдохнуть дым (Inhale Smoke)",
@@ -1685,7 +1685,7 @@
   {
     "No": 45,
     "Name": "J-Корп",
-    "Type": ["Other"],
+    "Type": ["Other", "Bleed", "Tremor"],
     "Talents": [
       {
         "name": "Генные коды (Gene Codes)",
@@ -1763,8 +1763,8 @@
   },
   {
     "No": 47,
-    "Name": "R-Corp",
-    "Type": ["Charge"],
+    "Name": "R-Корп",
+    "Type": ["Charge", "Bleed", "Sinking", "Tremor"],
     "Talents": [
       {
         "name": "Агрессивная пехота (Aggressive Infantry)",
@@ -1887,7 +1887,7 @@
   },
   {
     "No": 49,
-    "Name": "N-Corp",
+    "Name": "N-Корп",
     "Type": ["Bleed", "Other"],
     "Talents": [
       {
@@ -1924,7 +1924,7 @@
   },
   {
     "No": 50,
-    "Name": "W-Corp",
+    "Name": "W-Корп",
     "Type": ["Charge", "Rupture"],
     "Talents": [
       {
