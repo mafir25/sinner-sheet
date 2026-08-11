@@ -29,20 +29,28 @@
         .lore-text { font-family: 'Merriweather', serif; font-style: italic; color: var(--accent-muted); font-size: 0.85rem; }
         .tech-text { font-family: 'Inter', sans-serif; color: var(--accent-primary); font-size: 0.8rem; }
 
-        /* Навигация */
+        /* Навигация (левая) */
         .top-nav-btn { position: fixed; top: 10px; left: 20px; padding: 6px 12px; font-size: 0.8rem; border-color: var(--color-cyan); color: var(--color-cyan); font-family: 'Oswald', sans-serif; z-index: 100; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; border: 1px solid var(--color-cyan); cursor: pointer; text-transform: uppercase; transition: 0.2s; }
         .top-nav-btn:hover { background-color: var(--color-cyan); color: #000; }
         
-        .class-base-btn { position: fixed; top: 10px; right: 20px; padding: 6px 12px; font-size: 0.8rem; border-color: var(--color-yellow); color: var(--color-yellow); font-family: 'Oswald', sans-serif; z-index: 1000; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; border: 1px solid var(--color-yellow); cursor: pointer; text-transform: uppercase; transition: 0.2s; }
+        /* Правая панель управления */
+        .right-controls { position: fixed; top: 10px; right: 20px; z-index: 1000; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+        
+        .side-nav-btn { padding: 6px 12px; font-size: 0.8rem; font-family: 'Oswald', sans-serif; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; cursor: pointer; text-transform: uppercase; transition: 0.2s; border-radius: 2px; }
+        
+        .class-base-btn { border: 1px solid var(--color-yellow); color: var(--color-yellow); }
         .class-base-btn:hover { background-color: var(--color-yellow); color: #000; }
 
-        /* Переключатель режимов */
-        .mode-toggle-wrapper { position: fixed; top: 46px; right: 20px; z-index: 1000; display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.8); padding: 4px 10px; border: 1px solid #333; border-radius: 2px; }
+        .create-class-btn { border: 1px solid var(--color-cyan); color: var(--color-cyan); }
+        .create-class-btn:hover { background-color: var(--color-cyan); color: #000; }
+
+        .mode-toggle-wrapper { display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.8); padding: 4px 10px; border: 1px solid #333; border-radius: 2px; }
         .mode-toggle-wrapper input[type="checkbox"] { cursor: pointer; accent-color: var(--color-cyan); width: 14px; height: 14px; }
         .mode-toggle-label { font-size: 0.75rem; font-family: 'Oswald', sans-serif; text-transform: uppercase; color: var(--text-dim); cursor: pointer; user-select: none; }
 
+        /* Заголовок страницы */
         .header-bar { width: 100%; max-width: 1200px; display: flex; justify-content: center; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--accent-muted); padding-bottom: 10px; margin-top: 10px; gap: 20px;}
-        .header-title { color: var(--accent-primary); font-size: 1.5rem; letter-spacing: 2px; }
+        .header-title { color: var(--accent-primary); font-size: 1.5rem; letter-spacing: 2px; text-align: center; }
 
         /* Поиск и Фильтры */
         .filters-section { width: 100%; max-width: 1200px; margin-bottom: 24px; display: flex; flex-direction: column; gap: 16px; }
@@ -145,12 +153,19 @@
 </head>
 <body data-mode="types">
 
+    <!-- Левая панель навигации -->
     <a href="index.html" class="top-nav-btn"><i class="fa-solid fa-arrow-left"></i> ТЕРМИНАЛ АГЕНТА</a>
-    <button class="class-base-btn" onclick="window.toggleSidebar()"><i class="fa-solid fa-book-open"></i> БАЗА ФИКСЕРА</button>
     
-    <div class="mode-toggle-wrapper">
-        <input type="checkbox" id="mode-checkbox" onchange="window.toggleMode()">
-        <label for="mode-checkbox" class="mode-toggle-label">Режим Характеристик</label>
+    <!-- Правая панель управления -->
+    <div class="right-controls">
+        <button class="side-nav-btn class-base-btn" onclick="window.toggleSidebar()"><i class="fa-solid fa-book-open"></i> БАЗА ФИКСЕРА</button>
+        
+        <div class="mode-toggle-wrapper">
+            <input type="checkbox" id="mode-checkbox" onchange="window.toggleMode()">
+            <label for="mode-checkbox" class="mode-toggle-label">Режим Характеристик</label>
+        </div>
+        
+        <button class="side-nav-btn create-class-btn" onclick="window.toggleBuilderModal()"><i class="fa-solid fa-plus"></i> СОЗДАТЬ КЛАСС</button>
     </div>
 
     <!-- Модальное окно: Конструктор Класса -->
@@ -338,7 +353,6 @@
     <!-- Заголовок страницы -->
     <div class="header-bar">
         <div class="header-title oswald">БАЗА ДАННЫХ: АРХЕТИПЫ И КЛАССЫ</div>
-        <button class="btn-small" style="border-color: var(--color-yellow); color: var(--color-yellow);" onclick="window.toggleBuilderModal()"><i class="fa-solid fa-plus"></i> СОЗДАТЬ КЛАСС</button>
     </div>
 
     <div class="filters-section">
@@ -413,21 +427,19 @@
 
                 let talentObj = { name: tName || "Без названия", level: tLevel, desc: tDesc || "Нет описания" };
                 if (tColor && tColor.trim() !== '') {
-                    // Добавляем # если забыли
                     talentObj.Color = tColor.startsWith('#') ? tColor.trim() : '#' + tColor.trim();
                 }
                 talents.push(talentObj);
             });
 
             const newClass = {
-                No: 999, // Заглушка, чтобы ДМ сам присвоил номер
+                No: 999,
                 Name: name || "Новый Класс",
                 Type: types,
                 Stats: stats,
                 Talents: talents
             };
 
-            // Выводим массивом, чтобы формат совпадал с classes.json
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify([newClass], null, 2));
             const dl = document.createElement('a');
             dl.setAttribute("href", dataStr);
