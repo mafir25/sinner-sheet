@@ -35,10 +35,9 @@
         .header-bar { width: 100%; max-width: 1200px; display: flex; justify-content: center; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--accent-muted); padding-bottom: 10px; }
         .header-title { color: var(--accent-primary); font-size: 1.5rem; letter-spacing: 2px; }
 
-        /* --- Разделенные блоки Поиска и Фильтров --- */
+        /* Разделенные блоки Поиска и Фильтров */
         .filters-section { width: 100%; max-width: 1200px; margin-bottom: 24px; display: flex; flex-direction: column; gap: 16px; }
         
-        /* Поиск (Тонкая строка) */
         .search-wrapper { background-color: var(--accent-muted); padding: var(--border-width); transition: background-color 0.2s; }
         .search-wrapper:focus-within { background-color: var(--accent-primary); }
         .search-inner { background: rgba(0,0,0,0.7); padding: 0; display: flex; align-items: center; flex-direction: row; }
@@ -46,7 +45,6 @@
         .search-input { width: 100%; background: transparent; border: none; color: var(--text-main); padding: 8px 14px 8px 10px; font-family: 'Inter', sans-serif; font-size: 0.95rem; outline: none; }
         .search-input::placeholder { color: var(--text-dim); }
 
-        /* Кнопки Фильтров */
         .type-filters { display: flex; flex-wrap: wrap; gap: 8px; }
         .filter-btn { display: flex; align-items: center; gap: 6px; font-family: 'Oswald', sans-serif; font-size: 0.85rem; text-transform: uppercase; border: 1px solid var(--text-dim); color: var(--text-dim); background: rgba(0,0,0,0.5); padding: 4px 10px; cursor: pointer; transition: 0.2s; border-radius: 2px; }
         .filter-btn:hover { border-color: var(--text-main); color: var(--text-main); }
@@ -59,7 +57,9 @@
         .panel-inner { background-color: var(--bg-panel); padding: 16px; height: 100%; display: flex; flex-direction: column; }
         .cut-tl { clip-path: polygon(var(--chamfer) 0, 100% 0, 100% 100%, 0 100%, 0 var(--chamfer)); }
 
-        /* Стили карточек (Сворачивание) */
+        /* РАСТЯГИВАНИЕ НА ВСЮ ШИРИНУ ПРИ ОТКРЫТИИ */
+        .compendium-card.expanded { grid-column: 1 / -1; }
+
         .card-header-clickable { cursor: pointer; position: relative; padding-right: 24px; user-select: none; }
         .card-header-clickable:hover .class-title { color: var(--color-orange); }
         .expand-icon { position: absolute; right: 0; top: 6px; color: var(--text-dim); transition: transform 0.3s ease; }
@@ -71,7 +71,6 @@
         .type-badge { display: flex; align-items: center; gap: 6px; font-family: 'Oswald', sans-serif; font-size: 0.9rem; text-transform: uppercase; border: 1px solid; padding: 2px 8px; border-radius: 2px; background: rgba(0,0,0,0.5); }
         .type-icon { width: 16px; height: 16px; object-fit: contain; }
 
-        /* Контейнер для скрытых талантов */
         .talents-wrapper {
             max-height: 0;
             opacity: 0;
@@ -79,12 +78,24 @@
             transition: max-height 0.4s ease, margin-top 0.4s ease, opacity 0.3s ease;
         }
         
-        .talent-block { margin-bottom: 16px; border-left: 2px solid var(--accent-muted); padding-left: 10px; }
+        /* СТИЛИ ДЛЯ КОПИРОВАНИЯ ТАЛАНТОВ */
+        .talent-block { 
+            margin-bottom: 16px; border-left: 2px solid var(--accent-muted); 
+            padding: 8px 10px; cursor: pointer; position: relative;
+            transition: background-color 0.2s, border-color 0.2s; 
+        }
         .talent-block:last-child { margin-bottom: 0; }
+        .talent-block:hover { background-color: rgba(255,255,255,0.05); border-color: var(--accent-primary); }
+        
         .talent-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
         .talent-name { font-family: 'Oswald', sans-serif; color: var(--accent-primary); font-size: 1.1rem; }
         .talent-level { color: var(--text-dim); font-size: 0.75rem; }
         .talent-desc { font-size: 0.85rem; color: var(--text-main); line-height: 1.4; }
+
+        .copy-msg { 
+            text-align: right; color: var(--accent-primary); font-size: 0.7rem; 
+            margin-top: 4px; opacity: 0; transition: opacity 0.2s; font-family: 'Oswald', sans-serif;
+        }
 
         .loading-text { text-align: center; color: var(--text-dim); font-family: 'Oswald', sans-serif; font-size: 1.2rem; width: 100%; grid-column: 1 / -1; }
     </style>
@@ -99,14 +110,14 @@
 
     <!-- Разделенный блок фильтров и поиска -->
     <div class="filters-section">
-        <!-- Поиск (Тонкая строка) -->
+        <!-- Поиск -->
         <div class="panel-outer cut-tl search-wrapper">
             <div class="panel-inner cut-tl search-inner">
                 <i class="fa-solid fa-magnifying-glass search-icon"></i>
                 <input type="text" id="search-input" class="search-input" placeholder="Поиск по названию класса (Например: Инквизитор, Агент...)" onkeyup="window.filterClasses()">
             </div>
         </div>
-        <!-- Кнопки типов (Генерируются скриптом) -->
+        <!-- Кнопки типов -->
         <div class="type-filters" id="type-filters">
             <!-- Кнопки появятся здесь -->
         </div>
@@ -117,7 +128,7 @@
     </div>
 
     <script>
-        // Словарь тегов (с правильным порядком "Иное", затем "Нет")
+        // Словарь тегов
         const typeDictionary = {
             "Burn": { name: "Огонь", color: "#C7243A", icon: "Burn.png" },
             "Bleed": { name: "Кровотечение", color: "#E67E22", icon: "Bleed.png" },
@@ -152,7 +163,6 @@
         window.setTypeFilter = (type, btn) => {
             currentTypeFilter = type;
             
-            // Сброс стилей всех кнопок
             document.querySelectorAll('.filter-btn').forEach(b => {
                 b.classList.remove('active');
                 b.style.borderColor = 'var(--text-dim)';
@@ -160,13 +170,11 @@
                 b.style.backgroundColor = 'rgba(0,0,0,0.5)';
             });
             
-            // Установка стиля активной кнопки
             btn.classList.add('active');
             if(type !== 'all') {
                 const color = btn.getAttribute('data-color');
                 btn.style.borderColor = color;
                 btn.style.color = color;
-                // Легкая подсветка фона под цвет стихии
                 btn.style.backgroundColor = `color-mix(in srgb, ${color} 15%, transparent)`;
             } else {
                 btn.style.borderColor = 'var(--accent-primary)';
@@ -177,7 +185,7 @@
             window.filterClasses();
         };
 
-        // Логика комбинированного поиска (Текст + Тип)
+        // Логика поиска
         window.filterClasses = () => {
             const query = document.getElementById('search-input').value.toLowerCase();
             const cards = document.querySelectorAll('.compendium-card');
@@ -186,9 +194,7 @@
                 const nameData = card.getAttribute('data-name').toLowerCase();
                 const typesData = card.getAttribute('data-types').split(' ');
                 
-                // Проверка имени
                 const matchesName = nameData.includes(query);
-                // Проверка типа (если выбран "all", то тип не важен)
                 const matchesType = currentTypeFilter === 'all' || typesData.includes(currentTypeFilter);
                 
                 if (matchesName && matchesType) {
@@ -199,7 +205,7 @@
             });
         };
 
-        // Логика разворачивания/сворачивания карточки
+        // Логика разворачивания карточки
         window.toggleCard = (el) => {
             const card = el.closest('.panel-outer');
             const talentsWrapper = card.querySelector('.talents-wrapper');
@@ -220,7 +226,25 @@
             }
         };
 
-        // Загрузка JSON и генерация HTML
+        // Логика копирования навыка
+        window.copyTalent = (el) => {
+            const name = el.getAttribute('data-name');
+            const level = el.getAttribute('data-level');
+            const desc = el.getAttribute('data-desc');
+            
+            // Формат: [Название], [Уровень] - уровень \n [Описание]
+            const textToCopy = `${name}, ${level} - уровень\n${desc}`;
+            
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                const msg = el.querySelector('.copy-msg');
+                msg.style.opacity = '1';
+                setTimeout(() => msg.style.opacity = '0', 1500);
+            }).catch(err => {
+                console.error('Ошибка копирования:', err);
+            });
+        };
+
+        // Загрузка JSON
         async function loadGrimoire() {
             const container = document.getElementById('compendium');
             
@@ -234,8 +258,6 @@
                 
                 classesData.forEach(cls => {
                     let typesHtml = '';
-                    
-                    // Собираем типы для атрибута фильтрации
                     let typesString = (cls.Type && Array.isArray(cls.Type)) ? cls.Type.join(' ') : '';
 
                     if (cls.Type && Array.isArray(cls.Type)) {
@@ -258,19 +280,22 @@
                     let talentsHtml = '';
                     if (cls.Talents && Array.isArray(cls.Talents)) {
                         cls.Talents.forEach(talent => {
+                            const safeTalentName = talent.name.replace(/"/g, '&quot;');
+                            const safeTalentDesc = talent.desc.replace(/"/g, '&quot;');
+                            
                             talentsHtml += `
-                                <div class="talent-block">
+                                <div class="talent-block" data-name="${safeTalentName}" data-level="${talent.level}" data-desc="${safeTalentDesc}" onclick="window.copyTalent(this)" title="Нажмите, чтобы скопировать">
                                     <div class="talent-header">
                                         <div class="talent-name">${talent.name}</div>
                                         <div class="talent-level tech-text">Уровень: ${talent.level}</div>
                                     </div>
                                     <div class="talent-desc">${talent.desc}</div>
+                                    <div class="copy-msg">Скопировано в буфер!</div>
                                 </div>
                             `;
                         });
                     }
 
-                    // Сборка карточки с data-атрибутами для фильтрации
                     const safeName = cls.Name.replace(/"/g, '&quot;');
                     
                     const cardHtml = `
