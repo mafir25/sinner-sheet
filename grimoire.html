@@ -22,6 +22,7 @@
             background-color: var(--bg-main); color: var(--text-main); font-family: 'Inter', sans-serif;
             min-height: 100vh; padding: 60px 20px 40px 20px; display: flex; flex-direction: column; align-items: center;
             background-image: linear-gradient(rgba(7,7,7,0.8), rgba(7,7,7,0.8)), repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.02) 2px, rgba(255,255,255,0.02) 4px);
+            overflow-x: hidden;
         }
 
         h1, h2, h3, h4, .oswald { font-family: 'Oswald', sans-serif; text-transform: uppercase; }
@@ -29,8 +30,12 @@
         .tech-text { font-family: 'Inter', sans-serif; color: var(--accent-primary); font-size: 0.8rem; }
 
         /* Навигация */
-        .top-nav-btn { position: absolute; top: 10px; left: 20px; padding: 6px 12px; font-size: 0.8rem; border-color: var(--color-cyan); color: var(--color-cyan); font-family: 'Oswald', sans-serif; z-index: 100; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; border: 1px solid var(--color-cyan); cursor: pointer; text-transform: uppercase; transition: 0.2s; }
+        .top-nav-btn { position: fixed; top: 10px; left: 20px; padding: 6px 12px; font-size: 0.8rem; border-color: var(--color-cyan); color: var(--color-cyan); font-family: 'Oswald', sans-serif; z-index: 100; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; border: 1px solid var(--color-cyan); cursor: pointer; text-transform: uppercase; transition: 0.2s; }
         .top-nav-btn:hover { background-color: var(--color-cyan); color: #000; }
+        
+        /* Кнопка вызова боковой панели */
+        .class-base-btn { position: fixed; top: 10px; right: 20px; padding: 6px 12px; font-size: 0.8rem; border-color: var(--color-yellow); color: var(--color-yellow); font-family: 'Oswald', sans-serif; z-index: 1000; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; border: 1px solid var(--color-yellow); cursor: pointer; text-transform: uppercase; transition: 0.2s; }
+        .class-base-btn:hover { background-color: var(--color-yellow); color: #000; }
 
         .header-bar { width: 100%; max-width: 1200px; display: flex; justify-content: center; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--accent-muted); padding-bottom: 10px; }
         .header-title { color: var(--accent-primary); font-size: 1.5rem; letter-spacing: 2px; }
@@ -57,7 +62,6 @@
         .panel-inner { background-color: var(--bg-panel); padding: 16px; height: 100%; display: flex; flex-direction: column; }
         .cut-tl { clip-path: polygon(var(--chamfer) 0, 100% 0, 100% 100%, 0 100%, 0 var(--chamfer)); }
 
-        /* РАСТЯГИВАНИЕ НА ВСЮ ШИРИНУ ПРИ ОТКРЫТИИ */
         .compendium-card.expanded { grid-column: 1 / -1; }
 
         .card-header-clickable { cursor: pointer; position: relative; padding-right: 24px; user-select: none; }
@@ -71,56 +75,279 @@
         .type-badge { display: flex; align-items: center; gap: 6px; font-family: 'Oswald', sans-serif; font-size: 0.9rem; text-transform: uppercase; border: 1px solid; padding: 2px 8px; border-radius: 2px; background: rgba(0,0,0,0.5); }
         .type-icon { width: 16px; height: 16px; object-fit: contain; }
 
-        .talents-wrapper {
-            max-height: 0;
-            opacity: 0;
-            overflow: hidden;
-            transition: max-height 0.4s ease, margin-top 0.4s ease, opacity 0.3s ease;
-        }
+        .talents-wrapper { max-height: 0; opacity: 0; overflow: hidden; transition: max-height 0.4s ease, margin-top 0.4s ease, opacity 0.3s ease; }
         
-        /* СТИЛИ ДЛЯ КОПИРОВАНИЯ ТАЛАНТОВ */
-        .talent-block { 
-            margin-bottom: 16px; border-left: 2px solid var(--accent-muted); 
-            padding: 8px 10px; cursor: pointer; position: relative;
-            transition: background-color 0.2s, border-color 0.2s; 
-        }
+        .talent-block { margin-bottom: 16px; border-left: 2px solid var(--accent-muted); padding: 8px 10px; cursor: pointer; position: relative; transition: background-color 0.2s, border-color 0.2s; }
         .talent-block:last-child { margin-bottom: 0; }
         .talent-block:hover { background-color: rgba(255,255,255,0.05); border-color: var(--accent-primary); }
         
         .talent-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
         .talent-name { font-family: 'Oswald', sans-serif; color: var(--accent-primary); font-size: 1.1rem; }
         .talent-level { color: var(--text-dim); font-size: 0.75rem; }
-        .talent-desc { font-size: 0.85rem; color: var(--text-main); line-height: 1.4; }
+        .talent-desc { font-size: 0.85rem; color: var(--text-main); line-height: 1.4; white-space: pre-wrap; }
 
-        .copy-msg { 
-            text-align: right; color: var(--accent-primary); font-size: 0.7rem; 
-            margin-top: 4px; opacity: 0; transition: opacity 0.2s; font-family: 'Oswald', sans-serif;
-        }
-
+        .copy-msg { text-align: right; color: var(--accent-primary); font-size: 0.7rem; margin-top: 4px; opacity: 0; transition: opacity 0.2s; font-family: 'Oswald', sans-serif; }
         .loading-text { text-align: center; color: var(--text-dim); font-family: 'Oswald', sans-serif; font-size: 1.2rem; width: 100%; grid-column: 1 / -1; }
+
+        /* --- БОКОВАЯ ПАНЕЛЬ ОСНОВНОГО КЛАССА --- */
+        .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 900; opacity: 0; pointer-events: none; transition: 0.3s; backdrop-filter: blur(3px); }
+        .sidebar-overlay.active { opacity: 1; pointer-events: all; }
+        
+        .class-sidebar { position: fixed; top: 0; right: -600px; width: 600px; max-width: 90vw; height: 100vh; background: var(--bg-main); border-left: 2px solid var(--accent-primary); z-index: 999; transition: right 0.3s ease; overflow-y: auto; padding: 60px 20px 40px 30px; box-shadow: -10px 0 30px rgba(0,0,0,0.8); }
+        .class-sidebar.active { right: 0; }
+        .class-sidebar::-webkit-scrollbar { width: 6px; }
+        .class-sidebar::-webkit-scrollbar-thumb { background: var(--accent-primary); }
+
+        .sidebar-title { font-size: 2rem; color: var(--text-main); border-bottom: 2px solid var(--accent-primary); padding-bottom: 8px; margin-bottom: 16px; }
+        .sidebar-h2 { font-size: 1.3rem; color: var(--color-cyan); border-bottom: 1px solid #333; margin-top: 24px; margin-bottom: 12px; padding-bottom: 4px; font-family: 'Oswald', sans-serif; text-transform: uppercase; }
+        .sidebar-h3 { font-size: 1.1rem; color: var(--color-yellow); margin-top: 16px; margin-bottom: 8px; font-family: 'Oswald', sans-serif; text-transform: uppercase; }
+        .sidebar-text { font-size: 0.9rem; color: var(--text-main); line-height: 1.5; margin-bottom: 12px; white-space: pre-wrap; }
+        
+        .sidebar-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 0.85rem; }
+        .sidebar-table th, .sidebar-table td { border: 1px solid #333; padding: 6px 10px; text-align: left; }
+        .sidebar-table th { background: rgba(255,255,255,0.05); color: var(--accent-primary); font-family: 'Oswald', sans-serif; font-weight: normal;}
     </style>
 </head>
 <body>
 
     <a href="index.html" class="top-nav-btn"><i class="fa-solid fa-arrow-left"></i> ТЕРМИНАЛ АГЕНТА</a>
+    <button class="class-base-btn" onclick="window.toggleSidebar()"><i class="fa-solid fa-book-open"></i> БАЗА КЛАССА: FIXER</button>
 
+    <!-- Затемнение фона для сайдбара -->
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="window.toggleSidebar()"></div>
+
+    <!-- БОКОВАЯ ПАНЕЛЬ С ОПИСАНИЕМ КЛАССА FIXER -->
+    <div class="class-sidebar" id="class-sidebar">
+        <div class="sidebar-title oswald">FIXER (ОСНОВНОЙ КЛАСС)</div>
+        <div class="sidebar-text lore-text">Fixers are immoral handymen that will do almost any job. Large corporations and Offices hire fixers to do their dirty work for them and help them climb the ranks.</div>
+
+        <div class="sidebar-h2">Class Features</div>
+        <div class="sidebar-text">As a Fixer you gain the following class features.</div>
+
+        <div class="sidebar-h3">Hit Points</div>
+        <div class="sidebar-text"><strong>Hit Dice:</strong> 1d10 per Fixer level
+<strong>Hit Points at 1st Level:</strong> 10 + Constitution modifier
+<strong>Hit Points at Higher Levels:</strong> 1d10 (or 6) + Constitution modifier per Fixer level after 1st</div>
+
+        <div class="sidebar-h3">Proficiencies</div>
+        <div class="sidebar-text"><strong>Armor:</strong> Light armor, Medium armor, Shields
+<strong>Weapons:</strong> martial and simple weapons, firearms
+<strong>Tools:</strong> one type of musical instrument and one artisan's tools or game set
+<strong>Saving Throws:</strong> Wisdom, Dexterity, or Constitution and Intelligence, Strength, or Charisma
+<strong>Skills:</strong> Choose three from Athletics, Acrobatics, Investigation, Survival, Stealth, Persuasion, Perception, and Medicine</div>
+
+        <div class="sidebar-h3">Equipment</div>
+        <div class="sidebar-text">You start with the following equipment, in addition to the equipment granted by your background:
+• Leather armor and a shield
+• (a) 1 martial weapon or (b) 2 simple weapons
+• (a) a set of throwing weapons (20 throwing knives or 10 javelins/handaxes) or (b) a longbow with 30 arrows and a quiver
+• 1 musical instrument and your selected artisan's tools or gaming set
+If you are using starting wealth, you have 4d4 x 10 gp in funds.</div>
+
+        <div class="sidebar-h2">The Fixer Table</div>
+        <table class="sidebar-table">
+            <tr><th>Level</th><th>Prof Bonus</th><th>WS Weapon Augments</th><th>Light</th><th>Features</th></tr>
+            <tr><td>1st</td><td>+2</td><td>1</td><td>0</td><td>Fixer Grade, Uniform, Workshops, Affiliation Feature</td></tr>
+            <tr><td>2nd</td><td>+2</td><td>1</td><td>2</td><td>Abnormal Ability, Fighting Style, Light</td></tr>
+            <tr><td>3rd</td><td>+2</td><td>1</td><td>3</td><td>Clashing, Affiliation Feature</td></tr>
+            <tr><td>4th</td><td>+2</td><td>2</td><td>4</td><td>Ability Score Improvement, Light Feature</td></tr>
+            <tr><td>5th</td><td>+3</td><td>2</td><td>5</td><td>Extra Attack</td></tr>
+            <tr><td>6th</td><td>+3</td><td>2</td><td>6</td><td>Affiliation Feature</td></tr>
+            <tr><td>7th</td><td>+3</td><td>2</td><td>7</td><td>Abnormal Ability Improvement</td></tr>
+            <tr><td>8th</td><td>+3</td><td>3</td><td>8</td><td>Ability Score Improvement, Light Feature</td></tr>
+            <tr><td>9th</td><td>+4</td><td>3</td><td>9</td><td>Immoral Mind, Personal Development</td></tr>
+            <tr><td>10th</td><td>+4</td><td>3</td><td>10</td><td>Affiliation Feature</td></tr>
+            <tr><td>11th</td><td>+4</td><td>3</td><td>11</td><td>Extra Attack</td></tr>
+            <tr><td>12th</td><td>+4</td><td>4</td><td>12</td><td>Ability Score Improvement, Light Feature</td></tr>
+            <tr><td>13th</td><td>+5</td><td>4</td><td>13</td><td>Affiliation Feature</td></tr>
+            <tr><td>14th</td><td>+5</td><td>4</td><td>14</td><td>Abnormal Ability Improvement</td></tr>
+            <tr><td>15th</td><td>+5</td><td>4</td><td>15</td><td>Never Surrounded, Personal Development</td></tr>
+            <tr><td>16th</td><td>+5</td><td>5</td><td>16</td><td>Ability Score Improvement, Light Feature</td></tr>
+            <tr><td>17th</td><td>+6</td><td>5</td><td>17</td><td>Affiliation Feature</td></tr>
+            <tr><td>18th</td><td>+6</td><td>5</td><td>18</td><td>Recognition</td></tr>
+            <tr><td>19th</td><td>+6</td><td>5</td><td>19</td><td>Ability Score Improvement, Light Feature</td></tr>
+            <tr><td>20th</td><td>+6</td><td>6</td><td>20</td><td>Being of Light, Top Notch Fixer</td></tr>
+        </table>
+
+        <div class="sidebar-h2">Fixer Grade [Level 1]</div>
+        <div class="sidebar-text">At 1st level, all the paperwork is done, you are officially a fixer. With this title comes organizations, companies, and other businesses that are willing to give you contracts in exchange for a job well done. These jobs can vary from saving a cat from a tree, fixing a leaky sink, or killing a king. By doing these jobs and fulfilling contracts, your Fixer grade may change. The Hana association is in charge of rankings and determining your talent based off of jobs, and as such you will need to not only repeatedly perform jobs, but also do well with them in order to progress the ranks. You are currently a Grade 9 fixer, the lowest rank. Requirements to raise through the ranks is shown below:
+
+<strong>Grade 9:</strong> –
+<strong>Grade 8:</strong> Complete a job
+<strong>Grade 7:</strong> Complete 3 jobs, must complete 1 Combat job
+<strong>Grade 6:</strong> Complete 6 jobs, must complete 3 Combat jobs
+<strong>Grade 5:</strong> Complete 10 jobs, must complete 6 Combat jobs
+<strong>Grade 4:</strong> Complete 12 jobs, must complete 10 Combat jobs
+<strong>Grade 3:</strong> Complete 15 jobs, Must complete 13 Combat jobs, must have killed 1 creature with a CR or level higher than your own.
+<strong>Grade 2:</strong> Complete 20 jobs, Must complete 20 Combat jobs, must have killed 2 creatures with a CR or level higher than your own.
+<strong>Grade 1:</strong> Complete 25 jobs, Must complete 25 Combat jobs, must have killed 3 creatures with a CR or level higher than your own.
+<strong>Color Rank:</strong> Destroy 1 office with a minimum of 5 grade 1 fixers, Successfully raid one corporation, or kill a god, colored fixer, or distortion with a WAW or ALEPH rank or higher with the help of at most one person who matches your rank or is below.
+These Criteria are at the DM’s Discretion meaning that an “Exception” can be made due to a different triumph that is equal to or greater than the requirements to move up a rank. Additionally, it is possible to move up multiple ranks at once if the requirements are met or if the Hana Association deems you worthy.</div>
+
+        <div class="sidebar-h2">Uniform & Workshops [Level 1]</div>
+        <div class="sidebar-text"><strong>Uniform:</strong> Now that you’ve become a fixer, you’ve been granted the uniform of your particular line of work. You gain the Fixer Armor of your chosen affiliation from the Fixer Tools. If there is no listed armor for your affiliation, you instead gain an artifact of your choosing.
+
+<strong>Workshops:</strong> At 1st level, you have gained access to workshops. Workshops allow for you to custom tailor a weapon, piece of armor, or equipment to meet your wants and needs. Use the Workshop Weapon Creation page to get started on Workshop items. Depending on your fixer grade, some workshops may see you as a potential means of advertisement and will be more willing to work with you to make a custom equipment to stand out and help you in your future endeavors. Upon reaching higher ranks, workshops will offer you more and more services for the sake of your equipment. Your workshop items will have a number of augments equal to the workshop weapon table. You may have one workshop weapon, armor, and artifact item equipped at once.</div>
+
+        <div class="sidebar-h2">Fixer Affiliation (Subclass) [Level 1]</div>
+        <div class="sidebar-text">It is often wise to join a larger group in order to more effectively expand your skills as a Fixer. At 1st level, you may pick one of the many Affiliations listed at the bottom of this class (Refer to Grimoire Cards). You gain features from these at 1st, 3rd, 6th, 10th, 13th, and 17th levels.
+Some of your Fixer features require your target to make a saving throw to resist the feature's effects. The saving throw DC is calculated as follows:
+<strong>Fixer Ability Modifier</strong> = your strength or dexterity modifier
+<strong>Fixer Save DC</strong> = 8 + your proficiency bonus + your strength or dexterity modifier
+<strong>Fixer Attack Modifier</strong> = your proficiency bonus + your strength or dexterity modifier</div>
+
+        <div class="sidebar-h2">Fighting Style [Level 2]</div>
+        <div class="sidebar-text">Starting at 2nd level, you adopt a particular style of fighting as your specialty. Choose one of the following options. You may choose an additional fighting style at 10th level. You can't take a Fighting Style option more than once, even if you later get to choose again.
+
+• <strong>Sharpshooter:</strong> You gain a +2 bonus to attack rolls you make with ranged attacks.
+• <strong>Blind Fighting:</strong> Being unable to see a creature doesn’t impose disadvantage on your attack rolls against it, provided the creature isn’t hidden from you.
+• <strong>Close-Range:</strong> You gain a +2 to damage dealt with ranged attacks. Additionally, you no longer attack at disadvantage when you use a ranged attack within 5ft of a creature.
+• <strong>Strongbow:</strong> You can use your Strength modifier, in place of Dexterity, for your attack and damage rolls with longbows and shortbows.
+• <strong>Dual Wielding:</strong> When you take the Attack action while two-weapon fighting, you can make a single additional attack with your off-hand weapon as part of your action instead of your bonus action, adding your ability modifier to the damage of this attack. You cannot attack with the offhand weapon as a bonus action when using this feature.
+• <strong>All Terrain Athlete:</strong> You have a swimming speed and a climbing speed equal to your normal speed, and you gain a +1 bonus to armor class.
+• <strong>Dueling:</strong> When you are wielding a melee weapon in one hand and no other weapons, you gain a +2 bonus to damage rolls with that weapon.
+• <strong>Great Weapon Fighting:</strong> When you roll a 1 or 2 on a damage die for an attack you make with a melee weapon that you are wielding with two hands, you can reroll the die and must use the new roll, even if the new roll is a 1 or a 2. The weapon must have the two-handed or versatile property for you to gain this benefit.
+• <strong>Interception:</strong> When a creature you can see hits a target that is within 5 feet of you with an attack, you can use your reaction to reduce the damage the target takes by 1d10 + your proficiency bonus. You must be wielding a shield or a simple or melee martial weapon to use this reaction.
+• <strong>Protection:</strong> When a creature you can see attacks a target other than you that is within 5 feet of you, you can use your reaction to impose disadvantage on the attack roll. You must be wielding a shield or melee martial weapon.
+• <strong>Two Weapon Fighter:</strong> When you engage in two-weapon fighting, you can add your ability modifier to the damage of the second attack.
+• <strong>Iaijutsu:</strong> You make the first attack of each round with your sword still sheathed. This attack is made with advantage. You may sheath your weapon as a bonus action.
+• <strong>Tunnel Fighter:</strong> As a bonus action, you can enter a defensive stance that lasts until the start of your next turn. While in your defensive stance, you can make opportunity attacks without using your reaction, and you can use your reaction to make a melee attack against a creature that moves more than 5ft while within your reach.
+• <strong>Thrown Weapon Fighting:</strong> You can draw a weapon that has the thrown property as part of the attack you make with the weapon. Moreover, when you hit with a ranged weapon attack using a thrown weapon, you gain a +2 bonus to the damage roll of that attack.
+• <strong>Gun Brawler:</strong> Your unarmed strikes can deal bludgeoning damage equal to 1d4 + your Dexterity modifier. When you make a weapon attack using a pistol you may make an unarmed strike as a bonus action. This effect also works vice versa when using an unarmed attack, allowing you to make one weapon attack with your pistol. Additionally, when using a pistol, you no longer attack at disadvantage when within 5ft of a creature.
+• <strong>Lancer:</strong> When wielding a lance you no longer suffer disadvantage on attack rolls against a creature within 5ft of you and lances may now be wielded in one hand. Additionally Lances you wield now deal 2d6 instead of 1d12.
+• <strong>Brawler:</strong> While wielding an improvised weapon, you are considered proficient. Your unarmed attacks and improvised weapon damage rolls now add your proficiency bonus to the roll.
+• <strong>Superior Technique:</strong> You learn one maneuver of your choice from among those available to the Battle Master Fighter Subclass. If a maneuver you use requires your target to make a saving throw to resist the maneuver's effects, the saving throw DC equals 8 + your proficiency bonus + your Strength or Dexterity modifier (your choice.) You gain one superiority die, which is a d8. This die is used to fuel your maneuvers. A superiority die is expended when you use it. You regain your expended superiority dice when you finish a short or long rest.
+• <strong>Rider:</strong> You gain the benefits of the Mounted Combatant feat.</div>
+
+        <div class="sidebar-h2">Abnormal Ability [Level 2]</div>
+        <div class="sidebar-text">Something is up with you, nobody can really place their finger on why though. At 2nd level you may pick one of the following abnormal abilities. You will gain features from them at 2nd, 7th, and 14th levels.
+
+<strong>Abnormally Strong</strong>
+You gain the powerful build feature. Additionally, when not in combat, once per long rest, or twice per long rest once you reach 14th level, may perform a great feat of strength. You may lift, push, or throw an amount of kilograms equal to your Strength Score multiplied by 100. This may also be used to break down walls, etc.
+
+<strong>Abnormally Fast</strong>
+You gain +10 to all available movement speeds and a +1 to your initiative rolls.
+
+<strong>Abnormally Durable</strong>
+You may reduce non-magical bludgeoning, piercing, and slashing damage by your constitution modifier.
+
+<strong>Abnormally Smart</strong>
+It takes you half the time to learn any skill as it would any other person. Additionally you may add half your intelligence modifier rounded up to any check that you are not proficient in, or intelligence checks you are proficient in. Gain 1 extra Light.
+
+<strong>Abnormally Wise</strong>
+You gain proficiency in Perception and Insight. Additionally, you have advantage on perception rolls, and cannot be surprised. If you would already have immunity to being surprised, instead gain expertise in Perception. When rolling initiative, you may add your Wisdom modifier instead of your Dexterity modifier. Gain 1 extra Light.
+
+<strong>Abnormally Awesome</strong>
+You gain advantage on charisma checks and saves. You may use the bardic inspiration feature from the bard class, having a number of uses equal to your proficiency bonus. The size of the dice is a 1d8. You may regain a use of this feature for 2 light. Gain 1 extra Light.</div>
+
+        <div class="sidebar-h2">Light [Level 2]</div>
+        <div class="sidebar-text">At 2nd level, you’ve seen the harsh reality of the city and its tenants, along with the impending doom that fills the streets, however your glimmer of hope will continue to grow within you until it becomes a blinding, radiant light. You gain a number of Light equal to the class table + your proficiency bonus + your choice of your Wisdom, Intelligence, or Charisma modifier. After choosing between Wisdom, Intelligence, or Charisma, you cannot change this decision later. Upon gaining this feature, choose 2 of the following light techniques. You learn an additional light technique at 4th, 8th, 12th, 16th, and 19th levels.
+
+• <strong>Frightening Attack:</strong> When you hit a creature with a weapon attack, you can spend 2 light to attempt to frighten the target from the sheer pain you inflict upon them. You add a 1d8 to the attack's damage roll, and the target must make a Wisdom saving throw. On a failed save, it is frightened of you until the end of your next turn.
+• <strong>Horizontal Cleave:</strong> When you hit a creature with a melee weapon attack, you can expend 1 light to attempt to damage another creature with the same attack. Choose another creature within 5 feet of the original target and within your reach. If the attack roll would hit the second creature too, then they take your weapon damage on hit.
+• <strong>Ricochet Rounds:</strong> You may use light to have your attack ricochet to nearby targets. You may expend 1 Light before making a ranged attack roll. On hit deal an additional 1d8 damage and then target another creature within 15ft. If your original attack roll would hit the second target, deal the result of the 1d8 roll to that target.
+• <strong>Press the Offensive:</strong> For 3 Light as a bonus action, you may gain 1 Offense Level Up until the start of your next turn.
+• <strong>Grappling Strike:</strong> Immediately after you hit a creature with a melee attack on your turn, you can expend 1 Light and then try to grapple the target as a bonus action.
+• <strong>Skitter Away:</strong> For 1 light you may apply this to a weapon attack, after which you may move 5ft without provoking opportunity attacks.
+• <strong>Feint:</strong> You can expend 1 Light and use a bonus action on your turn to feint, choosing one creature within 5 feet of you as your target. You have advantage on your next attack roll against that creature this turn. If that attack hits, add 1d8 to the attack's damage roll.
+• <strong>Heavy Swing:</strong> When you hit a creature with a melee weapon attack, you can expend 2 light to attempt to drive the target back. You add the 1d8 to the attack's damage roll, and if the target is Large or smaller, it must make a Strength saving throw. On a failed save, you push the target up to 15 feet away from you.
+• <strong>Brace For Impact:</strong> As a bonus action for 2 light, you may reduce all damage you take by your Constitution modifier until the beginning of your next turn.
+• <strong>Piercing Shot:</strong> For 3 Light when making a ranged weapon attack, you may cause it to become a 30ft line, all creatures in that line must make a Dexterity saving throw where they take weapon damage on failure and no damage on success.
+• <strong>Take Aim:</strong> You may spend 2 Light before an attack roll to add 1d8 to the total.
+
+All light is recovered upon a long rest. Half of your light is recovered on a short rest.</div>
+
+        <div class="sidebar-h2">Clashing [Level 3]</div>
+        <div class="sidebar-text">At 3rd level, you’ve learned one of the most important techniques the city could have taught you. As a reaction to being targeted by an attack and for 2 light, you may engage in a clash with that target. The clash must be declared before the attack roll is made. When engaging in the clash, you may choose one of the following kinds of clashes.
+
+• <strong>Counter:</strong> Upon winning the clash, the attack does not hit you and you may make a single weapon attack against the target assuming the target is in range of the weapon you clashed with. This attack cannot be clashed against.
+• <strong>Mitigate:</strong> Upon clashing, reduce the damage taken by the number rolled regardless if you won or lost the clash. You may pick this option as a reaction to a AoE. If you do so, you automatically fail the saving throw, do not reduce the damage, and grant full cover to creatures behind you from the center of the area of affect.
+• <strong>Stall:</strong> Upon winning the clash, the attack does not hit you and you reduce their movement speed by an amount equal to triple the damage rolled on the clash until the end of their turn. If the target made a ranged weapon attack, their movement speed is not reduced.
+
+When clashing against a target, you will both roll damage rolls of each of the attacks you made, in which case, whoever rolls higher damage will have won the clash. If you win a Clash - Counter and hit the follow-up attack, regain 1 light.
+A target who is being clashed against may spend 4 light to gain the benefits of your clash. Meaning that the clash you select can work against you if they win it at the cost of them using more resources.
+
+<strong>Variant Sanity Rule:</strong> If using Version A, on clash win, you may make a dice equal to your hit dice. Regain the result as sanity and the target loses sanity of the same value. If using Version B, recover 10 sanity on clash win. On clash loss, lose 5 sanity.</div>
+
+        <div class="sidebar-h2">Extra Attack [Level 5 & 11]</div>
+        <div class="sidebar-text">At 5th level, you can attack twice, instead of once, whenever you take the Attack action on your turn. The number of attacks increases to three when you reach 11th level in this class.</div>
+
+        <div class="sidebar-h2">Abnormal Ability Improvements [Level 7]</div>
+        <div class="sidebar-text">At 7th level, you grow into yourself as a Fixer and hone in on what has made you special. Based on your previous choice, you gain one of the following benefits.
+
+<strong>Abnormally Strong</strong>
+You gain a +1 to Strength to a maximum of 22. Your powerful build feature improves, allowing for you to count as 2 sizes larger. Additionally, you deal double damage to structures, constructs, and objects. When wielding a weapon that uses your strength or when making a strength based unarmed strike, increase it's dice tier by 1. (Ex: 1d4 > 1d6, ect.).
+
+<strong>Abnormally Fast</strong>
+You gain a +1 to Dexterity to a maximum of 22. All available movement speeds increase by +10, you gain a +1 to your initiative rolls, and you may dash as a bonus action.
+
+<strong>Abnormally Durable</strong>
+You gain a +1 to Constitution to a maximum of 22. You gain a damage threshold equal to your proficiency modifier and treat exhaustion as if it was one level less. (you can still die to exhaustion but it requires an additional level). Additionally, your hit point maximum increases by an amount equal to your level. Whenever you gain a level thereafter, your hit point maximum increases by an additional 1 hit point.
+
+<strong>Abnormally Smart</strong>
+You gain a +1 to Intelligence to a maximum of 22. You gain a benefit to attack rolls equal to half of your intelligence modifier. Gain 1 extra Light.
+
+<strong>Abnormally Wise</strong>
+You gain a +1 to Wisdom to a maximum of 22. When hit by an attack or when failing a save, if you have already been targeted by that attack or been in the area of that effect in this combat, you may use a reaction to gain a bonus to your AC or respective Saving Throw equal to your proficiency bonus. The buff only applies for that attack or saving throw, and expires at the start of your turn. You may only use this feature against a unique attack or effect once in a combat. This increases to twice at 11th level. Gain 1 extra Light.
+
+<strong>Abnormally Awesome</strong>
+You gain a +1 to Charisma to a maximum of 22. Your bardic inspiration die increases to 1d10, and you may use your bardic inspiration feature with no action cost. Gain 1 extra Light.</div>
+
+        <div class="sidebar-h2">Personal Development [Level 9 & 15]</div>
+        <div class="sidebar-text">At 9th level, while you have learned a lot from your mentors you know that you have several talents of your own that if nurtured, can shine bright amongst all fixers. You may take any feat from the Fixer Feats page that you meet the prerequisites of. You may pick another one at 15th level.</div>
+
+        <div class="sidebar-h2">Immoral Mind [Level 9]</div>
+        <div class="sidebar-text">At 9th level, you’ve been on the job for long enough to where the everyday struggle doesn’t get to you as much. You are unbothered by seeing death and carnage and as such do not feel unsettled by it. Additionally, gain evasion for the corresponding stat associated with your Abnormal Ability.</div>
+
+        <div class="sidebar-h2">Abnormal Ability Perfection [Level 14]</div>
+        <div class="sidebar-text">At 14th level, you have perfected what has made you stand out, now all that's left is to simply do your job. You gain the following feature based on your abnormal ability.
+
+<strong>Abnormally Strong</strong>
+You gain a +1 to Strength to a maximum of 22. You may add your Strength modifier an additional time when making damage rolls with a Strength based weapon or unarmed strike using Strength, you have immunity to the restrained condition, and you have advantage on all athletics checks, and add your level to any athletics check you make.
+
+<strong>Abnormally Fast</strong>
+You gain a +1 to Dexterity to a maximum of 22. All available movement speeds increase by +15 and you have a +2 to your initiative rolls. Whenever you dash, all opportunities attacks against you will automatically miss. If you make an attack roll before dashing, then opportunity attacks gain disadvantage instead.
+
+<strong>Abnormally Durable</strong>
+You gain a +1 to Constitution to a maximum of 22. When you are reduced to 0 hit points, you may continue fighting while making saves. Getting hit will fail a death save. Upon failing 3 saves in this fashion, you then fall unconscious. Additionally you may add half of your Constitution modifier rounded down to death saves, and rolling a 20 or above on a death save makes you stand back up at 1 hit point.
+
+<strong>Abnormally Smart</strong>
+You gain a +1 to Intelligence to a maximum of 22. At the beginning of your turn, you may make a DC 15 Intelligence check. On success you can find out a statistic of all creatures on the battlefield such as current HP, ability scores, movement speed or an explanation of one of its features, but only if they have used that feature before. Gain 2 extra Light.
+
+<strong>Abnormally Wise</strong>
+You gain a +1 to Wisdom to a maximum of 22. As a bonus action, choose a creature you can see and make a DC 15 Wisdom (Insight) to tell how the enemy will move next. If this check succeeds, the creature will have a -2 on their attack rolls against you and you will have a +2 on your attack rolls against them, until they hit you, make a contested Dexterity or Charisma (Performance) check as an action, or drop to 0 hit points. You can't do this if you are stunned, paralyzed, charmed, or frightened. You can do this twice per combat encounter. If a creature you are reading in this way moves out of your line of sight, you may still know their location until the end of your turn. Gain 2 extra Light.
+
+<strong>Abnormally Awesome</strong>
+You gain a +1 to Charisma to a maximum of 22. Gain proficiency in all charisma based skills, or expertise if you already had proficiency. Your bardic inspiration die increases to 1d12, and you gain 4 more uses of it. Gain 2 extra Light.</div>
+
+        <div class="sidebar-h2">Never Surrounded [Level 15]</div>
+        <div class="sidebar-text">At 15th level, you are unaffected by flanking against you.</div>
+
+        <div class="sidebar-h2">Recognition [Level 18]</div>
+        <div class="sidebar-text">At 18th level, more people know your name than you know theirs. When a creature meets you for the first time, they must make a history check to see if they recognize you (DC=10). On success they know you or at least know of you in a general sense. In combat if a creature recognizes you, they have disadvantage on saving throws you impose until you take any damage or fail a save, unless the creature is of the same CR as your level, or higher. This condition only affects the creatures you wish it to.</div>
+
+        <div class="sidebar-h2">Being of Light [Level 20]</div>
+        <div class="sidebar-text">At 20th level, you have been touched by the light and with that comes some benefits. Your Abnormal Ability score increases by 2 and so does its maximum. Additionally, you are an icon, your image has been etched into the fabric of being. Your form cannot be affected in any way unless you allow it as the light in your body bends to nobody else.</div>
+
+        <div class="sidebar-h2">Top Notch Fixer [Level 20]</div>
+        <div class="sidebar-text">At 20th level, your name is known in your community, work, and possibly across the world. With that comes the symbol of your stature and equipment you wear. You may take a singular Tools of the Trade, ignoring all prerequisites. This decision cannot be changed later.</div>
+    </div>
+
+    <!-- Разделенный блок фильтров и поиска -->
     <div class="header-bar">
         <div class="header-title oswald">БАЗА ДАННЫХ: АРХЕТИПЫ И КЛАССЫ</div>
     </div>
 
-    <!-- Разделенный блок фильтров и поиска -->
     <div class="filters-section">
-        <!-- Поиск -->
+        <!-- Поиск (Тонкая строка) -->
         <div class="panel-outer cut-tl search-wrapper">
             <div class="panel-inner cut-tl search-inner">
                 <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                <input type="text" id="search-input" class="search-input" placeholder="Поиск по названию класса (Например: Инквизитор, Агент...)" onkeyup="window.filterClasses()">
+                <input type="text" id="search-input" class="search-input" placeholder="Поиск по названию архетипа (Например: Инквизитор, Агент...)" onkeyup="window.filterClasses()">
             </div>
         </div>
-        <!-- Кнопки типов -->
-        <div class="type-filters" id="type-filters">
-            <!-- Кнопки появятся здесь -->
-        </div>
+        <!-- Кнопки типов (Генерируются скриптом) -->
+        <div class="type-filters" id="type-filters"></div>
     </div>
 
     <div class="compendium-grid" id="compendium">
@@ -128,6 +355,12 @@
     </div>
 
     <script>
+        // Открытие/закрытие сайдбара
+        window.toggleSidebar = () => {
+            document.getElementById('class-sidebar').classList.toggle('active');
+            document.getElementById('sidebar-overlay').classList.toggle('active');
+        };
+
         // Словарь тегов
         const typeDictionary = {
             "Burn": { name: "Огонь", color: "#C7243A", icon: "Burn.png" },
@@ -143,7 +376,6 @@
 
         let currentTypeFilter = 'all';
 
-        // Генерация кнопок фильтров
         function renderFilters() {
             const container = document.getElementById('type-filters');
             let html = `<button class="filter-btn active" data-filter="all" onclick="window.setTypeFilter('all', this)" style="border-color: var(--accent-primary); color: var(--accent-primary);">ВСЕ</button>`;
@@ -159,7 +391,6 @@
             container.innerHTML = html;
         }
 
-        // Логика нажатия на фильтр типа
         window.setTypeFilter = (type, btn) => {
             currentTypeFilter = type;
             
@@ -185,7 +416,6 @@
             window.filterClasses();
         };
 
-        // Логика поиска
         window.filterClasses = () => {
             const query = document.getElementById('search-input').value.toLowerCase();
             const cards = document.querySelectorAll('.compendium-card');
@@ -205,7 +435,6 @@
             });
         };
 
-        // Логика разворачивания карточки
         window.toggleCard = (el) => {
             const card = el.closest('.panel-outer');
             const talentsWrapper = card.querySelector('.talents-wrapper');
@@ -226,13 +455,11 @@
             }
         };
 
-        // Логика копирования навыка
         window.copyTalent = (el) => {
             const name = el.getAttribute('data-name');
             const level = el.getAttribute('data-level');
             const desc = el.getAttribute('data-desc');
             
-            // Формат: [Название], [Уровень] - уровень \n [Описание]
             const textToCopy = `${name}, ${level} - уровень\n${desc}`;
             
             navigator.clipboard.writeText(textToCopy).then(() => {
@@ -244,7 +471,6 @@
             });
         };
 
-        // Загрузка JSON
         async function loadGrimoire() {
             const container = document.getElementById('compendium');
             
@@ -328,7 +554,6 @@
             }
         }
 
-        // Запуск при старте
         document.addEventListener('DOMContentLoaded', () => {
             renderFilters();
             loadGrimoire();
