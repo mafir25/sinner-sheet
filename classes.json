@@ -3,6 +3,7 @@
     "No": 1,
     "Name": "Фрилансер",
     "Type": ["None"],
+    "Stats": ["Dex"],
     "Talents": [
       {
         "name": "Я прикрываю свою спину (I got my back)",
@@ -40,6 +41,7 @@
     "No": 2,
     "Name": "Остаток Лоботомии",
     "Type": ["Other"],
+    "Stats": ["Dex", "Wis"],
     "Talents": [
       {
         "name": "Лицом к страху, строим будущее (Face the Fear, Build the Future)",
@@ -77,6 +79,7 @@
     "No": 3,
     "Name": "Остаток Библиотеки",
     "Type": ["Other"],
+    "Stats": ["Wis", "Dex"],
     "Talents": [
       {
         "name": "Ушедшие ангелы (Gone Angels)",
@@ -114,6 +117,7 @@
     "No": 4,
     "Name": "Ассоциация Хана",
     "Type": ["Other"],
+    "Stats": ["Dex", "Wis"],
     "Talents": [
       {
         "name": "Четыре триграммы (Four Trigrams)",
@@ -151,6 +155,7 @@
     "No": 5,
     "Name": "Ассоциация Семь, Южное отделение",
     "Type": ["Poise"],
+    "Stats": ["Int", "Dex"],
     "Talents": [
       {
         "name": "Сбор разведданных (Gathering Intel)",
@@ -193,6 +198,7 @@
     "No": 6,
     "Name": "Ассоциация Лю, Южное отделение",
     "Type": ["Burn"],
+    "Stats": ["Dex", "Str"],
     "Talents": [
       {
         "name": "Рукопашный бой (Hand to Hand Combat)",
@@ -230,6 +236,7 @@
     "No": 7,
     "Name": "Ассоциация Лю, Южное отделение (Вариант с мечом)",
     "Type": ["Burn"],
+    "Stats": ["Str", "Cha"],
     "Talents": [
       {
         "name": "Внутренний пыл (Inner Ardor)",
@@ -267,6 +274,7 @@
     "No": 8,
     "Name": "Ассоциация Диечи, Кулачное отделение",
     "Type": ["None"],
+    "Stats": ["Int"],
     "Talents": [
       {
         "name": "Академическое оружие (Academic Weapon)",
@@ -304,6 +312,7 @@
     "No": 9,
     "Name": "Ассоциация Диечи, Ключевое отделение",
     "Type": ["Sinking"],
+    "Stats": ["Wis"],
     "Talents": [
       {
         "name": "Сквозь замочную скважину (Peering Through a Key)",
@@ -341,6 +350,7 @@
     "No": 10,
     "Name": "Ассоциация Синк, Южное отделение",
     "Type": ["Poise"],
+    "Stats": ["Dex"],
     "Talents": [
       {
         "name": "Специалисты по дуэлям (Dueling Specialists)",
@@ -378,6 +388,7 @@
     "No": 11,
     "Name": "Ассоциация Синк, Восточное отделение",
     "Type": ["Burn", "Poise"],
+    "Stats": ["Dex", "Str"],
     "Talents": [
       {
         "name": "Нервный удар (Nerve Strike)",
@@ -415,6 +426,7 @@
     "No": 12,
     "Name": "Ассоциация Уфи",
     "Type": ["Tremor"],
+    "Stats": ["Str"],
     "Talents": [
       {
         "name": "Подтверждение выполнения обязательств (Verify Obligation Fulfillment)",
@@ -452,6 +464,7 @@
     "No": 13,
     "Name": "Родословная Клинка",
     "Type": ["Poise"],
+    "Stats": ["Dex"],
     "Talents": [
       {
         "name": "Мечный бой родной земли (Swordplay of the Homeland)",
@@ -489,6 +502,7 @@
     "No": 14,
     "Name": "Клан Курокумо",
     "Type": ["Bleed"],
+    "Stats": ["Dex"],
     "Talents": [
       {
         "name": "Татуировки усиления (Augmentation Tattoos)",
@@ -526,6 +540,7 @@
     "No": 15,
     "Name": "Банда ТингТанг",
     "Type": ["Bleed"],
+    "Stats": ["Dex"],
     "Talents": [
       {
         "name": "Банда игроков (Gang of Gamblers)",
@@ -568,6 +583,7 @@
     "No": 16,
     "Name": "Мёртвые Кролики",
     "Type": ["Rupture"],
+    "Stats": ["Str", "Con"],
     "Talents": [
       {
         "name": "Антагонизм (Antagonism)",
@@ -582,7 +598,7 @@
       {
         "name": "Ты должен страдать больше (You Must Suffer More)",
         "level": 6,
-        "desc": "На 6-м уровне, пока у вас меньше половины хитов, вы получаете следующие преимущества:\nУ вас преимущество на рукопашные атаки, и вы всегда накладываете Rupture.\nКогда существо попадает по вам рукопашной атакой, вы можете реакцией совершить по нему рукопашную атаку (один раз за раунд)."
+        "desc": "На 6-м уровне, пока у вас меньше половины хитов, вы получаете следующие преимущества:\nУ вас преимущество на рукопашные атаки и всегда накладываете Rupture.\nКогда существо попадает по вам рукопашной атакой, вы можете реакцией совершить по нему рукопашную атаку (один раз за раунд)."
       },
       {
         "name": "Переворот (Upheaval)",
@@ -605,6 +621,7 @@
     "No": 17,
     "Name": "Ночные Шилья",
     "Type": ["Bleed", "Tremor"],
+    "Stats": ["Dex"],
     "Talents": [
       {
         "name": "Стилет (Stiletto)",
@@ -642,6 +659,7 @@
     "No": 18,
     "Name": "Уджат",
     "Type": ["Tremor", "Sinking"],
+    "Stats": ["Dex", "Con"],
     "Talents": [
       {
         "name": "Разрезающий песок удар (Sand Splitting Slash)",
@@ -679,6 +697,7 @@
     "No": 19,
     "Name": "Юродивые",
     "Type": ["Tremor"],
+    "Stats": ["Int", "Str"],
     "Talents": [
       {
         "name": "Винтик не хватает? (Got a screw loose?)",
@@ -716,6 +735,7 @@
     "No": 20,
     "Name": "Середина",
     "Type": ["Other"],
+    "Stats": ["Str", "Con"],
     "Talents": [
       {
         "name": "Татуировки мести (Vengeance Tattoos)",
@@ -758,6 +778,7 @@
     "No": 21,
     "Name": "Индекс",
     "Type": ["Sinking"],
+    "Stats": ["Wis"],
     "Talents": [
       {
         "name": "По велению Предписаний (As the Prescripts Command)",
@@ -795,6 +816,7 @@
     "No": 22,
     "Name": "Большой Палец, Стрелковый вариант",
     "Type": ["Burn"],
+    "Stats": ["Dex", "Str"],
     "Talents": [
       {
         "name": "Класс и уважение (Class and Respect)",
@@ -832,6 +854,7 @@
     "No": 23,
     "Name": "Большой Палец, Рукопашный вариант",
     "Type": ["Burn", "Tremor"],
+    "Stats": ["Str"],
     "Talents": [
       {
         "name": "Класс и уважение (Class and Respect)",
@@ -874,6 +897,7 @@
     "No": 24,
     "Name": "Кольцо - Корпус",
     "Type": ["Bleed"],
+    "Stats": ["Dex", "Con"],
     "Talents": [
       {
         "name": "Искусство корпуса (Corpus Artwork)",
@@ -910,7 +934,8 @@
   {
     "No": 25,
     "Name": "Кольцо - Пуантилист",
-    "Type": ["Other", "Burn", "Bleed", "Tremor", "Rupture", "Sinking"],
+    "Type": ["Other"],
+    "Stats": ["Dex"],
     "Talents": [
       {
         "name": "Художественная среда (Art Medium)",
@@ -948,6 +973,7 @@
     "No": 26,
     "Name": "Мизинец, Ортодоксальный Клинок",
     "Type": ["Poise"],
+    "Stats": ["Dex"],
     "Talents": [
       {
         "name": "Единственная концентрация разума (Singular Focus of the Mind)",
@@ -984,7 +1010,8 @@
   {
     "No": 27,
     "Name": "Команда Пекод",
-    "Type": ["Bleed", "Poise"],
+    "Type": ["Bleed"],
+    "Stats": ["Dex", "Cha"],
     "Talents": [
       {
         "name": "Матрос (Deckhand)",
@@ -1022,6 +1049,7 @@
     "No": 28,
     "Name": "Уборщики",
     "Type": ["Other"],
+    "Stats": ["Con", "Str"],
     "Talents": [
       {
         "name": "Непрекращающиеся мусорщики (Nonstop Scavengers)",
@@ -1059,6 +1087,7 @@
     "No": 29,
     "Name": "Двойной Крюк",
     "Type": ["Poise", "Bleed"],
+    "Stats": ["Dex"],
     "Talents": [
       {
         "name": "Головорезы (Swashbucklers)",
@@ -1096,6 +1125,7 @@
     "No": 30,
     "Name": "Музыкант из Бремена",
     "Type": ["Other"],
+    "Stats": ["Cha"],
     "Talents": [
       {
         "name": "Незабываемая мелодия (Unforgettable Melody)",
@@ -1137,7 +1167,8 @@
   {
     "No": 31,
     "Name": "Офис Полная Остановка",
-    "Type": ["Poise", "Rupture"],
+    "Type": ["Poise"],
+    "Stats": ["Dex"],
     "Talents": [
       {
         "name": "Заряженное оружие (Loaded Gun)",
@@ -1175,6 +1206,7 @@
     "No": 32,
     "Name": "Офис Огненный Кулак",
     "Type": ["Burn"],
+    "Stats": ["Str", "Con"],
     "Talents": [
       {
         "name": "Специальное топливо мастерской Района 12 (District 12 Special Workshop Fuel)",
@@ -1217,6 +1249,7 @@
     "No": 33,
     "Name": "Офис Джеонг",
     "Type": ["Tremor", "Sinking"],
+    "Stats": ["Dex"],
     "Talents": [
       {
         "name": "Кой-Кой [こいこい] (Koi-Koi [こいこい])",
@@ -1254,6 +1287,7 @@
     "No": 34,
     "Name": "Офис Моляр",
     "Type": ["Tremor"],
+    "Stats": ["Dex", "Con"],
     "Talents": [
       {
         "name": "Сохраняй спокойствие (Stay Calm)",
@@ -1291,6 +1325,7 @@
     "No": 35,
     "Name": "Ассоциация Ши",
     "Type": ["Poise"],
+    "Stats": ["Dex"],
     "Talents": [
       {
         "name": "Скрытный солдат (Stealth Soldier)",
@@ -1347,7 +1382,8 @@
   {
     "No": 36,
     "Name": "Мастерская Листовка",
-    "Type": ["Burn", "Other"],
+    "Type": ["Burn"],
+    "Stats": ["Con", "Dex"],
     "Talents": [
       {
         "name": "Улучшение, производящее дым (Smoke Producing Augment)",
@@ -1385,6 +1421,7 @@
     "No": 37,
     "Name": "Ассоциация Цвай",
     "Type": ["None"],
+    "Stats": ["Str", "Con"],
     "Talents": [
       {
         "name": "Закон и порядок (Law and Order)",
@@ -1422,6 +1459,7 @@
     "No": 38,
     "Name": "Главный Дворецкий",
     "Type": ["Other"],
+    "Stats": ["Dex", "Cha"],
     "Talents": [
       {
         "name": "Как прикажет мой господин (As My Master Commands)",
@@ -1459,6 +1497,7 @@
     "No": 39,
     "Name": "Дикая Охота",
     "Type": ["Sinking"],
+    "Stats": ["Str", "Cha"],
     "Talents": [
       {
         "name": "Порча поместья (Blight of the Manor)",
@@ -1496,6 +1535,7 @@
     "No": 40,
     "Name": "Кровавый Демон",
     "Type": ["Bleed"],
+    "Stats": ["Con", "Str"],
     "Talents": [
       {
         "name": "Окровавленное оружие (Bloodied Weapons)",
@@ -1532,7 +1572,8 @@
   {
     "No": 41,
     "Name": "Улыбающиеся Лица",
-    "Type": ["Other", "Bleed"],
+    "Type": ["Other"],
+    "Stats": ["Dex", "Con"],
     "Talents": [
       {
         "name": "Вдохнуть дым (Inhale Smoke)",
@@ -1575,6 +1616,7 @@
     "No": 42,
     "Name": "Ржавые Цепи",
     "Type": ["Bleed"],
+    "Stats": ["Str", "Con"],
     "Talents": [
       {
         "name": "Изогнутые цепи (Twisted Chains)",
@@ -1612,6 +1654,7 @@
     "No": 43,
     "Name": "Арбитры",
     "Type": ["Other"],
+    "Stats": ["Wis", "Dex"],
     "Talents": [
       {
         "name": "Сила Арбитра (Force of the Arbiter)",
@@ -1649,6 +1692,7 @@
     "No": 44,
     "Name": "Коготь",
     "Type": ["Other"],
+    "Stats": ["Str", "Con"],
     "Talents": [
       {
         "name": "Карапакс (Carapace)",
@@ -1684,8 +1728,9 @@
   },
   {
     "No": 45,
-    "Name": "J-Корп",
-    "Type": ["Other", "Bleed", "Tremor"],
+    "Name": "Джи-Корп",
+    "Type": ["Other"],
+    "Stats": ["Dex", "Con"],
     "Talents": [
       {
         "name": "Генные коды (Gene Codes)",
@@ -1726,8 +1771,9 @@
   },
   {
     "No": 46,
-    "Name": "K-Корп",
+    "Name": "Кей-Корп",
     "Type": ["Other"],
+    "Stats": ["Str", "Con"],
     "Talents": [
       {
         "name": "Медицинские технологии (Medical Technology)",
@@ -1760,11 +1806,12 @@
         "desc": "На 17-м уровне вы поднялись по служебной лестнице, как и предполагали; теперь вы лучший в своём классе, и поэтому ваше тело сверхчеловечно. Вы получаете следующие преимущества. Вы получаете свойство Мощное Телосложение, и ваши показатели Силы или Ловкости и Телосложения увеличиваются на +2, как и их максимумы. Теперь вы можете объединять эффекты ваших Ампул в одно использование при использовании на себе, поскольку ваше тело привыкло к многократному использованию. Вы больше не страдаете от недостатков ваших ампул, когда они используются на вас. Наконец, ваше оружие пассивно наносит 5 дополнительного некротического урона. Вы также получаете одно дополнительное использование ампулы."
       }
     ]
-  },
+  }
   {
-    "No": 47,
-    "Name": "R-Корп",
-    "Type": ["Charge", "Bleed", "Sinking", "Tremor"],
+    "No": 48,
+    "Name": "R-Corp",
+    "Type": ["Charge"],
+    "Stats": ["Dex", "Con"],
     "Talents": [
       {
         "name": "Агрессивная пехота (Aggressive Infantry)",
@@ -1849,9 +1896,10 @@
     ]
   },
   {
-    "No": 48,
+    "No": 49,
     "Name": "T Corp",
     "Type": ["Tremor", "Other"],
+    "Stats": ["Dex", "Wis"],
     "Talents": [
       {
         "name": "Карманные часы Т-Корп (T Corp Pocket Watch)",
@@ -1886,9 +1934,10 @@
     ]
   },
   {
-    "No": 49,
-    "Name": "N-Корп",
+    "No": 50,
+    "Name": "N-Corp",
     "Type": ["Bleed", "Other"],
+    "Stats": ["Dex", "Wis"],
     "Talents": [
       {
         "name": "Гвоздь и молот (Nagel und Hammer)",
@@ -1923,9 +1972,10 @@
     ]
   },
   {
-    "No": 50,
-    "Name": "W-Корп",
-    "Type": ["Charge", "Rupture", "Bleed"],
+    "No": 51,
+    "Name": "W-Corp",
+    "Type": ["Charge", "Rupture"],
+    "Stats": ["Str", "Con"],
     "Talents": [
       {
         "name": "Технология искривления (Warp Technology)",
@@ -2005,9 +2055,10 @@
     ]
   },
   {
-    "No": 51,
+    "No": 52,
     "Name": "Jia Family Hierarch Candidate",
     "Type": ["Poise", "Rupture"],
+    "Stats": ["Dex", "Wis"],
     "Talents": [
       {
         "name": "Багровый удар (Crimson Strike)",
@@ -2042,9 +2093,10 @@
     ]
   },
   {
-    "No": 52,
+    "No": 53,
     "Name": "Heishou Pack - Mao Branch",
     "Type": ["Rupture", "Other"],
+    "Stats": ["Dex"],
     "Talents": [
       {
         "name": "Мгновенный шаг (Blinkstep)",
@@ -2084,9 +2136,10 @@
     ]
   },
   {
-    "No": 53,
+    "No": 54,
     "Name": "Heishou Pack - Si Branch",
     "Type": ["Poise", "Rupture"],
+    "Stats": ["Dex", "Con"],
     "Talents": [
       {
         "name": "Мутация Хэйшоу — Си (Heishou Mutation - Si)",
@@ -2121,9 +2174,10 @@
     ]
   },
   {
-    "No": 54,
+    "No": 55,
     "Name": "Heishou Pack - You Branch",
     "Type": ["Burn", "Rupture"],
+    "Stats": ["Str", "Con"],
     "Talents": [
       {
         "name": "Мутация Хэйшоу — Ю (Heishou Mutation - You)",
@@ -2163,9 +2217,10 @@
     ]
   },
   {
-    "No": 55,
+    "No": 56,
     "Name": "Heishou Pack - Wu Branch",
     "Type": ["Tremor"],
+    "Stats": ["Str", "Con"],
     "Talents": [
       {
         "name": "Обсидиановый штормовой всадник (Obsidian Stormrider) [黑風馬脚]",
