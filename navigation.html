@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>База Знаний / Navigation Hub</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Merriweather:ital,wght@0,300;1,300;1,700&family=Oswald:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-main: #070707; --bg-panel: #000000; --accent-primary: #D9772F; --accent-muted: #8B5A2B;
+            --color-cyan: #45B3CB; --color-red: #C7243A; --color-indigo: #40E0D0; --color-yellow: #F1C40F;
+            --text-main: #E0D8C8; --text-dim: #696969;
+            --border-width: 1px; --chamfer: 14px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-main); color: var(--text-main); font-family: 'Inter', sans-serif;
+            min-height: 100vh; padding: 60px 20px 40px 20px; display: flex; flex-direction: column; align-items: center;
+            background-image: linear-gradient(rgba(7,7,7,0.8), rgba(7,7,7,0.8)), repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.02) 2px, rgba(255,255,255,0.02) 4px);
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4, .oswald { font-family: 'Oswald', sans-serif; text-transform: uppercase; }
+        .lore-text { font-family: 'Merriweather', serif; font-style: italic; color: var(--text-dim); font-size: 0.85rem; line-height: 1.4; }
+
+        /* Навигация */
+        .top-nav-btn { position: fixed; top: 10px; left: 20px; padding: 6px 12px; font-size: 0.8rem; border-color: var(--color-cyan); color: var(--color-cyan); font-family: 'Oswald', sans-serif; z-index: 100; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; border: 1px solid var(--color-cyan); cursor: pointer; text-transform: uppercase; transition: 0.2s; }
+        .top-nav-btn:hover { background-color: var(--color-cyan); color: #000; }
+
+        /* Заголовок страницы */
+        .header-bar { width: 100%; max-width: 1200px; display: flex; justify-content: center; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--accent-muted); padding-bottom: 10px; margin-top: 10px; }
+        .header-title { color: var(--color-cyan); font-size: 1.8rem; letter-spacing: 2px; text-align: center; }
+
+        /* Секция с официальной вики (вместо фильтров) */
+        .wiki-section { width: 100%; max-width: 1200px; margin-bottom: 30px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+        
+        .official-wiki-btn { width: 100%; display: flex; align-items: center; justify-content: center; gap: 12px; background: rgba(69, 179, 203, 0.1); border: 1px solid var(--color-cyan); color: var(--color-cyan); padding: 16px; font-family: 'Oswald', sans-serif; font-size: 1.2rem; text-decoration: none; text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; border-radius: 2px; }
+        .official-wiki-btn:hover { background: var(--color-cyan); color: #000; box-shadow: 0 0 20px rgba(69, 179, 203, 0.4); }
+        .official-wiki-btn i { font-size: 1.5rem; }
+
+        /* Сетка Навигации */
+        .compendium-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; width: 100%; max-width: 1200px; align-items: start; }
+
+        .panel-outer { background-color: var(--accent-primary); padding: var(--border-width); position: relative; display: flex; flex-direction: column; text-decoration: none; color: inherit; transition: transform 0.2s, box-shadow 0.2s; height: 100%; }
+        .panel-inner { background-color: var(--bg-panel); padding: 20px; height: 100%; display: flex; flex-direction: column; transition: background-color 0.2s; }
+        .cut-tl { clip-path: polygon(var(--chamfer) 0, 100% 0, 100% 100%, 0 100%, 0 var(--chamfer)); }
+        
+        .hazard-tape { height: 6px; width: 100%; border-bottom: 1px solid; }
+
+        /* Цветовые схемы для карточек навигации */
+        .card-class .panel-outer { background-color: var(--color-yellow); }
+        .card-class .hazard-tape { background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--color-yellow) 10px, var(--color-yellow) 20px); border-color: var(--color-yellow); }
+        .card-class .card-icon { color: var(--color-yellow); }
+        .card-class:hover { transform: translateY(-3px); box-shadow: 0 0 15px rgba(241, 196, 15, 0.3); }
+
+        .card-feat .panel-outer { background-color: var(--color-red); }
+        .card-feat .hazard-tape { background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--color-red) 10px, var(--color-red) 20px); border-color: var(--color-red); }
+        .card-feat .card-icon { color: var(--color-red); }
+        .card-feat:hover { transform: translateY(-3px); box-shadow: 0 0 15px rgba(199, 36, 58, 0.3); }
+
+        .card-lore .panel-outer { background-color: var(--text-dim); }
+        .card-lore .hazard-tape { background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--text-dim) 10px, var(--text-dim) 20px); border-color: var(--text-dim); }
+        .card-lore .card-icon { color: var(--text-dim); }
+        .card-lore:hover { transform: translateY(-3px); box-shadow: 0 0 15px rgba(105, 105, 105, 0.3); }
+
+        .panel-outer:hover .panel-inner { background-color: rgba(20, 20, 20, 1); }
+
+        .card-header { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; border-bottom: 1px solid #222; padding-bottom: 12px; }
+        .card-icon { font-size: 2.5rem; }
+        .card-title { font-size: 1.5rem; color: var(--text-main); }
+        
+        .status-badge { display: inline-block; padding: 4px 10px; font-family: 'Oswald', sans-serif; font-size: 0.75rem; border: 1px solid var(--text-dim); color: var(--text-dim); border-radius: 2px; letter-spacing: 1px; margin-top: auto; align-self: flex-start; }
+        .panel-outer:hover .status-badge { border-color: var(--text-main); color: var(--text-main); }
+
+    </style>
+</head>
+<body>
+
+    <!-- Навигация -->
+    <a href="index.html" class="top-nav-btn"><i class="fa-solid fa-house"></i> ГЛАВНОЕ МЕНЮ</a>
+
+    <!-- Заголовок страницы -->
+    <div class="header-bar">
+        <div class="header-title oswald">БАЗА ЗНАНИЙ И АРХИВЫ (НАВИГАЦИЯ)</div>
+    </div>
+
+    <!-- Кнопка на официальную WIKI -->
+    <div class="wiki-section">
+        <a href="https://www.dandwiki.com/wiki/Project_Moon_(5e_Campaign_Setting)" target="_blank" class="official-wiki-btn">
+            <i class="fa-solid fa-globe"></i> ОФИЦИАЛЬНАЯ WIKI МОДУЛЯ D&D 5E
+        </a>
+    </div>
+
+    <!-- Сетка с локальными базами -->
+    <div class="compendium-grid">
+        
+        <!-- Гримуар Классов -->
+        <a href="grimoire.html" class="panel-outer cut-tl compendium-card card-class">
+            <div class="hazard-tape"></div>
+            <div class="panel-inner cut-tl" style="border-top: none;">
+                <div class="card-header">
+                    <i class="fa-solid fa-book-journal-whills card-icon"></i>
+                    <div class="card-title oswald">ГРИМУАР АРХЕТИПОВ</div>
+                </div>
+                <div class="lore-text" style="margin-bottom: 16px;">
+                    Полный перечень корпоративных, офисных и синдикатных архетипов. Характеристики, статус-эффекты и таланты по уровням.
+                </div>
+                <div class="status-badge">ДОСТУП РАЗРЕШЕН</div>
+            </div>
+        </a>
+
+        <!-- База Черт -->
+        <a href="feats.html" class="panel-outer cut-tl compendium-card card-feat">
+            <div class="hazard-tape"></div>
+            <div class="panel-inner cut-tl" style="border-top: none;">
+                <div class="card-header">
+                    <i class="fa-solid fa-dumbbell card-icon"></i>
+                    <div class="card-title oswald">БАЗА ЧЕРТ (FEATS)</div>
+                </div>
+                <div class="lore-text" style="margin-bottom: 16px;">
+                    Архив уникальных пассивных умений, стилей боя, мутаций и способностей Э.Г.О. Необходимые требования и категории.
+                </div>
+                <div class="status-badge">ДОСТУП РАЗРЕШЕН</div>
+            </div>
+        </a>
+
+        <!-- Заглушка: Снаряжение (Можно заменить ссылку позже) -->
+        <a href="#" class="panel-outer cut-tl compendium-card card-lore">
+            <div class="hazard-tape"></div>
+            <div class="panel-inner cut-tl" style="border-top: none;">
+                <div class="card-header">
+                    <i class="fa-solid fa-shield-halved card-icon"></i>
+                    <div class="card-title oswald">БАЗА СНАРЯЖЕНИЯ</div>
+                </div>
+                <div class="lore-text" style="margin-bottom: 16px;">
+                    Мастерское оружие, броня, аугментации и импланты. Расценки корпораций и характеристики артефактов.
+                </div>
+                <div class="status-badge">ДАННЫЕ ЗАСЕКРЕЧЕНЫ</div>
+            </div>
+        </a>
+
+        <!-- Заглушка: Правила и Механики (Можно заменить ссылку позже) -->
+        <a href="#" class="panel-outer cut-tl compendium-card card-lore">
+            <div class="hazard-tape"></div>
+            <div class="panel-inner cut-tl" style="border-top: none;">
+                <div class="card-header">
+                    <i class="fa-solid fa-scale-balanced card-icon"></i>
+                    <div class="card-title oswald">ПРАВИЛА И МЕХАНИКИ</div>
+                </div>
+                <div class="lore-text" style="margin-bottom: 16px;">
+                    Свод правил по Столкновениям (Clashing), Сету, статусным эффектам (Burn, Bleed, Tremor) и механикам рассудка.
+                </div>
+                <div class="status-badge">ДАННЫЕ ЗАСЕКРЕЧЕНЫ</div>
+            </div>
+        </a>
+
+    </div>
+
+</body>
+</html>
