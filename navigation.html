@@ -10,10 +10,21 @@
     
     <style>
         :root {
-            --bg-main: #070707; --bg-panel: #000000; --accent-primary: #D9772F; --accent-muted: #8B5A2B;
-            --color-cyan: #45B3CB; --color-red: #C7243A; --color-indigo: #40E0D0; --color-yellow: #F1C40F;
-            --text-main: #E0D8C8; --text-dim: #696969;
+            --bg-main: #070707; --bg-panel: #000000; 
+            --accent-primary: #D9772F; --accent-muted: #8B5A2B;
+            --color-cyan: #45B3CB; --color-red: #C7243A; 
+            --color-yellow: #F1C40F; --text-main: #E0D8C8; --text-dim: #696969;
             --border-width: 1px; --chamfer: 14px;
+
+            /* Цвета Грехов Project Moon */
+            --sin-pride: #1E3A8A;   /* Темно-синий */
+            --sin-wrath: #C7243A;   /* Красный */
+            --sin-envy: #9B59B6;    /* Фиолетовый */
+            --sin-sloth: #F1C40F;   /* Желтый */
+            --sin-gluttony: #8FCC2A; /* Салатовый */
+            --sin-lust: #E67E22;    /* Оранжевый */
+            --sin-gloom: #45B3CB;   /* Голубой */
+            --sin-other: #27AE60;   /* Изумрудный */
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -36,7 +47,7 @@
         .header-bar { width: 100%; max-width: 1200px; display: flex; justify-content: center; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--accent-muted); padding-bottom: 10px; margin-top: 10px; }
         .header-title { color: var(--color-cyan); font-size: 1.8rem; letter-spacing: 2px; text-align: center; }
 
-        /* Секция с официальной вики (вместо фильтров) */
+        /* Секция с официальной вики */
         .wiki-section { width: 100%; max-width: 1200px; margin-bottom: 30px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
         
         .official-wiki-btn { width: 100%; display: flex; align-items: center; justify-content: center; gap: 12px; background: rgba(69, 179, 203, 0.1); border: 1px solid var(--color-cyan); color: var(--color-cyan); padding: 16px; font-family: 'Oswald', sans-serif; font-size: 1.2rem; text-decoration: none; text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; border-radius: 2px; }
@@ -44,38 +55,72 @@
         .official-wiki-btn i { font-size: 1.5rem; }
 
         /* Сетка Навигации */
-        .compendium-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; width: 100%; max-width: 1200px; align-items: start; }
+        .compendium-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; width: 100%; max-width: 1200px; align-items: start; }
 
-        .panel-outer { background-color: var(--accent-primary); padding: var(--border-width); position: relative; display: flex; flex-direction: column; text-decoration: none; color: inherit; transition: transform 0.2s, box-shadow 0.2s; height: 100%; }
+        .panel-outer { padding: var(--border-width); position: relative; display: flex; flex-direction: column; text-decoration: none; color: inherit; transition: transform 0.2s, box-shadow 0.2s; height: 100%; }
         .panel-inner { background-color: var(--bg-panel); padding: 20px; height: 100%; display: flex; flex-direction: column; transition: background-color 0.2s; }
         .cut-tl { clip-path: polygon(var(--chamfer) 0, 100% 0, 100% 100%, 0 100%, 0 var(--chamfer)); }
         
         .hazard-tape { height: 6px; width: 100%; border-bottom: 1px solid; }
 
-        /* Цветовые схемы для карточек навигации */
-        .card-class .panel-outer { background-color: var(--color-yellow); }
-        .card-class .hazard-tape { background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--color-yellow) 10px, var(--color-yellow) 20px); border-color: var(--color-yellow); }
-        .card-class .card-icon { color: var(--color-yellow); }
-        .card-class:hover { transform: translateY(-3px); box-shadow: 0 0 15px rgba(241, 196, 15, 0.3); }
-
-        .card-feat .panel-outer { background-color: var(--color-red); }
-        .card-feat .hazard-tape { background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--color-red) 10px, var(--color-red) 20px); border-color: var(--color-red); }
-        .card-feat .card-icon { color: var(--color-red); }
-        .card-feat:hover { transform: translateY(-3px); box-shadow: 0 0 15px rgba(199, 36, 58, 0.3); }
-
-        .card-lore .panel-outer { background-color: var(--text-dim); }
-        .card-lore .hazard-tape { background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--text-dim) 10px, var(--text-dim) 20px); border-color: var(--text-dim); }
-        .card-lore .card-icon { color: var(--text-dim); }
-        .card-lore:hover { transform: translateY(-3px); box-shadow: 0 0 15px rgba(105, 105, 105, 0.3); }
-
         .panel-outer:hover .panel-inner { background-color: rgba(20, 20, 20, 1); }
 
         .card-header { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; border-bottom: 1px solid #222; padding-bottom: 12px; }
-        .card-icon { font-size: 2.5rem; }
-        .card-title { font-size: 1.5rem; color: var(--text-main); }
+        .card-icon { font-size: 2rem; }
+        .card-title { font-size: 1.3rem; color: var(--text-main); }
         
         .status-badge { display: inline-block; padding: 4px 10px; font-family: 'Oswald', sans-serif; font-size: 0.75rem; border: 1px solid var(--text-dim); color: var(--text-dim); border-radius: 2px; letter-spacing: 1px; margin-top: auto; align-self: flex-start; }
         .panel-outer:hover .status-badge { border-color: var(--text-main); color: var(--text-main); }
+
+        /* ================= ЦВЕТОВЫЕ СХЕМЫ ГРЕХОВ ================= */
+        
+        /* 1. Гордыня (Pride) */
+        .card-pride { background-color: var(--sin-pride); }
+        .card-pride .hazard-tape { background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--sin-pride) 10px, var(--sin-pride) 20px); border-color: var(--sin-pride); }
+        .card-pride .card-icon { color: var(--sin-pride); }
+        .card-pride:hover { transform: translateY(-3px); box-shadow: 0 0 15px rgba(30, 58, 138, 0.4); }
+
+        /* 2. Гнев (Wrath) */
+        .card-wrath { background-color: var(--sin-wrath); }
+        .card-wrath .hazard-tape { background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--sin-wrath) 10px, var(--sin-wrath) 20px); border-color: var(--sin-wrath); }
+        .card-wrath .card-icon { color: var(--sin-wrath); }
+        .card-wrath:hover { transform: translateY(-3px); box-shadow: 0 0 15px rgba(199, 36, 58, 0.4); }
+
+        /* 3. Зависть (Envy) */
+        .card-envy { background-color: var(--sin-envy); }
+        .card-envy .hazard-tape { background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--sin-envy) 10px, var(--sin-envy) 20px); border-color: var(--sin-envy); }
+        .card-envy .card-icon { color: var(--sin-envy); }
+        .card-envy:hover { transform: translateY(-3px); box-shadow: 0 0 15px rgba(155, 89, 182, 0.4); }
+
+        /* 4. Лень (Sloth) */
+        .card-sloth { background-color: var(--sin-sloth); }
+        .card-sloth .hazard-tape { background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--sin-sloth) 10px, var(--sin-sloth) 20px); border-color: var(--sin-sloth); }
+        .card-sloth .card-icon { color: var(--sin-sloth); }
+        .card-sloth:hover { transform: translateY(-3px); box-shadow: 0 0 15px rgba(241, 196, 15, 0.4); }
+
+        /* 5. Обжорство (Gluttony) */
+        .card-gluttony { background-color: var(--sin-gluttony); }
+        .card-gluttony .hazard-tape { background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--sin-gluttony) 10px, var(--sin-gluttony) 20px); border-color: var(--sin-gluttony); }
+        .card-gluttony .card-icon { color: var(--sin-gluttony); }
+        .card-gluttony:hover { transform: translateY(-3px); box-shadow: 0 0 15px rgba(143, 204, 42, 0.4); }
+
+        /* 6. Похоть (Lust) */
+        .card-lust { background-color: var(--sin-lust); }
+        .card-lust .hazard-tape { background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--sin-lust) 10px, var(--sin-lust) 20px); border-color: var(--sin-lust); }
+        .card-lust .card-icon { color: var(--sin-lust); }
+        .card-lust:hover { transform: translateY(-3px); box-shadow: 0 0 15px rgba(230, 126, 34, 0.4); }
+
+        /* 7. Уныние (Gloom) */
+        .card-gloom { background-color: var(--sin-gloom); }
+        .card-gloom .hazard-tape { background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--sin-gloom) 10px, var(--sin-gloom) 20px); border-color: var(--sin-gloom); }
+        .card-gloom .card-icon { color: var(--sin-gloom); }
+        .card-gloom:hover { transform: translateY(-3px); box-shadow: 0 0 15px rgba(69, 179, 203, 0.4); }
+
+        /* 8. Иное (Other - Emerald) */
+        .card-other { background-color: var(--sin-other); }
+        .card-other .hazard-tape { background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--sin-other) 10px, var(--sin-other) 20px); border-color: var(--sin-other); }
+        .card-other .card-icon { color: var(--sin-other); }
+        .card-other:hover { transform: translateY(-3px); box-shadow: 0 0 15px rgba(39, 174, 96, 0.4); }
 
     </style>
 </head>
@@ -96,11 +141,11 @@
         </a>
     </div>
 
-    <!-- Сетка с локальными базами -->
+    <!-- Сетка с локальными базами (8 кнопок) -->
     <div class="compendium-grid">
         
-        <!-- Гримуар Классов -->
-        <a href="grimoire.html" class="panel-outer cut-tl compendium-card card-class">
+        <!-- 1. Гордыня (Pride) -->
+        <a href="grimoire.html" class="panel-outer cut-tl card-pride">
             <div class="hazard-tape"></div>
             <div class="panel-inner cut-tl" style="border-top: none;">
                 <div class="card-header">
@@ -108,14 +153,14 @@
                     <div class="card-title oswald">ГРИМУАР АРХЕТИПОВ</div>
                 </div>
                 <div class="lore-text" style="margin-bottom: 16px;">
-                    Полный перечень корпоративных, офисных и синдикатных архетипов. Характеристики, статус-эффекты и таланты по уровням.
+                    Полный перечень корпоративных, офисных и синдикатных классов.
                 </div>
                 <div class="status-badge">ДОСТУП РАЗРЕШЕН</div>
             </div>
         </a>
 
-        <!-- База Черт -->
-        <a href="feats.html" class="panel-outer cut-tl compendium-card card-feat">
+        <!-- 2. Гнев (Wrath) -->
+        <a href="feats.html" class="panel-outer cut-tl card-wrath">
             <div class="hazard-tape"></div>
             <div class="panel-inner cut-tl" style="border-top: none;">
                 <div class="card-header">
@@ -123,14 +168,14 @@
                     <div class="card-title oswald">БАЗА ЧЕРТ (FEATS)</div>
                 </div>
                 <div class="lore-text" style="margin-bottom: 16px;">
-                    Архив уникальных пассивных умений, стилей боя, мутаций и способностей Э.Г.О. Необходимые требования и категории.
+                    Архив уникальных пассивных умений, стилей боя и мутаций.
                 </div>
                 <div class="status-badge">ДОСТУП РАЗРЕШЕН</div>
             </div>
         </a>
 
-        <!-- Заглушка: Снаряжение (Можно заменить ссылку позже) -->
-        <a href="#" class="panel-outer cut-tl compendium-card card-lore">
+        <!-- 3. Зависть (Envy) -->
+        <a href="#" class="panel-outer cut-tl card-envy">
             <div class="hazard-tape"></div>
             <div class="panel-inner cut-tl" style="border-top: none;">
                 <div class="card-header">
@@ -138,14 +183,14 @@
                     <div class="card-title oswald">БАЗА СНАРЯЖЕНИЯ</div>
                 </div>
                 <div class="lore-text" style="margin-bottom: 16px;">
-                    Мастерское оружие, броня, аугментации и импланты. Расценки корпораций и характеристики артефактов.
+                    Мастерское оружие, броня, аугментации и импланты.
                 </div>
                 <div class="status-badge">ДАННЫЕ ЗАСЕКРЕЧЕНЫ</div>
             </div>
         </a>
 
-        <!-- Заглушка: Правила и Механики (Можно заменить ссылку позже) -->
-        <a href="#" class="panel-outer cut-tl compendium-card card-lore">
+        <!-- 4. Лень (Sloth) -->
+        <a href="#" class="panel-outer cut-tl card-sloth">
             <div class="hazard-tape"></div>
             <div class="panel-inner cut-tl" style="border-top: none;">
                 <div class="card-header">
@@ -153,7 +198,67 @@
                     <div class="card-title oswald">ПРАВИЛА И МЕХАНИКИ</div>
                 </div>
                 <div class="lore-text" style="margin-bottom: 16px;">
-                    Свод правил по Столкновениям (Clashing), Сету, статусным эффектам (Burn, Bleed, Tremor) и механикам рассудка.
+                    Свод правил по Столкновениям (Clashing) и рассудку.
+                </div>
+                <div class="status-badge">ДАННЫЕ ЗАСЕКРЕЧЕНЫ</div>
+            </div>
+        </a>
+
+        <!-- 5. Обжорство (Gluttony) -->
+        <a href="#" class="panel-outer cut-tl card-gluttony">
+            <div class="hazard-tape"></div>
+            <div class="panel-inner cut-tl" style="border-top: none;">
+                <div class="card-header">
+                    <i class="fa-solid fa-skull card-icon"></i>
+                    <div class="card-title oswald">БЕСТИАРИЙ</div>
+                </div>
+                <div class="lore-text" style="margin-bottom: 16px;">
+                    Архив Аномалий, Искажений и прочих угроз Города.
+                </div>
+                <div class="status-badge">ДАННЫЕ ЗАСЕКРЕЧЕНЫ</div>
+            </div>
+        </a>
+
+        <!-- 6. Похоть (Lust) -->
+        <a href="#" class="panel-outer cut-tl card-lust">
+            <div class="hazard-tape"></div>
+            <div class="panel-inner cut-tl" style="border-top: none;">
+                <div class="card-header">
+                    <i class="fa-solid fa-gem card-icon"></i>
+                    <div class="card-title oswald">Э.Г.О. ГИФТЫ</div>
+                </div>
+                <div class="lore-text" style="margin-bottom: 16px;">
+                    Каталог проявлений Э.Г.О. и даров Аномалий (E.G.O. Gifts).
+                </div>
+                <div class="status-badge">ДАННЫЕ ЗАСЕКРЕЧЕНЫ</div>
+            </div>
+        </a>
+
+        <!-- 7. Уныние (Gloom) -->
+        <a href="#" class="panel-outer cut-tl card-gloom">
+            <div class="hazard-tape"></div>
+            <div class="panel-inner cut-tl" style="border-top: none;">
+                <div class="card-header">
+                    <i class="fa-solid fa-biohazard card-icon"></i>
+                    <div class="card-title oswald">СТАТУС ЭФФЕКТЫ</div>
+                </div>
+                <div class="lore-text" style="margin-bottom: 16px;">
+                    Подробное описание Кровотечения, Огня, Тремора, Разрыва и прочих.
+                </div>
+                <div class="status-badge">ДАННЫЕ ЗАСЕКРЕЧЕНЫ</div>
+            </div>
+        </a>
+
+        <!-- 8. Иное (Other / Emerald) -->
+        <a href="#" class="panel-outer cut-tl card-other">
+            <div class="hazard-tape"></div>
+            <div class="panel-inner cut-tl" style="border-top: none;">
+                <div class="card-header">
+                    <i class="fa-solid fa-hourglass-half card-icon"></i>
+                    <div class="card-title oswald">ВРЕМЯ И ИСТОРИЯ</div>
+                </div>
+                <div class="lore-text" style="margin-bottom: 16px;">
+                    Хронология событий Города, падение корпораций и лор.
                 </div>
                 <div class="status-badge">ДАННЫЕ ЗАСЕКРЕЧЕНЫ</div>
             </div>
