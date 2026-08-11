@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Досье Агента / Sinner Roster (Cloud Edition)</title>
+    <title>Гримуар Классов / Class Compendium</title>
     
-    <link id="dynamic-favicon" rel="icon" type="image/jpeg" href="phis.jpg">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Merriweather:ital,wght@0,300;1,300;1,700&family=Oswald:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -21,779 +20,130 @@
 
         body {
             background-color: var(--bg-main); color: var(--text-main); font-family: 'Inter', sans-serif;
-            min-height: 100vh; padding: 50px 20px 20px 20px; display: flex; justify-content: center;
+            min-height: 100vh; padding: 60px 20px 40px 20px; display: flex; flex-direction: column; align-items: center;
             background-image: linear-gradient(rgba(7,7,7,0.8), rgba(7,7,7,0.8)), repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.02) 2px, rgba(255,255,255,0.02) 4px);
         }
 
         h1, h2, h3, h4, .oswald { font-family: 'Oswald', sans-serif; text-transform: uppercase; }
         .lore-text { font-family: 'Merriweather', serif; font-style: italic; color: var(--accent-muted); font-size: 0.85rem; }
         .tech-text { font-family: 'Inter', sans-serif; color: var(--accent-primary); font-size: 0.8rem; }
-        
-        [contenteditable="true"] { outline: none; border-bottom: 1px dashed transparent; transition: border-color 0.2s; min-width: 20px; display: inline-block; }
-        [contenteditable="true"]:focus, [contenteditable="true"]:hover { border-bottom: 1px dashed var(--accent-muted); }
 
-        .main-grid { display: grid; grid-template-columns: 1fr 2.5fr 1fr; grid-template-rows: auto auto; gap: 16px; width: 100%; max-width: 1800px; }
-        .block-1 { grid-column: 1 / 2; grid-row: 1 / 2; }
-        .block-2 { grid-column: 2 / 3; grid-row: 1 / 2; display: flex; flex-direction: column; }
-        .block-3 { grid-column: 3 / 4; grid-row: 1 / 2; }
-        .block-4 { grid-column: 1 / 2; grid-row: 2 / 3; }
-        .block-5 { grid-column: 2 / 4; grid-row: 2 / 3; }
+        /* Плавающая кнопка возврата */
+        .top-nav-btn { position: absolute; top: 10px; left: 20px; padding: 6px 12px; font-size: 0.8rem; border-color: var(--color-cyan); color: var(--color-cyan); font-family: 'Oswald', sans-serif; z-index: 100; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; border: 1px solid var(--color-cyan); cursor: pointer; text-transform: uppercase; transition: 0.2s; }
+        .top-nav-btn:hover { background-color: var(--color-cyan); color: #000; }
+
+        .header-bar { width: 100%; max-width: 1200px; display: flex; justify-content: center; align-items: center; margin-bottom: 24px; border-bottom: 1px solid var(--accent-muted); padding-bottom: 10px; }
+        .header-title { color: var(--accent-primary); font-size: 1.5rem; letter-spacing: 2px; }
+
+        .compendium-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; width: 100%; max-width: 1200px; }
 
         .panel-outer { background-color: var(--accent-primary); padding: var(--border-width); position: relative; display: flex; flex-direction: column; }
         .panel-inner { background-color: var(--bg-panel); padding: 16px; height: 100%; display: flex; flex-direction: column; }
         .cut-tl { clip-path: polygon(var(--chamfer) 0, 100% 0, 100% 100%, 0 100%, 0 var(--chamfer)); }
-        .panel-title { color: var(--accent-primary); font-size: 1.2rem; margin-bottom: 12px; letter-spacing: 1px; border-bottom: 1px solid var(--accent-muted); padding-bottom: 4px; display: flex; justify-content: space-between; align-items: center; }
 
-        .btn-small { background: transparent; border: 1px solid var(--text-dim); color: var(--text-dim); cursor: pointer; padding: 2px 6px; font-size: 0.7rem; text-transform: uppercase; transition: 0.2s; }
-        .btn-small:hover { color: var(--accent-primary); border-color: var(--accent-primary); }
-        .btn-trash { position: absolute; top: -10px; right: -10px; background: var(--bg-panel); color: var(--color-red); border: 1px solid var(--color-red); width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0; transition: opacity 0.2s; z-index: 5; }
-
-        .img-upload { background-color: #111; border: 1px solid var(--text-dim); cursor: pointer; position: relative; background-size: cover; background-position: center; display: flex; justify-content: center; align-items: center; transition: border-color 0.2s; }
-        .img-upload:hover { border-color: var(--accent-primary); }
-        .img-upload::after { content: "\f044"; font-family: 'FontAwesome'; position: absolute; opacity: 0; color: var(--accent-primary); font-size: 1.5rem; transition: opacity 0.2s; background: rgba(0,0,0,0.6); padding: 8px; border-radius: 50%; }
-        .img-upload:hover::after { opacity: 1; }
-        .img-upload.has-image::after { opacity: 0; }
-        .img-upload.has-image:hover::after { opacity: 1; }
-
-        select { background: transparent; border: none; color: var(--text-main); font-family: 'Oswald', sans-serif; font-size: 0.95rem; cursor: pointer; outline: none; text-transform: uppercase; }
-        select option { background: var(--bg-panel); color: var(--text-main); }
-
-        .portrait-area { width: 100%; aspect-ratio: 1/1; margin-bottom: 16px; }
-        .info-row { margin-bottom: 8px; font-size: 0.9rem; display: flex; align-items: center; }
-        .info-label { color: var(--text-dim); text-transform: uppercase; font-size: 0.7rem; margin-right: 8px; min-width: 90px; }
+        .class-title { font-size: 1.4rem; color: var(--text-main); margin-bottom: 8px; border-bottom: 1px solid #222; padding-bottom: 4px; }
         
-        .scale-header { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; margin-bottom: 4px; }
-        .health-grid, .sanity-grid, .energy-grid { display: flex; flex-wrap: wrap; gap: 4px; }
-        
-        /* --- СИСТЕМА СОСТОЯНИЙ И АНИМАЦИИ --- */
-        .health-box, .sanity-box, .energy-box { 
-            width: 18px; height: 18px; cursor: pointer; background-color: transparent; 
-            position: relative; display: flex; justify-content: center; align-items: center;
-            font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 700; user-select: none;
-            transition: transform 0.2s ease-out, opacity 0.2s ease-out, width 0.2s ease-out, margin 0.2s ease-out, border-width 0.2s ease-out;
-        }
-        
-        .scale-anim-hidden {
-            transform: translateX(-15px);
-            opacity: 0;
-            width: 0 !important;
-            margin-right: -4px !important;
-            border-width: 0 !important;
-            overflow: hidden;
-        }
+        .types-container { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+        .type-badge { display: flex; align-items: center; gap: 6px; font-family: 'Oswald', sans-serif; font-size: 0.9rem; text-transform: uppercase; border: 1px solid; padding: 2px 8px; border-radius: 2px; background: rgba(0,0,0,0.5); }
+        .type-icon { width: 16px; height: 16px; object-fit: contain; }
 
-        /* Здоровье (5 состояний) */
-        .health-box { border: 1px solid var(--color-red); color: var(--color-red); }
-        .health-box.normal { background-color: var(--color-red); }
-        .health-box.slash::after { content: "/"; }
-        .health-box.hash::after { content: "#"; }
-        .health-box.cross::after { content: "X"; }
+        .talent-block { margin-bottom: 16px; border-left: 2px solid var(--accent-muted); padding-left: 10px; }
+        .talent-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+        .talent-name { font-family: 'Oswald', sans-serif; color: var(--accent-primary); font-size: 1.1rem; }
+        .talent-level { color: var(--text-dim); font-size: 0.75rem; }
+        .talent-desc { font-size: 0.85rem; color: var(--text-main); line-height: 1.4; }
 
-        /* Рассудок (4 состояния) */
-        .sanity-box { border: 1px solid var(--color-cyan); color: var(--color-cyan); }
-        .sanity-box.normal { background-color: var(--color-cyan); }
-        .sanity-box.slash::after { content: "/"; }
-        .sanity-box.cross::after { content: "X"; }
-
-        /* Динамическая Энергия */
-        .energy-box { border: 1px solid var(--res-color, #9B59B6); color: var(--res-color, #9B59B6); }
-        .energy-box.normal { background-color: var(--res-color, #9B59B6); }
-
-        /* Очки Защиты (Индиго, 2 состояния, растянуты по ширине) */
-        .defense-grid { display: flex; gap: 6px; margin-bottom: 16px; width: 100%; }
-        .defense-box { 
-            flex: 1; 
-            height: 22px; cursor: pointer; background-color: transparent; 
-            border: 2px solid var(--color-indigo); transition: background-color 0.1s;
-        }
-        .defense-box.normal { background-color: var(--color-indigo); }
-
-        .hazard-tape { height: 14px; background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--accent-primary) 10px, var(--accent-primary) 20px); border-bottom: 1px solid var(--accent-primary); }
-        .combat-skills-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 16px; }
-        .combat-skill { border: 1px solid #222; padding: 12px; position: relative; display: flex; flex-direction: column; gap: 8px; }
-        .combat-skill:hover { border-color: var(--accent-muted); }
-        .combat-skill:hover .btn-trash { opacity: 1; }
-        .skill-icon { width: 100%; aspect-ratio: 16/9; }
-
-        .resist-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px solid #111; padding-bottom: 4px;}
-        .trait-card { border-left: 2px solid var(--accent-muted); padding-left: 8px; margin-top: 16px; position: relative; }
-        .trait-card:hover .btn-trash { opacity: 1; }
-        .trait-header { display: flex; justify-content: space-between; align-items:baseline; border-bottom: 1px solid #222; margin-bottom: 4px;}
-
-        #attributes-container { display: grid; grid-template-columns: 1fr 1fr; column-gap: 20px; row-gap: 24px; margin-top: 16px; }
-        .stat-category { display: flex; flex-direction: column; align-items: center; gap: 12px; }
-        .stat-icon { width: 64px; height: 64px; border-radius: 0; border: none !important; background-color: transparent; background-size: contain; background-repeat: no-repeat; background-position: center; }
-        .stat-rows { width: 100%; }
-        .stat-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-
-        .dots-container { display: flex; gap: 4px; }
-        .dot { width: 6px; height: 6px; border: 1px solid var(--accent-primary); cursor: pointer; transition: background 0.1s; }
-        .dot.filled { background-color: var(--text-main); border-color: var(--text-main); }
-        .dot.hovered { background-color: var(--accent-muted); }
-
-        .skills-list { column-count: 3; column-gap: 24px; margin-top: 12px; }
-        .skill-item { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; break-inside: avoid; position: relative; }
-        .skill-name { flex: 1 1 45%; font-size: 0.85rem; line-height: 1.1; }
-        .skill-spec { flex: 1 1 30%; border: 1px solid var(--text-dim); padding: 2px 4px; font-size: 0.75rem; color: var(--text-dim); text-align: center; }
-        .skill-spec:empty::before { content: attr(data-placeholder); color: var(--text-dim); opacity: 0.5; }
-        .btn-remove-skill { position: absolute; left: -16px; color: var(--color-red); cursor: pointer; opacity: 0; font-size: 0.8rem; }
-        .skill-item:hover .btn-remove-skill { opacity: 1; }
-
-        /* --- Cloud Menu --- */
-        .save-menu-btn { position: absolute; top: 10px; left: 20px; padding: 6px 12px; font-size: 0.8rem; border-color: var(--color-cyan); color: var(--color-cyan); font-family: 'Oswald', sans-serif; z-index: 100; background: var(--bg-main);}
-        .save-menu-btn:hover { background-color: var(--color-cyan); color: #000; }
-        
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(4px); }
-        .modal-overlay.active { display: flex; }
-        .modal-box { width: 450px; max-width: 90%; position: relative; max-height: 90vh; overflow-y: auto; }
-        
-        .cloud-input { width: 100%; background: #111; border: 1px solid #333; color: var(--text-main); padding: 10px; margin-bottom: 12px; outline: none; font-family: 'Inter'; }
-        .cloud-input:focus { border-color: var(--color-cyan); }
-        
-        .modal-btn { width: 100%; padding: 12px; font-size: 1rem; cursor: pointer; border: 1px solid; background: transparent; text-transform: uppercase; font-family: 'Oswald', sans-serif; transition: 0.2s; margin-bottom: 8px;}
-        
-        .btn-save { border-color: var(--accent-primary); color: var(--accent-primary); }
-        .btn-save:hover { background: var(--accent-primary); color: #000; }
-        .btn-load { border-color: var(--color-cyan); color: var(--color-cyan); }
-        .btn-load:hover { background: var(--color-cyan); color: #000; }
-        .btn-logout { border-color: var(--text-dim); color: var(--text-dim); }
-        .btn-logout:hover { background: var(--text-dim); color: #000; }
-        .btn-close-modal { background: transparent; border: none; color: var(--color-red); font-size: 1.5rem; cursor: pointer; transition: 0.2s; }
-        .btn-close-modal:hover { color: #ff0044; }
-
-        .catalog-list { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; max-height: 250px; overflow-y: auto; text-align: left; }
-        .catalog-item { background: #111; border: 1px solid #222; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; }
-        .catalog-item:hover { border-color: var(--color-cyan); }
+        .loading-text { text-align: center; color: var(--text-dim); font-family: 'Oswald', sans-serif; font-size: 1.2rem; width: 100%; grid-column: 1 / -1; }
     </style>
 </head>
 <body>
 
-<button class="btn-small save-menu-btn" onclick="window.toggleSaveMenu()"><i class="fa-solid fa-cloud"></i> СЕТЬ СИНХРОНИЗАЦИИ</button>
+    <a href="index.html" class="top-nav-btn"><i class="fa-solid fa-arrow-left"></i> ТЕРМИНАЛ АГЕНТА</a>
 
-<input type="file" id="import-json-input" accept=".json" style="display: none;" onchange="window.importFromJson(event)">
-
-<!-- Модальное окно Cloud -->
-<div class="modal-overlay" id="saveModal" onclick="window.closeModalOnBg(event)">
-    <div class="panel-outer cut-tl modal-box">
-        <div class="hazard-tape" style="background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--color-cyan) 10px, var(--color-cyan) 20px); border-bottom-color: var(--color-cyan);"></div>
-        <div class="panel-inner cut-tl" style="border-top: none;">
-            <div class="panel-title" style="display: flex; justify-content: space-between; align-items: center; color: var(--color-cyan); border-color: var(--color-cyan);">
-                <span>ТЕРМИНАЛ MEPHISTOPHELES</span>
-                <button class="btn-close-modal" onclick="window.toggleSaveMenu()"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            
-            <!-- Авторизация -->
-            <div id="auth-section">
-                <div class="tech-text" style="color: var(--text-dim); margin-bottom: 16px; text-align: center;">Необходима авторизация в корпоративной сети.</div>
-                <input type="email" id="email-input" class="cloud-input" placeholder="ID Сотрудника (Email)">
-                <input type="password" id="pw-input" class="cloud-input" placeholder="Код доступа (Пароль)">
-                <button class="modal-btn btn-load" onclick="window.firebaseLogin()"><i class="fa-solid fa-right-to-bracket"></i> Авторизация</button>
-                <button class="modal-btn btn-logout" onclick="window.firebaseRegister()"><i class="fa-solid fa-user-plus"></i> Регистрация</button>
-            </div>
-
-            <!-- Личный кабинет -->
-            <div id="cloud-section" style="display: none; text-align: center;">
-                <div class="tech-text" style="color: var(--color-cyan); margin-bottom: 12px;">Статус: ПОДКЛЮЧЕНО<br><span id="user-display" style="color: var(--text-main);"></span></div>
-                
-                <button class="modal-btn btn-save" id="btn-save-cloud" onclick="window.saveToCloud()"><i class="fa-solid fa-cloud-arrow-up"></i> Сохранить текущий лист</button>
-                <button class="modal-btn btn-load" id="btn-load-cloud" onclick="window.loadFromCloud()"><i class="fa-solid fa-cloud-arrow-down"></i> Загрузить мой профиль</button>
-                
-                <!-- ДМ-КАТАЛОГ -->
-                <div id="dm-catalog-section" style="display: none;">
-                    <div class="panel-title" style="margin-top: 15px; font-size: 1rem; color: var(--accent-primary); border-color: var(--accent-muted);">Панель ДМа: Каталог агентов</div>
-                    <button class="modal-btn btn-small" style="margin-bottom: 8px; padding: 8px;" onclick="window.loadCatalog()"><i class="fa-solid fa-address-book"></i> Обновить список каталога</button>
-                    <div class="catalog-list" id="catalog-container">
-                        <div class="tech-text" style="text-align: center; color: var(--text-dim);">Нажмите кнопку обновления для просмотра базы.</div>
-                    </div>
-                </div>
-
-                <button class="modal-btn btn-logout" style="margin-top: 15px;" onclick="window.firebaseLogout()"><i class="fa-solid fa-power-off"></i> Отключиться</button>
-            </div>
-            
-            <!-- Оффлайн/Локальный бекап -->
-            <hr style="border: 0; border-top: 1px solid #222; margin: 15px 0;">
-            <div style="display: flex; gap: 8px;">
-                <button class="modal-btn btn-small" style="color: var(--color-yellow); border-color: var(--color-yellow); padding: 8px; font-size: 0.8rem; flex: 1;" onclick="window.exportToJson()"><i class="fa-solid fa-file-export"></i> Экспорт</button>
-                <button class="modal-btn btn-small" style="color: var(--color-yellow); border-color: var(--color-yellow); padding: 8px; font-size: 0.8rem; flex: 1;" onclick="document.getElementById('import-json-input').click()"><i class="fa-solid fa-file-import"></i> Импорт</button>
-            </div>
-        </div>
+    <div class="header-bar">
+        <div class="header-title oswald">БАЗА ДАННЫХ: АРХЕТИПЫ И КЛАССЫ</div>
     </div>
-</div>
 
-<input type="file" id="global-image-input" accept="image/*" style="display: none;">
-
-<div class="main-grid" id="main-character-sheet">
-    <!-- БЛОК 1: Основная информация об Агенте -->
-    <div class="panel-outer cut-tl block-1">
-        <div class="panel-inner cut-tl">
-            <div class="panel-title">ДОСЬЕ АГЕНТА</div>
-            <div class="img-upload portrait-area" id="main-portrait" onclick="window.triggerImageUpload(this)"></div>
-            <div class="info-row"><span class="info-label">ПОЗЫВНОЙ:</span> <span contenteditable="true" id="agent-name" class="oswald" style="font-size: 1.2rem; color: var(--accent-primary)">ГРЕШНИК #13</span></div>
-            <div class="info-row"><span class="info-label">МЕСТОИМЕНИЯ:</span> <span contenteditable="true">Он / Его</span></div>
-            <div class="info-row">
-                <span class="info-label">СТИХИЯ:</span> 
-                <select id="affinity-select" onchange="window.updateSelectColor(this)" style="color: var(--color-cyan);">
-                    <option value="envy" data-color="#9B59B6" style="color: #9B59B6;">Зависть</option>
-                    <option value="pride" data-color="#1E3A8A" style="color: #1E3A8A;">Гордыня</option>
-                    <option value="gloom" data-color="#45B3CB" style="color: #45B3CB;" selected>Уныние</option>
-                    <option value="gluttony" data-color="#40E0D0" style="color: #40E0D0;">Обжорство</option>
-                    <option value="sloth" data-color="#F1C40F" style="color: #F1C40F;">Лень</option>
-                    <option value="lust" data-color="#E67E22" style="color: #E67E22;">Похоть</option>
-                    <option value="wrath" data-color="#C7243A" style="color: #C7243A;">Гнев</option>
-                </select>
-            </div>
-            
-            <div class="scale-header oswald"><span style="color: var(--color-red)">СИСТЕМА HP</span><div><button class="btn-small" onclick="window.adjustScale('health', -1)">-</button><button class="btn-small" onclick="window.adjustScale('health', 1)">+</button></div></div>
-            <div class="health-grid" id="health-grid"></div>
-            
-            <div class="scale-header oswald"><span style="color: var(--color-cyan)">РАССУДОК (SP)</span><div><button class="btn-small" onclick="window.adjustScale('sanity', -1)">-</button><button class="btn-small" onclick="window.adjustScale('sanity', 1)">+</button></div></div>
-            <div class="sanity-grid" id="sanity-grid"></div>
-
-            <!-- БЛОК ОСОБЫХ РЕСУРСОВ -->
-            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 24px; margin-bottom: 8px; border-bottom: 1px solid #222; padding-bottom: 4px;">
-                <span class="oswald" style="color: var(--text-dim); font-size: 0.9rem;">ОСОБЫЕ РЕСУРСЫ</span>
-                <button class="btn-small" style="border-color: var(--color-cyan); color: var(--color-cyan);" onclick="window.addCustomResource()">+ ДОБАВИТЬ</button>
-            </div>
-            
-            <div id="custom-resources-container">
-                <div class="custom-resource-block" style="--res-color: #9B59B6; margin-bottom: 12px;">
-                    <div class="scale-header oswald" style="margin-top: 0;">
-                        <span style="color: var(--res-color)" contenteditable="true">ОСОБЫЙ РЕСУРС</span>
-                        <div>
-                            <button class="btn-small" title="Изменить цвет (HEX)" onclick="window.changeResourceColor(this)"><i class="fa-solid fa-eye-dropper"></i></button>
-                            <button class="btn-small" onclick="window.adjustCustomScale(this, -1)">-</button>
-                            <button class="btn-small" onclick="window.adjustCustomScale(this, 1)">+</button>
-                        </div>
-                    </div>
-                    <div class="energy-grid">
-                        <div class="energy-box normal"></div>
-                        <div class="energy-box normal"></div>
-                        <div class="energy-box normal"></div>
-                        <div class="energy-box normal"></div>
-                        <div class="energy-box normal"></div>
-                    </div>
-                </div>
-            </div>
-            <!-- КОНЕЦ БЛОКА -->
-        </div>
+    <div class="compendium-grid" id="compendium">
+        <div class="loading-text">Установка соединения с базой данных...</div>
     </div>
-    
-    <!-- БЛОК 2: Боевые навыки -->
-    <div class="panel-outer cut-tl block-2" style="padding-top: 0;">
-        <div class="hazard-tape"></div>
-        <div class="panel-inner cut-tl" style="border-top: none;">
-            <div class="panel-title">БОЕВЫЕ ПРОТОКОЛЫ<button class="btn-small" onclick="window.addCombatSkill()">+ ДОБАВИТЬ НАВЫК</button></div>
-            <div class="combat-skills-container" id="combat-skills-container"></div>
-        </div>
-    </div>
-    
-    <!-- БЛОК 3: Сопротивление и Черты -->
-    <div class="panel-outer cut-tl block-3">
-        <div class="panel-inner cut-tl">
-            <div class="panel-title">ЗАЩИТА И Э.Г.О.</div>
-            
-            <!-- Растянутые Очки Защиты -->
-            <div class="scale-header oswald" style="margin-top: 0; margin-bottom: 8px;"><span style="color: var(--color-indigo)">ОЧКИ ЗАЩИТЫ</span></div>
-            <div class="defense-grid" id="defense-grid">
-                <div class="defense-box normal"></div>
-                <div class="defense-box normal"></div>
-                <div class="defense-box normal"></div>
-                <div class="defense-box normal"></div>
-                <div class="defense-box normal"></div>
-            </div>
 
-            <div id="resistances"></div>
-            <div class="panel-title" style="margin-top: 20px; font-size: 1rem;">ПАССИВНЫЕ ЧЕРТЫ<button class="btn-small" onclick="window.addTrait()">+ ДОБАВИТЬ ЧЕРТУ</button></div>
-            <div id="traits-container"></div>
-        </div>
-    </div>
-    
-    <!-- БЛОК 4: Атрибуты -->
-    <div class="panel-outer cut-tl block-4">
-        <div class="panel-inner cut-tl">
-            <div class="panel-title">АТРИБУТЫ</div>
-            <div id="attributes-container"></div>
-        </div>
-    </div>
-    
-    <!-- БЛОК 5: Навыки и Таланты -->
-    <div class="panel-outer cut-tl block-5">
-        <div class="panel-inner cut-tl">
-            <div class="panel-title">НАВЫКИ И УМЕНИЯ<button class="btn-small" onclick="window.addTalentSkill()">+ ДОБАВИТЬ ЗАПИСЬ</button></div>
-            <div class="skills-list" id="skills-list"></div>
-        </div>
-    </div>
-</div>
-
-<!-- ========================================== -->
-<!-- СКРИПТ 1: ЛОГИКА ИНТЕРФЕЙСА                -->
-<!-- ========================================== -->
-<script>
-    window.healthMax = 10;
-    window.sanityMax = 12;
-    let currentUploadTarget = null;
-    
-    window.setRandomFavicon = () => {
-        const favicons = ['phis.jpg', 'unde.jpg', 'vide.jpg', 'spra.jpg'];
-        document.getElementById('dynamic-favicon').href = favicons[Math.floor(Math.random() * favicons.length)];
-    }
-
-    const imgInput = document.getElementById('global-image-input');
-    imgInput.addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file && currentUploadTarget) {
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                currentUploadTarget.style.backgroundImage = `url(${event.target.result})`;
-                currentUploadTarget.classList.add('has-image');
-            };
-            reader.readAsDataURL(file);
-        }
-        this.value = ''; 
-    });
-
-    window.triggerImageUpload = (el) => { currentUploadTarget = el; imgInput.click(); };
-    window.updateSelectColor = (sel) => { sel.style.color = sel.options[sel.selectedIndex].dataset.color || sel.options[sel.selectedIndex].style.color; };
-    window.toggleSaveMenu = () => document.getElementById('saveModal').classList.toggle('active');
-    window.closeModalOnBg = (e) => { if (e.target.id === 'saveModal') window.toggleSaveMenu(); };
-
-    // ЭКСПОРТ JSON
-    window.exportToJson = () => {
-        document.querySelectorAll('select').forEach(sel => {
-            Array.from(sel.options).forEach(opt => {
-                if (opt.value === sel.value) opt.setAttribute('selected', 'selected');
-                else opt.removeAttribute('selected');
-            });
-        });
-        const mainSheet = document.getElementById('main-character-sheet').innerHTML;
-        const agentName = document.getElementById('agent-name').innerText.trim() || 'Sinner';
-        const saveObj = { html: mainSheet, healthMax: window.healthMax, sanityMax: window.sanityMax, agentName: agentName, timestamp: new Date().toISOString() };
-
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(saveObj, null, 2));
-        const downloadAnchorNode = document.createElement('a');
-        downloadAnchorNode.setAttribute("href", dataStr);
-        downloadAnchorNode.setAttribute("download", agentName + "_sheet.json");
-        document.body.appendChild(downloadAnchorNode); 
-        downloadAnchorNode.click();
-        downloadAnchorNode.remove();
-    };
-
-    // ИМПОРТ JSON
-    window.importFromJson = (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            try {
-                const data = JSON.parse(event.target.result);
-                if (data.html) {
-                    document.getElementById('main-character-sheet').innerHTML = data.html;
-                    window.healthMax = data.healthMax || 10;
-                    window.sanityMax = data.sanityMax || 12;
-                    window.toggleSaveMenu();
-                    alert("Профиль успешно загружен из JSON!");
-                } else { alert("Неверный формат файла."); }
-            } catch (err) { alert("Ошибка чтения файла JSON."); }
+    <script>
+        const typeDictionary = {
+            "Burn": { name: "Огонь", color: "#C7243A", icon: "Burn.png" },
+            "Bleed": { name: "Кровотечение", color: "#E67E22", icon: "Bleed.png" },
+            "Tremor": { name: "Тремор", color: "#F1C40F", icon: "Tremor.png" },
+            "Rupture": { name: "Разрыв", color: "#40E0D0", icon: "Rupture.png" },
+            "Sinking": { name: "Утопание", color: "#45B3CB", icon: "Sinking.png" },
+            "Poise": { name: "Уверенность", color: "#1E3A8A", icon: "Poise.png" },
+            "Charge": { name: "Заряд", color: "#9B59B6", icon: "Charge.png" }
         };
-        reader.readAsText(file);
-        e.target.value = '';
-    };
 
-    // ДИНАМИЧЕСКИЕ РЕСУРСЫ: Добавление
-    window.addCustomResource = () => {
-        const colors = ['#C7243A', '#E67E22', '#F1C40F', '#40E0D0', '#45B3CB', '#1E3A8A', '#9B59B6'];
-        const randColor = colors[Math.floor(Math.random() * colors.length)];
-        
-        const html = `
-        <div class="custom-resource-block" style="--res-color: ${randColor}; margin-bottom: 12px;">
-            <div class="scale-header oswald" style="margin-top: 0;">
-                <span style="color: var(--res-color)" contenteditable="true">НОВЫЙ РЕСУРС</span>
-                <div>
-                    <button class="btn-small" title="Изменить цвет (HEX)" onclick="window.changeResourceColor(this)"><i class="fa-solid fa-eye-dropper"></i></button>
-                    <button class="btn-small" onclick="window.adjustCustomScale(this, -1)">-</button>
-                    <button class="btn-small" onclick="window.adjustCustomScale(this, 1)">+</button>
-                    <button class="btn-small" style="color: var(--color-red); border-color: var(--color-red);" onclick="this.closest('.custom-resource-block').remove()"><i class="fa-solid fa-trash"></i></button>
-                </div>
-            </div>
-            <div class="energy-grid">
-                <div class="energy-box normal"></div>
-                <div class="energy-box normal"></div>
-                <div class="energy-box normal"></div>
-            </div>
-        </div>`;
-        document.getElementById('custom-resources-container').insertAdjacentHTML('beforeend', html);
-    };
-
-    // ДИНАМИЧЕСКИЕ РЕСУРСЫ: Изменение цвета (Пипетка)
-    window.changeResourceColor = (btn) => {
-        const block = btn.closest('.custom-resource-block');
-        const currentHex = block.style.getPropertyValue('--res-color').trim();
-        const newHex = prompt("Введите HEX код цвета (Например: #C7243A для красного, #45B3CB для синего):", currentHex || "#9B59B6");
-        
-        if (newHex !== null) {
-            if (/^#([0-9A-Fa-f]{3}){1,2}$/.test(newHex.trim())) {
-                block.style.setProperty('--res-color', newHex.trim());
-            } else {
-                alert("Ошибка! Неверный формат HEX кода. Используйте формат #RRGGBB");
-            }
-        }
-    };
-
-    // ДИНАМИЧЕСКИЕ РЕСУРСЫ: Анимация шкал +/-
-    window.adjustCustomScale = (btn, a) => {
-        const grid = btn.closest('.custom-resource-block').querySelector('.energy-grid');
-        if (a > 0) {
-            const el = document.createElement('div');
-            el.className = 'energy-box normal scale-anim-hidden';
-            grid.appendChild(el);
-            void el.offsetWidth;
-            el.classList.remove('scale-anim-hidden');
-        } else if (a < 0 && grid.children.length > 1) {
-            const lastEl = grid.lastElementChild;
-            lastEl.classList.add('scale-anim-hidden');
-            setTimeout(() => lastEl.remove(), 200);
-        }
-    };
-
-    // Отрисовка базовых шкал при старте
-    window.renderHealth = () => {
-        const g = document.getElementById('health-grid'); g.innerHTML = '';
-        for (let i=0; i<window.healthMax; i++) g.insertAdjacentHTML('beforeend', `<div class="health-box normal"></div>`);
-    };
-
-    window.renderSanity = () => {
-        const g = document.getElementById('sanity-grid'); g.innerHTML = '';
-        for (let i=0; i<window.sanityMax; i++) g.insertAdjacentHTML('beforeend', `<div class="sanity-box normal"></div>`);
-    };
-
-    // АНИМИРОВАННОЕ ДОБАВЛЕНИЕ/УДАЛЕНИЕ ЯЧЕЕК ДЛЯ HP И SP
-    window.adjustScale = (t, a) => {
-        let gridId, boxClass, maxVar;
-        
-        // Поддержка старых сейвов, где энергия была завязана на window.adjustScale
-        if (t === 'energy') return; 
-
-        if (t === 'health') { gridId = 'health-grid'; boxClass = 'health-box'; maxVar = 'healthMax'; }
-        else if (t === 'sanity') { gridId = 'sanity-grid'; boxClass = 'sanity-box'; maxVar = 'sanityMax'; }
-
-        const g = document.getElementById(gridId);
-        if (a > 0) {
-            window[maxVar]++;
-            const el = document.createElement('div');
-            el.className = `${boxClass} normal scale-anim-hidden`;
-            g.appendChild(el);
-            void el.offsetWidth;
-            el.classList.remove('scale-anim-hidden');
-        } else if (a < 0 && window[maxVar] > 1) {
-            window[maxVar]--;
-            const lastEl = g.lastElementChild;
-            if (lastEl) {
-                lastEl.classList.add('scale-anim-hidden');
-                setTimeout(() => lastEl.remove(), 200);
-            }
-        }
-    };
-
-    document.addEventListener('click', e => {
-        // Логика здоровья
-        if (e.target.classList.contains('health-box')) {
-            const b = e.target;
-            const states = ['normal', 'slash', 'hash', 'cross', 'empty'];
-            if (b.classList.contains('full')) { b.classList.remove('full'); b.classList.add('normal'); }
-            if (b.classList.contains('damaged')) { b.classList.remove('damaged'); b.classList.add('slash'); }
+        async function loadGrimoire() {
+            const container = document.getElementById('compendium');
             
-            let current = 'empty';
-            for (let s of states) if (b.classList.contains(s)) current = s;
-            let nextIndex = (states.indexOf(current) + 1) % states.length;
-            b.classList.remove(...states);
-            if (states[nextIndex] !== 'empty') b.classList.add(states[nextIndex]);
-        }
-        
-        // Логика рассудка
-        if (e.target.classList.contains('sanity-box')) {
-            const b = e.target;
-            const states = ['normal', 'slash', 'cross', 'empty'];
-            if (b.classList.contains('filled')) { b.classList.remove('filled'); b.classList.add('normal'); }
-            
-            let current = 'empty';
-            for (let s of states) if (b.classList.contains(s)) current = s;
-            let nextIndex = (states.indexOf(current) + 1) % states.length;
-            b.classList.remove(...states);
-            if (states[nextIndex] !== 'empty') b.classList.add(states[nextIndex]);
-        }
-
-        // Логика энергии
-        if (e.target.classList.contains('energy-box')) {
-            e.target.classList.toggle('normal');
-        }
-
-        // Логика очков защиты
-        if (e.target.classList.contains('defense-box')) {
-            e.target.classList.toggle('normal');
-        }
-        
-        // Логика точек навыков
-        if(e.target.classList.contains('dot')) {
-            const val = parseInt(e.target.dataset.val);
-            const dots = e.target.parentElement.querySelectorAll('.dot');
-            let c = 0; dots.forEach(d => { if(d.classList.contains('filled')) c++; });
-            if (c === val && parseInt(e.target.dataset.val) === val) { dots.forEach(d => d.classList.remove('filled')); } 
-            else { dots.forEach(d => { if(parseInt(d.dataset.val) <= val) d.classList.add('filled'); else d.classList.remove('filled'); }); }
-        }
-    });
-
-    document.addEventListener('mouseover', e => {
-        if(e.target.classList.contains('dot')) {
-            const v = parseInt(e.target.dataset.val);
-            e.target.parentElement.querySelectorAll('.dot').forEach(d => {
-                if(parseInt(d.dataset.val) <= v) d.classList.add('hovered'); else d.classList.remove('hovered');
-            });
-        }
-    });
-
-    document.addEventListener('mouseout', e => {
-        if(e.target.classList.contains('dot')) {
-            e.target.parentElement.querySelectorAll('.dot').forEach(d => d.classList.remove('hovered'));
-        }
-    });
-
-    window.addCombatSkill = () => {
-        document.getElementById('combat-skills-container').insertAdjacentHTML('beforeend', `
-            <div class="combat-skill">
-                <button class="btn-trash" onclick="this.parentElement.remove()"><i class="fa-solid fa-trash"></i></button>
-                <div class="img-upload skill-icon" onclick="window.triggerImageUpload(this)"></div>
-                <div contenteditable="true" class="oswald" style="font-size:1.1rem; color: var(--text-main)">НОВЫЙ НАВЫК</div>
-                <div contenteditable="true" class="lore-text">"Художественное описание."</div>
-                <div contenteditable="true" class="tech-text">Описание эффекта.</div>
-            </div>`);
-    };
-
-    window.renderResistances = () => {
-        const dt = [
-            {n:'Красный',c:'var(--color-red)'},
-            {n:'Белый',c:'#FFFFFF'},
-            {n:'Чёрный',c:'#9B59B6'},
-            {n:'Бледный',c:'#ADD8E6'},
-            {n:'Проникающий',c:'var(--accent-primary)'},
-            {n:'Режущий',c:'var(--accent-primary)'},
-            {n:'Дробящий',c:'var(--accent-primary)'}
-        ];
-        const st = [{n:'Смертельно',v:'fatal'},{n:'Уязвимость',v:'weak'},{n:'Стойкость',v:'endured'},{n:'Неэффективно',v:'ineffective'}];
-        let h = '';
-        for(let i=0; i<4; i++) {
-            h += `<div class="resist-row">
-                <select onchange="window.updateSelectColor(this)" style="color: ${dt[i%dt.length].c};">
-                    ${dt.map((d, x) => `<option value="${d.n}" data-color="${d.c}" style="color:${d.c}" ${x === i ? 'selected':''}>${d.n}</option>`).join('')}
-                </select>
-                <select class="status-select status-${st[i%st.length].v}" onchange="this.className = 'status-select status-' + this.value">
-                    ${st.map(s => `<option value="${s.v}" ${s.v === st[i%st.length].v ? 'selected':''}>${s.n}</option>`).join('')}
-                </select></div>`;
-        }
-        document.getElementById('resistances').innerHTML = h;
-    };
-
-    window.addTrait = (title = 'АНОМАЛИЯ', desc = 'Описание аномальной черты, триггеры и механики.') => {
-        const c = document.getElementById('traits-container');
-        c.insertAdjacentHTML('beforeend', `
-            <div class="trait-card">
-                <button class="btn-trash" style="top: 0; right: 0;" onclick="this.parentElement.remove()"><i class="fa-solid fa-trash"></i></button>
-                <div class="trait-header"><span contenteditable="true" class="oswald" style="color: var(--accent-primary)">${title}</span><span contenteditable="true" class="tech-text" style="color: var(--text-dim)">Условие: Событие</span></div>
-                <div contenteditable="true" style="font-size: 0.8rem; margin-top:4px;">${desc}</div>
-            </div>`);
-    };
-
-    window.createDots = () => { let d = ''; for(let i=1; i<=5; i++) d += `<div class="dot" data-val="${i}"></div>`; return `<div class="dots-container">${d}</div>`; };
-
-    window.renderAttributes = () => {
-        const cats = [{ i: 'phis.jpg', s: ['Тело', 'Сила'] }, { i: 'unde.jpg', s: ['Понимание', 'Хладнокровие'] }, { i: 'vide.jpg', s: ['Выдержка', 'Интуиция', 'Убеждение'] }, { i: 'spra.jpg', s: ['Рефлексы', 'Фокус'] }];
-        document.getElementById('attributes-container').innerHTML = cats.map(c => `
-            <div class="stat-category">
-                <div class="img-upload stat-icon" onclick="window.triggerImageUpload(this)" style="background-image: url('${c.i}');"></div>
-                <div class="stat-rows">${c.s.map(st => `<div class="stat-row"><span contenteditable="true" class="oswald" style="font-size: 0.9rem;">${st}</span>${window.createDots()}</div>`).join('')}</div>
-            </div>`).join('');
-    };
-
-    window.addTalentSkill = (n = 'Новый навык', s = 'Нет') => {
-        document.getElementById('skills-list').insertAdjacentHTML('beforeend', `
-            <div class="skill-item">
-                <i class="fa-solid fa-minus btn-remove-skill" onclick="this.parentElement.remove()"></i>
-                <div contenteditable="true" class="skill-name">${n}</div>
-                <div contenteditable="true" class="skill-spec" onfocus="if(this.innerText.trim()==='Нет') this.innerText='';" onblur="if(this.innerText.trim()==='') this.innerText='Нет';">${s}</div>
-                ${window.createDots()}
-            </div>`);
-    };
-
-    // Отрисовка базового листа
-    window.setRandomFavicon();
-    window.renderHealth();
-    window.renderSanity();
-    window.renderResistances();
-    for(let i=0; i<4; i++) window.addTrait(`АНОМАЛИЯ ${i+1}`);
-    window.renderAttributes();
-    const initS = ['Атлетика', 'Знание животных', 'Наука', 'Драка', 'Ремесло', 'Вождение', 'Огнестрельное оружие', 'Воровство', 'Холодное оружие', 'Скрытность', 'Выживание', 'Этикет', 'Проницательность', 'Запугивание', 'Лидерство', 'Выступление', 'Убеждение', 'Уличное чутье', 'Хитрость', 'Внимательность', 'Финансы', 'Расследование', 'Медицина', 'Оккультизм', 'Политика', 'Технологии'];
-    initS.forEach(s => window.addTalentSkill(s, 'Нет'));
-    window.addCombatSkill();
-</script>
-
-<!-- ========================================== -->
-<!-- СКРИПТ 2: FIREBASE И КАТАЛОГ ДМ            -->
-<!-- ========================================== -->
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
-
-    const firebaseConfig = {
-        apiKey: "AIzaSyDaFNBCW76UsBnziHoGveo7TcC11uAdmqs",
-        authDomain: "projectmoonchar.firebaseapp.com",
-        projectId: "projectmoonchar",
-        storageBucket: "projectmoonchar.firebasestorage.app",
-        messagingSenderId: "516028417887",
-        appId: "1:516028417887:web:4c0404f653b09ecffb58ea",
-        measurementId: "G-BCWRQYNH5J"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-    // 🔴 НАСТРОЙКА: Впиши сюда email-адреса Мастеров (через запятую) 🔴
-    const allowedDMs = ["tvoi-email@gmail.com", "pochta-druga@gmail.com"]; 
-
-    let currentUser = null;
-
-    onAuthStateChanged(auth, (user) => {
-        const authSection = document.getElementById('auth-section');
-        const cloudSection = document.getElementById('cloud-section');
-        const dmCatalogSection = document.getElementById('dm-catalog-section');
-
-        if (user) {
-            currentUser = user;
-            authSection.style.display = 'none';
-            cloudSection.style.display = 'block';
-            document.getElementById('user-display').innerText = user.email;
-
-            if (allowedDMs.includes(user.email)) {
-                dmCatalogSection.style.display = 'block';
-                window.loadCatalog(); 
-            } else {
-                dmCatalogSection.style.display = 'none';
-            }
-        } else {
-            currentUser = null;
-            authSection.style.display = 'block';
-            cloudSection.style.display = 'none';
-        }
-    });
-
-    window.firebaseLogin = async () => {
-        const e = document.getElementById('email-input').value;
-        const p = document.getElementById('pw-input').value;
-        try { await signInWithEmailAndPassword(auth, e, p); } 
-        catch (error) { alert("Ошибка входа: " + error.message); }
-    };
-
-    window.firebaseRegister = async () => {
-        const e = document.getElementById('email-input').value;
-        const p = document.getElementById('pw-input').value;
-        try { await createUserWithEmailAndPassword(auth, e, p); alert("Регистрация успешна!"); } 
-        catch (error) { alert("Ошибка регистрации: " + error.message); }
-    };
-
-    window.firebaseLogout = () => { signOut(auth).catch(err => console.error(err)); };
-
-    window.saveToCloud = async () => {
-        if (!currentUser) return;
-        try {
-            const btn = document.getElementById('btn-save-cloud');
-            btn.innerText = "Сохранение...";
-            
-            document.querySelectorAll('select').forEach(sel => {
-                Array.from(sel.options).forEach(opt => {
-                    if (opt.value === sel.value) opt.setAttribute('selected', 'selected');
-                    else opt.removeAttribute('selected');
-                });
-            });
-
-            const mainSheet = document.getElementById('main-character-sheet').innerHTML;
-            const agentName = document.getElementById('agent-name').innerText.trim() || 'Без имени';
-            
-            const saveObj = {
-                html: mainSheet,
-                healthMax: window.healthMax,
-                sanityMax: window.sanityMax,
-                agentName: agentName,
-                ownerEmail: currentUser.email,
-                timestamp: new Date().toISOString()
-            };
-
-            await setDoc(doc(db, "sinners", currentUser.uid), saveObj);
-            btn.innerHTML = '<i class="fa-solid fa-check"></i> Сохранено!';
-            setTimeout(() => btn.innerHTML = '<i class="fa-solid fa-cloud-arrow-up"></i> Сохранить текущий лист', 2000);
-            
-            if (allowedDMs.includes(currentUser.email)) window.loadCatalog();
-        } catch (error) {
-            alert("Ошибка сохранения.");
-            console.error(error);
-        }
-    };
-
-    window.loadFromCloud = async () => {
-        if (!currentUser) return;
-        await window.loadSpecificSinner(currentUser.uid);
-    };
-
-    window.loadSpecificSinner = async (uid) => {
-        try {
-            const docSnap = await getDoc(doc(db, "sinners", uid));
-            if (docSnap.exists()) {
-                const data = docSnap.data();
-                document.getElementById('main-character-sheet').innerHTML = data.html;
-                window.healthMax = data.healthMax || 10;
-                window.sanityMax = data.sanityMax || 12;
-                window.toggleSaveMenu();
-            } else {
-                alert("Профиль не найден.");
-            }
-        } catch (error) {
-            alert("Ошибка загрузки профиля.");
-            console.error(error);
-        }
-    };
-
-    window.loadCatalog = async () => {
-        const container = document.getElementById('catalog-container');
-        container.innerHTML = '<div class="tech-text" style="text-align: center; color: var(--text-dim);">Загрузка базы...</div>';
-        try {
-            const querySnapshot = await getDocs(collection(db, "sinners"));
-            if (querySnapshot.empty) {
-                container.innerHTML = '<div class="tech-text" style="text-align: center; color: var(--text-dim);">База данных пуста.</div>';
-                return;
-            }
-            
-            let html = '';
-            querySnapshot.forEach((docSnap) => {
-                const data = docSnap.data();
-                const uid = docSnap.id;
-                const name = data.agentName || 'Грешник без имени';
-                const owner = data.ownerEmail || 'Неизвестный владелец';
+            try {
+                const response = await fetch('classes.json');
+                if (!response.ok) throw new Error('Файл classes.json не найден');
                 
-                html += `
-                    <div class="catalog-item">
-                        <div>
-                            <div class="oswald" style="color: var(--text-main); font-size: 0.9rem;">${name}</div>
-                            <div class="tech-text" style="font-size: 0.65rem;">Игрок: ${owner}</div>
+                const classesData = await response.json();
+                classesData.sort((a, b) => a.No - b.No);
+                container.innerHTML = '';
+                
+                classesData.forEach(cls => {
+                    let typesHtml = '';
+                    if (cls.Type && Array.isArray(cls.Type)) {
+                        cls.Type.forEach(typeKey => {
+                            const config = typeDictionary[typeKey];
+                            if (config) {
+                                typesHtml += `
+                                    <div class="type-badge" style="color: ${config.color}; border-color: ${config.color};">
+                                        <img src="${config.icon}" alt="${config.name}" class="type-icon" onerror="this.style.display='none'">
+                                        ${config.name}
+                                    </div>
+                                `;
+                            } else {
+                                typesHtml += `<div class="type-badge" style="color: var(--text-main); border-color: var(--text-dim);">${typeKey}</div>`;
+                            }
+                        });
+                    }
+
+                    let talentsHtml = '';
+                    if (cls.Talents && Array.isArray(cls.Talents)) {
+                        cls.Talents.forEach(talent => {
+                            talentsHtml += `
+                                <div class="talent-block">
+                                    <div class="talent-header">
+                                        <div class="talent-name">${talent.name}</div>
+                                        <div class="talent-level tech-text">Уровень: ${talent.level}</div>
+                                    </div>
+                                    <div class="talent-desc">${talent.desc}</div>
+                                </div>
+                            `;
+                        });
+                    }
+
+                    const cardHtml = `
+                        <div class="panel-outer cut-tl">
+                            <div class="hazard-tape" style="height: 6px; background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--accent-muted) 10px, var(--accent-muted) 20px);"></div>
+                            <div class="panel-inner cut-tl" style="border-top: none;">
+                                <div class="class-title oswald">${cls.Name}</div>
+                                <div class="types-container">${typesHtml}</div>
+                                <div class="talents-container">${talentsHtml}</div>
+                            </div>
                         </div>
-                        <button class="btn-small" style="border-color: var(--color-cyan); color: var(--color-cyan);" onclick="window.loadSpecificSinner('${uid}')">Открыть</button>
-                    </div>
-                `;
-            });
-            container.innerHTML = html;
-        } catch (error) {
-            container.innerHTML = '<div class="tech-text" style="text-align: center; color: var(--color-red);">Ошибка чтения каталога. Проверьте правила базы данных.</div>';
-            console.error(error);
+                    `;
+                    
+                    container.insertAdjacentHTML('beforeend', cardHtml);
+                });
+
+            } catch (error) {
+                console.error("Ошибка загрузки гримуара:", error);
+                container.innerHTML = `<div class="loading-text" style="color: var(--color-red);">Ошибка связи с базой данных.<br><span style="font-size: 0.8rem; color: var(--text-dim);">Убедитесь, что файл classes.json существует и написан без синтаксических ошибок.</span></div>`;
+            }
         }
-    };
-</script>
+
+        document.addEventListener('DOMContentLoaded', loadGrimoire);
+    </script>
 </body>
 </html>
