@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>База Черт / Feats Compendium</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Merriweather:ital,wght@0,300;1,300;1,700&family=Oswald:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-main: #070707; --bg-panel: #000000; --accent-primary: #D9772F; --accent-muted: #8B5A2B;
+            --color-cyan: #45B3CB; --color-red: #C7243A; --color-indigo: #40E0D0; --color-yellow: #F1C40F;
+            --color-orange: #E67E22; --color-lightblue: #ADD8E6; --text-main: #E0D8C8; --text-dim: #696969;
+            --border-width: 1px; --chamfer: 14px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-main); color: var(--text-main); font-family: 'Inter', sans-serif;
+            min-height: 100vh; padding: 60px 20px 40px 20px; display: flex; flex-direction: column; align-items: center;
+            background-image: linear-gradient(rgba(7,7,7,0.8), rgba(7,7,7,0.8)), repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.02) 2px, rgba(255,255,255,0.02) 4px);
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4, .oswald { font-family: 'Oswald', sans-serif; text-transform: uppercase; }
+        .tech-text { font-family: 'Inter', sans-serif; color: var(--accent-primary); font-size: 0.8rem; }
+
+        /* Навигация */
+        .top-nav-btn { position: fixed; top: 10px; left: 20px; padding: 6px 12px; font-size: 0.8rem; border-color: var(--color-cyan); color: var(--color-cyan); font-family: 'Oswald', sans-serif; z-index: 100; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; border: 1px solid var(--color-cyan); cursor: pointer; text-transform: uppercase; transition: 0.2s; }
+        .top-nav-btn:hover { background-color: var(--color-cyan); color: #000; }
+
+        /* Заголовок страницы */
+        .header-bar { width: 100%; max-width: 1200px; display: flex; justify-content: center; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--accent-muted); padding-bottom: 10px; margin-top: 10px; }
+        .header-title { color: var(--accent-primary); font-size: 1.5rem; letter-spacing: 2px; text-align: center; }
+
+        /* Поиск и Фильтры */
+        .filters-section { width: 100%; max-width: 1200px; margin-bottom: 24px; display: flex; flex-direction: column; gap: 16px; }
+        .search-wrapper { background-color: var(--accent-muted); padding: var(--border-width); transition: background-color 0.2s; }
+        .search-wrapper:focus-within { background-color: var(--accent-primary); }
+        .search-inner { background: rgba(0,0,0,0.7); padding: 0; display: flex; align-items: center; flex-direction: row; }
+        .search-icon { padding-left: 14px; font-size: 0.9rem; color: var(--text-dim); }
+        .search-input { width: 100%; background: transparent; border: none; color: var(--text-main); padding: 8px 14px 8px 10px; font-family: 'Inter', sans-serif; font-size: 0.95rem; outline: none; }
+        .search-input::placeholder { color: var(--text-dim); }
+
+        .type-filters { display: flex; flex-wrap: wrap; gap: 8px; }
+        .filter-btn { display: flex; align-items: center; gap: 6px; font-family: 'Oswald', sans-serif; font-size: 0.85rem; text-transform: uppercase; border: 1px solid var(--text-dim); color: var(--text-dim); background: rgba(0,0,0,0.5); padding: 4px 10px; cursor: pointer; transition: 0.2s; border-radius: 2px; }
+        .filter-btn:hover { border-color: var(--text-main); color: var(--text-main); }
+        .filter-btn.active { border-color: var(--accent-primary); color: var(--accent-primary); background: rgba(217, 119, 47, 0.1); }
+
+        /* Сетка Черт */
+        .compendium-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; width: 100%; max-width: 1200px; align-items: start; }
+
+        .panel-outer { background-color: var(--accent-primary); padding: var(--border-width); position: relative; display: flex; flex-direction: column; }
+        .panel-inner { background-color: var(--bg-panel); padding: 16px; height: 100%; display: flex; flex-direction: column; }
+        .cut-tl { clip-path: polygon(var(--chamfer) 0, 100% 0, 100% 100%, 0 100%, 0 var(--chamfer)); }
+
+        .compendium-card.expanded { grid-column: 1 / -1; }
+
+        .card-header-clickable { cursor: pointer; position: relative; padding-right: 24px; user-select: none; }
+        .card-header-clickable:hover .class-title { color: var(--color-orange); }
+        .expand-icon { position: absolute; right: 0; top: 6px; color: var(--text-dim); transition: transform 0.3s ease; }
+        .panel-outer.expanded .expand-icon { transform: rotate(180deg); color: var(--accent-primary); }
+
+        .class-title-wrapper { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; margin-bottom: 8px; padding-bottom: 4px; }
+        .class-title { font-size: 1.4rem; color: var(--text-main); transition: color 0.2s; }
+        .aggro-icon { height: 20px; object-fit: contain; margin-right: 12px; }
+
+        .types-container { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+        .type-badge { display: flex; align-items: center; gap: 6px; font-family: 'Oswald', sans-serif; font-size: 0.9rem; text-transform: uppercase; border: 1px solid; padding: 2px 8px; border-radius: 2px; background: rgba(0,0,0,0.5); }
+
+        /* Описание черты */
+        .talents-wrapper { max-height: 0; opacity: 0; overflow: hidden; transition: max-height 0.4s ease, margin-top 0.4s ease, opacity 0.3s ease; }
+        
+        .feat-body { padding-top: 12px; border-top: 1px solid #222; margin-top: 8px; cursor: pointer; position: relative; transition: background-color 0.2s; padding-bottom: 12px; }
+        .feat-body:hover { background-color: rgba(255,255,255,0.05); }
+        
+        .feat-need { color: var(--color-red); font-size: 1rem; font-family: 'Oswald', sans-serif; text-transform: uppercase; margin-bottom: 8px; }
+        .feat-desc { font-size: 0.9rem; color: var(--text-main); line-height: 1.5; white-space: pre-wrap; }
+
+        .copy-msg { text-align: right; color: var(--accent-primary); font-size: 0.7rem; position: absolute; bottom: 4px; right: 10px; opacity: 0; transition: opacity 0.2s; font-family: 'Oswald', sans-serif; }
+        .loading-text { text-align: center; color: var(--text-dim); font-family: 'Oswald', sans-serif; font-size: 1.2rem; width: 100%; grid-column: 1 / -1; }
+
+    </style>
+</head>
+<body>
+
+    <a href="index.html" class="top-nav-btn"><i class="fa-solid fa-arrow-left"></i> ГЛАВНОЕ МЕНЮ</a>
+
+    <!-- Заголовок страницы -->
+    <div class="header-bar">
+        <div class="header-title oswald">БАЗА ДАННЫХ: ЧЕРТЫ (FEATS)</div>
+    </div>
+
+    <div class="filters-section">
+        <!-- Поиск -->
+        <div class="panel-outer cut-tl search-wrapper">
+            <div class="panel-inner cut-tl search-inner">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input type="text" id="search-input" class="search-input" placeholder="Поиск по названию черты..." onkeyup="window.filterFeats()">
+            </div>
+        </div>
+        <!-- Кнопки фильтров -->
+        <div class="type-filters" id="type-filters"></div>
+    </div>
+
+    <div class="compendium-grid" id="compendium">
+        <div class="loading-text">Установка соединения с базой данных...</div>
+    </div>
+
+    <script>
+        // Словарь категорий (Базы)
+        const baseDictionary = {
+            "Background": { name: "Предыстория", color: "#696969" }, // Серый
+            "Body": { name: "Тело", color: "#E67E22" }, // Похоть
+            "Mind": { name: "Разум", color: "#1E3A8A" }, // Гордыня
+            "Martial Arts": { name: "Боевые искусства", color: "#45B3CB" }, // Уныние
+            "Affiliation": { name: "Принадлежность", color: "#F1C40F" }, // Лень
+            "Weapon": { name: "Оружие", color: "#C7243A" }, // Гнев
+            "Status": { name: "Статус", color: "#8FCC2A" }, // Обжорство
+            "Sin": { name: "Грех", color: "#45B3CB" }, // Уныние (из промпта)
+            "Shin and Mang": { name: "Шин и Манг", color: "#D94285" }, // Маджента
+            "E.G.O Feats": { name: "Черты Э.Г.О.", color: "#27AE60" } // Изумрудный
+        };
+
+        let currentBaseFilter = 'all';
+
+        function renderFilters() {
+            const container = document.getElementById('type-filters');
+            let html = `<button class="filter-btn active" data-filter="all" onclick="window.setBaseFilter('all', this)" style="border-color: var(--accent-primary); color: var(--accent-primary);">ВСЕ</button>`;
+            
+            for (const [key, data] of Object.entries(baseDictionary)) {
+                html += `
+                    <button class="filter-btn" data-filter="${key}" data-color="${data.color}" onclick="window.setBaseFilter('${key}', this)">
+                        ${data.name}
+                    </button>
+                `;
+            }
+            container.innerHTML = html;
+        }
+
+        window.setBaseFilter = (filterKey, btn) => {
+            currentBaseFilter = filterKey;
+            
+            document.querySelectorAll('.filter-btn').forEach(b => {
+                b.classList.remove('active');
+                b.style.borderColor = 'var(--text-dim)';
+                b.style.color = 'var(--text-dim)';
+                b.style.backgroundColor = 'rgba(0,0,0,0.5)';
+            });
+            
+            btn.classList.add('active');
+            if(filterKey !== 'all') {
+                const color = btn.getAttribute('data-color');
+                btn.style.borderColor = color;
+                btn.style.color = color;
+                btn.style.backgroundColor = `color-mix(in srgb, ${color} 15%, transparent)`;
+            } else {
+                btn.style.borderColor = 'var(--accent-primary)';
+                btn.style.color = 'var(--accent-primary)';
+                btn.style.backgroundColor = 'rgba(217, 119, 47, 0.1)';
+            }
+            
+            window.filterFeats();
+        };
+
+        window.filterFeats = () => {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const cards = document.querySelectorAll('.compendium-card');
+            
+            cards.forEach(card => {
+                const nameData = card.getAttribute('data-name').toLowerCase();
+                const baseDataStr = card.getAttribute('data-base');
+                const baseData = baseDataStr ? baseDataStr.split('|') : [];
+                
+                const matchesName = nameData.includes(query);
+                const matchesFilter = currentBaseFilter === 'all' || baseData.includes(currentBaseFilter);
+                
+                if (matchesName && matchesFilter) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        };
+
+        window.toggleCard = (el) => {
+            const card = el.closest('.panel-outer');
+            const talentsWrapper = card.querySelector('.talents-wrapper');
+            const isExpanded = card.classList.toggle('expanded');
+            
+            if (isExpanded) {
+                talentsWrapper.style.maxHeight = talentsWrapper.scrollHeight + 30 + "px";
+                talentsWrapper.style.marginTop = "8px";
+                talentsWrapper.style.opacity = "1";
+                setTimeout(() => { if (card.classList.contains('expanded')) talentsWrapper.style.maxHeight = 'none'; }, 400);
+            } else {
+                talentsWrapper.style.maxHeight = talentsWrapper.scrollHeight + "px";
+                setTimeout(() => {
+                    talentsWrapper.style.maxHeight = "0px";
+                    talentsWrapper.style.marginTop = "0px";
+                    talentsWrapper.style.opacity = "0";
+                }, 10);
+            }
+        };
+
+        window.copyFeat = (el) => {
+            const name = el.getAttribute('data-name');
+            const need = el.getAttribute('data-need');
+            const desc = el.getAttribute('data-desc');
+            
+            let textToCopy = `${name}\n`;
+            if (need && need !== "null") {
+                textToCopy += `Требования: ${need}\n`;
+            }
+            textToCopy += `${desc}`;
+            
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                const msg = el.querySelector('.copy-msg');
+                msg.style.opacity = '1';
+                setTimeout(() => msg.style.opacity = '0', 1500);
+            }).catch(err => {
+                console.error('Ошибка копирования:', err);
+            });
+        };
+
+        async function loadFeats() {
+            const container = document.getElementById('compendium');
+            
+            try {
+                // Подгружаем отдельный файл для черт
+                const response = await fetch('feats.json');
+                if (!response.ok) throw new Error('Файл feats.json не найден');
+                
+                const featsData = await response.json();
+                container.innerHTML = '';
+                
+                featsData.forEach(feat => {
+                    let badgesHtml = '';
+                    let baseString = (feat.Base && Array.isArray(feat.Base)) ? feat.Base.join('|') : '';
+
+                    if (feat.Base && Array.isArray(feat.Base)) {
+                        feat.Base.forEach(baseKey => {
+                            const config = baseDictionary[baseKey];
+                            if (config) {
+                                badgesHtml += `
+                                    <div class="type-badge" style="color: ${config.color}; border-color: ${config.color};">
+                                        ${config.name}
+                                    </div>
+                                `;
+                            } else {
+                                badgesHtml += `<div class="type-badge" style="color: var(--text-main); border-color: var(--text-dim);">${baseKey}</div>`;
+                            }
+                        });
+                    }
+
+                    const safeName = feat.Name ? feat.Name.replace(/"/g, '&quot;') : 'Без названия';
+                    const safeDesc = feat.desc ? feat.desc.replace(/"/g, '&quot;') : '';
+                    const safeNeed = feat.Need ? feat.Need.replace(/"/g, '&quot;') : '';
+                    
+                    const aggroIconHtml = feat.Need ? `<img src="Aggro.png" class="aggro-icon" title="Требования: ${safeNeed}" alt="Aggro">` : '';
+                    const needHtml = feat.Need ? `<div class="feat-need">ТРЕБОВАНИЯ: ${feat.Need}</div>` : '';
+
+                    const cardHtml = `
+                        <div class="panel-outer cut-tl compendium-card" data-name="${safeName}" data-base="${baseString}">
+                            <div class="hazard-tape" style="height: 6px; background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--accent-muted) 10px, var(--accent-muted) 20px);"></div>
+                            <div class="panel-inner cut-tl" style="border-top: none;">
+                                
+                                <div class="card-header-clickable" onclick="window.toggleCard(this)">
+                                    <i class="fa-solid fa-chevron-down expand-icon"></i>
+                                    <div class="class-title-wrapper">
+                                        <div class="class-title oswald">${feat.Name}</div>
+                                        ${aggroIconHtml}
+                                    </div>
+                                    <div class="types-container">${badgesHtml}</div>
+                                </div>
+                                
+                                <div class="talents-wrapper">
+                                    <div class="feat-body" data-name="${safeName}" data-need="${safeNeed}" data-desc="${safeDesc}" onclick="window.copyFeat(this)">
+                                        ${needHtml}
+                                        <div class="feat-desc">${feat.desc}</div>
+                                        <div class="copy-msg">Скопировано!</div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    `;
+                    
+                    container.insertAdjacentHTML('beforeend', cardHtml);
+                });
+
+            } catch (error) {
+                console.error("Ошибка загрузки черт:", error);
+                container.innerHTML = `<div class="loading-text" style="color: var(--color-red);">Ошибка связи с базой данных.<br><span style="font-size: 0.8rem; color: var(--text-dim);">Убедитесь, что файл feats.json существует.</span></div>`;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderFilters();
+            loadFeats();
+        });
+    </script>
+</body>
+</html>
