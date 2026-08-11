@@ -28,14 +28,15 @@
         h1, h2, h3, h4, .oswald { font-family: 'Oswald', sans-serif; text-transform: uppercase; }
         .tech-text { font-family: 'Inter', sans-serif; color: var(--accent-primary); font-size: 0.8rem; }
 
-        /* Навигация */
+        /* Навигация (левая и правая) */
         .top-nav-btn { position: fixed; top: 10px; left: 20px; padding: 6px 12px; font-size: 0.8rem; border-color: var(--color-cyan); color: var(--color-cyan); font-family: 'Oswald', sans-serif; z-index: 100; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; border: 1px solid var(--color-cyan); cursor: pointer; text-transform: uppercase; transition: 0.2s; }
         .top-nav-btn:hover { background-color: var(--color-cyan); color: #000; }
         
-        .nav-btn-2 { left: 180px; border-color: var(--color-yellow); color: var(--color-yellow); }
+        .right-nav-container { position: fixed; top: 10px; right: 20px; z-index: 100; display: flex; gap: 10px; }
+        .nav-btn-2 { padding: 6px 12px; font-size: 0.8rem; border: 1px solid var(--color-yellow); color: var(--color-yellow); font-family: 'Oswald', sans-serif; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; cursor: pointer; text-transform: uppercase; transition: 0.2s; }
         .nav-btn-2:hover { background-color: var(--color-yellow); color: #000; }
         
-        .nav-btn-3 { left: 340px; border-color: var(--color-red); color: var(--color-red); }
+        .nav-btn-3 { padding: 6px 12px; font-size: 0.8rem; border: 1px solid var(--color-red); color: var(--color-red); font-family: 'Oswald', sans-serif; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; cursor: pointer; text-transform: uppercase; transition: 0.2s; }
         .nav-btn-3:hover { background-color: var(--color-red); color: #000; }
 
         .header-bar { width: 100%; max-width: 1400px; display: flex; justify-content: center; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--accent-muted); padding-bottom: 10px; margin-top: 10px; }
@@ -51,48 +52,65 @@
         .hazard-tape { height: 6px; background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--accent-muted) 10px, var(--accent-muted) 20px); border-bottom: 1px solid var(--accent-primary); }
 
         .form-group { margin-bottom: 16px; }
-        .form-group label { display: block; font-family: 'Oswald', sans-serif; color: var(--color-cyan); margin-bottom: 6px; font-size: 1.1rem; }
+        .form-group label { display: block; font-family: 'Oswald', sans-serif; color: var(--color-cyan); margin-bottom: 6px; font-size: 1.1rem; text-transform: uppercase; }
         
         .cloud-input, .cloud-select { width: 100%; background: #111; border: 1px solid #333; color: var(--text-main); padding: 10px; outline: none; font-family: 'Inter'; font-size: 0.95rem; }
         .cloud-input:focus, .cloud-select:focus { border-color: var(--color-cyan); }
         
         /* Загрузка файлов */
-        .file-upload-row { display: flex; gap: 10px; margin-bottom: 16px; }
-        .file-upload-btn { flex: 1; background: transparent; border: 1px dashed var(--text-dim); color: var(--text-dim); padding: 8px; font-family: 'Oswald'; font-size: 0.8rem; cursor: pointer; text-align: center; transition: 0.2s; position: relative; }
+        .file-upload-row { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+        .file-upload-btn { flex: 1; min-width: 200px; background: transparent; border: 1px dashed var(--text-dim); color: var(--text-dim); padding: 8px; font-family: 'Oswald'; font-size: 0.8rem; cursor: pointer; text-align: center; transition: 0.2s; position: relative; }
         .file-upload-btn:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
         .file-upload-btn input[type="file"] { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
 
-        /* Список черт */
-        .feats-list-container { max-height: 300px; overflow-y: auto; border: 1px solid #333; background: #0a0a0a; padding: 10px; margin-top: 8px; }
+        .import-preset-btn { border: 1px solid var(--color-cyan); color: var(--color-cyan); border-style: solid; }
+        .import-preset-btn:hover { background-color: var(--color-cyan); color: #000; }
+
+        /* Список черт (Редизайн выбора) */
+        .feats-list-container { max-height: 350px; overflow-y: auto; border: 1px solid #333; background: #0a0a0a; padding: 10px; margin-top: 8px; }
         .feats-list-container::-webkit-scrollbar { width: 6px; }
         .feats-list-container::-webkit-scrollbar-thumb { background: var(--accent-primary); }
         
-        .feat-item { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 8px; border-bottom: 1px solid #222; padding-bottom: 8px; }
-        .feat-item:last-child { margin-bottom: 0; border-bottom: none; padding-bottom: 0; }
-        .feat-item input { margin-top: 4px; accent-color: var(--color-cyan); cursor: pointer; }
-        .feat-item-text { font-size: 0.85rem; color: var(--text-dim); cursor: pointer; }
-        .feat-item-title { color: var(--text-main); font-weight: bold; font-family: 'Oswald'; font-size: 0.95rem; display: block; }
+        .feat-item { display: flex; flex-direction: column; gap: 4px; padding: 10px; border: 1px solid #333; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; background: rgba(0,0,0,0.5); border-radius: 2px; }
+        .feat-item:last-child { margin-bottom: 0; }
+        .feat-item:hover { border-color: var(--accent-primary); }
+        .feat-item.selected { background-color: var(--accent-primary); border-color: var(--accent-primary); }
+        
+        .feat-item-title { font-family: 'Oswald', sans-serif; font-size: 1rem; color: var(--text-main); transition: color 0.2s; }
+        .feat-need { color: var(--color-red); font-size: 0.75rem; font-family: 'Oswald'; text-transform: uppercase; transition: color 0.2s; }
+        
+        /* Инверсия цвета при выделении черты */
+        .feat-item.selected .feat-item-title, .feat-item.selected .feat-need { color: #000 !important; }
         
         .search-feats { margin-bottom: 8px; }
 
-        /* Вывод персонажа */
+        /* Вывод персонажа (Правая панель) */
         .output-panel { position: sticky; top: 60px; max-height: calc(100vh - 80px); overflow-y: auto; }
         .output-panel::-webkit-scrollbar { width: 6px; }
         .output-panel::-webkit-scrollbar-thumb { background: var(--color-cyan); }
         
-        .output-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--color-cyan); padding-bottom: 10px; margin-bottom: 20px; }
+        .output-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--color-cyan); padding-bottom: 10px; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
         .char-name-display { font-size: 2rem; color: var(--text-main); font-family: 'Oswald'; text-transform: uppercase; }
         .char-meta-display { font-size: 1rem; color: var(--color-cyan); font-family: 'Oswald'; }
         
+        .btn-group { display: flex; gap: 8px; }
+        .copy-btn { background: transparent; border: 1px solid var(--color-cyan); color: var(--color-cyan); padding: 6px 12px; font-family: 'Oswald'; cursor: pointer; transition: 0.2s; font-size: 0.9rem; text-transform: uppercase; }
+        .copy-btn:hover:not(:disabled) { background: var(--color-cyan); color: #000; }
+        
+        .export-preset-btn { border-color: var(--color-yellow); color: var(--color-yellow); }
+        .export-preset-btn:hover:not(:disabled) { background: var(--color-yellow); color: #000; }
+        .copy-btn:disabled { border-color: #333; color: #555; cursor: not-allowed; }
+
         .block-title { font-size: 1.4rem; color: var(--accent-primary); border-bottom: 1px solid #333; margin-top: 24px; margin-bottom: 12px; padding-bottom: 4px; font-family: 'Oswald', sans-serif; text-transform: uppercase; }
         
-        .trait-entry { margin-bottom: 16px; border-left: 2px solid var(--text-dim); padding-left: 12px; }
+        /* Копируемые элементы вывода */
+        .trait-entry { margin-bottom: 16px; border-left: 2px solid var(--text-dim); padding-left: 12px; cursor: pointer; position: relative; transition: background-color 0.2s; padding-block: 6px; }
+        .trait-entry:hover { background-color: rgba(255,255,255,0.05); }
         .trait-name { font-size: 1.1rem; color: var(--color-yellow); font-family: 'Oswald', sans-serif; margin-bottom: 4px; }
         .trait-req { color: var(--color-red); font-size: 0.8rem; font-family: 'Oswald', sans-serif; text-transform: uppercase; margin-bottom: 4px; }
         .trait-desc { font-size: 0.9rem; color: var(--text-main); line-height: 1.5; white-space: pre-wrap; }
 
-        .copy-btn { background: transparent; border: 1px solid var(--color-cyan); color: var(--color-cyan); padding: 6px 12px; font-family: 'Oswald'; cursor: pointer; transition: 0.2s; font-size: 0.9rem; }
-        .copy-btn:hover { background: var(--color-cyan); color: #000; }
+        .trait-entry .copy-msg { text-align: right; color: var(--color-cyan); font-size: 0.75rem; position: absolute; bottom: 4px; right: 10px; opacity: 0; transition: opacity 0.2s; font-family: 'Oswald', sans-serif; pointer-events: none; }
 
         /* Адаптивность */
         @media (max-width: 900px) {
@@ -103,9 +121,13 @@
 </head>
 <body>
 
+    <!-- Навигация -->
     <a href="index.html" class="top-nav-btn"><i class="fa-solid fa-house"></i> ХАБ</a>
-    <a href="grimoire.html" class="top-nav-btn nav-btn-2"><i class="fa-solid fa-book-journal-whills"></i> ГРИМУАР</a>
-    <a href="feats.html" class="top-nav-btn nav-btn-3"><i class="fa-solid fa-dumbbell"></i> БАЗА ЧЕРТ</a>
+    
+    <div class="right-nav-container">
+        <a href="grimoire.html" class="nav-btn-2"><i class="fa-solid fa-book-journal-whills"></i> ГРИМУАР</a>
+        <a href="feats.html" class="nav-btn-3"><i class="fa-solid fa-dumbbell"></i> БАЗА ЧЕРТ</a>
+    </div>
 
     <div class="header-bar">
         <div class="header-title oswald">СИСТЕМА СБОРКИ ПЕРСОНАЖА (CHARACTER BUILDER)</div>
@@ -119,12 +141,16 @@
             <div class="panel-inner cut-tl" style="border-top: none;">
                 
                 <div class="file-upload-row">
+                    <div class="file-upload-btn import-preset-btn">
+                        <i class="fa-solid fa-download"></i> ЗАГРУЗИТЬ ПРЕСЕТ ПЕРСОНАЖА
+                        <input type="file" accept=".json" onchange="window.loadPreset(event)">
+                    </div>
                     <div class="file-upload-btn">
-                        <i class="fa-solid fa-upload"></i> ЗАГРУЗИТЬ КАСТОМНЫЙ КЛАСС (JSON)
+                        <i class="fa-solid fa-upload"></i> ЗАГРУЗИТЬ КАСТОМНЫЙ КЛАСС
                         <input type="file" accept=".json" onchange="window.loadCustomClass(event)">
                     </div>
                     <div class="file-upload-btn">
-                        <i class="fa-solid fa-upload"></i> ЗАГРУЗИТЬ КАСТОМНУЮ ЧЕРТУ (JSON)
+                        <i class="fa-solid fa-upload"></i> ЗАГРУЗИТЬ КАСТОМНУЮ ЧЕРТУ
                         <input type="file" accept=".json" onchange="window.loadCustomFeat(event)">
                     </div>
                 </div>
@@ -173,11 +199,13 @@
                         <div class="char-name-display" id="out-name">БЕЗ ИМЕНИ</div>
                         <div class="char-meta-display" id="out-meta">Раса не выбрана | Фиксер</div>
                     </div>
-                    <button class="copy-btn" onclick="window.copyCharacter()"><i class="fa-regular fa-copy"></i> КОПИРОВАТЬ ВСЁ</button>
+                    <div class="btn-group">
+                        <button class="copy-btn export-preset-btn" id="export-preset-btn" onclick="window.exportPreset()"><i class="fa-solid fa-file-export"></i> СКАЧАТЬ ПРЕСЕТ</button>
+                        <button class="copy-btn" onclick="window.copyCharacter()"><i class="fa-regular fa-copy"></i> КОПИРОВАТЬ ВСЁ</button>
+                    </div>
                 </div>
 
                 <div id="out-content">
-                    <!-- Сюда генерируются блоки -->
                     <div style="color: var(--text-dim); text-align: center; margin-top: 50px; font-family: 'Oswald'; font-size: 1.2rem;">
                         ЗАПОЛНИТЕ ДАННЫЕ В ЛЕВОЙ ПАНЕЛИ ДЛЯ ГЕНЕРАЦИИ ДОСЬЕ
                     </div>
@@ -189,9 +217,9 @@
     </div>
 
     <script>
-        // Базы Данных
         window.dbClasses = [];
         window.dbFeats = [];
+        window.selectedFeats = new Set(); // Хранит индексы выбранных черт
 
         // Базовые данные Фиксера
         const fixerBaseTraits = [
@@ -249,7 +277,7 @@
             }
         };
 
-        // Загрузка стандартных баз при старте
+        // Инициализация баз данных
         async function loadDatabases() {
             try {
                 const resClass = await fetch('classes.json');
@@ -267,7 +295,7 @@
             }
         }
 
-        // Отрисовка списков выбора
+        // Отрисовка левой панели
         function renderDropdowns() {
             // Классы
             const classSelect = document.getElementById('char-class');
@@ -277,28 +305,38 @@
                 classHtml += `<option value="${i}">[${cls.No}] ${cls.Name}</option>`;
             });
             classSelect.innerHTML = classHtml;
-            classSelect.value = currentClass; // восстанавливаем выбор если был
+            classSelect.value = currentClass;
 
-            // Черты
+            // Черты (Редизайн)
             const featsContainer = document.getElementById('feats-checklist');
             let featsHtml = '';
             window.dbFeats.forEach((feat, i) => {
-                const safeName = feat.Name.replace(/"/g, '&quot;');
+                const safeName = feat.Name ? feat.Name.replace(/"/g, '&quot;') : 'Без названия';
+                const isSelected = window.selectedFeats.has(i);
+                const activeClass = isSelected ? 'selected' : '';
                 featsHtml += `
-                    <label class="feat-item">
-                        <input type="checkbox" value="${i}" class="feat-checkbox" onchange="window.updateOutput()">
-                        <div class="feat-item-text">
-                            <span class="feat-item-title">${safeName}</span>
-                            ${feat.Need ? `<span style="color: var(--color-red); font-size: 0.75rem;">Требование: ${feat.Need}</span>` : ''}
-                        </div>
-                    </label>
+                    <div class="feat-item ${activeClass}" onclick="window.toggleFeat(this, ${i})">
+                        <span class="feat-item-title">${safeName}</span>
+                        ${feat.Need && feat.Need !== 'null' ? `<div class="feat-need">Требование: ${feat.Need}</div>` : ''}
+                    </div>
                 `;
             });
-            // Сохраняем состояние чекбоксов если нужно, но пока просто перезаписываем
             featsContainer.innerHTML = featsHtml;
         }
 
-        // Загрузка кастомного класса
+        // Логика выбора черты
+        window.toggleFeat = (el, index) => {
+            if (window.selectedFeats.has(index)) {
+                window.selectedFeats.delete(index);
+                el.classList.remove('selected');
+            } else {
+                window.selectedFeats.add(index);
+                el.classList.add('selected');
+            }
+            window.updateOutput();
+        };
+
+        // Загрузка кастомных файлов (Класс)
         window.loadCustomClass = (e) => {
             const file = e.target.files[0];
             if (!file) return;
@@ -307,8 +345,10 @@
                 try {
                     const data = JSON.parse(event.target.result);
                     if (Array.isArray(data)) {
+                        data.forEach(d => d.isCustom = true);
                         window.dbClasses = window.dbClasses.concat(data);
                     } else {
+                        data.isCustom = true;
                         window.dbClasses.push(data);
                     }
                     renderDropdowns();
@@ -320,7 +360,7 @@
             reader.readAsText(file);
         };
 
-        // Загрузка кастомной черты
+        // Загрузка кастомных файлов (Черта)
         window.loadCustomFeat = (e) => {
             const file = e.target.files[0];
             if (!file) return;
@@ -329,8 +369,10 @@
                 try {
                     const data = JSON.parse(event.target.result);
                     if (Array.isArray(data)) {
+                        data.forEach(d => d.isCustom = true);
                         window.dbFeats = window.dbFeats.concat(data);
                     } else {
+                        data.isCustom = true;
                         window.dbFeats.push(data);
                     }
                     renderDropdowns();
@@ -342,7 +384,7 @@
             reader.readAsText(file);
         };
 
-        // Фильтрация списка черт
+        // Поиск по чертам
         window.filterFeatChecklist = () => {
             const query = document.getElementById('feat-search').value.toLowerCase();
             const items = document.querySelectorAll('.feat-item');
@@ -356,29 +398,50 @@
             });
         };
 
-        // Генератор HTML для блока таланта/черты
+        // Функция копирования отдельного блока
+        window.copyTrait = (el) => {
+            const name = el.querySelector('.trait-name').innerText;
+            let req = el.querySelector('.trait-req');
+            let sub = el.querySelector('.tech-text');
+            const desc = el.querySelector('.trait-desc').innerText;
+            
+            let textToCopy = `${name}\n`;
+            if (sub) textToCopy += `${sub.innerText}\n`;
+            if (req) textToCopy += `${req.innerText}\n`;
+            textToCopy += desc;
+            
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                const msg = el.querySelector('.copy-msg');
+                msg.style.opacity = '1';
+                setTimeout(() => msg.style.opacity = '0', 1500);
+            }).catch(err => {
+                console.error('Ошибка копирования:', err);
+            });
+        };
+
+        // Генератор HTML блока
         function createOutputBlock(title, desc, req = null, color = 'var(--color-yellow)', subtitle = null) {
-            let reqHtml = req ? `<div class="trait-req">ТРЕБОВАНИЯ: ${req}</div>` : '';
+            let reqHtml = req && req !== 'null' ? `<div class="trait-req">ТРЕБОВАНИЯ: ${req}</div>` : '';
             let subHtml = subtitle ? `<div class="tech-text" style="margin-bottom:4px;">${subtitle}</div>` : '';
             return `
-                <div class="trait-entry" style="border-left-color: ${color};">
+                <div class="trait-entry" style="border-left-color: ${color};" onclick="window.copyTrait(this)">
                     <div class="trait-name" style="color: ${color};">${title}</div>
                     ${subHtml}
                     ${reqHtml}
                     <div class="trait-desc">${desc}</div>
+                    <div class="copy-msg">Скопировано!</div>
                 </div>
             `;
         }
 
-        // Обновление правой панели
+        // Обновление правой панели и проверка кастомности для пресета
         window.updateOutput = () => {
             const name = document.getElementById('char-name').value || "БЕЗ ИМЕНИ";
             const raceKey = document.getElementById('char-race').value;
             const classIndex = document.getElementById('char-class').value;
             
-            const selectedFeatsChecks = document.querySelectorAll('.feat-checkbox:checked');
-            
-            // Настройка шапки
+            let isCustomContent = false; // Флаг блокировки экспорта
+
             document.getElementById('out-name').textContent = name;
             let metaString = (raceKey ? raceData[raceKey].name : "Раса не выбрана") + " | Фиксер";
             
@@ -386,6 +449,7 @@
             if (classIndex !== "") {
                 archetype = window.dbClasses[classIndex];
                 metaString += ` / ${archetype.Name}`;
+                if (archetype.isCustom) isCustomContent = true;
             }
             document.getElementById('out-meta').textContent = metaString;
 
@@ -415,11 +479,12 @@
             }
 
             // 4. ЧЕРТЫ
-            if (selectedFeatsChecks.length > 0) {
+            if (window.selectedFeats.size > 0) {
                 outputHtml += `<div class="block-title" style="color: var(--color-yellow); border-color: var(--color-yellow);">Выбранные Черты</div>`;
-                selectedFeatsChecks.forEach(check => {
-                    const feat = window.dbFeats[check.value];
+                window.selectedFeats.forEach(i => {
+                    const feat = window.dbFeats[i];
                     if(feat) {
+                        if (feat.isCustom) isCustomContent = true;
                         let baseStr = feat.Base ? feat.Base.join(', ') : '';
                         outputHtml += createOutputBlock(feat.Name, feat.desc, feat.Need, 'var(--color-yellow)', baseStr ? `Категория: ${baseStr}` : null);
                     }
@@ -431,18 +496,91 @@
             }
 
             document.getElementById('out-content').innerHTML = outputHtml;
+
+            // Логика блокировки кнопки экспорта
+            const exportBtn = document.getElementById('export-preset-btn');
+            if (isCustomContent) {
+                exportBtn.disabled = true;
+                exportBtn.title = "Экспорт заблокирован: вы используете кастомный класс или черту.";
+            } else {
+                exportBtn.disabled = false;
+                exportBtn.title = "Скачать пресет персонажа (JSON)";
+            }
         };
 
-        // Копирование всего текста
+        // Копирование всего досье
         window.copyCharacter = () => {
             const outContent = document.getElementById('output-area');
-            const textToCopy = outContent.innerText; // Берет весь отрендеренный текст как есть
+            const textToCopy = outContent.innerText; 
             
             navigator.clipboard.writeText(textToCopy).then(() => {
                 alert("Досье скопировано в буфер обмена!");
             }).catch(err => {
                 console.error('Ошибка копирования:', err);
             });
+        };
+
+        // Экспорт пресета
+        window.exportPreset = () => {
+            const name = document.getElementById('char-name').value;
+            const raceKey = document.getElementById('char-race').value;
+            const classIndex = document.getElementById('char-class').value;
+            let className = classIndex !== "" ? window.dbClasses[classIndex].Name : "";
+            
+            let featNames = [];
+            window.selectedFeats.forEach(i => {
+                featNames.push(window.dbFeats[i].Name);
+            });
+
+            const preset = {
+                characterName: name,
+                race: raceKey,
+                className: className,
+                feats: featNames
+            };
+
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(preset, null, 2));
+            const dl = document.createElement('a');
+            dl.setAttribute("href", dataStr);
+            dl.setAttribute("download", (name || "Character") + "_preset.json");
+            document.body.appendChild(dl);
+            dl.click();
+            dl.remove();
+        };
+
+        // Загрузка пресета
+        window.loadPreset = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const preset = JSON.parse(event.target.result);
+                    
+                    document.getElementById('char-name').value = preset.characterName || "";
+                    document.getElementById('char-race').value = preset.race || "";
+                    
+                    if (preset.className) {
+                        const cIndex = window.dbClasses.findIndex(c => c.Name === preset.className);
+                        if (cIndex !== -1) document.getElementById('char-class').value = cIndex;
+                    }
+                    
+                    window.selectedFeats.clear();
+                    if (preset.feats && Array.isArray(preset.feats)) {
+                        preset.feats.forEach(fn => {
+                            const fIndex = window.dbFeats.findIndex(f => f.Name === fn);
+                            if (fIndex !== -1) window.selectedFeats.add(fIndex);
+                        });
+                    }
+                    
+                    renderDropdowns(); 
+                    window.updateOutput();
+                    alert("Пресет успешно загружен!");
+                } catch (err) {
+                    alert("Ошибка чтения файла пресета.");
+                }
+            };
+            reader.readAsText(file);
         };
 
         document.addEventListener('DOMContentLoaded', () => {
