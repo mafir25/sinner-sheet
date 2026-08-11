@@ -273,7 +273,7 @@
   {
     "No": 8,
     "Name": "Ассоциация Диечи, Кулачное отделение",
-    "Type": ["None"],
+    "Type": ["None", "Other"],
     "Stats": ["Int"],
     "Talents": [
       {
@@ -733,7 +733,7 @@
   },
   {
     "No": 20,
-    "Name": "Середина",
+    "Name": "Средний",
     "Type": ["Other"],
     "Stats": ["Str", "Con"],
     "Talents": [
@@ -1420,7 +1420,7 @@
   {
     "No": 37,
     "Name": "Ассоциация Цвай",
-    "Type": ["None"],
+    "Type": ["None", "Other"],
     "Stats": ["Str", "Con"],
     "Talents": [
       {
@@ -1728,7 +1728,7 @@
   },
   {
     "No": 45,
-    "Name": "Джи-Корп",
+    "Name": "Корпорация J",
     "Type": ["Other"],
     "Stats": ["Dex", "Con"],
     "Talents": [
@@ -1771,7 +1771,7 @@
   },
   {
     "No": 46,
-    "Name": "Кей-Корп",
+    "Name": "Корпорация K",
     "Type": ["Other"],
     "Stats": ["Str", "Con"],
     "Talents": [
@@ -1809,7 +1809,7 @@
   },
   {
     "No": 47,
-    "Name": "R-Corp",
+    "Name": "Корпорация R",
     "Type": ["Charge"],
     "Stats": ["Dex", "Con"],
     "Talents": [
@@ -1897,7 +1897,7 @@
   },
   {
     "No": 48,
-    "Name": "T Corp",
+    "Name": "Корпорация T",
     "Type": ["Tremor", "Other"],
     "Stats": ["Dex", "Wis"],
     "Talents": [
@@ -1935,7 +1935,7 @@
   },
   {
     "No": 49,
-    "Name": "N-Corp",
+    "Name": "Корпорация N",
     "Type": ["Bleed", "Other"],
     "Stats": ["Dex", "Wis"],
     "Talents": [
@@ -1973,7 +1973,7 @@
   },
   {
     "No": 50,
-    "Name": "W-Corp",
+    "Name": "Корпорация W",
     "Type": ["Charge", "Rupture"],
     "Stats": ["Str", "Con"],
     "Talents": [
@@ -2056,7 +2056,7 @@
   },
   {
     "No": 51,
-    "Name": "Jia Family Hierarch Candidate",
+    "Name": "Кандидат в главы семьи Цзя",
     "Type": ["Poise", "Rupture"],
     "Stats": ["Dex", "Wis"],
     "Talents": [
@@ -2094,7 +2094,7 @@
   },
   {
     "No": 52,
-    "Name": "Heishou Pack - Mao Branch",
+    "Name": "Стая Хейшоу - Ветка Мао",
     "Type": ["Rupture", "Other"],
     "Stats": ["Dex"],
     "Talents": [
@@ -2137,7 +2137,7 @@
   },
   {
     "No": 53,
-    "Name": "Heishou Pack - Si Branch",
+    "Name": "Стая Хейшоу - Ветка Си",
     "Type": ["Poise", "Rupture"],
     "Stats": ["Dex", "Con"],
     "Talents": [
@@ -2175,7 +2175,7 @@
   },
   {
     "No": 54,
-    "Name": "Heishou Pack - You Branch",
+    "Name": "Стая Хейшоу - Ветка Ю",
     "Type": ["Burn", "Rupture"],
     "Stats": ["Str", "Con"],
     "Talents": [
@@ -2218,7 +2218,7 @@
   },
   {
     "No": 55,
-    "Name": "Heishou Pack - Wu Branch",
+    "Name": "Стая Хейшоу - Ветка Ву",
     "Type": ["Tremor"],
     "Stats": ["Str", "Con"],
     "Talents": [
