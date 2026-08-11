@@ -41,7 +41,7 @@
         .mode-toggle-wrapper input[type="checkbox"] { cursor: pointer; accent-color: var(--color-cyan); width: 14px; height: 14px; }
         .mode-toggle-label { font-size: 0.75rem; font-family: 'Oswald', sans-serif; text-transform: uppercase; color: var(--text-dim); cursor: pointer; user-select: none; }
 
-        .header-bar { width: 100%; max-width: 1200px; display: flex; justify-content: center; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--accent-muted); padding-bottom: 10px; margin-top: 10px; }
+        .header-bar { width: 100%; max-width: 1200px; display: flex; justify-content: center; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--accent-muted); padding-bottom: 10px; margin-top: 10px; gap: 20px;}
         .header-title { color: var(--accent-primary); font-size: 1.5rem; letter-spacing: 2px; }
 
         /* Поиск и Фильтры */
@@ -68,7 +68,6 @@
         .compendium-card.expanded { grid-column: 1 / -1; }
 
         .card-header-clickable { cursor: pointer; position: relative; padding-right: 24px; user-select: none; }
-        .card-header-clickable:hover .class-title { color: var(--color-orange); }
         .expand-icon { position: absolute; right: 0; top: 6px; color: var(--text-dim); transition: transform 0.3s ease; }
         .panel-outer.expanded .expand-icon { transform: rotate(180deg); color: var(--accent-primary); }
 
@@ -83,20 +82,19 @@
         .type-badge { display: flex; align-items: center; gap: 6px; font-family: 'Oswald', sans-serif; font-size: 0.9rem; text-transform: uppercase; border: 1px solid; padding: 2px 8px; border-radius: 2px; background: rgba(0,0,0,0.5); }
         .type-icon { width: 16px; height: 16px; object-fit: contain; }
 
-        /* Скрытие бэйджей в зависимости от режима */
         body[data-mode="stats"] .badge-type { display: none !important; }
         body[data-mode="types"] .badge-stat { display: none !important; }
 
         .talents-wrapper { max-height: 0; opacity: 0; overflow: hidden; transition: max-height 0.4s ease, margin-top 0.4s ease, opacity 0.3s ease; }
         
-        .talent-block { margin-bottom: 16px; border-left: 2px solid var(--accent-muted); padding: 8px 10px; cursor: pointer; position: relative; transition: background-color 0.2s, border-color 0.2s; }
+        /* Таланты (Сворачиваемые и копируемые) */
+        .talent-block { margin-bottom: 16px; border-left: 2px solid var(--accent-primary); padding: 8px 10px; cursor: pointer; position: relative; transition: background-color 0.2s; }
         .talent-block:last-child { margin-bottom: 0; }
-        .talent-block:hover { background-color: rgba(255,255,255,0.05); border-color: var(--accent-primary); }
+        .talent-block:hover { background-color: rgba(255,255,255,0.05); }
         
         .talent-header { display: flex; justify-content: space-between; align-items: baseline; }
         .talent-header-left { display: flex; align-items: center; gap: 8px; }
         .talent-name { font-family: 'Oswald', sans-serif; color: var(--accent-primary); font-size: 1.1rem; transition: 0.2s; }
-        .talent-header:hover .talent-name { color: var(--color-orange); }
         .talent-level { color: var(--text-dim); font-size: 0.75rem; }
         
         .collapse-icon-talent { color: var(--text-dim); font-size: 0.8rem; transition: transform 0.3s; }
@@ -122,20 +120,85 @@
         .sidebar-h2 { font-size: 1.3rem; color: var(--color-cyan); border-bottom: 1px solid #333; margin-top: 24px; margin-bottom: 12px; padding-bottom: 4px; font-family: 'Oswald', sans-serif; text-transform: uppercase; }
         .sidebar-text { font-size: 0.9rem; color: var(--text-main); line-height: 1.5; margin-bottom: 12px; white-space: pre-wrap; }
         
-        .sidebar-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 0.85rem; }
-        .sidebar-table th, .sidebar-table td { border: 1px solid #333; padding: 6px 10px; text-align: left; }
-        .sidebar-table th { background: rgba(255,255,255,0.05); color: var(--accent-primary); font-family: 'Oswald', sans-serif; font-weight: normal;}
+        /* МОДАЛЬНОЕ ОКНО КОНСТРУКТОРА */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: flex-start; z-index: 2000; backdrop-filter: blur(4px); padding-top: 50px; overflow-y: auto; }
+        .modal-overlay.active { display: flex; }
+        .modal-box { width: 700px; max-width: 95%; position: relative; margin-bottom: 50px; }
+        
+        .cloud-input { width: 100%; background: #111; border: 1px solid #333; color: var(--text-main); padding: 10px; margin-bottom: 12px; outline: none; font-family: 'Inter'; }
+        .cloud-input:focus { border-color: var(--color-cyan); }
+        textarea.cloud-input { resize: vertical; min-height: 80px; }
+        
+        .builder-checkbox-group { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+        .builder-checkbox-label { display: flex; align-items: center; gap: 4px; font-size: 0.85rem; cursor: pointer; color: var(--text-dim); }
+        .builder-checkbox-label input { accent-color: var(--color-cyan); }
+        .builder-checkbox-label:hover { color: var(--text-main); }
+
+        .btn-small-bld { background: transparent; border: 1px solid var(--text-dim); color: var(--text-dim); cursor: pointer; padding: 4px 8px; font-size: 0.75rem; text-transform: uppercase; transition: 0.2s; font-family: 'Oswald'; }
+        .btn-small-bld:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
+
+        .b-talent-entry { border: 1px solid #333; padding: 12px; margin-bottom: 12px; position: relative; background: rgba(255,255,255,0.02); }
+        .b-talent-entry input, .b-talent-entry textarea { margin-bottom: 8px; }
+        .btn-close-modal { background: transparent; border: none; color: var(--color-red); font-size: 1.5rem; cursor: pointer; transition: 0.2s; position: absolute; right: 16px; top: 16px; }
+        .btn-close-modal:hover { color: #ff0044; }
     </style>
 </head>
 <body data-mode="types">
 
-    <a href="index.html" class="top-nav-btn"><i class="fa-solid fa-arrow-left"></i> НАЗАД</a>
+    <a href="index.html" class="top-nav-btn"><i class="fa-solid fa-arrow-left"></i> ТЕРМИНАЛ АГЕНТА</a>
     <button class="class-base-btn" onclick="window.toggleSidebar()"><i class="fa-solid fa-book-open"></i> БАЗА ФИКСЕРА</button>
     
-    <!-- Переключатель режима (Статусы / Характеристики) -->
     <div class="mode-toggle-wrapper">
         <input type="checkbox" id="mode-checkbox" onchange="window.toggleMode()">
         <label for="mode-checkbox" class="mode-toggle-label">Режим Характеристик</label>
+    </div>
+
+    <!-- Модальное окно: Конструктор Класса -->
+    <div class="modal-overlay" id="builderModal" onclick="window.closeBuilderOnBg(event)">
+        <div class="panel-outer cut-tl modal-box">
+            <div class="hazard-tape" style="height: 6px; background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--color-cyan) 10px, var(--color-cyan) 20px); border-bottom: 1px solid var(--color-cyan);"></div>
+            <div class="panel-inner cut-tl" style="border-top: none;">
+                <button class="btn-close-modal" onclick="window.toggleBuilderModal()"><i class="fa-solid fa-xmark"></i></button>
+                <div class="sidebar-title oswald" style="color: var(--color-cyan); font-size: 1.5rem; border-color: var(--color-cyan);">КОНСТРУКТОР КЛАССА</div>
+                
+                <div class="tech-text" style="margin-bottom: 4px;">НАЗВАНИЕ АРХЕТИПА</div>
+                <input type="text" id="b-name" class="cloud-input" placeholder="Например: Агент R-Corp">
+                
+                <div class="tech-text" style="margin-bottom: 4px;">СТАТУСНЫЕ ЭФФЕКТЫ (TYPE)</div>
+                <div class="builder-checkbox-group">
+                    <label class="builder-checkbox-label"><input type="checkbox" class="b-type-check" value="Burn"> Burn</label>
+                    <label class="builder-checkbox-label"><input type="checkbox" class="b-type-check" value="Bleed"> Bleed</label>
+                    <label class="builder-checkbox-label"><input type="checkbox" class="b-type-check" value="Tremor"> Tremor</label>
+                    <label class="builder-checkbox-label"><input type="checkbox" class="b-type-check" value="Rupture"> Rupture</label>
+                    <label class="builder-checkbox-label"><input type="checkbox" class="b-type-check" value="Sinking"> Sinking</label>
+                    <label class="builder-checkbox-label"><input type="checkbox" class="b-type-check" value="Poise"> Poise</label>
+                    <label class="builder-checkbox-label"><input type="checkbox" class="b-type-check" value="Charge"> Charge</label>
+                    <label class="builder-checkbox-label"><input type="checkbox" class="b-type-check" value="Other"> Other</label>
+                    <label class="builder-checkbox-label"><input type="checkbox" class="b-type-check" value="None"> None</label>
+                </div>
+
+                <div class="tech-text" style="margin-bottom: 4px;">ХАРАКТЕРИСТИКИ (STATS)</div>
+                <div class="builder-checkbox-group">
+                    <label class="builder-checkbox-label"><input type="checkbox" class="b-stat-check" value="Str"> Strength</label>
+                    <label class="builder-checkbox-label"><input type="checkbox" class="b-stat-check" value="Dex"> Dexterity</label>
+                    <label class="builder-checkbox-label"><input type="checkbox" class="b-stat-check" value="Con"> Constitution</label>
+                    <label class="builder-checkbox-label"><input type="checkbox" class="b-stat-check" value="Int"> Intelligence</label>
+                    <label class="builder-checkbox-label"><input type="checkbox" class="b-stat-check" value="Wis"> Wisdom</label>
+                    <label class="builder-checkbox-label"><input type="checkbox" class="b-stat-check" value="Cha"> Charisma</label>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1px solid #333; padding-bottom: 8px; margin-top: 16px; margin-bottom: 12px;">
+                    <div class="sidebar-h2" style="margin: 0; border: none; font-size: 1.1rem;">СПОСОБНОСТИ</div>
+                    <button class="btn-small-bld" onclick="window.addBuilderTalent()">+ ДОБАВИТЬ СПОСОБНОСТЬ</button>
+                </div>
+
+                <div id="builder-talents">
+                    <!-- Таланты генератора будут здесь -->
+                </div>
+
+                <button class="btn-small-bld" style="width: 100%; padding: 12px; margin-top: 16px; font-size: 1rem; border-color: var(--color-cyan); color: var(--color-cyan);" onclick="window.exportBuilderJson()"><i class="fa-solid fa-file-export"></i> ЭКСПОРТИРОВАТЬ В JSON</button>
+            </div>
+        </div>
     </div>
 
     <div class="sidebar-overlay" id="sidebar-overlay" onclick="window.toggleSidebar()"></div>
@@ -233,30 +296,23 @@
             <div class="copy-msg">Скопировано!</div>
         </div>
 
-        <div class="talent-block collapsed" data-name="Боевой стиль" data-level="2" data-desc="Выберите один из стилей (второй на 10-м уровне):
+        <div class="talent-block collapsed" data-name="Боевой стиль" data-level="2" data-desc="Выберите один из стилей:
 • Меткий стрелок: +2 к попаданию дальнобойными атаками.
 • Слепой бой: Невидимость врага не дает помеху к атаке, если он не спрятан.
 • Ближний бой (Дальний): +2 к урону дальнобойным. Нет помехи в 5 футах.
 • Мощный лук: Можно использовать Силу вместо Ловкости для луков.
-• Парное оружие: Атака второй рукой является частью основного действия Атаки (а не бонусным действием). Добавляется модификатор урона.
+• Парное оружие: Атака второй рукой является частью основного действия Атаки.
 • Вездеходный атлет: Скорость плавания и лазания равна обычной. +1 к КД.
 • Дуэлянт: Владея оружием в одной руке (другая пуста), +2 к урону.
-• Бой двуручным оружием: Переброс 1 и 2 на костях урона (обязательно использовать новый).
-• Перехват: Реакцией уменьшить урон по союзнику в 5 футах на 1d10+ПБ (нужен щит или оружие).
+• Бой двуручным оружием: Переброс 1 и 2 на костях урона.
+• Перехват: Реакцией уменьшить урон по союзнику в 5 футах на 1d10+ПБ.
 • Защита: Реакцией наложить помеху на атаку по союзнику в 5 футах.
-• Боец с двумя оружиями: Добавьте модификатор к урону второй атаки (при стандартном бое с двумя оружиями).
-• Иайдзюцу: Первая атака в раунде из ножен с преимуществом. Убрать в ножны - бонусное действие.
-• Тоннельный боец: Бонусным действием войти в стойку. Атаки по возможности не тратят реакцию. Реакцией атаковать того, кто прошел >5 футов в зоне досягаемости.
-• Бой метательным: Извлечение метательного оружия - часть атаки. +2 к урону метательным.
-• Оружейный скандалист: Безоружный удар = 1d4+ЛОВ. При атаке пистолетом - безоружный удар бонусным (и наоборот). Нет помехи для пистолета в 5 футах.
-• Копейщик: Копья в одной руке, урон 2d6, нет помехи в 5 футах.
-• Дебошир: Владение импровизированным оружием. Безоружные удары и импровизированное оружие добавляют ПБ к урону.
-• Превосходная техника: 1 маневр Мастера Боя (Воин). Одна кость превосходства (1d8).
-• Наездник: Преимущества черты Mounted Combatant." onclick="window.copyTalent(this)">
+• Иайдзюцу: Первая атака в раунде из ножен с преимуществом.
+• Оружейный скандалист: При атаке пистолетом - безоружный удар бонусным (и наоборот)." onclick="window.copyTalent(this)">
             <div class="talent-header" onclick="window.toggleTalent(event, this)">
                 <div class="talent-header-left"><i class="fa-solid fa-chevron-down collapse-icon-talent"></i><span class="talent-name">Боевой стиль</span></div><div class="talent-level tech-text">Уровень: 2</div>
             </div>
-            <div class="talent-desc-wrapper"><div class="talent-desc">Выберите один из стилей (второй на 10-м уровне):
+            <div class="talent-desc-wrapper"><div class="talent-desc">Выберите один из стилей:
 • Меткий стрелок: +2 к попаданию дальнобойными атаками.
 • Слепой бой: Невидимость врага не дает помеху к атаке, если он не спрятан.
 • Ближний бой (Дальний): +2 к урону дальнобойным. Нет помехи в 5 футах.
@@ -272,76 +328,6 @@
             <div class="copy-msg">Скопировано!</div>
         </div>
 
-        <div class="talent-block collapsed" data-name="Аномальная способность" data-level="2" data-desc="Выберите одну черту (улучшается на 7 и 14 уровнях):
-• Аномально Сильный: Считаетесь на 1 размер больше. Раз в день можно поднять/бросить груз = СИЛ х 100 кг. Улучшения: На 7ур +1 СИЛ (макс 22), считаетесь на 2 размера больше. На 14ур +1 СИЛ (макс 22), иммунитет к опутыванию, преимущество на Атлетику.
-• Аномально Быстрый: +10 к скорости, +1 к инициативе. Улучшения: На 7ур +1 ЛОВ (макс 22), рывок бонусным действием. На 14ур +1 ЛОВ (макс 22), при рывке атаки по возможности промахиваются.
-• Аномально Прочный: Снижаете немагический физ. урон на модификатор ТЕЛ. Улучшения: На 7ур +1 ТЕЛ (макс 22), порог урона = ПБ. На 14ур +1 ТЕЛ (макс 22). При 0 ХП делаете спасброски от смерти в бою.
-• Аномально Умный: К проверкам Интеллекта добавляется половина ИНТ. +1 Свет. Улучшения: На 7ур +1 ИНТ (макс 22), бонус к атакам = половине ИНТ. На 14ур +1 ИНТ (макс 22), можно узнавать статы врагов.
-• Аномально Мудрый: Преимущество на Внимательность, нельзя захватить врасплох. Инициатива от МУД. +1 Свет. Улучшения: На 7ур +1 МУД (макс 22). На 14ур +1 МУД (макс 22), проверка Проницательности дает баффы атаки/защиты.
-• Аномально Потрясающий: Преимущество на проверки ХАР. Вдохновение Барда. +1 Свет. Улучшения: На 7ур +1 ХАР (макс 22), Вдохновение без затраты действия. На 14ур +1 ХАР (макс 22), Вдохновение = 1d12." onclick="window.copyTalent(this)">
-            <div class="talent-header" onclick="window.toggleTalent(event, this)">
-                <div class="talent-header-left"><i class="fa-solid fa-chevron-down collapse-icon-talent"></i><span class="talent-name">Аномальная способность</span></div><div class="talent-level tech-text">Уровень: 2, 7, 14</div>
-            </div>
-            <div class="talent-desc-wrapper"><div class="talent-desc">Выберите одну черту (улучшается на 7 и 14 уровнях):
-• Аномально Сильный: Считаетесь на 1 размер больше. Раз в день можно поднять/бросить груз = СИЛ х 100 кг. Улучшения: На 7ур +1 СИЛ (макс 22), считаетесь на 2 размера больше. На 14ур +1 СИЛ (макс 22), иммунитет к опутыванию, преимущество на Атлетику.
-• Аномально Быстрый: +10 к скорости, +1 к инициативе. Улучшения: На 7ур +1 ЛОВ (макс 22), рывок бонусным действием. На 14ур +1 ЛОВ (макс 22), при рывке атаки по возможности промахиваются.
-• Аномально Прочный: Снижаете немагический физ. урон на модификатор ТЕЛ. Улучшения: На 7ур +1 ТЕЛ (макс 22), порог урона = ПБ. На 14ур +1 ТЕЛ (макс 22). При 0 ХП делаете спасброски от смерти в бою.
-• Аномально Умный: К проверкам Интеллекта добавляется половина ИНТ. +1 Свет. Улучшения: На 7ур +1 ИНТ (макс 22), бонус к атакам = половине ИНТ. На 14ур +1 ИНТ (макс 22), можно узнавать статы врагов.
-• Аномально Мудрый: Преимущество на Внимательность, нельзя захватить врасплох. Инициатива от МУД. +1 Свет. Улучшения: На 7ур +1 МУД (макс 22). На 14ур +1 МУД (макс 22), проверка Проницательности дает баффы атаки/защиты.
-• Аномально Потрясающий: Преимущество на проверки ХАР. Вдохновение Барда. +1 Свет. Улучшения: На 7ур +1 ХАР (макс 22), Вдохновение без затраты действия. На 14ур +1 ХАР (макс 22), Вдохновение = 1d12.</div></div>
-            <div class="copy-msg">Скопировано!</div>
-        </div>
-
-        <div class="talent-block collapsed" data-name="Свет" data-level="2" data-desc="Вы получаете запас Света = уровень Фиксера из таблицы + ПБ + модификатор ИНТ, МУД или ХАР (выберите один раз).
-Свет полностью восстанавливается при длинном отдыхе, наполовину — при коротком. Выберите 2 техники:
-• Устрашающая атака (2 Света): При попадании +1d8 урона, цель делает спасбросок Мудрости, при провале Испугана до конца вашего след. хода.
-• Горизонтальный размах (1 Свет): При попадании ближней атакой нанесите урон другой цели в 5 футах от первой.
-• Рикошетные пули (1 Свет): Дальнобойная атака наносит +1d8 урона, затем переносится на существо в 15 футах. 
-• Усиление натиска (3 Света): Бонусным действием получите 1 Повышение Уровня Нападения.
-• Удар с захватом (1 Свет): После попадания ближней атакой можно бонусным действием попытаться захватить цель.
-• Отскок (1 Свет): Примените к атаке, после нее можно отойти на 5 футов без провокации атак.
-• Финт (1 Свет): Бонусным действием финт на цель в 5 футах. Преимущество на след. атаку. При попадании +1d8 урона.
-• Тяжелый взмах (2 Света): При попадании +1d8 урона, цель делает спасбросок Силы, при провале отталкивается на 15 футов.
-• Готовность к удару (2 Света): Бонусным действием снизьте весь получаемый урон на мод. ТЕЛ.
-• Пронзающий выстрел (3 Света): Дальнобойная атака становится линией 30 футов. 
-• Прицеливание (2 Света): Перед атакой добавьте +1d8 к броску атаки." onclick="window.copyTalent(this)">
-            <div class="talent-header" onclick="window.toggleTalent(event, this)">
-                <div class="talent-header-left"><i class="fa-solid fa-chevron-down collapse-icon-talent"></i><span class="talent-name">Свет</span></div><div class="talent-level tech-text">Уровень: 2</div>
-            </div>
-            <div class="talent-desc-wrapper"><div class="talent-desc">Вы получаете запас Света = уровень Фиксера из таблицы + ПБ + модификатор ИНТ, МУД или ХАР.
-Свет полностью восстанавливается при длинном отдыхе, наполовину — при коротком. Выберите 2 техники:
-• Устрашающая атака (2 Света): При попадании +1d8 урона, цель делает спасбросок Мудрости.
-• Горизонтальный размах (1 Свет): При попадании ближней атакой нанесите урон другой цели в 5 футах.
-• Рикошетные пули (1 Свет): Дальнобойная атака наносит +1d8 урона, затем переносится на существо в 15 футах. 
-• Усиление натиска (3 Света): Бонусным действием получите 1 Повышение Уровня Нападения.
-• Удар с захватом (1 Свет): После попадания ближней атакой можно бонусным действием захватить цель.
-• Отскок (1 Свет): Примените к атаке, после нее можно отойти на 5 футов без провокации атак.
-• Финт (1 Свет): Бонусным действием финт на цель в 5 футах. Преимущество на след. атаку.
-• Тяжелый взмах (2 Света): При попадании +1d8 урона, цель делает спасбросок Силы, при провале отталкивается на 15 футов.
-• Готовность к удару (2 Света): Снизьте получаемый урон на мод. ТЕЛ.
-• Пронзающий выстрел (3 Света): Дальнобойная атака становится линией 30 футов. 
-• Прицеливание (2 Света): Перед атакой добавьте +1d8 к броску.</div></div>
-            <div class="copy-msg">Скопировано!</div>
-        </div>
-
-        <div class="talent-block collapsed" data-name="Столкновения (Clashing)" data-level="3" data-desc="Реакцией за 2 Света (объявляется до броска врага) вы можете вступить в Столкновение с атакой. Выберите тип:
-• Контрудар (Counter): При победе атака врага не проходит, а вы наносите одну атаку по нему. Если попали, восстановите 1 Свет.
-• Смягчение (Mitigate): Вычтите из урона врага ваш бросок урона, независимо от победы. Можно использовать против АоЕ.
-• Затягивание (Stall): При победе атака врага не проходит, а его скорость режется на тройной размер вашего броска урона.
-
-Бросьте урон вашего оружия против броска урона врага — кто больше, тот и выиграл. Враг может потратить 4 Света, чтобы получить эффекты вашего типа столкновения, если выиграет." onclick="window.copyTalent(this)">
-            <div class="talent-header" onclick="window.toggleTalent(event, this)">
-                <div class="talent-header-left"><i class="fa-solid fa-chevron-down collapse-icon-talent"></i><span class="talent-name">Столкновения (Clashing)</span></div><div class="talent-level tech-text">Уровень: 3</div>
-            </div>
-            <div class="talent-desc-wrapper"><div class="talent-desc">Реакцией за 2 Света (объявляется до броска врага) вы можете вступить в Столкновение с атакой. Выберите тип:
-• Контрудар (Counter): При победе атака врага не проходит, а вы наносите одну атаку по нему. Если попали, восстановите 1 Свет.
-• Смягчение (Mitigate): Вычтите из урона врага ваш бросок урона, независимо от победы. Можно использовать против АоЕ.
-• Затягивание (Stall): При победе атака врага не проходит, а его скорость режется на тройной размер вашего броска урона.
-
-Бросьте урон вашего оружия против броска урона врага — кто больше, тот и выиграл. Враг может потратить 4 Света, чтобы получить эффекты вашего типа столкновения, если выиграет.</div></div>
-            <div class="copy-msg">Скопировано!</div>
-        </div>
-
         <!-- Контейнер для выбранного архетипа -->
         <div id="selected-archetype-container" style="margin-top: 30px; border-top: 1px solid #333; padding-top: 10px;">
             <div class="sidebar-h2">Архетип не выбран</div>
@@ -352,6 +338,7 @@
     <!-- Заголовок страницы -->
     <div class="header-bar">
         <div class="header-title oswald">БАЗА ДАННЫХ: АРХЕТИПЫ И КЛАССЫ</div>
+        <button class="btn-small" style="border-color: var(--color-yellow); color: var(--color-yellow);" onclick="window.toggleBuilderModal()"><i class="fa-solid fa-plus"></i> СОЗДАТЬ КЛАСС</button>
     </div>
 
     <div class="filters-section">
@@ -371,9 +358,8 @@
     </div>
 
     <script>
-        // База данных для доступа извне
         window.classesDB = [];
-        window.currentMode = 'types'; // 'types' или 'stats'
+        window.currentMode = 'types'; 
 
         // Открытие/закрытие сайдбара
         window.toggleSidebar = () => {
@@ -381,7 +367,76 @@
             document.getElementById('sidebar-overlay').classList.toggle('active');
         };
 
-        // Словари
+        // Открытие/закрытие конструктора
+        window.toggleBuilderModal = () => {
+            const modal = document.getElementById('builderModal');
+            modal.classList.toggle('active');
+            if (modal.classList.contains('active') && document.querySelectorAll('.b-talent-entry').length === 0) {
+                window.addBuilderTalent(); // Добавить один талант по умолчанию
+            }
+        };
+        window.closeBuilderOnBg = (e) => {
+            if (e.target.id === 'builderModal') window.toggleBuilderModal();
+        };
+
+        // Логика добавления и удаления талантов в конструкторе
+        window.addBuilderTalent = () => {
+            const container = document.getElementById('builder-talents');
+            const html = `
+                <div class="b-talent-entry">
+                    <button class="btn-small-bld" style="position: absolute; right: 12px; top: 12px; border-color: var(--color-red); color: var(--color-red);" onclick="this.parentElement.remove()"><i class="fa-solid fa-trash"></i></button>
+                    <div style="display: flex; gap: 10px; margin-bottom: 8px;">
+                        <input type="text" class="cloud-input b-t-name" style="flex: 2; margin-bottom: 0;" placeholder="Название способности">
+                        <input type="number" class="cloud-input b-t-level" style="flex: 1; margin-bottom: 0;" placeholder="Уровень" value="1">
+                        <input type="text" class="cloud-input b-t-color" style="flex: 1; margin-bottom: 0;" placeholder="HEX (напр. #FF0000)">
+                    </div>
+                    <textarea class="cloud-input b-t-desc" placeholder="Полное описание способности..."></textarea>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', html);
+        };
+
+        // Экспорт JSON из конструктора
+        window.exportBuilderJson = () => {
+            const name = document.getElementById('b-name').value;
+            const typeChecks = document.querySelectorAll('.b-type-check:checked');
+            const types = Array.from(typeChecks).map(c => c.value);
+            const statChecks = document.querySelectorAll('.b-stat-check:checked');
+            const stats = Array.from(statChecks).map(c => c.value);
+
+            const talents = [];
+            document.querySelectorAll('.b-talent-entry').forEach(el => {
+                const tName = el.querySelector('.b-t-name').value;
+                const tLevel = parseInt(el.querySelector('.b-t-level').value) || 1;
+                const tColor = el.querySelector('.b-t-color').value;
+                const tDesc = el.querySelector('.b-t-desc').value;
+
+                let talentObj = { name: tName || "Без названия", level: tLevel, desc: tDesc || "Нет описания" };
+                if (tColor && tColor.trim() !== '') {
+                    // Добавляем # если забыли
+                    talentObj.Color = tColor.startsWith('#') ? tColor.trim() : '#' + tColor.trim();
+                }
+                talents.push(talentObj);
+            });
+
+            const newClass = {
+                No: 999, // Заглушка, чтобы ДМ сам присвоил номер
+                Name: name || "Новый Класс",
+                Type: types,
+                Stats: stats,
+                Talents: talents
+            };
+
+            // Выводим массивом, чтобы формат совпадал с classes.json
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify([newClass], null, 2));
+            const dl = document.createElement('a');
+            dl.setAttribute("href", dataStr);
+            dl.setAttribute("download", (name || "NewClass") + ".json");
+            document.body.appendChild(dl);
+            dl.click();
+            dl.remove();
+        };
+
         const typeDictionary = {
             "Burn": { name: "Огонь", color: "#C7243A", icon: "Burn.png" },
             "Bleed": { name: "Кровотечение", color: "#E67E22", icon: "Bleed.png" },
@@ -395,30 +450,24 @@
         };
 
         const statDictionary = {
-            "Int": { name: "Интеллект", color: "#1E3A8A" }, // Гордыня
-            "Wis": { name: "Мудрость", color: "#9B59B6" }, // Зависть
-            "Cha": { name: "Харизма", color: "#E67E22" }, // Похоть
-            "Str": { name: "Сила", color: "#C7243A" }, // Гнев
-            "Con": { name: "Телосложение", color: "#F1C40F" }, // Лень
-            "Dex": { name: "Ловкость", color: "#45B3CB" } // Уныние
+            "Int": { name: "Интеллект", color: "#1E3A8A" }, 
+            "Wis": { name: "Мудрость", color: "#9B59B6" }, 
+            "Cha": { name: "Харизма", color: "#E67E22" }, 
+            "Str": { name: "Сила", color: "#C7243A" }, 
+            "Con": { name: "Телосложение", color: "#F1C40F" }, 
+            "Dex": { name: "Ловкость", color: "#45B3CB" } 
         };
 
         let currentTypeFilter = 'all';
 
-        // Переключение режимов
         window.toggleMode = () => {
             const isStatsMode = document.getElementById('mode-checkbox').checked;
             window.currentMode = isStatsMode ? 'stats' : 'types';
             document.body.setAttribute('data-mode', window.currentMode);
-            
-            // Перерисовываем фильтры под новый режим
             renderFilters();
-            
-            // Сбрасываем фильтрацию
             window.setTypeFilter('all', document.querySelector('.filter-btn'));
         };
 
-        // Генерация кнопок фильтров в зависимости от режима
         function renderFilters() {
             const container = document.getElementById('type-filters');
             let html = `<button class="filter-btn active" data-filter="all" onclick="window.setTypeFilter('all', this)" style="border-color: var(--accent-primary); color: var(--accent-primary);">ВСЕ</button>`;
@@ -467,8 +516,6 @@
             
             cards.forEach(card => {
                 const nameData = card.getAttribute('data-name').toLowerCase();
-                
-                // Проверяем по нужному массиву данных (типы или статы)
                 const filterDataStr = window.currentMode === 'stats' ? card.getAttribute('data-stats') : card.getAttribute('data-types');
                 const filterData = filterDataStr ? filterDataStr.split(' ') : [];
                 
@@ -550,11 +597,15 @@
                 cls.Talents.forEach(talent => {
                     const safeTalentName = talent.name.replace(/"/g, '&quot;');
                     const safeTalentDesc = talent.desc.replace(/"/g, '&quot;');
+                    const tColor = talent.Color || talent.color || 'var(--accent-primary)';
                     
                     talentsHtml += `
-                        <div class="talent-block collapsed" data-name="${safeTalentName}" data-level="${talent.level}" data-desc="${safeTalentDesc}" onclick="window.copyTalent(this)">
+                        <div class="talent-block collapsed" data-name="${safeTalentName}" data-level="${talent.level}" data-desc="${safeTalentDesc}" onclick="window.copyTalent(this)" style="border-left-color: ${tColor};">
                             <div class="talent-header" onclick="window.toggleTalent(event, this)">
-                                <div class="talent-header-left"><i class="fa-solid fa-chevron-down collapse-icon-talent"></i><span class="talent-name">${talent.name}</span></div>
+                                <div class="talent-header-left">
+                                    <i class="fa-solid fa-chevron-down collapse-icon-talent"></i>
+                                    <span class="talent-name" style="color: ${tColor};">${talent.name}</span>
+                                </div>
                                 <div class="talent-level tech-text">Уровень: ${talent.level}</div>
                             </div>
                             <div class="talent-desc-wrapper">
@@ -591,7 +642,6 @@
                     let typesString = (cls.Type && Array.isArray(cls.Type)) ? cls.Type.join(' ') : '';
                     let statsString = (cls.Stats && Array.isArray(cls.Stats)) ? cls.Stats.join(' ') : '';
 
-                    // Генерация бейджей статусов (Type)
                     if (cls.Type && Array.isArray(cls.Type)) {
                         cls.Type.forEach(typeKey => {
                             const config = typeDictionary[typeKey];
@@ -609,7 +659,6 @@
                         });
                     }
 
-                    // Генерация бейджей характеристик (Stats)
                     if (cls.Stats && Array.isArray(cls.Stats)) {
                         cls.Stats.forEach(statKey => {
                             const config = statDictionary[statKey];
@@ -630,11 +679,15 @@
                         cls.Talents.forEach(talent => {
                             const safeTalentName = talent.name.replace(/"/g, '&quot;');
                             const safeTalentDesc = talent.desc.replace(/"/g, '&quot;');
+                            const tColor = talent.Color || talent.color || 'var(--accent-primary)';
                             
                             talentsHtml += `
-                                <div class="talent-block collapsed" data-name="${safeTalentName}" data-level="${talent.level}" data-desc="${safeTalentDesc}" onclick="window.copyTalent(this)">
+                                <div class="talent-block collapsed" data-name="${safeTalentName}" data-level="${talent.level}" data-desc="${safeTalentDesc}" onclick="window.copyTalent(this)" style="border-left-color: ${tColor};">
                                     <div class="talent-header" onclick="window.toggleTalent(event, this)">
-                                        <div class="talent-header-left"><i class="fa-solid fa-chevron-down collapse-icon-talent"></i><span class="talent-name">${talent.name}</span></div>
+                                        <div class="talent-header-left">
+                                            <i class="fa-solid fa-chevron-down collapse-icon-talent"></i>
+                                            <span class="talent-name" style="color: ${tColor};">${talent.name}</span>
+                                        </div>
                                         <div class="talent-level tech-text">Уровень: ${talent.level}</div>
                                     </div>
                                     <div class="talent-desc-wrapper">
