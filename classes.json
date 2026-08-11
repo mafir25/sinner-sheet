@@ -1010,7 +1010,7 @@
   {
     "No": 27,
     "Name": "Команда Пекод",
-    "Type": ["Bleed"],
+    "Type": ["Bleed", "Poise"],
     "Stats": ["Dex", "Cha"],
     "Talents": [
       {
@@ -1166,8 +1166,8 @@
   },
   {
     "No": 31,
-    "Name": "Офис Полная Остановка",
-    "Type": ["Poise"],
+    "Name": "Офис Полная Ставка",
+    "Type": ["Poise", "Rupture"],
     "Stats": ["Dex"],
     "Talents": [
       {
@@ -1382,7 +1382,7 @@
   {
     "No": 36,
     "Name": "Мастерская Листовка",
-    "Type": ["Burn"],
+    "Type": ["Burn", "Other"],
     "Stats": ["Con", "Dex"],
     "Talents": [
       {
@@ -1572,7 +1572,7 @@
   {
     "No": 41,
     "Name": "Улыбающиеся Лица",
-    "Type": ["Other"],
+    "Type": ["Other", "Bleed"],
     "Stats": ["Dex", "Con"],
     "Talents": [
       {
@@ -1729,7 +1729,7 @@
   {
     "No": 45,
     "Name": "Корпорация G",
-    "Type": ["Other"],
+    "Type": ["Other", "Bleed", "Tremor"],
     "Stats": ["Dex", "Con"],
     "Talents": [
       {
@@ -1810,7 +1810,7 @@
   {
     "No": 47,
     "Name": "Корпорация R",
-    "Type": ["Charge"],
+    "Type": ["Charge", "Bleed", "Sinking", "Tremor"],
     "Stats": ["Dex", "Con"],
     "Talents": [
       {
@@ -1974,7 +1974,7 @@
   {
     "No": 50,
     "Name": "Корпорация W",
-    "Type": ["Charge", "Rupture"],
+    "Type": ["Charge", "Rupture", "Bleed"],
     "Stats": ["Str", "Con"],
     "Talents": [
       {
