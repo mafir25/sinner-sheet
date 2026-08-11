@@ -2084,7 +2084,7 @@
     ]
   },
   {
-    "No": 7,
+    "No": 53,
     "Name": "Heishou Pack - Si Branch",
     "Type": ["Poise", "Rupture"],
     "Talents": [
@@ -2121,7 +2121,7 @@
     ]
   },
   {
-    "No": 8,
+    "No": 54,
     "Name": "Heishou Pack - You Branch",
     "Type": ["Burn", "Rupture"],
     "Talents": [
@@ -2163,7 +2163,7 @@
     ]
   },
   {
-    "No": 9,
+    "No": 55,
     "Name": "Heishou Pack - Wu Branch",
     "Type": ["Tremor"],
     "Talents": [
