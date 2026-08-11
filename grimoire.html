@@ -1,1 +1,149 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Гримуар Классов / Class Compendium</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Merriweather:ital,wght@0,300;1,300;1,700&family=Oswald:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-main: #070707; --bg-panel: #000000; --accent-primary: #D9772F; --accent-muted: #8B5A2B;
+            --color-cyan: #45B3CB; --color-red: #C7243A; --color-indigo: #40E0D0; --color-yellow: #F1C40F;
+            --color-orange: #E67E22; --color-lightblue: #ADD8E6; --text-main: #E0D8C8; --text-dim: #696969;
+            --border-width: 1px; --chamfer: 14px;
+        }
 
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-main); color: var(--text-main); font-family: 'Inter', sans-serif;
+            min-height: 100vh; padding: 60px 20px 40px 20px; display: flex; flex-direction: column; align-items: center;
+            background-image: linear-gradient(rgba(7,7,7,0.8), rgba(7,7,7,0.8)), repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.02) 2px, rgba(255,255,255,0.02) 4px);
+        }
+
+        h1, h2, h3, h4, .oswald { font-family: 'Oswald', sans-serif; text-transform: uppercase; }
+        .lore-text { font-family: 'Merriweather', serif; font-style: italic; color: var(--accent-muted); font-size: 0.85rem; }
+        .tech-text { font-family: 'Inter', sans-serif; color: var(--accent-primary); font-size: 0.8rem; }
+
+        /* Плавающая кнопка возврата */
+        .top-nav-btn { position: absolute; top: 10px; left: 20px; padding: 6px 12px; font-size: 0.8rem; border-color: var(--color-cyan); color: var(--color-cyan); font-family: 'Oswald', sans-serif; z-index: 100; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; border: 1px solid var(--color-cyan); cursor: pointer; text-transform: uppercase; transition: 0.2s; }
+        .top-nav-btn:hover { background-color: var(--color-cyan); color: #000; }
+
+        .header-bar { width: 100%; max-width: 1200px; display: flex; justify-content: center; align-items: center; margin-bottom: 24px; border-bottom: 1px solid var(--accent-muted); padding-bottom: 10px; }
+        .header-title { color: var(--accent-primary); font-size: 1.5rem; letter-spacing: 2px; }
+
+        .compendium-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; width: 100%; max-width: 1200px; }
+
+        .panel-outer { background-color: var(--accent-primary); padding: var(--border-width); position: relative; display: flex; flex-direction: column; }
+        .panel-inner { background-color: var(--bg-panel); padding: 16px; height: 100%; display: flex; flex-direction: column; }
+        .cut-tl { clip-path: polygon(var(--chamfer) 0, 100% 0, 100% 100%, 0 100%, 0 var(--chamfer)); }
+
+        .class-title { font-size: 1.4rem; color: var(--text-main); margin-bottom: 8px; border-bottom: 1px solid #222; padding-bottom: 4px; }
+        
+        .types-container { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+        .type-badge { display: flex; align-items: center; gap: 6px; font-family: 'Oswald', sans-serif; font-size: 0.9rem; text-transform: uppercase; border: 1px solid; padding: 2px 8px; border-radius: 2px; background: rgba(0,0,0,0.5); }
+        .type-icon { width: 16px; height: 16px; object-fit: contain; }
+
+        .talent-block { margin-bottom: 16px; border-left: 2px solid var(--accent-muted); padding-left: 10px; }
+        .talent-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+        .talent-name { font-family: 'Oswald', sans-serif; color: var(--accent-primary); font-size: 1.1rem; }
+        .talent-level { color: var(--text-dim); font-size: 0.75rem; }
+        .talent-desc { font-size: 0.85rem; color: var(--text-main); line-height: 1.4; }
+
+        .loading-text { text-align: center; color: var(--text-dim); font-family: 'Oswald', sans-serif; font-size: 1.2rem; width: 100%; grid-column: 1 / -1; }
+    </style>
+</head>
+<body>
+
+    <a href="index.html" class="top-nav-btn"><i class="fa-solid fa-arrow-left"></i> ТЕРМИНАЛ АГЕНТА</a>
+
+    <div class="header-bar">
+        <div class="header-title oswald">БАЗА ДАННЫХ: АРХЕТИПЫ И КЛАССЫ</div>
+    </div>
+
+    <div class="compendium-grid" id="compendium">
+        <div class="loading-text">Установка соединения с базой данных...</div>
+    </div>
+
+    <script>
+        const typeDictionary = {
+            "Burn": { name: "Огонь", color: "#C7243A", icon: "Burn.png" },
+            "Bleed": { name: "Кровотечение", color: "#E67E22", icon: "Bleed.png" },
+            "Tremor": { name: "Тремор", color: "#F1C40F", icon: "Tremor.png" },
+            "Rupture": { name: "Разрыв", color: "#40E0D0", icon: "Rupture.png" },
+            "Sinking": { name: "Утопание", color: "#45B3CB", icon: "Sinking.png" },
+            "Poise": { name: "Уверенность", color: "#1E3A8A", icon: "Poise.png" },
+            "Charge": { name: "Заряд", color: "#9B59B6", icon: "Charge.png" }
+        };
+
+        async function loadGrimoire() {
+            const container = document.getElementById('compendium');
+            
+            try {
+                const response = await fetch('classes.json');
+                if (!response.ok) throw new Error('Файл classes.json не найден');
+                
+                const classesData = await response.json();
+                classesData.sort((a, b) => a.No - b.No);
+                container.innerHTML = '';
+                
+                classesData.forEach(cls => {
+                    let typesHtml = '';
+                    if (cls.Type && Array.isArray(cls.Type)) {
+                        cls.Type.forEach(typeKey => {
+                            const config = typeDictionary[typeKey];
+                            if (config) {
+                                typesHtml += `
+                                    <div class="type-badge" style="color: ${config.color}; border-color: ${config.color};">
+                                        <img src="${config.icon}" alt="${config.name}" class="type-icon" onerror="this.style.display='none'">
+                                        ${config.name}
+                                    </div>
+                                `;
+                            } else {
+                                typesHtml += `<div class="type-badge" style="color: var(--text-main); border-color: var(--text-dim);">${typeKey}</div>`;
+                            }
+                        });
+                    }
+
+                    let talentsHtml = '';
+                    if (cls.Talents && Array.isArray(cls.Talents)) {
+                        cls.Talents.forEach(talent => {
+                            talentsHtml += `
+                                <div class="talent-block">
+                                    <div class="talent-header">
+                                        <div class="talent-name">${talent.name}</div>
+                                        <div class="talent-level tech-text">Уровень: ${talent.level}</div>
+                                    </div>
+                                    <div class="talent-desc">${talent.desc}</div>
+                                </div>
+                            `;
+                        });
+                    }
+
+                    const cardHtml = `
+                        <div class="panel-outer cut-tl">
+                            <div class="hazard-tape" style="height: 6px; background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--accent-muted) 10px, var(--accent-muted) 20px);"></div>
+                            <div class="panel-inner cut-tl" style="border-top: none;">
+                                <div class="class-title oswald">${cls.Name}</div>
+                                <div class="types-container">${typesHtml}</div>
+                                <div class="talents-container">${talentsHtml}</div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    container.insertAdjacentHTML('beforeend', cardHtml);
+                });
+
+            } catch (error) {
+                console.error("Ошибка загрузки гримуара:", error);
+                container.innerHTML = `<div class="loading-text" style="color: var(--color-red);">Ошибка связи с базой данных.<br><span style="font-size: 0.8rem; color: var(--text-dim);">Убедитесь, что файл classes.json существует и написан без синтаксических ошибок.</span></div>`;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadGrimoire);
+    </script>
+</body>
+</html>
