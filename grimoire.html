@@ -35,11 +35,23 @@
         .header-bar { width: 100%; max-width: 1200px; display: flex; justify-content: center; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--accent-muted); padding-bottom: 10px; }
         .header-title { color: var(--accent-primary); font-size: 1.5rem; letter-spacing: 2px; }
 
-        /* Поиск */
-        .search-bar { width: 100%; max-width: 1200px; margin-bottom: 24px; position: relative; }
-        .search-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-dim); }
-        .search-input { width: 100%; background: rgba(0,0,0,0.6); border: 1px solid var(--accent-muted); color: var(--text-main); padding: 14px 14px 14px 44px; font-family: 'Inter', sans-serif; font-size: 1rem; outline: none; transition: border-color 0.2s; }
-        .search-input:focus { border-color: var(--accent-primary); }
+        /* --- Разделенные блоки Поиска и Фильтров --- */
+        .filters-section { width: 100%; max-width: 1200px; margin-bottom: 24px; display: flex; flex-direction: column; gap: 16px; }
+        
+        /* Поиск (с правильным скосом и рамкой) */
+        .search-wrapper { background-color: var(--accent-muted); padding: var(--border-width); transition: background-color 0.2s; }
+        .search-wrapper:focus-within { background-color: var(--accent-primary); }
+        .search-inner { background: rgba(0,0,0,0.7); padding: 0; display: flex; align-items: center; flex-direction: row; }
+        .search-icon { padding-left: 16px; color: var(--text-dim); }
+        .search-input { width: 100%; background: transparent; border: none; color: var(--text-main); padding: 14px 14px 14px 14px; font-family: 'Inter', sans-serif; font-size: 1rem; outline: none; }
+        .search-input::placeholder { color: var(--text-dim); }
+
+        /* Кнопки Фильтров */
+        .type-filters { display: flex; flex-wrap: wrap; gap: 8px; }
+        .filter-btn { display: flex; align-items: center; gap: 6px; font-family: 'Oswald', sans-serif; font-size: 0.85rem; text-transform: uppercase; border: 1px solid var(--text-dim); color: var(--text-dim); background: rgba(0,0,0,0.5); padding: 4px 10px; cursor: pointer; transition: 0.2s; border-radius: 2px; }
+        .filter-btn:hover { border-color: var(--text-main); color: var(--text-main); }
+        .filter-btn.active { border-color: var(--accent-primary); color: var(--accent-primary); background: rgba(217, 119, 47, 0.1); }
+        .filter-btn .type-icon { width: 14px; height: 14px; object-fit: contain; }
 
         .compendium-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; width: 100%; max-width: 1200px; align-items: start; }
 
@@ -85,10 +97,19 @@
         <div class="header-title oswald">БАЗА ДАННЫХ: АРХЕТИПЫ И КЛАССЫ</div>
     </div>
 
-    <!-- Поле поиска -->
-    <div class="search-bar">
-        <i class="fa-solid fa-magnifying-glass search-icon"></i>
-        <input type="text" id="search-input" class="search-input cut-tl" placeholder="Поиск по названию класса или типу урона (Например: Заряд, Тремор, Инквизитор...)" onkeyup="window.filterClasses()">
+    <!-- Разделенный блок фильтров и поиска -->
+    <div class="filters-section">
+        <!-- Поиск -->
+        <div class="panel-outer cut-tl search-wrapper">
+            <div class="panel-inner cut-tl search-inner">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input type="text" id="search-input" class="search-input" placeholder="Поиск по названию класса (Например: Инквизитор, Агент...)" onkeyup="window.filterClasses()">
+            </div>
+        </div>
+        <!-- Кнопки типов (Генерируются скриптом) -->
+        <div class="type-filters" id="type-filters">
+            <!-- Кнопки появятся здесь -->
+        </div>
     </div>
 
     <div class="compendium-grid" id="compendium">
@@ -105,8 +126,77 @@
             "Sinking": { name: "Утопание", color: "#45B3CB", icon: "Sinking.png" },
             "Poise": { name: "Уверенность", color: "#1E3A8A", icon: "Poise.png" },
             "Charge": { name: "Заряд", color: "#9B59B6", icon: "Charge.png" },
-            "None": { name: "Нет", color: "#696969", icon: "" }, // Серый, без иконки
-            "Other": { name: "Иное", color: "#00CED1", icon: "LCB-Unlock_-_l.png" } // Бирюзовый
+            "None": { name: "Нет", color: "#696969", icon: "" }, 
+            "Other": { name: "Иное", color: "#00CED1", icon: "LCB-Unlock_-_l.png" } 
+        };
+
+        let currentTypeFilter = 'all';
+
+        // Генерация кнопок фильтров
+        function renderFilters() {
+            const container = document.getElementById('type-filters');
+            let html = `<button class="filter-btn active" data-filter="all" onclick="window.setTypeFilter('all', this)" style="border-color: var(--accent-primary); color: var(--accent-primary);">ВСЕ</button>`;
+            
+            for (const [key, data] of Object.entries(typeDictionary)) {
+                const imgTag = data.icon ? `<img src="${data.icon}" class="type-icon" onerror="this.style.display='none'">` : '';
+                html += `
+                    <button class="filter-btn" data-filter="${key}" data-color="${data.color}" onclick="window.setTypeFilter('${key}', this)">
+                        ${imgTag} ${data.name}
+                    </button>
+                `;
+            }
+            container.innerHTML = html;
+        }
+
+        // Логика нажатия на фильтр типа
+        window.setTypeFilter = (type, btn) => {
+            currentTypeFilter = type;
+            
+            // Сброс стилей всех кнопок
+            document.querySelectorAll('.filter-btn').forEach(b => {
+                b.classList.remove('active');
+                b.style.borderColor = 'var(--text-dim)';
+                b.style.color = 'var(--text-dim)';
+                b.style.backgroundColor = 'rgba(0,0,0,0.5)';
+            });
+            
+            // Установка стиля активной кнопки
+            btn.classList.add('active');
+            if(type !== 'all') {
+                const color = btn.getAttribute('data-color');
+                btn.style.borderColor = color;
+                btn.style.color = color;
+                // Легкая подсветка фона под цвет стихии
+                btn.style.backgroundColor = `color-mix(in srgb, ${color} 15%, transparent)`;
+            } else {
+                btn.style.borderColor = 'var(--accent-primary)';
+                btn.style.color = 'var(--accent-primary)';
+                btn.style.backgroundColor = 'rgba(217, 119, 47, 0.1)';
+            }
+            
+            window.filterClasses();
+        };
+
+        // Логика комбинированного поиска (Текст + Тип)
+        window.filterClasses = () => {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const cards = document.querySelectorAll('.compendium-card');
+            
+            cards.forEach(card => {
+                const nameData = card.getAttribute('data-name').toLowerCase();
+                const typesData = card.getAttribute('data-types').split(' ');
+                
+                // Проверка имени
+                const matchesName = nameData.includes(query);
+                // Проверка типа (если выбран "all", то тип не важен)
+                const matchesType = currentTypeFilter === 'all' || typesData.includes(currentTypeFilter);
+                
+                if (matchesName && matchesType) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
         };
 
         // Логика разворачивания/сворачивания карточки
@@ -116,14 +206,11 @@
             const isExpanded = card.classList.toggle('expanded');
             
             if (isExpanded) {
-                // Высчитываем реальную высоту содержимого для плавной анимации
                 talentsWrapper.style.maxHeight = talentsWrapper.scrollHeight + 30 + "px";
                 talentsWrapper.style.marginTop = "16px";
                 talentsWrapper.style.opacity = "1";
-                // Сбрасываем ограничение высоты после окончания анимации, чтобы можно было изменять размер окна
                 setTimeout(() => { if (card.classList.contains('expanded')) talentsWrapper.style.maxHeight = 'none'; }, 400);
             } else {
-                // Если было 'none', возвращаем пиксели для обратной анимации
                 talentsWrapper.style.maxHeight = talentsWrapper.scrollHeight + "px";
                 setTimeout(() => {
                     talentsWrapper.style.maxHeight = "0px";
@@ -131,21 +218,6 @@
                     talentsWrapper.style.opacity = "0";
                 }, 10);
             }
-        };
-
-        // Логика поиска
-        window.filterClasses = () => {
-            const query = document.getElementById('search-input').value.toLowerCase();
-            const cards = document.querySelectorAll('.compendium-card');
-            
-            cards.forEach(card => {
-                const searchData = card.getAttribute('data-search').toLowerCase();
-                if (searchData.includes(query)) {
-                    card.style.display = 'flex';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
         };
 
         // Загрузка JSON и генерация HTML
@@ -162,17 +234,15 @@
                 
                 classesData.forEach(cls => {
                     let typesHtml = '';
-                    let searchKeywords = [cls.Name]; // Собираем слова для поиска
+                    
+                    // Собираем типы для атрибута фильтрации
+                    let typesString = (cls.Type && Array.isArray(cls.Type)) ? cls.Type.join(' ') : '';
 
                     if (cls.Type && Array.isArray(cls.Type)) {
                         cls.Type.forEach(typeKey => {
                             const config = typeDictionary[typeKey];
                             if (config) {
-                                searchKeywords.push(config.name); // Добавляем имя типа в поиск
-                                
-                                // Если иконки нет (как у None), мы просто не выводим тег img
                                 const imgTag = config.icon ? `<img src="${config.icon}" alt="${config.name}" class="type-icon" onerror="this.style.display='none'">` : '';
-                                
                                 typesHtml += `
                                     <div class="type-badge" style="color: ${config.color}; border-color: ${config.color};">
                                         ${imgTag}
@@ -180,7 +250,6 @@
                                     </div>
                                 `;
                             } else {
-                                searchKeywords.push(typeKey);
                                 typesHtml += `<div class="type-badge" style="color: var(--text-main); border-color: var(--text-dim);">${typeKey}</div>`;
                             }
                         });
@@ -201,11 +270,11 @@
                         });
                     }
 
-                    // Сборка карточки со скрытыми талантами (talents-wrapper)
-                    const searchDataStr = searchKeywords.join(' ').replace(/"/g, '&quot;');
+                    // Сборка карточки с data-атрибутами для фильтрации
+                    const safeName = cls.Name.replace(/"/g, '&quot;');
                     
                     const cardHtml = `
-                        <div class="panel-outer cut-tl compendium-card" data-search="${searchDataStr}">
+                        <div class="panel-outer cut-tl compendium-card" data-name="${safeName}" data-types="${typesString}">
                             <div class="hazard-tape" style="height: 6px; background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--accent-muted) 10px, var(--accent-muted) 20px);"></div>
                             <div class="panel-inner cut-tl" style="border-top: none;">
                                 
@@ -234,7 +303,11 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', loadGrimoire);
+        // Запуск при старте
+        document.addEventListener('DOMContentLoaded', () => {
+            renderFilters();
+            loadGrimoire();
+        });
     </script>
 </body>
 </html>
