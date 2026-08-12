@@ -13,8 +13,8 @@
             --bg-main: #070707; --bg-panel: #000000; 
             --accent-primary: #1E3A8A; /* Pride / Гордыня (Темно-синий) */
             --accent-muted: #112252; 
-            --color-cyan: #45B3CB; --color-red: #C7243A; --color-indigo: #40E0D0; --color-yellow: #F1C40F;
-            --color-orange: #E67E22; --text-main: #E0D8C8; --text-dim: #696969;
+            --color-cyan: #45B3CB; --color-red: #C7243A; --color-yellow: #F1C40F;
+            --text-main: #E0D8C8; --text-dim: #696969;
             --border-width: 1px; --chamfer: 14px;
         }
 
@@ -35,8 +35,11 @@
         .top-nav-btn { position: fixed; top: 10px; left: 20px; padding: 6px 12px; font-size: 0.8rem; border-color: var(--accent-primary); color: var(--accent-primary); font-family: 'Oswald', sans-serif; z-index: 100; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; border: 1px solid var(--accent-primary); cursor: pointer; text-transform: uppercase; transition: 0.2s; }
         .top-nav-btn:hover { background-color: var(--accent-primary); color: #fff; }
         
+        .lang-toggle-btn { position: fixed; top: 10px; right: 20px; padding: 6px 12px; font-size: 0.8rem; border-color: var(--text-dim); color: var(--text-dim); font-family: 'Oswald', sans-serif; z-index: 1000; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; border: 1px solid var(--text-dim); cursor: pointer; text-transform: uppercase; transition: 0.2s; }
+        .lang-toggle-btn:hover { background-color: var(--text-main); color: #000; border-color: var(--text-main); }
+
         /* Правая панель управления */
-        .right-controls { position: fixed; top: 10px; right: 20px; z-index: 1000; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+        .right-controls { position: fixed; top: 45px; right: 20px; z-index: 990; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
         .side-nav-btn { padding: 6px 12px; font-size: 0.8rem; font-family: 'Oswald', sans-serif; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; cursor: pointer; text-transform: uppercase; transition: 0.2s; border-radius: 2px; }
         
         .class-base-btn { border: 1px solid var(--color-yellow); color: var(--color-yellow); }
@@ -153,17 +156,21 @@
 </head>
 <body data-mode="types">
 
-    <a href="navigation.html" class="top-nav-btn"><i class="fa-solid fa-arrow-left"></i> НАЗАД (НАВИГАЦИЯ)</a>
+    <a href="../navigation.html" class="top-nav-btn translatable" data-ru="<i class='fa-solid fa-arrow-left'></i> НАЗАД (НАВИГАЦИЯ)" data-en="<i class='fa-solid fa-arrow-left'></i> BACK (NAVIGATION)"><i class="fa-solid fa-arrow-left"></i> НАЗАД (НАВИГАЦИЯ)</a>
     
+    <button class="lang-toggle-btn" onclick="toggleLanguage()">
+        <i class="fa-solid fa-globe"></i> <span id="lang-display">EN</span>
+    </button>
+
     <div class="right-controls">
-        <button class="side-nav-btn class-base-btn" onclick="window.toggleSidebar()"><i class="fa-solid fa-book-open"></i> БАЗА ФИКСЕРА</button>
+        <button class="side-nav-btn class-base-btn translatable" onclick="window.toggleSidebar()" data-ru="<i class='fa-solid fa-book-open'></i> БАЗА ФИКСЕРА" data-en="<i class='fa-solid fa-book-open'></i> FIXER BASE"><i class="fa-solid fa-book-open"></i> БАЗА ФИКСЕРА</button>
         
         <div class="mode-toggle-wrapper">
             <input type="checkbox" id="mode-checkbox" onchange="window.toggleMode()">
-            <label for="mode-checkbox" class="mode-toggle-label">Режим Характеристик</label>
+            <label for="mode-checkbox" class="mode-toggle-label translatable" data-ru="Режим Характеристик" data-en="Stats Mode">Режим Характеристик</label>
         </div>
         
-        <button class="side-nav-btn create-class-btn" onclick="window.toggleBuilderModal()"><i class="fa-solid fa-plus"></i> СОЗДАТЬ КЛАСС</button>
+        <button class="side-nav-btn create-class-btn translatable" onclick="window.toggleBuilderModal()" data-ru="<i class='fa-solid fa-plus'></i> СОЗДАТЬ КЛАСС" data-en="<i class='fa-solid fa-plus'></i> CREATE CLASS"><i class="fa-solid fa-plus"></i> СОЗДАТЬ КЛАСС</button>
     </div>
 
     <!-- Модальное окно -->
@@ -172,12 +179,12 @@
             <div class="hazard-tape" style="height: 6px; background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--accent-primary) 10px, var(--accent-primary) 20px); border-bottom: 1px solid var(--accent-primary);"></div>
             <div class="panel-inner cut-tl" style="border-top: none;">
                 <button class="btn-close-modal" onclick="window.toggleBuilderModal()"><i class="fa-solid fa-xmark"></i></button>
-                <div class="sidebar-title oswald" style="color: var(--accent-primary); font-size: 1.5rem; border-color: var(--accent-primary);">КОНСТРУКТОР КЛАССА</div>
+                <div class="sidebar-title oswald translatable" style="color: var(--accent-primary); font-size: 1.5rem; border-color: var(--accent-primary);" data-ru="КОНСТРУКТОР КЛАССА" data-en="CLASS BUILDER">КОНСТРУКТОР КЛАССА</div>
                 
-                <div class="tech-text" style="margin-bottom: 4px;">НАЗВАНИЕ АРХЕТИПА</div>
-                <input type="text" id="b-name" class="cloud-input" placeholder="Например: Агент R-Corp">
+                <div class="tech-text translatable" style="margin-bottom: 4px;" data-ru="НАЗВАНИЕ АРХЕТИПА" data-en="ARCHETYPE NAME">НАЗВАНИЕ АРХЕТИПА</div>
+                <input type="text" id="b-name" class="cloud-input translatable" data-ru="Например: Агент R-Corp" data-en="E.g.: R-Corp Agent" placeholder="Например: Агент R-Corp">
                 
-                <div class="tech-text" style="margin-bottom: 4px;">СТАТУСНЫЕ ЭФФЕКТЫ (TYPE)</div>
+                <div class="tech-text translatable" style="margin-bottom: 4px;" data-ru="СТАТУСНЫЕ ЭФФЕКТЫ (TYPE)" data-en="STATUS EFFECTS (TYPE)">СТАТУСНЫЕ ЭФФЕКТЫ (TYPE)</div>
                 <div class="builder-checkbox-group">
                     <label class="builder-checkbox-label"><input type="checkbox" class="b-type-check" value="Burn"> Burn</label>
                     <label class="builder-checkbox-label"><input type="checkbox" class="b-type-check" value="Bleed"> Bleed</label>
@@ -187,10 +194,10 @@
                     <label class="builder-checkbox-label"><input type="checkbox" class="b-type-check" value="Poise"> Poise</label>
                     <label class="builder-checkbox-label"><input type="checkbox" class="b-type-check" value="Charge"> Charge</label>
                     <label class="builder-checkbox-label"><input type="checkbox" class="b-type-check" value="Other"> Other</label>
-                    <label class="builder-checkbox-label"><input type="checkbox" class="b-type-check" value="None"> Физические</label>
+                    <label class="builder-checkbox-label"><input type="checkbox" class="b-type-check" value="None"> Physical</label>
                 </div>
 
-                <div class="tech-text" style="margin-bottom: 4px;">ХАРАКТЕРИСТИКИ (STATS)</div>
+                <div class="tech-text translatable" style="margin-bottom: 4px;" data-ru="ХАРАКТЕРИСТИКИ (STATS)" data-en="SCALING STATS">ХАРАКТЕРИСТИКИ (STATS)</div>
                 <div class="builder-checkbox-group">
                     <label class="builder-checkbox-label"><input type="checkbox" class="b-stat-check" value="Str"> Strength</label>
                     <label class="builder-checkbox-label"><input type="checkbox" class="b-stat-check" value="Dex"> Dexterity</label>
@@ -201,13 +208,13 @@
                 </div>
 
                 <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1px solid #333; padding-bottom: 8px; margin-top: 16px; margin-bottom: 12px;">
-                    <div class="sidebar-h2" style="margin: 0; border: none; font-size: 1.1rem;">СПОСОБНОСТИ</div>
-                    <button class="btn-small-bld" onclick="window.addBuilderTalent()">+ ДОБАВИТЬ СПОСОБНОСТЬ</button>
+                    <div class="sidebar-h2 translatable" style="margin: 0; border: none; font-size: 1.1rem;" data-ru="СПОСОБНОСТИ" data-en="TALENTS">СПОСОБНОСТИ</div>
+                    <button class="btn-small-bld translatable" onclick="window.addBuilderTalent()" data-ru="+ ДОБАВИТЬ СПОСОБНОСТЬ" data-en="+ ADD TALENT">+ ДОБАВИТЬ СПОСОБНОСТЬ</button>
                 </div>
 
                 <div id="builder-talents"></div>
 
-                <button class="btn-small-bld" style="width: 100%; padding: 12px; margin-top: 16px; font-size: 1rem; border-color: var(--accent-primary); color: var(--accent-primary);" onclick="window.exportBuilderJson()"><i class="fa-solid fa-file-export"></i> ЭКСПОРТИРОВАТЬ В JSON</button>
+                <button class="btn-small-bld translatable" style="width: 100%; padding: 12px; margin-top: 16px; font-size: 1rem; border-color: var(--accent-primary); color: var(--accent-primary);" onclick="window.exportBuilderJson()" data-ru="<i class='fa-solid fa-file-export'></i> ЭКСПОРТИРОВАТЬ В JSON" data-en="<i class='fa-solid fa-file-export'></i> EXPORT TO JSON"><i class="fa-solid fa-file-export"></i> ЭКСПОРТИРОВАТЬ В JSON</button>
             </div>
         </div>
     </div>
@@ -216,155 +223,110 @@
 
     <!-- Сайдбар Фиксера -->
     <div class="class-sidebar" id="class-sidebar">
-        <div class="sidebar-title oswald">ФИКСЕР (ОСНОВНОЙ КЛАСС)</div>
-        <div class="sidebar-text lore-text">Фиксеры — это аморальные наемники, готовые выполнить практически любую работу. Крупные корпорации и Офисы нанимают фиксеров, чтобы те делали за них грязную работу и помогали продвигаться по служебной лестнице.</div>
-        <div class="sidebar-h2">Классовые характеристики</div>
+        <div class="sidebar-title oswald translatable" data-ru="ФИКСЕР (ОСНОВНОЙ КЛАСС)" data-en="FIXER (BASE CLASS)">ФИКСЕР (ОСНОВНОЙ КЛАСС)</div>
+        <div class="sidebar-text lore-text translatable" data-ru="Фиксеры — это аморальные наемники, готовые выполнить практически любую работу. Крупные корпорации и Офисы нанимают фиксеров, чтобы те делали за них грязную работу и помогали продвигаться по служебной лестнице." data-en="Fixers are amoral mercenaries willing to do almost any job. Corporations and Offices hire them to do their dirty work and help them climb the corporate ladder.">Фиксеры — это аморальные наемники, готовые выполнить практически любую работу. Крупные корпорации и Офисы нанимают фиксеров, чтобы те делали за них грязную работу и помогали продвигаться по служебной лестнице.</div>
+        <div class="sidebar-h2 translatable" data-ru="Классовые характеристики" data-en="Class Features">Классовые характеристики</div>
         
-        <div class="talent-block" data-name="Хиты" data-level="1" data-desc="Кость хитов: 1d10 за уровень Фиксера
-Хиты на 1-м уровне: 10 + модификатор Телосложения
-Хиты на следующих уровнях: 1d10 (или 6) + модификатор Телосложения за каждый уровень Фиксера после 1-го" onclick="window.copyTalent(this)">
+        <div class="talent-block" data-name="Хиты" data-level="1" data-desc="Кость хитов: 1d10 за уровень Фиксера" onclick="window.copyTalent(this)">
             <div class="talent-header" onclick="window.toggleTalent(event, this)">
-                <div class="talent-header-left"><i class="fa-solid fa-chevron-down collapse-icon-talent"></i><span class="talent-name">Хиты</span></div><div class="talent-level tech-text">Уровень: 1</div>
+                <div class="talent-header-left"><i class="fa-solid fa-chevron-down collapse-icon-talent"></i><span class="talent-name translatable" data-ru="Хиты" data-en="Hit Points">Хиты</span></div>
+                <div class="talent-level tech-text translatable" data-ru="Уровень: 1" data-en="Level: 1">Уровень: 1</div>
             </div>
-            <div class="talent-desc-wrapper"><div class="talent-desc">Кость хитов: 1d10 за уровень Фиксера
-Хиты на 1-м уровне: 10 + модификатор Телосложения
-Хиты на следующих уровнях: 1d10 (или 6) + модификатор Телосложения за каждый уровень Фиксера после 1-го</div></div>
-            <div class="copy-msg">Скопировано!</div>
+            <div class="talent-desc-wrapper"><div class="talent-desc translatable" data-ru="Кость хитов: 1d10 за уровень Фиксера<br>Хиты на 1-м уровне: 10 + модификатор Телосложения<br>Хиты на следующих уровнях: 1d10 (или 6) + модификатор Телосложения за каждый уровень" data-en="Hit Dice: 1d10 per Fixer level<br>Hit Points at 1st Level: 10 + CON modifier<br>Hit Points at Higher Levels: 1d10 (or 6) + CON modifier per level">Кость хитов: 1d10 за уровень Фиксера<br>Хиты на 1-м уровне: 10 + модификатор Телосложения<br>Хиты на следующих уровнях: 1d10 (или 6) + модификатор Телосложения за каждый уровень</div></div>
+            <div class="copy-msg translatable" data-ru="Скопировано!" data-en="Copied!">Скопировано!</div>
         </div>
 
-        <div class="talent-block collapsed" data-name="Владения" data-level="1" data-desc="Броня: Легкая броня, Средняя броня, Щиты
-Оружие: Простое и Боевое оружие, Огнестрельное оружие
-Инструменты: Один вид музыкального инструмента и один вид ремесленных инструментов или игровой набор
-Спасброски: Мудрость, Ловкость или Телосложение И Интеллект, Сила или Харизма
-Навыки: Выберите три из: Атлетика, Акробатика, Расследование, Выживание, Скрытность, Убеждение, Проницательность и Медицина" onclick="window.copyTalent(this)">
+        <div class="talent-block collapsed" data-name="Владения" data-level="1" data-desc="Броня: Легкая броня, Средняя броня, Щиты..." onclick="window.copyTalent(this)">
             <div class="talent-header" onclick="window.toggleTalent(event, this)">
-                <div class="talent-header-left"><i class="fa-solid fa-chevron-down collapse-icon-talent"></i><span class="talent-name">Владения</span></div><div class="talent-level tech-text">Уровень: 1</div>
+                <div class="talent-header-left"><i class="fa-solid fa-chevron-down collapse-icon-talent"></i><span class="talent-name translatable" data-ru="Владения" data-en="Proficiencies">Владения</span></div>
+                <div class="talent-level tech-text translatable" data-ru="Уровень: 1" data-en="Level: 1">Уровень: 1</div>
             </div>
-            <div class="talent-desc-wrapper"><div class="talent-desc">Броня: Легкая броня, Средняя броня, Щиты
-Оружие: Простое и Боевое оружие, Огнестрельное оружие
-Инструменты: Один вид музыкального инструмента и один вид ремесленных инструментов или игровой набор
-Спасброски: Мудрость, Ловкость или Телосложение И Интеллект, Сила или Харизма
-Навыки: Выберите три из: Атлетика, Акробатика, Расследование, Выживание, Скрытность, Убеждение, Проницательность и Медицина</div></div>
-            <div class="copy-msg">Скопировано!</div>
+            <div class="talent-desc-wrapper"><div class="talent-desc translatable" data-ru="Броня: Легкая броня, Средняя броня, Щиты<br>Оружие: Простое и Боевое оружие, Огнестрельное оружие<br>Спасброски: Мудрость, Ловкость или Телосложение И Интеллект, Сила или Харизма" data-en="Armor: Light armor, Medium armor, Shields<br>Weapons: Simple & Martial weapons, Firearms<br>Saving Throws: Wis, Dex, or Con AND Int, Str, or Cha">Броня: Легкая броня, Средняя броня, Щиты<br>Оружие: Простое и Боевое оружие, Огнестрельное оружие<br>Спасброски: Мудрость, Ловкость или Телосложение И Интеллект, Сила или Харизма</div></div>
+            <div class="copy-msg translatable" data-ru="Скопировано!" data-en="Copied!">Скопировано!</div>
         </div>
 
-        <div class="talent-block collapsed" data-name="Стартовое снаряжение" data-level="1" data-desc="• Кожаная броня и щит
-• (а) 1 боевое оружие или (б) 2 простых оружия
-• (а) набор метательного оружия (20 ножей или 10 копий/топориков) или (б) длинный лук с колчаном на 30 стрел
-• 1 музыкальный инструмент и выбранные вами ремесленные инструменты или игровой набор
-Если вы используете стартовое золото, у вас есть 4d4 x 10 зм." onclick="window.copyTalent(this)">
+        <div class="talent-block collapsed" data-name="Стартовое снаряжение" data-level="1" data-desc="• Кожаная броня и щит..." onclick="window.copyTalent(this)">
             <div class="talent-header" onclick="window.toggleTalent(event, this)">
-                <div class="talent-header-left"><i class="fa-solid fa-chevron-down collapse-icon-talent"></i><span class="talent-name">Стартовое снаряжение</span></div><div class="talent-level tech-text">Уровень: 1</div>
+                <div class="talent-header-left"><i class="fa-solid fa-chevron-down collapse-icon-talent"></i><span class="talent-name translatable" data-ru="Стартовое снаряжение" data-en="Starting Equipment">Стартовое снаряжение</span></div>
+                <div class="talent-level tech-text translatable" data-ru="Уровень: 1" data-en="Level: 1">Уровень: 1</div>
             </div>
-            <div class="talent-desc-wrapper"><div class="talent-desc">• Кожаная броня и щит
-• (а) 1 боевое оружие или (б) 2 простых оружия
-• (а) набор метательного оружия (20 ножей или 10 копий/топориков) или (б) длинный лук с колчаном на 30 стрел
-• 1 музыкальный инструмент и выбранные вами ремесленные инструменты или игровой набор
-Если вы используете стартовое золото, у вас есть 4d4 x 10 зм.</div></div>
-            <div class="copy-msg">Скопировано!</div>
-        </div>
-
-        <div class="talent-block collapsed" data-name="Ранг Фиксера" data-level="1" data-desc="По мере выполнения контрактов ваш ранг повышается. Ассоциация Хана следит за рейтингами.
-9 Ранг: –
-8 Ранг: 1 контракт
-7 Ранг: 3 контракта (1 боевой)
-6 Ранг: 6 контрактов (3 боевых)
-5 Ранг: 10 контрактов (6 боевых)
-4 Ранг: 12 контрактов (10 боевых)
-3 Ранг: 15 контрактов (13 боевых, убить 1 существо выше вашего уровня/ОП)
-2 Ранг: 20 контрактов (20 боевых, убить 2 существ выше вашего уровня)
-1 Ранг: 25 контрактов (25 боевых, убить 3 существ выше вашего уровня)
-Цветной Фиксер: Уничтожить офис из пяти фиксеров 1-го ранга, успешно совершить рейд на корпорацию или убить Цветного/Искажение ранга WAW/ALEPH." onclick="window.copyTalent(this)">
-            <div class="talent-header" onclick="window.toggleTalent(event, this)">
-                <div class="talent-header-left"><i class="fa-solid fa-chevron-down collapse-icon-talent"></i><span class="talent-name">Ранг Фиксера</span></div><div class="talent-level tech-text">Уровень: 1</div>
-            </div>
-            <div class="talent-desc-wrapper"><div class="talent-desc">По мере выполнения контрактов ваш ранг повышается. Ассоциация Хана следит за рейтингами.
-9 Ранг: –
-8 Ранг: 1 контракт
-7 Ранг: 3 контракта (1 боевой)
-6 Ранг: 6 контрактов (3 боевых)
-5 Ранг: 10 контрактов (6 боевых)
-4 Ранг: 12 контрактов (10 боевых)
-3 Ранг: 15 контрактов (13 боевых, убить 1 существо выше вашего уровня/ОП)
-2 Ранг: 20 контрактов (20 боевых, убить 2 существ выше вашего уровня)
-1 Ранг: 25 контрактов (25 боевых, убить 3 существ выше вашего уровня)
-Цветной Фиксер: Уничтожить офис из пяти фиксеров 1-го ранга, успешно совершить рейд на корпорацию или убить Цветного/Искажение ранга WAW/ALEPH.</div></div>
-            <div class="copy-msg">Скопировано!</div>
-        </div>
-
-        <div class="talent-block collapsed" data-name="Сложность способностей" data-level="1" data-desc="Некоторые ваши способности требуют спасброска:
-Модификатор Способности Фиксера = модификатор СИЛ или ЛОВ
-СЛ Фиксера = 8 + Бонус Мастерства + модификатор СИЛ или ЛОВ
-Модификатор Атаки Фиксера = Бонус Мастерства + модификатор СИЛ или ЛОВ" onclick="window.copyTalent(this)">
-            <div class="talent-header" onclick="window.toggleTalent(event, this)">
-                <div class="talent-header-left"><i class="fa-solid fa-chevron-down collapse-icon-talent"></i><span class="talent-name">Сложность способностей</span></div><div class="talent-level tech-text">Уровень: 1</div>
-            </div>
-            <div class="talent-desc-wrapper"><div class="talent-desc">Некоторые ваши способности требуют спасброска:
-Модификатор Способности Фиксера = модификатор СИЛ или ЛОВ
-СЛ Фиксера = 8 + Бонус Мастерства + модификатор СИЛ или ЛОВ
-Модификатор Атаки Фиксера = Бонус Мастерства + модификатор СИЛ или ЛОВ</div></div>
-            <div class="copy-msg">Скопировано!</div>
-        </div>
-
-        <div class="talent-block collapsed" data-name="Боевой стиль" data-level="2" data-desc="Выберите один из стилей:
-• Меткий стрелок: +2 к попаданию дальнобойными атаками.
-• Слепой бой: Невидимость врага не дает помеху к атаке, если он не спрятан.
-• Ближний бой (Дальний): +2 к урону дальнобойным. Нет помехи в 5 футах.
-• Мощный лук: Можно использовать Силу вместо Ловкости для луков.
-• Парное оружие: Атака второй рукой является частью основного действия Атаки.
-• Вездеходный атлет: Скорость плавания и лазания равна обычной. +1 к КД.
-• Дуэлянт: Владея оружием в одной руке (другая пуста), +2 к урону.
-• Бой двуручным оружием: Переброс 1 и 2 на костях урона.
-• Перехват: Реакцией уменьшить урон по союзнику в 5 футах на 1d10+ПБ.
-• Защита: Реакцией наложить помеху на атаку по союзнику в 5 футах.
-• Иайдзюцу: Первая атака в раунде из ножен с преимуществом.
-• Оружейный скандалист: При атаке пистолетом - безоружный удар бонусным (и наоборот)." onclick="window.copyTalent(this)">
-            <div class="talent-header" onclick="window.toggleTalent(event, this)">
-                <div class="talent-header-left"><i class="fa-solid fa-chevron-down collapse-icon-talent"></i><span class="talent-name">Боевой стиль</span></div><div class="talent-level tech-text">Уровень: 2</div>
-            </div>
-            <div class="talent-desc-wrapper"><div class="talent-desc">Выберите один из стилей:
-• Меткий стрелок: +2 к попаданию дальнобойными атаками.
-• Слепой бой: Невидимость врага не дает помеху к атаке, если он не спрятан.
-• Ближний бой (Дальний): +2 к урону дальнобойным. Нет помехи в 5 футах.
-• Мощный лук: Можно использовать Силу вместо Ловкости для луков.
-• Парное оружие: Атака второй рукой является частью основного действия Атаки.
-• Вездеходный атлет: Скорость плавания и лазания равна обычной. +1 к КД.
-• Дуэлянт: Владея оружием в одной руке (другая пуста), +2 к урону.
-• Бой двуручным оружием: Переброс 1 и 2 на костях урона.
-• Перехват: Реакцией уменьшить урон по союзнику в 5 футах на 1d10+ПБ.
-• Защита: Реакцией наложить помеху на атаку по союзнику в 5 футах.
-• Иайдзюцу: Первая атака в раунде из ножен с преимуществом.
-• Оружейный скандалист: При атаке пистолетом - безоружный удар бонусным (и наоборот).</div></div>
-            <div class="copy-msg">Скопировано!</div>
+            <div class="talent-desc-wrapper"><div class="talent-desc translatable" data-ru="• Кожаная броня и щит<br>• (а) 1 боевое оружие или (б) 2 простых оружия<br>Если вы используете стартовое золото, у вас есть 4d4 x 10 зм." data-en="• Leather armor and a shield<br>• (a) a martial weapon or (b) two simple weapons<br>If using starting wealth: 4d4 x 10 gp.">• Кожаная броня и щит<br>• (а) 1 боевое оружие или (б) 2 простых оружия<br>Если вы используете стартовое золото, у вас есть 4d4 x 10 зм.</div></div>
+            <div class="copy-msg translatable" data-ru="Скопировано!" data-en="Copied!">Скопировано!</div>
         </div>
 
         <div id="selected-archetype-container" style="margin-top: 30px; border-top: 1px solid #333; padding-top: 10px;">
-            <div class="sidebar-h2">Архетип не выбран</div>
-            <div class="sidebar-text" style="color: var(--text-dim);">Выберите архетип из базы данных, чтобы отобразить его навыки здесь.</div>
+            <div class="sidebar-h2 translatable" data-ru="Архетип не выбран" data-en="No Archetype Selected">Архетип не выбран</div>
+            <div class="sidebar-text translatable" style="color: var(--text-dim);" data-ru="Выберите архетип из базы данных, чтобы отобразить его навыки здесь." data-en="Select an archetype from the database to view its talents here.">Выберите архетип из базы данных, чтобы отобразить его навыки здесь.</div>
         </div>
     </div>
 
     <div class="header-bar">
-        <div class="header-title oswald">БАЗА ДАННЫХ: АРХЕТИПЫ И КЛАССЫ</div>
+        <div class="header-title oswald translatable" data-ru="БАЗА ДАННЫХ: АРХЕТИПЫ И КЛАССЫ" data-en="DATABASE: ARCHETYPES & CLASSES">БАЗА ДАННЫХ: АРХЕТИПЫ И КЛАССЫ</div>
     </div>
 
     <div class="filters-section">
         <div class="panel-outer cut-tl search-wrapper">
             <div class="panel-inner cut-tl search-inner">
                 <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                <input type="text" id="search-input" class="search-input" placeholder="Поиск по названию архетипа..." onkeyup="window.filterClasses()">
+                <input type="text" id="search-input" class="search-input translatable" data-ru="Поиск по названию архетипа..." data-en="Search by archetype name..." placeholder="Поиск по названию архетипа..." onkeyup="window.filterClasses()">
             </div>
         </div>
         <div class="type-filters" id="type-filters"></div>
     </div>
 
     <div class="compendium-grid" id="compendium">
-        <div class="loading-text">Установка соединения с базой данных...</div>
+        <div class="loading-text translatable" id="loading-msg" data-ru="Установка соединения с базой данных..." data-en="Establishing connection to the database...">Установка соединения с базой данных...</div>
     </div>
 
     <script>
         window.classesDB = [];
         window.currentMode = 'types'; 
+        let currentLang = localStorage.getItem('pmd_lang') || 'ru';
+
+        function applyLanguage() {
+            document.querySelectorAll('.translatable').forEach(el => {
+                if(el.hasAttribute(`data-${currentLang}`)) {
+                    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                        el.setAttribute('placeholder', el.getAttribute(`data-${currentLang}`));
+                    } else {
+                        el.innerHTML = el.getAttribute(`data-${currentLang}`);
+                    }
+                }
+            });
+            const langBtn = document.getElementById('lang-display');
+            if(langBtn) langBtn.innerText = currentLang === 'ru' ? 'EN' : 'RU';
+        }
+
+        window.toggleLanguage = () => {
+            currentLang = currentLang === 'ru' ? 'en' : 'ru';
+            localStorage.setItem('pmd_lang', currentLang);
+            applyLanguage();
+            renderFilters();
+            loadGrimoire();
+        };
+
+        const typeDictionary = {
+            "Burn": { name: { ru: "Огонь", en: "Burn" }, color: "#C7243A", icon: "../Asset/Burn.png" },
+            "Bleed": { name: { ru: "Кровотечение", en: "Bleed" }, color: "#E67E22", icon: "../Asset/Bleed.png" },
+            "Tremor": { name: { ru: "Тремор", en: "Tremor" }, color: "#F1C40F", icon: "../Asset/Tremor.png" },
+            "Rupture": { name: { ru: "Разрыв", en: "Rupture" }, color: "#40E0D0", icon: "../Asset/Rupture.png" },
+            "Sinking": { name: { ru: "Утопание", en: "Sinking" }, color: "#45B3CB", icon: "../Asset/Sinking.png" },
+            "Poise": { name: { ru: "Уверенность", en: "Poise" }, color: "#1E3A8A", icon: "../Asset/Poise.png" },
+            "Charge": { name: { ru: "Заряд", en: "Charge" }, color: "#9B59B6", icon: "../Asset/Charge.png" },
+            "Other": { name: { ru: "Иное", en: "Other" }, color: "#27AE60", icon: "../Asset/Other.png" }, 
+            "None": { name: { ru: "Физические", en: "Physical" }, color: "#C7243A", icon: "../Asset/phis.png" } 
+        };
+
+        const statDictionary = {
+            "Int": { name: { ru: "Интеллект", en: "Intelligence" }, color: "#1E3A8A" }, 
+            "Wis": { name: { ru: "Мудрость", en: "Wisdom" }, color: "#9B59B6" }, 
+            "Cha": { name: { ru: "Харизма", en: "Charisma" }, color: "#E67E22" }, 
+            "Str": { name: { ru: "Сила", en: "Strength" }, color: "#C7243A" }, 
+            "Con": { name: { ru: "Телосложение", en: "Constitution" }, color: "#F1C40F" }, 
+            "Dex": { name: { ru: "Ловкость", en: "Dexterity" }, color: "#45B3CB" } 
+        };
+
+        let currentTypeFilter = 'all';
 
         window.toggleSidebar = () => {
             document.getElementById('class-sidebar').classList.toggle('active');
@@ -384,15 +346,19 @@
 
         window.addBuilderTalent = () => {
             const container = document.getElementById('builder-talents');
+            const placeholderName = currentLang === 'en' ? 'Talent Name' : 'Название способности';
+            const placeholderLvl = currentLang === 'en' ? 'Level' : 'Уровень';
+            const placeholderDesc = currentLang === 'en' ? 'Full talent description...' : 'Полное описание способности...';
+
             const html = `
                 <div class="b-talent-entry">
                     <button class="btn-small-bld" style="position: absolute; right: 12px; top: 12px; border-color: var(--color-red); color: var(--color-red);" onclick="this.parentElement.remove()"><i class="fa-solid fa-trash"></i></button>
                     <div style="display: flex; gap: 10px; margin-bottom: 8px;">
-                        <input type="text" class="cloud-input b-t-name" style="flex: 2; margin-bottom: 0;" placeholder="Название способности">
-                        <input type="number" class="cloud-input b-t-level" style="flex: 1; margin-bottom: 0;" placeholder="Уровень" value="1">
-                        <input type="text" class="cloud-input b-t-color" style="flex: 1; margin-bottom: 0;" placeholder="HEX (напр. #FF0000)">
+                        <input type="text" class="cloud-input b-t-name" style="flex: 2; margin-bottom: 0;" placeholder="${placeholderName}">
+                        <input type="number" class="cloud-input b-t-level" style="flex: 1; margin-bottom: 0;" placeholder="${placeholderLvl}" value="1">
+                        <input type="text" class="cloud-input b-t-color" style="flex: 1; margin-bottom: 0;" placeholder="HEX (e.g. #FF0000)">
                     </div>
-                    <textarea class="cloud-input b-t-desc" placeholder="Полное описание способности..."></textarea>
+                    <textarea class="cloud-input b-t-desc" placeholder="${placeholderDesc}"></textarea>
                 </div>
             `;
             container.insertAdjacentHTML('beforeend', html);
@@ -410,14 +376,14 @@
                 const tColor = el.querySelector('.b-t-color').value;
                 const tDesc = el.querySelector('.b-t-desc').value;
 
-                let talentObj = { name: tName || "Без названия", level: tLevel, desc: tDesc || "Нет описания" };
+                let talentObj = { name: tName || "Untitled", level: tLevel, desc: tDesc || "No description" };
                 if (tColor && tColor.trim() !== '') {
                     talentObj.Color = tColor.startsWith('#') ? tColor.trim() : '#' + tColor.trim();
                 }
                 talents.push(talentObj);
             });
 
-            const newClass = { No: 999, Name: name || "Новый Класс", Type: types, Stats: stats, Talents: talents };
+            const newClass = { No: 999, Name: name || "New Class", Type: types, Stats: stats, Talents: talents };
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify([newClass], null, 2));
             const dl = document.createElement('a');
             dl.setAttribute("href", dataStr);
@@ -426,29 +392,6 @@
             dl.click();
             dl.remove();
         };
-
-        const typeDictionary = {
-            "Burn": { name: "Огонь", color: "#C7243A", icon: "Burn.png" },
-            "Bleed": { name: "Кровотечение", color: "#E67E22", icon: "Bleed.png" },
-            "Tremor": { name: "Тремор", color: "#F1C40F", icon: "Tremor.png" },
-            "Rupture": { name: "Разрыв", color: "#40E0D0", icon: "Rupture.png" },
-            "Sinking": { name: "Утопание", color: "#45B3CB", icon: "Sinking.png" },
-            "Poise": { name: "Уверенность", color: "#1E3A8A", icon: "Poise.png" },
-            "Charge": { name: "Заряд", color: "#9B59B6", icon: "Charge.png" },
-            "Other": { name: "Иное", color: "#27AE60", icon: "Other.png" }, 
-            "None": { name: "Физические", color: "#C7243A", icon: "phis.png" } 
-        };
-
-        const statDictionary = {
-            "Int": { name: "Интеллект", color: "#1E3A8A" }, 
-            "Wis": { name: "Мудрость", color: "#9B59B6" }, 
-            "Cha": { name: "Харизма", color: "#E67E22" }, 
-            "Str": { name: "Сила", color: "#C7243A" }, 
-            "Con": { name: "Телосложение", color: "#F1C40F" }, 
-            "Dex": { name: "Ловкость", color: "#45B3CB" } 
-        };
-
-        let currentTypeFilter = 'all';
 
         window.toggleMode = () => {
             const isStatsMode = document.getElementById('mode-checkbox').checked;
@@ -460,12 +403,13 @@
 
         function renderFilters() {
             const container = document.getElementById('type-filters');
-            let html = `<button class="filter-btn active" data-filter="all" onclick="window.setTypeFilter('all', this)" style="border-color: var(--accent-primary); color: var(--accent-primary);">ВСЕ</button>`;
+            const allText = currentLang === 'en' ? 'ALL' : 'ВСЕ';
+            let html = `<button class="filter-btn active" data-filter="all" onclick="window.setTypeFilter('all', this)" style="border-color: var(--accent-primary); color: var(--accent-primary);">${allText}</button>`;
             const currentDict = window.currentMode === 'stats' ? statDictionary : typeDictionary;
 
             for (const [key, data] of Object.entries(currentDict)) {
                 const imgTag = data.icon ? `<img src="${data.icon}" class="type-icon" onerror="this.style.display='none'">` : '';
-                html += `<button class="filter-btn" data-filter="${key}" data-color="${data.color}" onclick="window.setTypeFilter('${key}', this)">${imgTag} ${data.name}</button>`;
+                html += `<button class="filter-btn" data-filter="${key}" data-color="${data.color}" onclick="window.setTypeFilter('${key}', this)">${imgTag} ${data.name[currentLang]}</button>`;
             }
             container.innerHTML = html;
         }
@@ -531,7 +475,8 @@
         };
 
         window.copyTalent = (el) => {
-            navigator.clipboard.writeText(`${el.getAttribute('data-name')}, ${el.getAttribute('data-level')} - уровень\n${el.getAttribute('data-desc')}`).then(() => {
+            const lvlText = currentLang === 'en' ? 'Level' : 'уровень';
+            navigator.clipboard.writeText(`${el.getAttribute('data-name')} [${lvlText} ${el.getAttribute('data-level')}]\n${el.getAttribute('data-desc')}`).then(() => {
                 const msg = el.querySelector('.copy-msg');
                 msg.style.opacity = '1';
                 setTimeout(() => msg.style.opacity = '0', 1500);
@@ -540,12 +485,14 @@
 
         window.selectArchetype = (e, no, btn) => {
             e.stopPropagation();
+            const btnText = currentLang === 'en' ? 'SELECT' : 'ВЫБРАТЬ';
+            const btnSelected = currentLang === 'en' ? 'SELECTED' : 'ВЫБРАНО';
             document.querySelectorAll('.select-archetype-btn').forEach(b => {
                 b.classList.remove('selected');
-                b.innerHTML = '<i class="fa-regular fa-square"></i> ВЫБРАТЬ';
+                b.innerHTML = `<i class="fa-regular fa-square"></i> ${btnText}`;
             });
             btn.classList.add('selected');
-            btn.innerHTML = '<i class="fa-regular fa-square-check"></i> ВЫБРАНО';
+            btn.innerHTML = `<i class="fa-regular fa-square-check"></i> ${btnSelected}`;
             const cls = window.classesDB.find(c => c.No === no);
             if (cls) renderSelectedArchetype(cls);
         };
@@ -553,6 +500,9 @@
         function renderSelectedArchetype(cls) {
             const container = document.getElementById('selected-archetype-container');
             let talentsHtml = '';
+            const lvlPrefix = currentLang === 'en' ? 'Level:' : 'Уровень:';
+            const copyText = currentLang === 'en' ? 'Copied!' : 'Скопировано!';
+
             if (cls.Talents && Array.isArray(cls.Talents)) {
                 cls.Talents.forEach(talent => {
                     const tColor = talent.Color || talent.color || 'var(--accent-primary)';
@@ -562,26 +512,34 @@
                         <div class="talent-block collapsed" data-name="${safeName}" data-level="${talent.level}" data-desc="${safeDesc}" onclick="window.copyTalent(this)" style="border-left-color: ${tColor};">
                             <div class="talent-header" onclick="window.toggleTalent(event, this)">
                                 <div class="talent-header-left"><i class="fa-solid fa-chevron-down collapse-icon-talent"></i><span class="talent-name" style="color: ${tColor};">${talent.name}</span></div>
-                                <div class="talent-level tech-text">Уровень: ${talent.level}</div>
+                                <div class="talent-level tech-text">${lvlPrefix} ${talent.level}</div>
                             </div>
                             <div class="talent-desc-wrapper"><div class="talent-desc">${talent.desc}</div></div>
-                            <div class="copy-msg">Скопировано!</div>
+                            <div class="copy-msg">${copyText}</div>
                         </div>`;
                 });
             }
-            container.innerHTML = `<div class="sidebar-h2" style="color: var(--accent-primary);">АРХЕТИП: ${cls.Name}</div>${talentsHtml}`;
+            const archPrefix = currentLang === 'en' ? 'ARCHETYPE:' : 'АРХЕТИП:';
+            container.innerHTML = `<div class="sidebar-h2" style="color: var(--accent-primary);">${archPrefix} ${cls.Name}</div>${talentsHtml}`;
         }
 
         async function loadGrimoire() {
             const container = document.getElementById('compendium');
+            const fileSuffix = currentLang === 'en' ? '_en' : '';
+            const errorText = currentLang === 'en' ? 'Database connection error. Make sure classes_en.json exists in Wiki_data folder.' : 'Ошибка связи с базой данных. Убедитесь, что файл classes.json существует в папке Wiki_data.';
+            
             try {
-                const response = await fetch('classes.json');
+                const response = await fetch(`Wiki_data/classes${fileSuffix}.json`);
                 if (!response.ok) throw new Error();
                 const classesData = await response.json();
                 classesData.sort((a, b) => a.No - b.No);
                 window.classesDB = classesData; 
                 container.innerHTML = '';
                 
+                const btnText = currentLang === 'en' ? 'SELECT' : 'ВЫБРАТЬ';
+                const lvlPrefix = currentLang === 'en' ? 'Level:' : 'Уровень:';
+                const copyText = currentLang === 'en' ? 'Copied!' : 'Скопировано!';
+
                 classesData.forEach(cls => {
                     let badgesHtml = '';
                     let typesString = (cls.Type && Array.isArray(cls.Type)) ? cls.Type.join(' ') : '';
@@ -591,7 +549,7 @@
                         cls.Type.forEach(typeKey => {
                             const config = typeDictionary[typeKey];
                             if (config) {
-                                badgesHtml += `<div class="type-badge badge-type" style="color: ${config.color}; border-color: ${config.color};"><img src="${config.icon}" class="type-icon" onerror="this.style.display='none'">${config.name}</div>`;
+                                badgesHtml += `<div class="type-badge badge-type" style="color: ${config.color}; border-color: ${config.color};"><img src="${config.icon}" class="type-icon" onerror="this.style.display='none'">${config.name[currentLang]}</div>`;
                             } else {
                                 badgesHtml += `<div class="type-badge badge-type" style="color: var(--text-main); border-color: var(--text-dim);">${typeKey}</div>`;
                             }
@@ -602,7 +560,7 @@
                         cls.Stats.forEach(statKey => {
                             const config = statDictionary[statKey];
                             if (config) {
-                                badgesHtml += `<div class="type-badge badge-stat" style="color: ${config.color}; border-color: ${config.color};">${config.name}</div>`;
+                                badgesHtml += `<div class="type-badge badge-stat" style="color: ${config.color}; border-color: ${config.color};">${config.name[currentLang]}</div>`;
                             }
                         });
                     }
@@ -617,10 +575,10 @@
                                 <div class="talent-block collapsed" data-name="${safeName}" data-level="${talent.level}" data-desc="${safeDesc}" onclick="window.copyTalent(this)" style="border-left-color: ${tColor};">
                                     <div class="talent-header" onclick="window.toggleTalent(event, this)">
                                         <div class="talent-header-left"><i class="fa-solid fa-chevron-down collapse-icon-talent"></i><span class="talent-name" style="color: ${tColor};">${talent.name}</span></div>
-                                        <div class="talent-level tech-text">Уровень: ${talent.level}</div>
+                                        <div class="talent-level tech-text">${lvlPrefix} ${talent.level}</div>
                                     </div>
                                     <div class="talent-desc-wrapper"><div class="talent-desc">${talent.desc}</div></div>
-                                    <div class="copy-msg">Скопировано!</div>
+                                    <div class="copy-msg">${copyText}</div>
                                 </div>`;
                         });
                     }
@@ -633,7 +591,7 @@
                             <div class="panel-inner cut-tl" style="border-top: none;">
                                 <div class="class-title-wrapper">
                                     <div class="class-title oswald">${cls.Name}</div>
-                                    <button class="select-archetype-btn" onclick="window.selectArchetype(event, ${cls.No}, this)"><i class="fa-regular fa-square"></i> ВЫБРАТЬ</button>
+                                    <button class="select-archetype-btn" onclick="window.selectArchetype(event, ${cls.No}, this)"><i class="fa-regular fa-square"></i> ${btnText}</button>
                                 </div>
                                 <div class="card-header-clickable" onclick="window.toggleCard(this)">
                                     <i class="fa-solid fa-chevron-down expand-icon"></i>
@@ -644,11 +602,15 @@
                         </div>`);
                 });
             } catch (error) {
-                container.innerHTML = `<div class="loading-text" style="color: var(--color-red);">Ошибка связи с базой данных. Убедитесь, что файл classes.json существует.</div>`;
+                container.innerHTML = `<div class="loading-text" style="color: var(--color-red);">${errorText}</div>`;
             }
         }
 
-        document.addEventListener('DOMContentLoaded', () => { renderFilters(); loadGrimoire(); });
+        document.addEventListener('DOMContentLoaded', () => { 
+            applyLanguage();
+            renderFilters(); 
+            loadGrimoire(); 
+        });
     </script>
 </body>
 </html>
