@@ -106,7 +106,6 @@
         .news-author { font-size: 0.9rem; color: var(--color-red); font-family: 'Oswald'; margin-bottom: 4px; }
         .news-text { font-size: 0.85rem; color: var(--text-main); white-space: pre-wrap; line-height: 1.4; }
         
-        /* Стили кнопок удаления (корзина) */
         .btn-trash { background: transparent; border: none; color: var(--text-dim); cursor: pointer; transition: 0.2s; font-size: 1rem; }
         .btn-trash:hover { color: var(--color-red); }
         .news-item .btn-trash { position: absolute; top: 0; right: 0; opacity: 0; }
@@ -123,10 +122,12 @@
         .btn-close-modal { background: transparent; border: none; color: var(--color-red); font-size: 1.5rem; cursor: pointer; transition: 0.2s; }
         .btn-close-modal:hover { color: #ff0044; }
 
+        .icon-selector-grid { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+        .q-icon-option { width: 36px; height: 36px; object-fit: contain; border: 1px solid #333; padding: 4px; cursor: pointer; transition: 0.2s; background: #111; }
+        .q-icon-option:hover { border-color: var(--color-yellow); }
+        .q-icon-option.selected { border-color: var(--color-yellow); background: rgba(241, 196, 15, 0.2); }
+
         .creator-only { display: none; }
-        
-        /* Стилизация календаря */
-        input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
     </style>
 </head>
 <body>
@@ -173,33 +174,42 @@
                 <div class="tech-text" style="color: var(--color-yellow); margin-bottom: 4px;">НАЗВАНИЕ КОНТРАКТА</div>
                 <input type="text" id="q-name" class="cloud-input" placeholder="Например: Зачистка переулка">
                 
-                <div style="display: flex; gap: 10px;">
-                    <div style="flex: 1;">
-                        <div class="tech-text" style="color: var(--color-yellow); margin-bottom: 4px;">РАНГ (GRADE)</div>
-                        <select id="q-grade" class="cloud-input" style="font-family: 'Oswald'; text-transform: uppercase;">
-                            <option value="1">Цветной</option>
-                            <option value="2">1 Ранг</option>
-                            <option value="3">2 Ранг</option>
-                            <option value="4">3 Ранг</option>
-                            <option value="5">4 Ранг</option>
-                            <option value="6">5 Ранг</option>
-                            <option value="7">6 Ранг</option>
-                            <option value="8">7 Ранг</option>
-                            <option value="9">8 Ранг</option>
-                            <option value="10">9 Ранг</option>
-                        </select>
-                    </div>
-                </div>
+                <div class="tech-text" style="color: var(--color-yellow); margin-bottom: 4px;">РАНГ (GRADE)</div>
+                <select id="q-grade" class="cloud-input" style="font-family: 'Oswald'; text-transform: uppercase;">
+                    <option value="1">Цветной</option>
+                    <option value="2">1 Ранг</option>
+                    <option value="3">2 Ранг</option>
+                    <option value="4">3 Ранг</option>
+                    <option value="5">4 Ранг</option>
+                    <option value="6">5 Ранг</option>
+                    <option value="7">6 Ранг</option>
+                    <option value="8">7 Ранг</option>
+                    <option value="9">8 Ранг</option>
+                    <option value="10">9 Ранг</option>
+                </select>
 
-                <!-- ИЗМЕНЕНИЕ 1: Иконка квеста загружается через прямую URL ссылку -->
-                <div class="tech-text" style="color: var(--color-yellow); margin-bottom: 4px;">ИКОНКА МЕТКИ (ПРЯМАЯ ССЫЛКА НА КАРТИНКУ)</div>
-                <input type="text" id="q-icon-url" class="cloud-input" placeholder="https://imgur.com/image.png" oninput="document.getElementById('q-icon-preview').style.backgroundImage = 'url(' + this.value + ')'">
-                <div id="q-icon-preview" style="height: 40px; margin-bottom: 12px; background-size: contain; background-repeat: no-repeat; background-position: left center;"></div>
+                <div class="tech-text" style="color: var(--color-yellow); margin-bottom: 4px;">ИКОНКА МЕТКИ</div>
+                <div class="icon-selector-grid" id="q-icon-grid">
+                    <img src="Burn.png" class="q-icon-option" onclick="window.selectQuestIcon('Burn.png', this)">
+                    <img src="Bleed.png" class="q-icon-option" onclick="window.selectQuestIcon('Bleed.png', this)">
+                    <img src="Tremor.png" class="q-icon-option" onclick="window.selectQuestIcon('Tremor.png', this)">
+                    <img src="Rupture.png" class="q-icon-option" onclick="window.selectQuestIcon('Rupture.png', this)">
+                    <img src="Sinking.png" class="q-icon-option" onclick="window.selectQuestIcon('Sinking.png', this)">
+                    <img src="Poise.png" class="q-icon-option" onclick="window.selectQuestIcon('Poise.png', this)">
+                    <img src="Charge.png" class="q-icon-option" onclick="window.selectQuestIcon('Charge.png', this)">
+                    <img src="Other.png" class="q-icon-option" onclick="window.selectQuestIcon('Other.png', this)">
+                    <img src="phis.png" class="q-icon-option" onclick="window.selectQuestIcon('phis.png', this)">
+                    <div class="q-icon-option selected" style="display:flex; justify-content:center; align-items:center; color:var(--text-dim); font-family:Oswald; font-size:0.7rem; width: auto; padding: 0 10px;" onclick="window.selectQuestIcon('', this)">БЕЗ ИКОНКИ</div>
+                </div>
+                <input type="hidden" id="q-icon-url" value="">
 
                 <div class="tech-text" style="color: var(--color-yellow); margin-bottom: 4px;">ОПИСАНИЕ И НАГРАДА</div>
                 <textarea id="q-desc" class="cloud-input" placeholder="Подробности задания..." style="min-height: 100px;"></textarea>
                 
-                <button class="modal-btn" style="border-color: var(--color-yellow); color: var(--color-yellow);" onclick="window.saveCustomQuest()">СОХРАНИТЬ В БАЗУ ОФИСА</button>
+                <div style="display: flex; gap: 8px;">
+                    <button class="modal-btn" style="border-color: var(--color-yellow); color: var(--color-yellow);" onclick="window.saveCustomQuest(false)">СОХРАНИТЬ И ДОБАВИТЬ ЕЩЁ</button>
+                    <button class="modal-btn" style="border-color: var(--text-dim); color: var(--text-dim);" onclick="window.saveCustomQuest(true)">СОХРАНИТЬ И ЗАКРЫТЬ</button>
+                </div>
             </div>
         </div>
     </div>
@@ -223,7 +233,6 @@
         </div>
     </div>
 
-    <!-- Плашка статуса системы -->
     <div id="system-status-banner" class="status-banner">
         <i class="fa-solid fa-circle-notch fa-spin"></i> СИСТЕМА: ОЖИДАНИЕ ИНИЦИАЛИЗАЦИИ...
     </div>
@@ -234,12 +243,11 @@
 
     <div class="office-grid" id="office-workspace" style="display: none;">
         
-        <!-- ЛЕВАЯ КОЛОНКА (Инфо Офиса и Агенты) -->
+        <!-- ЛЕВАЯ КОЛОНКА -->
         <div class="panel-outer cut-tl">
             <div class="hazard-tape"></div>
             <div class="panel-inner cut-tl" style="border-top: none;">
                 
-                <!-- Загрузка логотипа заменена на URL prompt -->
                 <div class="logo-area" id="office-logo" onclick="window.triggerLogoUpload()"></div>
                 
                 <input type="text" id="office-name" class="office-name-input" value="НОВЫЙ ОФИС" readonly onblur="window.saveOfficeInfo()">
@@ -250,7 +258,6 @@
                         <input type="email" id="new-member-email" class="cloud-input" placeholder="Email фиксера..." style="margin: 0;">
                         <button class="btn-small" style="padding: 0 12px;" onclick="window.addMember()"><i class="fa-solid fa-plus"></i></button>
                     </div>
-                    <!-- ИЗМЕНЕНИЕ: Список участников офиса с возможностью удаления -->
                     <div id="members-list"></div>
                 </div>
 
@@ -267,7 +274,7 @@
             </div>
         </div>
 
-        <!-- ЦЕНТРАЛЬНАЯ КОЛОНКА (Контракты) -->
+        <!-- ЦЕНТРАЛЬНАЯ КОЛОНКА -->
         <div class="panel-outer cut-tl">
             <div class="hazard-tape" style="background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--color-yellow) 10px, var(--color-yellow) 20px); border-bottom-color: var(--color-yellow);"></div>
             <div class="panel-inner cut-tl" style="border-top: none;">
@@ -282,7 +289,7 @@
             </div>
         </div>
 
-        <!-- ПРАВАЯ КОЛОНКА (Новости и Репутация) -->
+        <!-- ПРАВАЯ КОЛОНКА -->
         <div class="panel-outer cut-tl">
             <div class="hazard-tape" style="background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--color-red) 10px, var(--color-red) 20px); border-bottom-color: var(--color-red);"></div>
             <div class="panel-inner cut-tl" style="border-top: none;">
@@ -293,13 +300,11 @@
                     <span id="tab-rep" class="tab-btn" onclick="window.switchRightTab('rep')">РЕПУТАЦИЯ</span>
                 </div>
                 
-                <!-- Секция Новостей -->
                 <div id="wrapper-news" style="display: block;">
                     <div class="creator-only" style="margin-bottom: 16px; border-bottom: 1px solid #222; padding-bottom: 12px;">
-                        <!-- ИЗМЕНЕНИЕ 2: Выбор времени/даты для новости -->
                         <div style="display: flex; gap: 8px; margin-bottom: 8px;">
                             <input type="text" id="news-author" class="cloud-input" placeholder="От чьего лица..." style="margin: 0; flex: 1;">
-                            <input type="date" id="news-date" class="cloud-input" style="margin: 0; flex: 1; padding: 6px;">
+                            <input type="text" id="news-date" class="cloud-input" placeholder="Дата (напр. День 14)..." style="margin: 0; flex: 1;">
                         </div>
                         <textarea id="news-input" class="cloud-input" placeholder="Описать события отдыха..." style="min-height: 80px;"></textarea>
                         <button class="btn-small" style="width: 100%; color: var(--color-red); border-color: var(--color-red); justify-content: center;" onclick="window.addNews()">
@@ -309,7 +314,6 @@
                     <div id="news-container"></div>
                 </div>
 
-                <!-- Секция Репутации -->
                 <div id="wrapper-rep" style="display: none;">
                     <div class="creator-only" style="margin-bottom: 16px; border-bottom: 1px solid #222; padding-bottom: 12px;">
                         <div class="tech-text" style="color: var(--color-red); margin-bottom: 4px;">УПРАВЛЕНИЕ РЕПУТАЦИЕЙ</div>
@@ -327,7 +331,7 @@
 
     </div>
 
-    <!-- Firebase SDK (БЕЗ STORAGE) -->
+    <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
@@ -527,7 +531,6 @@
             }
         };
 
-        // Загрузка логотипа через URL
         window.triggerLogoUpload = async () => {
             if (!isCreator || !currentOfficeId) return;
             const url = prompt("Введите прямую ссылку на изображение логотипа (URL):", window.currentOfficeData.logoUrl || "");
@@ -544,7 +547,6 @@
             }
         };
 
-        // ИЗМЕНЕНИЕ: Управление участниками (Менеджер Доступа)
         window.addMember = async () => {
             const input = document.getElementById('new-member-email');
             const email = input.value.trim().toLowerCase();
@@ -557,7 +559,7 @@
                 });
                 window.setSystemStatus(`АГЕНТ ${email.toUpperCase()} ДОБАВЛЕН В БАЗУ`, "success");
                 input.value = '';
-                window.openOffice(currentOfficeId); // Перезагружаем для обновления списка
+                window.openOffice(currentOfficeId); 
             } catch (err) { 
                 window.setSystemStatus("ОШИБКА ДОБАВЛЕНИЯ", "error");
                 console.error(err); 
@@ -574,7 +576,6 @@
             let html = '';
             members.forEach(email => {
                 let delBtn = '';
-                // Создатель не может удалить сам себя из списка
                 if (email !== currentUser.email) {
                     delBtn = `<button class="btn-trash" style="opacity: 1;" onclick="window.removeMember('${email}')"><i class="fa-solid fa-trash"></i></button>`;
                 } else {
@@ -603,7 +604,6 @@
             } catch (err) { window.setSystemStatus("ОШИБКА ОТЗЫВА ДОСТУПА", "error"); }
         };
 
-        // Загрузка Досье
         window.uploadCharacter = (e) => {
             const file = e.target.files[0];
             if (!file || !currentOfficeId) return;
@@ -694,7 +694,6 @@
             }
         };
 
-        /* ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК ПРАВОЙ ПАНЕЛИ */
         window.switchRightTab = (tab) => {
             document.getElementById('tab-news').classList.remove('active-tab');
             document.getElementById('tab-rep').classList.remove('active-tab');
@@ -710,20 +709,14 @@
             }
         };
 
-        /* УПРАВЛЕНИЕ НОВОСТЯМИ */
         window.addNews = async () => {
             const authorInput = document.getElementById('news-author').value.trim() || 'Менеджер';
             const textInput = document.getElementById('news-input').value.trim();
-            const dateInput = document.getElementById('news-date').value;
+            const dateInput = document.getElementById('news-date').value.trim();
             
             if (!textInput || !currentOfficeId) return;
             
-            // Если дата выбрана - форматируем её, иначе берем текущую
-            let finalDate = new Date().toLocaleDateString('ru-RU');
-            if (dateInput) {
-                const parts = dateInput.split('-'); // YYYY-MM-DD
-                finalDate = `${parts[2]}.${parts[1]}.${parts[0]}`;
-            }
+            const finalDate = dateInput || new Date().toLocaleDateString('ru-RU');
             
             const newsObj = {
                 id: Date.now().toString(),
@@ -783,7 +776,6 @@
             }
         };
 
-        /* УПРАВЛЕНИЕ РЕПУТАЦИЕЙ */
         window.addReputation = async () => {
             const name = document.getElementById('rep-name').value.trim();
             const score = parseInt(document.getElementById('rep-score').value);
@@ -872,7 +864,6 @@
             }
         };
 
-        // ======================= КОНСТРУКТОР КОНТРАКТОВ (URL Изображений) =======================
         window.toggleQuestBuilder = () => {
             document.getElementById('questBuilderModal').classList.toggle('hidden');
         };
@@ -881,7 +872,13 @@
             if (e.target.id === 'questBuilderModal') window.toggleQuestBuilder();
         };
 
-        window.saveCustomQuest = async () => {
+        window.selectQuestIcon = (iconName, el) => {
+            document.querySelectorAll('.q-icon-option').forEach(img => img.classList.remove('selected'));
+            el.classList.add('selected');
+            document.getElementById('q-icon-url').value = iconName;
+        };
+
+        window.saveCustomQuest = async (closeModal = true) => {
             const name = document.getElementById('q-name').value.trim();
             const grade = parseInt(document.getElementById('q-grade').value);
             const iconUrl = document.getElementById('q-icon-url').value;
@@ -905,12 +902,13 @@
                 });
                 
                 window.setSystemStatus("КОНТРАКТ УСПЕШНО ДОБАВЛЕН", "success");
-                window.toggleQuestBuilder();
+                
+                if (closeModal) {
+                    window.toggleQuestBuilder();
+                }
                 
                 document.getElementById('q-name').value = '';
                 document.getElementById('q-desc').value = '';
-                document.getElementById('q-icon-url').value = '';
-                document.getElementById('q-icon-preview').style.backgroundImage = 'none';
 
                 window.openOffice(currentOfficeId);
             } catch (err) {
@@ -919,7 +917,6 @@
             }
         };
 
-        // ======================= УПРАВЛЕНИЕ ВИДИМОСТЬЮ КВЕСТОВ =======================
         const gradeMapping = {
             1: "ЦВЕТНОЙ", 2: "1 РАНГ", 3: "2 РАНГ", 4: "3 РАНГ", 5: "4 РАНГ", 
             6: "5 РАНГ", 7: "6 РАНГ", 8: "7 РАНГ", 9: "8 РАНГ", 10: "9 РАНГ"
@@ -1013,12 +1010,12 @@
                     window.currentOfficeData.customQuests = window.currentOfficeData.customQuests.filter(q => q.id !== id);
                     window.currentOfficeData.activeQuests = window.currentOfficeData.activeQuests.filter(activeId => activeId !== id);
                     
-                    window.openQuestManager(); // Перерисовать список
-                    renderGradeAccordions(); // Обновить главную доску
+                    window.openQuestManager(); 
+                    renderGradeAccordions(); 
                     window.setSystemStatus("КОНТРАКТ УДАЛЕН", "success");
                 } catch (err) { window.setSystemStatus("ОШИБКА УДАЛЕНИЯ КОНТРАКТА", "error"); }
             }
-        }
+        };
 
         function renderGradeAccordions() {
             const container = document.getElementById('grades-container');
@@ -1057,7 +1054,6 @@
             const activeQuests = window.currentOfficeData?.activeQuests || [];
             const allQuests = questsDB.concat(officeQuests);
             
-            // Фильтруем квесты, которые разрешил показывать ДМ
             const filtered = allQuests.filter(q => parseInt(q.grade) === gradeNum && activeQuests.includes(q.id));
             
             if (filtered.length === 0) {
