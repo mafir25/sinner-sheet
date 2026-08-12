@@ -89,6 +89,7 @@
 
         .types-container { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
         .type-badge { display: flex; align-items: center; gap: 6px; font-family: 'Oswald', sans-serif; font-size: 0.9rem; text-transform: uppercase; border: 1px solid; padding: 2px 8px; border-radius: 2px; background: rgba(0,0,0,0.5); }
+        .type-icon { width: 16px; height: 16px; object-fit: contain; }
 
         body[data-mode="stats"] .badge-type { display: none !important; }
         body[data-mode="types"] .badge-stat { display: none !important; }
@@ -219,13 +220,124 @@
         <div class="sidebar-text lore-text">Фиксеры — это аморальные наемники, готовые выполнить практически любую работу. Крупные корпорации и Офисы нанимают фиксеров, чтобы те делали за них грязную работу и помогали продвигаться по служебной лестнице.</div>
         <div class="sidebar-h2">Классовые характеристики</div>
         
-        <div class="talent-block" data-name="Хиты" data-level="1" data-desc="Кость хитов: 1d10 за уровень Фиксера..." onclick="window.copyTalent(this)">
+        <div class="talent-block" data-name="Хиты" data-level="1" data-desc="Кость хитов: 1d10 за уровень Фиксера
+Хиты на 1-м уровне: 10 + модификатор Телосложения
+Хиты на следующих уровнях: 1d10 (или 6) + модификатор Телосложения за каждый уровень Фиксера после 1-го" onclick="window.copyTalent(this)">
             <div class="talent-header" onclick="window.toggleTalent(event, this)">
                 <div class="talent-header-left"><i class="fa-solid fa-chevron-down collapse-icon-talent"></i><span class="talent-name">Хиты</span></div><div class="talent-level tech-text">Уровень: 1</div>
             </div>
-            <div class="talent-desc-wrapper"><div class="talent-desc">Кость хитов: 1d10 за уровень Фиксера...</div></div>
+            <div class="talent-desc-wrapper"><div class="talent-desc">Кость хитов: 1d10 за уровень Фиксера
+Хиты на 1-м уровне: 10 + модификатор Телосложения
+Хиты на следующих уровнях: 1d10 (или 6) + модификатор Телосложения за каждый уровень Фиксера после 1-го</div></div>
             <div class="copy-msg">Скопировано!</div>
         </div>
+
+        <div class="talent-block collapsed" data-name="Владения" data-level="1" data-desc="Броня: Легкая броня, Средняя броня, Щиты
+Оружие: Простое и Боевое оружие, Огнестрельное оружие
+Инструменты: Один вид музыкального инструмента и один вид ремесленных инструментов или игровой набор
+Спасброски: Мудрость, Ловкость или Телосложение И Интеллект, Сила или Харизма
+Навыки: Выберите три из: Атлетика, Акробатика, Расследование, Выживание, Скрытность, Убеждение, Проницательность и Медицина" onclick="window.copyTalent(this)">
+            <div class="talent-header" onclick="window.toggleTalent(event, this)">
+                <div class="talent-header-left"><i class="fa-solid fa-chevron-down collapse-icon-talent"></i><span class="talent-name">Владения</span></div><div class="talent-level tech-text">Уровень: 1</div>
+            </div>
+            <div class="talent-desc-wrapper"><div class="talent-desc">Броня: Легкая броня, Средняя броня, Щиты
+Оружие: Простое и Боевое оружие, Огнестрельное оружие
+Инструменты: Один вид музыкального инструмента и один вид ремесленных инструментов или игровой набор
+Спасброски: Мудрость, Ловкость или Телосложение И Интеллект, Сила или Харизма
+Навыки: Выберите три из: Атлетика, Акробатика, Расследование, Выживание, Скрытность, Убеждение, Проницательность и Медицина</div></div>
+            <div class="copy-msg">Скопировано!</div>
+        </div>
+
+        <div class="talent-block collapsed" data-name="Стартовое снаряжение" data-level="1" data-desc="• Кожаная броня и щит
+• (а) 1 боевое оружие или (б) 2 простых оружия
+• (а) набор метательного оружия (20 ножей или 10 копий/топориков) или (б) длинный лук с колчаном на 30 стрел
+• 1 музыкальный инструмент и выбранные вами ремесленные инструменты или игровой набор
+Если вы используете стартовое золото, у вас есть 4d4 x 10 зм." onclick="window.copyTalent(this)">
+            <div class="talent-header" onclick="window.toggleTalent(event, this)">
+                <div class="talent-header-left"><i class="fa-solid fa-chevron-down collapse-icon-talent"></i><span class="talent-name">Стартовое снаряжение</span></div><div class="talent-level tech-text">Уровень: 1</div>
+            </div>
+            <div class="talent-desc-wrapper"><div class="talent-desc">• Кожаная броня и щит
+• (а) 1 боевое оружие или (б) 2 простых оружия
+• (а) набор метательного оружия (20 ножей или 10 копий/топориков) или (б) длинный лук с колчаном на 30 стрел
+• 1 музыкальный инструмент и выбранные вами ремесленные инструменты или игровой набор
+Если вы используете стартовое золото, у вас есть 4d4 x 10 зм.</div></div>
+            <div class="copy-msg">Скопировано!</div>
+        </div>
+
+        <div class="talent-block collapsed" data-name="Ранг Фиксера" data-level="1" data-desc="По мере выполнения контрактов ваш ранг повышается. Ассоциация Хана следит за рейтингами.
+9 Ранг: –
+8 Ранг: 1 контракт
+7 Ранг: 3 контракта (1 боевой)
+6 Ранг: 6 контрактов (3 боевых)
+5 Ранг: 10 контрактов (6 боевых)
+4 Ранг: 12 контрактов (10 боевых)
+3 Ранг: 15 контрактов (13 боевых, убить 1 существо выше вашего уровня/ОП)
+2 Ранг: 20 контрактов (20 боевых, убить 2 существ выше вашего уровня)
+1 Ранг: 25 контрактов (25 боевых, убить 3 существ выше вашего уровня)
+Цветной Фиксер: Уничтожить офис из пяти фиксеров 1-го ранга, успешно совершить рейд на корпорацию или убить Цветного/Искажение ранга WAW/ALEPH." onclick="window.copyTalent(this)">
+            <div class="talent-header" onclick="window.toggleTalent(event, this)">
+                <div class="talent-header-left"><i class="fa-solid fa-chevron-down collapse-icon-talent"></i><span class="talent-name">Ранг Фиксера</span></div><div class="talent-level tech-text">Уровень: 1</div>
+            </div>
+            <div class="talent-desc-wrapper"><div class="talent-desc">По мере выполнения контрактов ваш ранг повышается. Ассоциация Хана следит за рейтингами.
+9 Ранг: –
+8 Ранг: 1 контракт
+7 Ранг: 3 контракта (1 боевой)
+6 Ранг: 6 контрактов (3 боевых)
+5 Ранг: 10 контрактов (6 боевых)
+4 Ранг: 12 контрактов (10 боевых)
+3 Ранг: 15 контрактов (13 боевых, убить 1 существо выше вашего уровня/ОП)
+2 Ранг: 20 контрактов (20 боевых, убить 2 существ выше вашего уровня)
+1 Ранг: 25 контрактов (25 боевых, убить 3 существ выше вашего уровня)
+Цветной Фиксер: Уничтожить офис из пяти фиксеров 1-го ранга, успешно совершить рейд на корпорацию или убить Цветного/Искажение ранга WAW/ALEPH.</div></div>
+            <div class="copy-msg">Скопировано!</div>
+        </div>
+
+        <div class="talent-block collapsed" data-name="Сложность способностей" data-level="1" data-desc="Некоторые ваши способности требуют спасброска:
+Модификатор Способности Фиксера = модификатор СИЛ или ЛОВ
+СЛ Фиксера = 8 + Бонус Мастерства + модификатор СИЛ или ЛОВ
+Модификатор Атаки Фиксера = Бонус Мастерства + модификатор СИЛ или ЛОВ" onclick="window.copyTalent(this)">
+            <div class="talent-header" onclick="window.toggleTalent(event, this)">
+                <div class="talent-header-left"><i class="fa-solid fa-chevron-down collapse-icon-talent"></i><span class="talent-name">Сложность способностей</span></div><div class="talent-level tech-text">Уровень: 1</div>
+            </div>
+            <div class="talent-desc-wrapper"><div class="talent-desc">Некоторые ваши способности требуют спасброска:
+Модификатор Способности Фиксера = модификатор СИЛ или ЛОВ
+СЛ Фиксера = 8 + Бонус Мастерства + модификатор СИЛ или ЛОВ
+Модификатор Атаки Фиксера = Бонус Мастерства + модификатор СИЛ или ЛОВ</div></div>
+            <div class="copy-msg">Скопировано!</div>
+        </div>
+
+        <div class="talent-block collapsed" data-name="Боевой стиль" data-level="2" data-desc="Выберите один из стилей:
+• Меткий стрелок: +2 к попаданию дальнобойными атаками.
+• Слепой бой: Невидимость врага не дает помеху к атаке, если он не спрятан.
+• Ближний бой (Дальний): +2 к урону дальнобойным. Нет помехи в 5 футах.
+• Мощный лук: Можно использовать Силу вместо Ловкости для луков.
+• Парное оружие: Атака второй рукой является частью основного действия Атаки.
+• Вездеходный атлет: Скорость плавания и лазания равна обычной. +1 к КД.
+• Дуэлянт: Владея оружием в одной руке (другая пуста), +2 к урону.
+• Бой двуручным оружием: Переброс 1 и 2 на костях урона.
+• Перехват: Реакцией уменьшить урон по союзнику в 5 футах на 1d10+ПБ.
+• Защита: Реакцией наложить помеху на атаку по союзнику в 5 футах.
+• Иайдзюцу: Первая атака в раунде из ножен с преимуществом.
+• Оружейный скандалист: При атаке пистолетом - безоружный удар бонусным (и наоборот)." onclick="window.copyTalent(this)">
+            <div class="talent-header" onclick="window.toggleTalent(event, this)">
+                <div class="talent-header-left"><i class="fa-solid fa-chevron-down collapse-icon-talent"></i><span class="talent-name">Боевой стиль</span></div><div class="talent-level tech-text">Уровень: 2</div>
+            </div>
+            <div class="talent-desc-wrapper"><div class="talent-desc">Выберите один из стилей:
+• Меткий стрелок: +2 к попаданию дальнобойными атаками.
+• Слепой бой: Невидимость врага не дает помеху к атаке, если он не спрятан.
+• Ближний бой (Дальний): +2 к урону дальнобойным. Нет помехи в 5 футах.
+• Мощный лук: Можно использовать Силу вместо Ловкости для луков.
+• Парное оружие: Атака второй рукой является частью основного действия Атаки.
+• Вездеходный атлет: Скорость плавания и лазания равна обычной. +1 к КД.
+• Дуэлянт: Владея оружием в одной руке (другая пуста), +2 к урону.
+• Бой двуручным оружием: Переброс 1 и 2 на костях урона.
+• Перехват: Реакцией уменьшить урон по союзнику в 5 футах на 1d10+ПБ.
+• Защита: Реакцией наложить помеху на атаку по союзнику в 5 футах.
+• Иайдзюцу: Первая атака в раунде из ножен с преимуществом.
+• Оружейный скандалист: При атаке пистолетом - безоружный удар бонусным (и наоборот).</div></div>
+            <div class="copy-msg">Скопировано!</div>
+        </div>
+
         <div id="selected-archetype-container" style="margin-top: 30px; border-top: 1px solid #333; padding-top: 10px;">
             <div class="sidebar-h2">Архетип не выбран</div>
             <div class="sidebar-text" style="color: var(--text-dim);">Выберите архетип из базы данных, чтобы отобразить его навыки здесь.</div>
@@ -272,7 +384,7 @@
 
         window.addBuilderTalent = () => {
             const container = document.getElementById('builder-talents');
-            container.insertAdjacentHTML('beforeend', `
+            const html = `
                 <div class="b-talent-entry">
                     <button class="btn-small-bld" style="position: absolute; right: 12px; top: 12px; border-color: var(--color-red); color: var(--color-red);" onclick="this.parentElement.remove()"><i class="fa-solid fa-trash"></i></button>
                     <div style="display: flex; gap: 10px; margin-bottom: 8px;">
@@ -282,7 +394,8 @@
                     </div>
                     <textarea class="cloud-input b-t-desc" placeholder="Полное описание способности..."></textarea>
                 </div>
-            `);
+            `;
+            container.insertAdjacentHTML('beforeend', html);
         };
 
         window.exportBuilderJson = () => {
@@ -363,7 +476,7 @@
                 b.classList.remove('active');
                 b.style.borderColor = 'var(--text-dim)';
                 b.style.color = 'var(--text-dim)';
-                b.style.backgroundColor = 'rgba(0,0,0,0.5);';
+                b.style.backgroundColor = 'rgba(0,0,0,0.5)';
             });
             btn.classList.add('active');
             if(filterKey !== 'all') {
@@ -443,8 +556,10 @@
             if (cls.Talents && Array.isArray(cls.Talents)) {
                 cls.Talents.forEach(talent => {
                     const tColor = talent.Color || talent.color || 'var(--accent-primary)';
+                    const safeName = talent.name.replace(/"/g, '&quot;');
+                    const safeDesc = talent.desc.replace(/"/g, '&quot;');
                     talentsHtml += `
-                        <div class="talent-block collapsed" data-name="${talent.name}" data-level="${talent.level}" data-desc="${talent.desc}" onclick="window.copyTalent(this)" style="border-left-color: ${tColor};">
+                        <div class="talent-block collapsed" data-name="${safeName}" data-level="${talent.level}" data-desc="${safeDesc}" onclick="window.copyTalent(this)" style="border-left-color: ${tColor};">
                             <div class="talent-header" onclick="window.toggleTalent(event, this)">
                                 <div class="talent-header-left"><i class="fa-solid fa-chevron-down collapse-icon-talent"></i><span class="talent-name" style="color: ${tColor};">${talent.name}</span></div>
                                 <div class="talent-level tech-text">Уровень: ${talent.level}</div>
@@ -496,8 +611,10 @@
                     if (cls.Talents && Array.isArray(cls.Talents)) {
                         cls.Talents.forEach(talent => {
                             const tColor = talent.Color || talent.color || 'var(--accent-primary)';
+                            const safeName = talent.name.replace(/"/g, '&quot;');
+                            const safeDesc = talent.desc.replace(/"/g, '&quot;');
                             talentsHtml += `
-                                <div class="talent-block collapsed" data-name="${talent.name}" data-level="${talent.level}" data-desc="${talent.desc}" onclick="window.copyTalent(this)" style="border-left-color: ${tColor};">
+                                <div class="talent-block collapsed" data-name="${safeName}" data-level="${talent.level}" data-desc="${safeDesc}" onclick="window.copyTalent(this)" style="border-left-color: ${tColor};">
                                     <div class="talent-header" onclick="window.toggleTalent(event, this)">
                                         <div class="talent-header-left"><i class="fa-solid fa-chevron-down collapse-icon-talent"></i><span class="talent-name" style="color: ${tColor};">${talent.name}</span></div>
                                         <div class="talent-level tech-text">Уровень: ${talent.level}</div>
@@ -508,8 +625,10 @@
                         });
                     }
 
+                    const safeClsName = cls.Name.replace(/"/g, '&quot;');
+
                     container.insertAdjacentHTML('beforeend', `
-                        <div class="panel-outer cut-tl compendium-card" data-name="${cls.Name}" data-types="${typesString}" data-stats="${statsString}">
+                        <div class="panel-outer cut-tl compendium-card" data-name="${safeClsName}" data-types="${typesString}" data-stats="${statsString}">
                             <div class="hazard-tape" style="height: 6px; background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--accent-muted) 10px, var(--accent-muted) 20px);"></div>
                             <div class="panel-inner cut-tl" style="border-top: none;">
                                 <div class="class-title-wrapper">
@@ -525,7 +644,7 @@
                         </div>`);
                 });
             } catch (error) {
-                container.innerHTML = `<div class="loading-text" style="color: var(--color-red);">Ошибка связи с базой данных.</div>`;
+                container.innerHTML = `<div class="loading-text" style="color: var(--color-red);">Ошибка связи с базой данных. Убедитесь, что файл classes.json существует.</div>`;
             }
         }
 
