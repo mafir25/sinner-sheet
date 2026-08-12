@@ -38,7 +38,8 @@
         .header-title { color: var(--accent-primary); font-size: 2rem; letter-spacing: 2px; text-align: center; text-shadow: 0 0 10px rgba(217, 66, 133, 0.4); }
 
         /* Лейаут */
-        .builder-container { display: grid; grid-template-columns: 1fr 1.2fr; gap: 30px; width: 100%; max-width: 1400px; align-items: start; }
+        .builder-container { display: flex; flex-direction: column; gap: 40px; width: 100%; max-width: 1400px; }
+        .builder-top-row { display: grid; grid-template-columns: 1fr 1.2fr; gap: 30px; align-items: start; }
         
         .panel-outer { background-color: var(--accent-primary); padding: var(--border-width); position: relative; display: flex; flex-direction: column; }
         .panel-inner { background-color: var(--bg-panel); padding: 20px; height: 100%; display: flex; flex-direction: column; }
@@ -67,7 +68,7 @@
         .qty-display { width: 20px; text-align: center; font-family: 'Oswald'; }
 
         /* Вывод персонажа */
-        .output-panel { position: sticky; top: 60px; max-height: calc(100vh - 80px); overflow-y: auto; }
+        .output-panel { position: sticky; top: 20px; max-height: calc(100vh - 40px); overflow-y: auto; }
         .output-panel::-webkit-scrollbar { width: 6px; }
         .output-panel::-webkit-scrollbar-thumb { background: var(--accent-primary); }
         
@@ -90,7 +91,7 @@
         .corrosion-title { color: var(--color-red); font-family: 'Oswald'; font-size: 1.4rem; margin-bottom: 8px; border-bottom: 1px solid var(--color-red); padding-bottom: 4px; }
 
         /* Правила Лор */
-        .rules-container { grid-column: 1 / -1; margin-top: 40px; }
+        .rules-container { width: 100%; }
         .rule-section { margin-bottom: 20px; }
         .rule-section h3 { color: var(--accent-primary); border-bottom: 1px dashed #333; padding-bottom: 8px; margin-bottom: 12px; }
         .rule-section p { font-size: 0.95rem; line-height: 1.6; color: var(--text-main); margin-bottom: 10px; text-align: justify; }
@@ -99,6 +100,30 @@
         .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
         .tab-btn { flex: 1; padding: 10px; background: rgba(0,0,0,0.5); border: 1px solid var(--text-dim); color: var(--text-dim); font-family: 'Oswald'; font-size: 1.1rem; cursor: pointer; transition: 0.2s; text-transform: uppercase; }
         .tab-btn.active { border-color: var(--accent-primary); color: var(--accent-primary); background: rgba(217, 66, 133, 0.1); }
+
+        .btn-small-bld { background: transparent; border: 1px solid var(--color-cyan); color: var(--color-cyan); cursor: pointer; padding: 4px 8px; font-size: 0.75rem; text-transform: uppercase; transition: 0.2s; font-family: 'Oswald'; }
+        .btn-small-bld:hover { background: var(--color-cyan); color: #000; }
+
+        /* Сайдбар Базы Статусов */
+        .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 2000; opacity: 0; pointer-events: none; transition: 0.3s; backdrop-filter: blur(3px); }
+        .sidebar-overlay.active { opacity: 1; pointer-events: all; }
+        
+        .status-sidebar { position: fixed; top: 0; right: -600px; width: 600px; max-width: 90vw; height: 100vh; background: var(--bg-main); border-left: 2px solid var(--color-cyan); z-index: 2001; transition: right 0.3s ease; overflow-y: auto; padding: 20px; box-shadow: -10px 0 30px rgba(0,0,0,0.8); }
+        .status-sidebar.active { right: 0; }
+        .status-sidebar::-webkit-scrollbar { width: 6px; }
+        .status-sidebar::-webkit-scrollbar-thumb { background: var(--color-cyan); }
+
+        .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 1px solid var(--color-cyan); padding-bottom: 8px; }
+        .sidebar-title { font-family: 'Oswald'; font-size: 1.5rem; color: var(--color-cyan); }
+        .btn-close-sidebar { background: transparent; border: none; color: var(--color-red); font-size: 1.5rem; cursor: pointer; transition: 0.2s; }
+        .btn-close-sidebar:hover { color: #ff0044; }
+
+        .status-card { background: rgba(255,255,255,0.02); border: 1px solid #333; padding: 12px; margin-bottom: 12px; }
+        .status-card-name { color: var(--color-cyan); font-family: 'Oswald'; font-size: 1.2rem; margin-bottom: 6px; }
+        .status-card-effect { font-size: 0.9rem; color: var(--text-main); margin-bottom: 8px; white-space: pre-wrap;}
+        .status-se { border-left: 2px solid var(--color-yellow); padding-left: 10px; margin-top: 8px; background: rgba(0,0,0,0.3); padding: 8px; }
+        .status-se-name { font-family: 'Oswald'; color: var(--color-yellow); font-size: 1rem; margin-bottom: 4px; }
+        .status-se-desc { font-size: 0.85rem; color: var(--text-main); white-space: pre-wrap; }
 
     </style>
 </head>
@@ -112,119 +137,130 @@
 
     <div class="builder-container">
         
-        <!-- ЛЕВАЯ ПАНЕЛЬ: ВВОД -->
-        <div class="panel-outer cut-tl">
-            <div class="hazard-tape"></div>
-            <div class="panel-inner cut-tl" style="border-top: none;">
-                
-                <div class="tabs">
-                    <button class="tab-btn active" id="tab-attack" onclick="window.switchTab('attack')">АТАКА Э.Г.О.</button>
-                    <button class="tab-btn" id="tab-eff" onclick="window.switchTab('efflorescent')">РАСЦВЕТАЮЩЕЕ Э.Г.О.</button>
-                </div>
-
-                <div class="points-display" id="points-display">
-                    ДОСТУПНЫЕ ОЧКИ: <span id="pts-count" style="color: #fff;">0</span> / <span id="pts-max">0</span>
-                </div>
-
-                <div class="form-group">
-                    <label>Название Э.Г.О.</label>
-                    <input type="text" id="ego-name" class="cloud-input" placeholder="Например: Bodysack" oninput="window.updateOutput()">
-                </div>
-                <div class="form-group">
-                    <label>Фраза при использовании (Quote)</label>
-                    <input type="text" id="ego-quote" class="cloud-input" placeholder="Например: Я ничего не смог изменить..." oninput="window.updateOutput()">
-                </div>
-
-                <!-- БЛОК АТАКИ -->
-                <div id="block-attack">
-                    <div class="form-group">
-                        <label>Уровень Угрозы (Ранг)</label>
-                        <select id="ego-rank" class="cloud-select" onchange="window.recalcPoints()">
-                            <option value="4">ZAYIN (4 Очка)</option>
-                            <option value="5">TETH (5 Очков)</option>
-                            <option value="6">HE (6 Очков)</option>
-                            <option value="7">WAW (7 Очков)</option>
-                            <option value="8">ALEPH (8 Очков)</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Дистанция атаки (База)</label>
-                        <select id="ego-range" class="cloud-select" onchange="window.updateOutput()">
-                            <option value="ranged">Дальний бой - 30 футов (Урон 2d8)</option>
-                            <option value="melee">Ближний бой - 5 футов (Урон 2d12)</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Тип Урона</label>
-                        <select id="ego-dmgtype" class="cloud-select" onchange="window.updateOutput()">
-                            <option value="Рубящий (Slashing)">Рубящий (Slashing)</option>
-                            <option value="Колющий (Piercing)">Колющий (Piercing)</option>
-                            <option value="Дробящий (Bludgeoning)">Дробящий (Bludgeoning)</option>
-                        </select>
-                    </div>
+        <!-- ВЕРХНИЙ БЛОК: ВВОД И ВЫВОД -->
+        <div class="builder-top-row">
+            <!-- ЛЕВАЯ ПАНЕЛЬ: ВВОД -->
+            <div class="panel-outer cut-tl">
+                <div class="hazard-tape"></div>
+                <div class="panel-inner cut-tl" style="border-top: none;">
                     
-                    <div class="tech-text" style="margin-top: 20px; border-bottom: 1px solid #333; padding-bottom: 4px;">УЛУЧШЕНИЯ (ПОКУПКА ЗА ОЧКИ)</div>
-                    <div id="upgrades-attack"></div>
-
-                    <div class="form-group" style="margin-top: 20px;">
-                        <label>Кастомные эффекты / Статусы (1 Очко = 4 Негативных/Позитивных или 1 Бафф/Дебафф)</label>
-                        <textarea id="ego-custom" class="cloud-input" placeholder="Опишите накладываемые статусы, отхил или уникальные условия (например: накладывает 4 Кровотечения, лечит 2d4+2 и т.д.)..." oninput="window.updateOutput()"></textarea>
+                    <div class="tabs">
+                        <button class="tab-btn active" id="tab-attack" onclick="window.switchTab('attack')">АТАКА Э.Г.О.</button>
+                        <button class="tab-btn" id="tab-eff" onclick="window.switchTab('efflorescent')">РАСЦВЕТАЮЩЕЕ Э.Г.О.</button>
                     </div>
-                </div>
 
-                <!-- БЛОК РАСЦВЕТАЮЩЕГО Э.Г.О. -->
-                <div id="block-eff" style="display: none;">
+                    <div class="points-display" id="points-display">
+                        ДОСТУПНЫЕ ОЧКИ: <span id="pts-count" style="color: #fff;">0</span> / <span id="pts-max">0</span>
+                    </div>
+
                     <div class="form-group">
-                        <label>Тип формы</label>
-                        <select id="eff-type" class="cloud-select" onchange="window.recalcPoints()">
-                            <option value="7">Расцветающее Э.Г.О. / Трансформация (7 Очков)</option>
-                            <option value="pb">Нестабильное Э.Г.О. (Кол-во очков = Ваш ПБ)</option>
-                        </select>
-                    </div>
-                    <div class="form-group" id="pb-group" style="display: none;">
-                        <label>Ваш Бонус Мастерства (PB)</label>
-                        <input type="number" id="eff-pb" class="cloud-input" value="3" min="2" max="6" onchange="window.recalcPoints()">
+                        <label>Название Э.Г.О.</label>
+                        <input type="text" id="ego-name" class="cloud-input" placeholder="Например: Bodysack" oninput="window.updateOutput()">
                     </div>
                     <div class="form-group">
-                        <label>Форма (Form)</label>
-                        <select id="eff-form" class="cloud-select" onchange="window.updateOutput()">
-                            <option value="Transformation">Трансформация (Активация бонусным действием)</option>
-                            <option value="Equipment">Экипировка (Артефакт/Предмет)</option>
-                        </select>
+                        <label>Фраза при использовании (Quote)</label>
+                        <input type="text" id="ego-quote" class="cloud-input" placeholder="Например: Я ничего не смог изменить..." oninput="window.updateOutput()">
                     </div>
 
-                    <div class="tech-text" style="margin-top: 20px; border-bottom: 1px solid #333; padding-bottom: 4px;">УЛУЧШЕНИЯ (ПОКУПКА ЗА ОЧКИ)</div>
-                    <div id="upgrades-eff"></div>
+                    <!-- БЛОК АТАКИ -->
+                    <div id="block-attack">
+                        <div class="form-group">
+                            <label>Уровень Угрозы (Ранг)</label>
+                            <select id="ego-rank" class="cloud-select" onchange="window.recalcPoints()">
+                                <option value="4">ZAYIN (4 Очка)</option>
+                                <option value="5">TETH (5 Очков)</option>
+                                <option value="6">HE (6 Очков)</option>
+                                <option value="7">WAW (7 Очков)</option>
+                                <option value="8">ALEPH (8 Очков)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Дистанция атаки (База)</label>
+                            <select id="ego-range" class="cloud-select" onchange="window.updateOutput()">
+                                <option value="ranged">Дальний бой - 30 футов (Урон 2d8)</option>
+                                <option value="melee">Ближний бой - 5 футов (Урон 2d12)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Тип Урона</label>
+                            <select id="ego-dmgtype" class="cloud-select" onchange="window.updateOutput()">
+                                <option value="Рубящий (Slashing)">Рубящий (Slashing)</option>
+                                <option value="Колющий (Piercing)">Колющий (Piercing)</option>
+                                <option value="Дробящий (Bludgeoning)">Дробящий (Bludgeoning)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="tech-text" style="margin-top: 20px; border-bottom: 1px solid #333; padding-bottom: 4px;">УЛУЧШЕНИЯ (ПОКУПКА ЗА ОЧКИ)</div>
+                        <div id="upgrades-attack"></div>
 
-                    <div class="form-group" style="margin-top: 20px;">
-                        <label>Особые действия / Атаки (1-7 Очков)</label>
-                        <textarea id="eff-custom" class="cloud-input" placeholder="Опишите мощную спец-атаку (1-3 очка) или уникальную пассивку (1-7 очков)..." oninput="window.updateOutput()"></textarea>
+                        <div class="form-group" style="margin-top: 20px;">
+                            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px;">
+                                <label style="margin:0;">Кастомные эффекты / Статусы</label>
+                                <button class="btn-small-bld" onclick="window.toggleStatusesSidebar()"><i class="fa-solid fa-book"></i> БАЗА СТАТУСОВ</button>
+                            </div>
+                            <div class="tech-text" style="margin-bottom: 6px; font-size: 0.75rem;">Вложите очки в "Кастомные Статусы/Дебаффы" выше, чтобы ваши записи отсюда отображались в итоговом листе.</div>
+                            <textarea id="ego-custom" class="cloud-input" placeholder="Опишите накладываемые статусы (например: Накладывает 4 Кровотечения)..." oninput="window.updateOutput()"></textarea>
+                        </div>
                     </div>
+
+                    <!-- БЛОК РАСЦВЕТАЮЩЕГО Э.Г.О. -->
+                    <div id="block-eff" style="display: none;">
+                        <div class="form-group">
+                            <label>Тип формы</label>
+                            <select id="eff-type" class="cloud-select" onchange="window.recalcPoints()">
+                                <option value="7">Расцветающее Э.Г.О. / Трансформация (7 Очков)</option>
+                                <option value="pb">Нестабильное Э.Г.О. (Кол-во очков = Ваш ПБ)</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="pb-group" style="display: none;">
+                            <label>Ваш Бонус Мастерства (PB)</label>
+                            <input type="number" id="eff-pb" class="cloud-input" value="3" min="2" max="6" onchange="window.recalcPoints()">
+                        </div>
+                        <div class="form-group">
+                            <label>Форма (Form)</label>
+                            <select id="eff-form" class="cloud-select" onchange="window.updateOutput()">
+                                <option value="Transformation">Трансформация (Активация бонусным действием)</option>
+                                <option value="Equipment">Экипировка (Артефакт/Предмет)</option>
+                            </select>
+                        </div>
+
+                        <div class="tech-text" style="margin-top: 20px; border-bottom: 1px solid #333; padding-bottom: 4px;">УЛУЧШЕНИЯ (ПОКУПКА ЗА ОЧКИ)</div>
+                        <div id="upgrades-eff"></div>
+
+                        <div class="form-group" style="margin-top: 20px;">
+                            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px;">
+                                <label style="margin:0;">Особые действия / Атаки</label>
+                                <button class="btn-small-bld" onclick="window.toggleStatusesSidebar()"><i class="fa-solid fa-book"></i> БАЗА СТАТУСОВ</button>
+                            </div>
+                            <div class="tech-text" style="margin-bottom: 6px; font-size: 0.75rem;">Вложите очки в "Спец-атака / Пассивка" выше, чтобы эти записи отобразились в досье.</div>
+                            <textarea id="eff-custom" class="cloud-input" placeholder="Опишите мощную спец-атаку (1-3 очка) или уникальную пассивку (1-7 очков)..." oninput="window.updateOutput()"></textarea>
+                        </div>
+                    </div>
+
                 </div>
+            </div>
 
+            <!-- ПРАВАЯ ПАНЕЛЬ: ВЫВОД -->
+            <div class="panel-outer cut-tl output-panel">
+                <div class="hazard-tape" style="background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--accent-primary) 10px, var(--accent-primary) 20px);"></div>
+                <div class="panel-inner cut-tl" style="border-top: none;" id="output-area">
+                    
+                    <div class="output-header">
+                        <div>
+                            <div class="ego-name-display" id="out-name">БЕЗ НАЗВАНИЯ</div>
+                            <div class="ego-quote" id="out-quote">"..."</div>
+                            <div class="ego-meta" id="out-meta">Атака Э.Г.О. | ZAYIN</div>
+                        </div>
+                        <button class="copy-btn" onclick="window.copyEgo()"><i class="fa-regular fa-copy"></i> КОПИРОВАТЬ</button>
+                    </div>
+
+                    <div id="out-content"></div>
+
+                </div>
             </div>
         </div>
 
-        <!-- ПРАВАЯ ПАНЕЛЬ: ВЫВОД -->
-        <div class="panel-outer cut-tl output-panel">
-            <div class="hazard-tape" style="background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--accent-primary) 10px, var(--accent-primary) 20px);"></div>
-            <div class="panel-inner cut-tl" style="border-top: none;" id="output-area">
-                
-                <div class="output-header">
-                    <div>
-                        <div class="ego-name-display" id="out-name">БЕЗ НАЗВАНИЯ</div>
-                        <div class="ego-quote" id="out-quote">"..."</div>
-                        <div class="ego-meta" id="out-meta">Атака Э.Г.О. | ZAYIN</div>
-                    </div>
-                    <button class="copy-btn" onclick="window.copyEgo()"><i class="fa-regular fa-copy"></i> КОПИРОВАТЬ</button>
-                </div>
-
-                <div id="out-content"></div>
-
-            </div>
-        </div>
-
-        <!-- ЛОР И ПРАВИЛА (Широкий блок внизу) -->
+        <!-- ЛОР И ПРАВИЛА (Нижний блок) -->
         <div class="panel-outer cut-tl rules-container">
             <div class="hazard-tape"></div>
             <div class="panel-inner cut-tl" style="border-top: none;">
@@ -259,8 +295,22 @@
 
     </div>
 
+    <!-- Сайдбар Справочника Статусов -->
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="window.toggleStatusesSidebar()"></div>
+    <div class="status-sidebar" id="status-sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-title">БАЗА СТАТУСОВ</div>
+            <button class="btn-close-sidebar" onclick="window.toggleStatusesSidebar()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <input type="text" id="status-search" class="cloud-input" placeholder="Поиск статуса..." onkeyup="window.filterStatusesSidebar()" style="margin-bottom: 16px;">
+        <div id="status-list-container">
+            <div class="tech-text" style="text-align:center; margin-top:20px;">Загрузка базы данных...</div>
+        </div>
+    </div>
+
     <script>
         let currentTab = 'attack';
+        window.statusesDB = [];
 
         // Базы апгрейдов
         const atkUpgrades = [
@@ -328,7 +378,67 @@
             document.getElementById('upgrades-eff').innerHTML = effHtml;
 
             recalcPoints();
+            loadStatusesDB();
         }
+
+        // Загрузка базы статусов
+        async function loadStatusesDB() {
+            try {
+                const res = await fetch('statuses.json');
+                if (res.ok) {
+                    window.statusesDB = await res.json();
+                    renderStatusesSidebar();
+                } else {
+                    document.getElementById('status-list-container').innerHTML = '<div class="tech-text" style="color:var(--color-red);">Не удалось загрузить statuses.json</div>';
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function renderStatusesSidebar() {
+            const container = document.getElementById('status-list-container');
+            let html = '';
+            window.statusesDB.forEach(s => {
+                let seHtml = '';
+                if (s.SideEffects && s.SideEffects.length > 0) {
+                    s.SideEffects.forEach(se => {
+                        seHtml += `
+                            <div class="status-se">
+                                <div class="status-se-name">${se.sideeffectname}</div>
+                                <div class="status-se-desc">${se.sideeffect}</div>
+                            </div>
+                        `;
+                    });
+                }
+                html += `
+                    <div class="status-card" data-search="${s.Name.toLowerCase()} ${s.Effect.toLowerCase()}">
+                        <div class="status-card-name">${s.Name}</div>
+                        <div class="status-card-effect">${s.Effect}</div>
+                        ${seHtml}
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        window.filterStatusesSidebar = () => {
+            const query = document.getElementById('status-search').value.toLowerCase();
+            const cards = document.querySelectorAll('.status-card');
+            cards.forEach(card => {
+                const text = card.getAttribute('data-search');
+                if (text.includes(query)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        };
+
+        window.toggleStatusesSidebar = () => {
+            document.getElementById('status-sidebar').classList.toggle('active');
+            document.getElementById('sidebar-overlay').classList.toggle('active');
+        };
 
         window.switchTab = (tab) => {
             currentTab = tab;
@@ -410,14 +520,14 @@
 
         // Логика расчета кубов
         function calculateDice(baseCount, baseType, addDice, upDice) {
-            const diceTiers = [4, 6, 8, 10, 12, "2d6"]; // Индексы 0-5
+            const diceTiers = [4, 6, 8, 10, 12, "2d6"]; 
             let currentCount = baseCount + addDice;
             
             let startIndex = diceTiers.indexOf(baseType);
-            if (startIndex === -1) startIndex = 2; // фолбек на d8
+            if (startIndex === -1) startIndex = 2; 
             
             let finalIndex = startIndex + upDice;
-            if (finalIndex > 5) finalIndex = 5; // макс 2d6
+            if (finalIndex > 5) finalIndex = 5; 
 
             if (finalIndex === 5) {
                 return `${currentCount * 2}d6`;
@@ -464,10 +574,13 @@
                 if (state.attack.spread > 0) {
                     html += `<li>Атака становится конусом (${finalRange} футов) или сферой (${Math.floor(finalRange/2)} футов). Вы совершаете атаку против +${state.attack.spread * 2} доп. целей в области.</li>`;
                 }
-                if (customDesc.trim() !== '') {
-                    html += `<li>${customDesc.replace(/\n/g, '<br>')}</li>`;
+                
+                if (state.attack.custom_pts > 0 || customDesc.trim() !== '') {
+                    const ptsAllocated = state.attack.custom_pts > 0 ? ` (${state.attack.custom_pts} очк.)` : '';
+                    html += `<li><strong>Кастомные эффекты${ptsAllocated}:</strong><br>${customDesc.replace(/\n/g, '<br>') || '<em>(Эффекты не описаны)</em>'}</li>`;
                 }
-                if (state.attack.spread === 0 && customDesc.trim() === '') {
+
+                if (state.attack.spread === 0 && customDesc.trim() === '' && state.attack.custom_pts === 0) {
                     html += `<li style="color: var(--text-dim);">Нет дополнительных эффектов</li>`;
                 }
                 html += `</ul>`;
@@ -512,8 +625,13 @@
                 if (state.eff.eff_save > 0) html += `<li><strong>Стойкость:</strong> +${state.eff.eff_save} ко всем спасброскам.</li>`;
                 if (state.eff.eff_status > 0) html += `<li><strong>Статус:</strong> Накладывает +${state.eff.eff_status} статус-эффекта при нанесении урона.</li>`;
                 
-                if (customDesc.trim() !== '') {
-                    html += `<li><strong>Особые черты/Атаки:</strong><br>${customDesc.replace(/\n/g, '<br>')}</li>`;
+                if (state.eff.eff_custom > 0 || customDesc.trim() !== '') {
+                    const ptsAllocated = state.eff.eff_custom > 0 ? ` (${state.eff.eff_custom} очк.)` : '';
+                    html += `<li><strong>Особые черты / Спец-атака${ptsAllocated}:</strong><br>${customDesc.replace(/\n/g, '<br>') || '<em>(Эффекты не описаны)</em>'}</li>`;
+                }
+                
+                if (state.eff.eff_dmg === 0 && state.eff.eff_spd === 0 && state.eff.eff_ac === 0 && state.eff.eff_stat === 0 && state.eff.eff_save === 0 && state.eff.eff_status === 0 && state.eff.eff_custom === 0 && customDesc.trim() === '') {
+                     html += `<li style="color: var(--text-dim);">Нет дополнительных эффектов</li>`;
                 }
                 
                 html += `</ul>`;
