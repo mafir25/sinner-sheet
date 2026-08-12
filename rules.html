@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Правила и Механики / Rules & Mechanics</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Merriweather:ital,wght@0,300;1,300;1,700&family=Oswald:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-main: #070707; --bg-panel: #000000; 
+            --accent-primary: #F1C40F; /* Sloth / Лень */
+            --accent-muted: #8a7109; 
+            --color-red: #C7243A; --color-cyan: #45B3CB; 
+            --text-main: #E0D8C8; --text-dim: #696969;
+            --border-width: 1px; --chamfer: 14px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-main); color: var(--text-main); font-family: 'Inter', sans-serif;
+            min-height: 100vh; padding: 60px 20px 40px 20px; display: flex; flex-direction: column; align-items: center;
+            background-image: linear-gradient(rgba(7,7,7,0.85), rgba(7,7,7,0.85)), repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.02) 2px, rgba(255,255,255,0.02) 4px);
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4, .oswald { font-family: 'Oswald', sans-serif; text-transform: uppercase; }
+        .tech-text { font-family: 'Inter', sans-serif; color: var(--accent-primary); font-size: 0.8rem; }
+        
+        /* Навигация */
+        .top-nav-btn { position: fixed; top: 10px; left: 20px; padding: 6px 12px; font-size: 0.8rem; border-color: var(--accent-primary); color: var(--accent-primary); font-family: 'Oswald', sans-serif; z-index: 100; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; border: 1px solid var(--accent-primary); cursor: pointer; text-transform: uppercase; transition: 0.2s; }
+        .top-nav-btn:hover { background-color: var(--accent-primary); color: #000; }
+
+        /* Заголовок страницы */
+        .header-bar { width: 100%; max-width: 1000px; display: flex; justify-content: center; align-items: center; margin-bottom: 30px; border-bottom: 1px solid var(--accent-muted); padding-bottom: 10px; margin-top: 10px; }
+        .header-title { color: var(--accent-primary); font-size: 2rem; letter-spacing: 2px; text-align: center; }
+        .header-subtitle { color: var(--text-dim); font-size: 0.9rem; font-family: 'Inter'; text-align: center; margin-top: 8px; margin-bottom: 20px;}
+
+        /* Лейаут */
+        .content-grid { display: flex; flex-direction: column; gap: 30px; width: 100%; max-width: 1000px; }
+
+        .panel-outer { background-color: var(--accent-primary); padding: var(--border-width); position: relative; display: flex; flex-direction: column; }
+        .panel-inner { background-color: var(--bg-panel); padding: 30px; height: 100%; display: flex; flex-direction: column; }
+        .cut-tl { clip-path: polygon(var(--chamfer) 0, 100% 0, 100% 100%, 0 100%, 0 var(--chamfer)); }
+        
+        .hazard-tape { height: 6px; background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--accent-muted) 10px, var(--accent-muted) 20px); border-bottom: 1px solid var(--accent-primary); }
+
+        .section-title { font-size: 1.8rem; color: var(--accent-primary); margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 8px; display: flex; align-items: center; gap: 12px; }
+        .section-title i { font-size: 1.5rem; }
+
+        .rule-block { margin-bottom: 24px; position: relative; }
+        .rule-block:last-child { margin-bottom: 0; }
+        
+        .rule-title { font-family: 'Oswald', sans-serif; font-size: 1.3rem; color: #fff; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--color-cyan);}
+        .rule-desc { font-size: 0.95rem; line-height: 1.6; color: var(--text-main); }
+        .rule-desc p { margin-bottom: 12px; text-align: justify; }
+        .rule-desc ul { margin-left: 20px; margin-bottom: 12px; }
+        .rule-desc li { margin-bottom: 6px; }
+
+        .highlight { color: var(--accent-primary); font-weight: bold; font-family: 'Oswald', sans-serif; letter-spacing: 1px; }
+        .warning-text { color: var(--color-red); font-weight: bold; }
+
+        .quote-block { border-left: 3px solid var(--accent-primary); padding-left: 16px; margin: 16px 0; background: rgba(255,255,255,0.02); padding: 12px 16px; font-style: italic; color: #ccc; }
+
+    </style>
+</head>
+<body>
+
+    <a href="navigation.html" class="top-nav-btn"><i class="fa-solid fa-arrow-left"></i> НАЗАД (НАВИГАЦИЯ)</a>
+
+    <div class="header-bar" style="flex-direction: column; gap: 0;">
+        <div class="header-title oswald">ПРАВИЛА И МЕХАНИКИ (ВАРИАНТНЫЕ)</div>
+        <div class="header-subtitle">Этот список вариантных правил может сделать вашу кампанию гораздо интереснее (с разрешения ДМа). Ни одно из них не является обязательным, однако они настоятельно рекомендуются для полного погружения во вселенную Project Moon.</div>
+    </div>
+
+    <div class="content-grid">
+        
+        <!-- СИСТЕМА РАССУДКА (SANITY) -->
+        <div class="panel-outer cut-tl">
+            <div class="hazard-tape"></div>
+            <div class="panel-inner cut-tl" style="border-top: none;">
+                <div class="section-title oswald"><i class="fa-solid fa-brain"></i> СИСТЕМА РАССУДКА (SANITY)</div>
+                <div class="rule-desc">
+                    <p>Поскольку "Рассудок" (Sanity) сложно перенести в D&D напрямую из первоисточника, существуют две версии. Вы можете выбрать одну из них или использовать обе одновременно, если посчитаете нужным.</p>
+                </div>
+                
+                <div class="rule-block" style="margin-top: 20px; border-top: 1px dashed #333; padding-top: 20px;">
+                    <div class="rule-title">Версия А. Глобальный Рассудок (Для сессий)</div>
+                    <div class="rule-desc">
+                        <p>Версия, посвященная влиянию рассудка на протяжении всей игровой сессии.</p>
+                        <ul>
+                            <li>При создании персонажа у него появляется вторая шкала здоровья, посвященная Рассудку. Рассудок рассчитывается так же, как хиты: <strong>Кость хитов класса + модификатор Мудрости за каждый уровень.</strong></li>
+                            <li>Он полностью восстанавливается во время длительного отдыха (как ХП) и может использоваться как ресурс для умений вроде Э.Г.О., либо истощаться в RP-сценах при столкновении с чем-то травмирующим.</li>
+                            <li>Получая <strong>психический урон</strong> (psychic damage), вы получаете половину этого урона в виде урона Рассудку.</li>
+                            <li>Получая штраф к броскам из-за статуса <strong>Утопание (Sinking)</strong> или других способностей, вы теряете Рассудок в размере, равном штрафу.</li>
+                            <li>Когда Рассудок падает ниже определенного порога, вы получаете штраф ко всем броскам атаки, спасброскам и проверкам характеристик: <strong>-1d4 при 50% Рассудка</strong> и <strong>-2d4 при 25% Рассудка</strong>.</li>
+                        </ul>
+                        <div class="quote-block">
+                            <span class="warning-text">Что происходит при 0 Рассудка?</span><br>
+                            Вы теряете контроль над персонажем. Бросьте <strong>1d6</strong>, чтобы определить форму безумия:
+                            <br><strong>1:</strong> Попытка убить себя (совершает атаку оружием по себе).
+                            <br><strong>2:</strong> Беспорядочная атака ближайшего существа (союзника или врага).
+                            <br><strong>3:</strong> Съеживается от страха (падает ничком и получает статус Испуган).
+                            <br><strong>4:</strong> Становится Парализованным.
+                            <br><strong>5:</strong> Падает без сознания.
+                            <br><strong>6:</strong> Бежит как можно дальше от того, что свело Рассудок к 0, по самому безопасному маршруту.
+                            <br><em>(ДМ может придумывать свои варианты безумия).</em>
+                        </div>
+                        <p>Альтернативно, если у персонажа есть Э.Г.О., способное к Коррозии, при падении Рассудка до 0 он может реакцией <strong>подвергнуться Коррозии</strong> на этот ход, применив случайное корродирующее Э.Г.О. (цели выбираются беспорядочно).</p>
+                        <p>В конце каждого своего хода безумный персонаж может совершить спасбросок Мудрости (СЛ = 15 - модификатор МУД), учитывая все текущие штрафы. При успехе безумие спадает. Придя в себя, можно потратить Кости Хитов для восстановления Рассудка. Короткий отдых восстанавливает половину Рассудка, длинный — весь.</p>
+                    </div>
+                </div>
+
+                <div class="rule-block" style="margin-top: 20px; border-top: 1px dashed #333; padding-top: 20px;">
+                    <div class="rule-title">Версия Б. Боевой Рассудок (Как в Limbus Company)</div>
+                    <div class="rule-desc">
+                        <p>Версия, сфокусированная исключительно на боевой системе. При броске инициативы ваш Рассудок считается равным <strong>0</strong> (минимум <strong>-45</strong>, максимум <strong>+45</strong>).</p>
+                        <ul>
+                            <li><span class="highlight">Повышение Рассудка:</span> Успешная атака (+5), Противник провалил спасбросок (+5), Добивание врага до 0 ХП (+15).</li>
+                            <li><span class="warning-text">Понижение Рассудка:</span> Провал спасброска (-5), Союзник падает до 0 ХП (-15), Наложение штрафа или Sinking (-1 за каждую единицу штрафа).</li>
+                            <li><span class="highlight">Эффекты:</span> За каждые 10 Рассудка от 0 вы получаете бонус (или штраф) <strong>+1</strong> к атакам и спасброскам. (Например: +10 Рассудка = +1; -25 Рассудка = -2).</li>
+                        </ul>
+                        <p>Если Рассудок падает до <strong>-45</strong>, а у вас экипировано Э.Г.О., способное к Коррозии, вы мгновенно корродируете на этот ход и используете Э.Г.О. по случайным целям. Эффекты Рассудка сохраняются до конца боя, пока вы не отдохнете или не испытаете новое событие, влияющее на стат.</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ИСКАЖЕНИЕ (DISTORTING) -->
+        <div class="panel-outer cut-tl">
+            <div class="hazard-tape"></div>
+            <div class="panel-inner cut-tl" style="border-top: none;">
+                <div class="section-title oswald"><i class="fa-solid fa-masks-theater"></i> ИСКАЖЕНИЕ (DISTORTING)</div>
+                <div class="rule-desc">
+                    <p>Эта механика задумана для использования вместе с системой Рассудка. Чтобы понять, склонен ли персонаж к Искажению, задайте следующие вопросы:</p>
+                    <ul>
+                        <li>Находится ли персонаж в состоянии крайнего стресса?</li>
+                        <li>Сталкивается ли он со своим прошлым или уязвимым воспоминанием?</li>
+                        <li>Отрицает ли он свою истинную сущность?</li>
+                        <li>Сталкивается ли он с непреодолимыми препятствиями?</li>
+                        <li>Желает ли он обрести силу, чтобы решить эти проблемы любой ценой?</li>
+                    </ul>
+                    <p>Если ответ «Да», то при падении Рассудка до <strong>25% (Версия А)</strong> или <strong>-35 (Версия Б)</strong> персонаж начинает слышать голос Кармен. В начале каждого хода необходимо совершать спасбросок Харизмы. При 3 провалах и падении Рассудка до 0 (или -45) — вы <span class="warning-text">Искажаетесь</span>.</p>
+                    
+                    <div class="quote-block">
+                        <strong>Что происходит при Искажении?</strong><br>
+                        Вы теряете контроль над персонажем, он принимает чудовищную форму, отражающую его травмы, и атакует всех без разбору. Выберите (навсегда) один из вариантов генерации статблока Искажения:
+                        <br><br><strong>Вариант А (Простой):</strong> Харизма -4; Сила, Ловкость и Мудрость +2. Размер становится Большим (Large). КД +2. Весь урон увеличивается на 1 кость. Выберите 1 статус-эффект: ваши атаки накладывают его в размере ПБ. Спасброски удваивают этот статус. Ваши ХП удваиваются.
+                        <br><strong>Вариант Б (Сложный):</strong> ДМ создает для вас уникальный статблок босса.
+                    </div>
+
+                    <p>Если Искажение не подавлено (сведено к 0 ХП) за 48 часов, персонаж теряется навсегда и становится Аномалией. Если подавлено вовремя — персонаж возвращается в норму или становится расой <strong>Полу-Искажение</strong>. В процессе подавления (при падении ХП босса ниже 50%) персонаж внутри монстра может делать спасброски Харизмы. 3 успеха дарят ему черту <strong>Нестабильное Э.Г.О. (Volatile Ego)</strong> после пробуждения.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- СЛИЯНИЕ Э.Г.О. (E.G.O. FUSION) -->
+        <div class="panel-outer cut-tl">
+            <div class="hazard-tape"></div>
+            <div class="panel-inner cut-tl" style="border-top: none;">
+                <div class="section-title oswald"><i class="fa-solid fa-gem"></i> СЛИЯНИЕ Э.Г.О. (E.G.O. FUSION)</div>
+                <div class="rule-desc">
+                    <p>Некоторые дары Э.Г.О. — это лишь часть головоломки, их можно объединять для создания более сильных артефактов. Для Слияния необходимо найти устройство слияния в ветви Lobotomy Corp или воспользоваться помощью Отдела Извлечения (Extraction Team).</p>
+                    <p>Вы можете слить <strong>до 3 Гифтов за раз</strong>. Результат зависит от количества:</p>
+                    <ul>
+                        <li><span class="highlight">Слияние 2 гифтов:</span> Получаете один гифт того же уровня (тира), что и средний уровень слитых (округление вниз).</li>
+                        <li><span class="highlight">Слияние 3 гифтов:</span> Получаете один гифт на тир выше среднего (округление вверх).</li>
+                    </ul>
+                    <p>Вы также можете целенаправленно создавать гифты по заранее известным «рецептам», если у вас есть нужные ингредиенты. Обычные существа могут совершать слияние 1 раз в день. Сотрудники Отдела Извлечения могут делать это количество раз, равное их бонусу мастерства.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- БОИ С АНОМАЛИЯМИ И ЧАСТИ ТЕЛА -->
+        <div class="panel-outer cut-tl">
+            <div class="hazard-tape"></div>
+            <div class="panel-inner cut-tl" style="border-top: none;">
+                <div class="section-title oswald"><i class="fa-solid fa-bug"></i> БОИ С АНОМАЛИЯМИ: РАЗРУШЕНИЕ ЧАСТЕЙ</div>
+                <div class="rule-desc">
+                    <p>В боях с крупными Аномалиями ДМ может использовать механику разрушаемых частей тела (Part Damage). В начале хода игрок должен преуспеть в проверке Восприятия или Расследования (СЛ 15), чтобы понять, какие части можно атаковать.</p>
+                    <ul>
+                        <li>Каждая часть (конечность, хвост, оружие, щит) имеет свой собственный пул хитов и свой Класс Доспеха (КД).</li>
+                        <li>У частей могут быть иные сопротивления и уязвимости, чем у основного тела.</li>
+                        <li><strong>Урон, нанесенный части, также отнимается от общего здоровья существа.</strong></li>
+                        <li>При уничтожении (0 ХП) часть ломается. Существо теряет способности, связанные с этой конечностью, или получает дебаффы (на усмотрение ДМа). Сломанная часть либо дает уязвимость к урону в нее до конца следующего хода атакующего, либо полностью уничтожается и больше не может быть выбрана как цель.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- ДОПОЛНИТЕЛЬНЫЕ МЕХАНИКИ -->
+        <div class="panel-outer cut-tl">
+            <div class="hazard-tape"></div>
+            <div class="panel-inner cut-tl" style="border-top: none;">
+                <div class="section-title oswald"><i class="fa-solid fa-shield-heart"></i> ДОПОЛНИТЕЛЬНЫЕ МЕХАНИКИ</div>
+                <div class="rule-desc">
+                    <div class="rule-block">
+                        <div class="rule-title">УЛУЧШЕННАЯ ПРОЧНОСТЬ (IMPROVED DURABILITY)</div>
+                        <div class="rule-desc">
+                            <p>Для создания атмосферы более живучих, "анимешных" персонажей Города, кости хитов удваиваются. Если ваша кость хитов была <strong>1d10</strong>, она становится <strong>2d10</strong>. Если <strong>1d12</strong>, то становится <strong>2d12</strong> и так далее.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>
