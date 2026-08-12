@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Время и История / Time and History</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Merriweather:ital,wght@0,300;1,300;1,700&family=Oswald:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-main: #070707; --bg-panel: #000000; 
+            --accent-primary: #27AE60; /* Emerald / Иное */
+            --accent-muted: #1e5936; 
+            --color-red: #C7243A; --color-cyan: #45B3CB; --color-yellow: #F1C40F;
+            --text-main: #E0D8C8; --text-dim: #696969;
+            --border-width: 1px; --chamfer: 14px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-main); color: var(--text-main); font-family: 'Inter', sans-serif;
+            min-height: 100vh; padding: 60px 20px 40px 20px; display: flex; flex-direction: column; align-items: center;
+            background-image: linear-gradient(rgba(7,7,7,0.85), rgba(7,7,7,0.85)), repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.02) 2px, rgba(255,255,255,0.02) 4px);
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4, .oswald { font-family: 'Oswald', sans-serif; text-transform: uppercase; }
+        .tech-text { font-family: 'Inter', sans-serif; color: var(--accent-primary); font-size: 0.8rem; }
+        .lore-text { font-family: 'Merriweather', serif; font-style: italic; color: var(--text-main); font-size: 1rem; line-height: 1.6; }
+
+        /* Навигация */
+        .top-nav-btn { position: fixed; top: 10px; left: 20px; padding: 6px 12px; font-size: 0.8rem; border-color: var(--accent-primary); color: var(--accent-primary); font-family: 'Oswald', sans-serif; z-index: 100; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; border: 1px solid var(--accent-primary); cursor: pointer; text-transform: uppercase; transition: 0.2s; }
+        .top-nav-btn:hover { background-color: var(--accent-primary); color: #000; }
+
+        /* Заголовок страницы */
+        .header-bar { width: 100%; max-width: 1000px; display: flex; justify-content: center; align-items: center; margin-bottom: 30px; border-bottom: 1px solid var(--accent-muted); padding-bottom: 10px; margin-top: 10px; }
+        .header-title { color: var(--accent-primary); font-size: 2rem; letter-spacing: 2px; text-align: center; }
+
+        /* Лейаут */
+        .content-grid { display: flex; flex-direction: column; gap: 30px; width: 100%; max-width: 1000px; }
+
+        .panel-outer { background-color: var(--accent-primary); padding: var(--border-width); position: relative; display: flex; flex-direction: column; }
+        .panel-inner { background-color: var(--bg-panel); padding: 30px; height: 100%; display: flex; flex-direction: column; }
+        .cut-tl { clip-path: polygon(var(--chamfer) 0, 100% 0, 100% 100%, 0 100%, 0 var(--chamfer)); }
+        
+        .hazard-tape { height: 6px; background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--accent-muted) 10px, var(--accent-muted) 20px); border-bottom: 1px solid var(--accent-primary); }
+
+        .section-title { font-size: 1.8rem; color: var(--accent-primary); margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 8px; display: flex; align-items: center; gap: 12px; }
+        .section-title i { font-size: 1.5rem; }
+
+        .paragraph { margin-bottom: 16px; text-align: justify; }
+        .paragraph:last-child { margin-bottom: 0; }
+        
+        .highlight { color: var(--accent-primary); font-weight: bold; font-family: 'Oswald', sans-serif; font-size: 1.1rem; letter-spacing: 1px; }
+
+        /* Блоки конфликтов */
+        .conflict-block { border-left: 3px solid var(--accent-primary); padding-left: 16px; margin-bottom: 24px; position: relative; background: rgba(255,255,255,0.02); padding: 16px; padding-left: 20px; border-radius: 0 4px 4px 0; transition: background 0.2s; }
+        .conflict-block:hover { background: rgba(255,255,255,0.05); }
+        .conflict-block:last-child { margin-bottom: 0; }
+        
+        .conflict-name { font-family: 'Oswald', sans-serif; font-size: 1.4rem; color: #fff; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+        .conflict-desc { font-size: 0.95rem; line-height: 1.6; color: var(--text-main); }
+        
+        .date-badge { display: inline-block; background: var(--accent-muted); color: var(--text-main); font-family: 'Oswald', sans-serif; font-size: 0.8rem; padding: 2px 8px; border-radius: 2px; margin-left: 10px; vertical-align: middle; }
+
+    </style>
+</head>
+<body>
+
+    <a href="navigation.html" class="top-nav-btn"><i class="fa-solid fa-arrow-left"></i> НАЗАД (НАВИГАЦИЯ)</a>
+
+    <div class="header-bar">
+        <div class="header-title oswald">ВРЕМЯ И ИСТОРИЯ (ЛОР)</div>
+    </div>
+
+    <div class="content-grid">
+        
+        <!-- СЕТТИНГ -->
+        <div class="panel-outer cut-tl">
+            <div class="hazard-tape"></div>
+            <div class="panel-inner cut-tl" style="border-top: none;">
+                <div class="section-title oswald"><i class="fa-solid fa-city"></i> СЕТТИНГ И АТМОСФЕРА</div>
+                
+                <div class="lore-text">
+                    <div class="paragraph">
+                        <span class="highlight">На дворе 984 год.</span> Мир истощил большую часть своих природных ресурсов, что привело к открытию чудесных технологий, известных как «Сингулярности» (Singularities). Корпорации возвысились, чтобы завладеть этими чудесами, образовав гигантский мегаполис, известный как... ну, <span class="highlight">«Город»</span> (The City). 26 таких Корпораций (в соответствии с буквами английского алфавита) управляют 26 Районами (Districts), а руководит ими всеми могущественная организация, известная как <span class="highlight">«Глава»</span> (The Head).
+                    </div>
+                    <div class="paragraph">
+                        Однако вместе со стремительным развитием технологий возникает огромная пропасть между богатыми и бедными. Это разделение приводит к появлению <span class="highlight">«Закоулков»</span> (Backstreets) и <span class="highlight">«Гнезд»</span> (Nests) внутри Районов, а вместе с тем — к безудержной преступности и жестокой эксплуатации со стороны Корпораций. В этом антиутопическом обществе выживают лишь сильные духом.
+                    </div>
+                    <div class="paragraph">
+                        Разумеется, в Городе появляются и возможности. Наемники-контрактники, известные как <span class="highlight">Фиксеры</span> (Fixers), зарабатывают на жизнь выполняя любую грязную работу, равно как и более криминальные <span class="highlight">Синдикаты</span> (Syndicates), которые часто вступают в кровавые столкновения с первыми. Кроме того, сотрудникам 26 Корпораций часто поручают участвовать в причудливых, чудесных и ужасающих экспериментах, чтобы просто сохранить свое место в Гнезде.
+                    </div>
+                    <div class="paragraph" style="border-top: 1px dashed #333; padding-top: 16px; margin-top: 16px; font-style: normal; color: var(--text-dim);">
+                        Мир Project Moon — это общество передовых технологий и развития, но страдающее от угнетающей меритократии, управляемой корпоративными сущностями в почти постапокалиптическом мире. Радость жизни уже давно покинула глаза жителей Города.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ЗНАЧИМЫЕ КОНФЛИКТЫ -->
+        <div class="panel-outer cut-tl">
+            <div class="hazard-tape"></div>
+            <div class="panel-inner cut-tl" style="border-top: none;">
+                <div class="section-title oswald"><i class="fa-solid fa-fire-flame-curved"></i> ЗНАЧИМЫЕ КОНФЛИКТЫ</div>
+
+                <div class="conflict-block">
+                    <div class="conflict-name">Битва за Город (The Battle for the City)</div>
+                    <div class="conflict-desc">
+                        Безымянный конфликт, который утвердил создание Города и неоспоримую власть Главы. Это была масштабная битва между людьми и нечеловеческими сущностями механической природы. Нелюди были полностью разбиты человечеством и вытеснены из Города на Окраины (Outskirts) и за их пределы, и больше их никто никогда не видел. 
+                        <br><br>
+                        После победы Глава принял <strong>«Поправку об этике искусственного интеллекта»</strong> (Artificial Intelligence Ethics Amendment Act), которая строго гласила, что ни одна машина или ИИ не должны иметь какого-либо сходства с человеком, включая полную механическую замену тела. В архивах есть упоминания о некой «Чистке Машин» (Machine Purge), но доподлинно неизвестно, относится ли это к данному конфликту или к отдельному событию.
+                    </div>
+                </div>
+
+                <div class="conflict-block">
+                    <div class="conflict-name">Война Крыльев (Wings' War)</div>
+                    <div class="conflict-desc">
+                        Крупномасштабный конфликт, произошедший в первые годы после основания Города. В нем участвовало подавляющее большинство Крыльев. Невиданное доселе высокотехнологичное оружие и новые технологии разрабатывались исключительно как средство войны и разрушения. 
+                        <br><br>
+                        Результатом Войны стали колоссальные, неисчислимые жертвы среди населения и формирование Окраин (Outskirts), где и происходила большая часть самых кровавых боевых действий. Именно в этот период был изобретен <strong>«Фильтр Восприятия»</strong> (Perception Filter) — как средство визуально уменьшить и цензурировать невыносимые ужасы войны для человеческого разума, сводя кровавое месиво к более «игрушечным» и абстрактным версиям.
+                    </div>
+                </div>
+
+                <div class="conflict-block">
+                    <div class="conflict-name">Война Кровавых Демонов (Bloodfiend War)</div>
+                    <div class="conflict-desc">
+                        Очень древний конфликт, расколовший общество Кровавых Демонов на два непримиримых лагеря: тех, кто искренне желал мирно сосуществовать бок о бок с людьми, и тех, кто видел в смертных лишь добычу и домашний скот. Судя по историческим сводкам, в этой изнурительной битве победили миролюбивые Кровавые Демоны, установив хрупкий статус-кво.
+                    </div>
+                </div>
+
+                <div class="conflict-block">
+                    <div class="conflict-name">Дымовая Война (Smoke War) <span class="date-badge">Завершена ~ 974 г.</span></div>
+                    <div class="conflict-desc">
+                        Крупнейший и самый известный конфликт новейшей истории. В нем активно участвовало множество Крыльев, таких как Корпорация R и старая Корпорация G. Это событие стало поворотным моментом в истории Города, в результате которого многие старые Корпорации пали, а на их костях возвысились новые.
+                        <br><br>
+                        До того как Lobotomy Corporation стала Крылом, старая Корпорация L (L Corp) постоянно производила бесконечное количество токсичного кислотного тумана. Они обладали огромной энергией, но почти всегда отказывались делиться ей или запрашивали за нее непомерные цены. Этот кислотный смог в конечном итоге начал буквально душить Город, откуда и пошло название конфликта. В конце концов, жестокая война завершилась полным крахом старой Корпорации L и всех её союзников, открыв путь к возвышению <strong>Lobotomy Corporation</strong> до статуса нового Крыла.
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>
