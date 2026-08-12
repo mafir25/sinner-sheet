@@ -97,9 +97,16 @@
         .quest-icon { height: 24px; object-fit: contain; margin-left: 12px; vertical-align: middle; }
         .header-icons { display: flex; gap: 8px; align-items: center; margin-right: 12px; }
 
+        /* Вкладки новостей и репутации */
+        .tab-btn { font-family: 'Oswald'; font-size: 1.1rem; cursor: pointer; transition: 0.2s; color: var(--text-dim); }
+        .tab-btn:hover { color: var(--text-main); }
+        .tab-btn.active-tab { color: var(--color-red); border-bottom: 2px solid var(--color-red); }
+
+        /* Новости */
         .news-item { border-left: 2px solid var(--color-red); padding-left: 10px; margin-bottom: 16px; position: relative; }
-        .news-date { font-size: 0.7rem; color: var(--color-red); font-family: 'Oswald'; letter-spacing: 1px; }
-        .news-text { font-size: 0.85rem; color: var(--text-main); margin-top: 4px; white-space: pre-wrap; line-height: 1.4; }
+        .news-date { font-size: 0.7rem; color: var(--text-dim); font-family: 'Oswald'; letter-spacing: 1px; }
+        .news-author { font-size: 0.9rem; color: var(--color-red); font-family: 'Oswald'; margin-bottom: 4px; }
+        .news-text { font-size: 0.85rem; color: var(--text-main); white-space: pre-wrap; line-height: 1.4; }
         .btn-trash { position: absolute; top: 0; right: 0; background: transparent; border: none; color: var(--text-dim); cursor: pointer; opacity: 0; transition: 0.2s; font-size: 1rem; }
         .news-item:hover .btn-trash { opacity: 1; color: var(--color-red); }
 
@@ -195,7 +202,6 @@
         </div>
     </div>
 
-    <!-- Плашка статуса системы -->
     <div id="system-status-banner" class="status-banner">
         <i class="fa-solid fa-circle-notch fa-spin"></i> СИСТЕМА: ОЖИДАНИЕ ИНИЦИАЛИЗАЦИИ...
     </div>
@@ -249,20 +255,43 @@
             </div>
         </div>
 
-        <!-- ПРАВАЯ КОЛОНКА (Новости ДМа) -->
+        <!-- ПРАВАЯ КОЛОНКА (Новости и Репутация) -->
         <div class="panel-outer cut-tl">
             <div class="hazard-tape" style="background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--color-red) 10px, var(--color-red) 20px); border-bottom-color: var(--color-red);"></div>
             <div class="panel-inner cut-tl" style="border-top: none;">
-                <div class="panel-title" style="color: var(--color-red); border-color: var(--color-red);">СВОДКИ СОБЫТИЙ</div>
                 
-                <div class="creator-only" style="margin-bottom: 16px; border-bottom: 1px solid #222; padding-bottom: 12px;">
-                    <textarea id="news-input" class="cloud-input" placeholder="Описать события отдыха..." style="min-height: 80px;"></textarea>
-                    <button class="btn-small" style="width: 100%; color: var(--color-red); border-color: var(--color-red); justify-content: center;" onclick="window.addNews()">
-                        <i class="fa-solid fa-bullhorn"></i> ПУБЛИКОВАТЬ НОВОСТЬ
-                    </button>
+                <!-- Вкладки правой панели -->
+                <div class="panel-title" style="color: var(--color-red); border-color: var(--color-red); justify-content: flex-start; gap: 15px;">
+                    <span id="tab-news" class="tab-btn active-tab" onclick="window.switchRightTab('news')">СВОДКИ</span>
+                    <span style="color: var(--text-dim);">|</span>
+                    <span id="tab-rep" class="tab-btn" onclick="window.switchRightTab('rep')">РЕПУТАЦИЯ</span>
+                </div>
+                
+                <!-- Секция Новостей -->
+                <div id="wrapper-news" style="display: block;">
+                    <div class="creator-only" style="margin-bottom: 16px; border-bottom: 1px solid #222; padding-bottom: 12px;">
+                        <input type="text" id="news-author" class="cloud-input" placeholder="От чьего лица (напр. Менеджер)..." style="margin-bottom: 8px;">
+                        <textarea id="news-input" class="cloud-input" placeholder="Описать события отдыха..." style="min-height: 80px;"></textarea>
+                        <button class="btn-small" style="width: 100%; color: var(--color-red); border-color: var(--color-red); justify-content: center;" onclick="window.addNews()">
+                            <i class="fa-solid fa-bullhorn"></i> ПУБЛИКОВАТЬ НОВОСТЬ
+                        </button>
+                    </div>
+                    <div id="news-container"></div>
                 </div>
 
-                <div id="news-container"></div>
+                <!-- Секция Репутации -->
+                <div id="wrapper-rep" style="display: none;">
+                    <div class="creator-only" style="margin-bottom: 16px; border-bottom: 1px solid #222; padding-bottom: 12px;">
+                        <div class="tech-text" style="color: var(--color-red); margin-bottom: 4px;">УПРАВЛЕНИЕ РЕПУТАЦИЕЙ</div>
+                        <input type="text" id="rep-name" class="cloud-input" placeholder="Название фракции..." style="margin-bottom: 4px;">
+                        <input type="number" id="rep-score" class="cloud-input" placeholder="Значение от -100 до 100..." min="-100" max="100" style="margin-bottom: 8px;">
+                        <button class="btn-small" style="width: 100%; color: var(--color-red); border-color: var(--color-red); justify-content: center;" onclick="window.addReputation()">
+                            <i class="fa-solid fa-handshake"></i> ДОБАВИТЬ / ОБНОВИТЬ
+                        </button>
+                    </div>
+                    <div id="rep-container"></div>
+                </div>
+
             </div>
         </div>
 
@@ -285,14 +314,14 @@
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const db = getFirestore(app, "default"); // Подключение к именованной БД
+        const db = getFirestore(app, "default");
         const storage = getStorage(app);
 
         let currentUser = null;
         let currentOfficeId = null;
         let isCreator = false;
         let questsDB = [];
-        window.currentOfficeData = null; // Глобальное хранилище текущего офиса
+        window.currentOfficeData = null;
 
         window.setSystemStatus = (msg, type = 'normal') => {
             const banner = document.getElementById('system-status-banner');
@@ -382,7 +411,7 @@
                 }
             } catch (error) {
                 console.error(error);
-                listEl.innerHTML = '<div style="padding: 10px; color: var(--color-red);">Ошибка загрузки.</div>';
+                listEl.innerHTML = '<div style="padding: 10px; color: var(--color-red);">Ошибка загрузки. Вероятно, блокировка правилами Firebase.</div>';
                 window.setSystemStatus("ОШИБКА ДОСТУПА К БАЗЕ ОФИСОВ", "error");
             }
         }
@@ -404,7 +433,8 @@
                     logoUrl: "",
                     characters: [],
                     news: [],
-                    customQuests: [] // Добавлено поле для кастомных квестов
+                    customQuests: [],
+                    reputations: [] // Инициализация репутаций
                 };
                 await setDoc(newOfficeRef, newOfficeData);
                 window.setSystemStatus("ОФИС УСПЕШНО СОЗДАН. ПОДКЛЮЧЕНИЕ...", "success");
@@ -425,7 +455,7 @@
                 const docSnap = await getDoc(doc(db, "offices", id));
                 if (docSnap.exists()) {
                     const data = docSnap.data();
-                    window.currentOfficeData = data; // Сохраняем в память для квестов
+                    window.currentOfficeData = data; 
                     isCreator = (data.creator === currentUser.email);
                     
                     const creatorEls = document.querySelectorAll('.creator-only');
@@ -442,8 +472,8 @@
 
                     renderCharacters(data.characters || []);
                     renderNews(data.news || []);
+                    renderReputations(data.reputations || []);
                     
-                    // Перерисовка аккордеонов квестов на случай, если они были открыты
                     renderGradeAccordions();
                     
                     window.setSystemStatus("ОФИС ЗАГРУЖЕН УСПЕШНО", "success");
@@ -489,7 +519,7 @@
                 window.setSystemStatus("ЛОГОТИП ОБНОВЛЕН", "success");
             } catch (err) {
                 console.error(err);
-                window.setSystemStatus("ОШИБКА ЗАГРУЗКИ (ПРАВА STORAGE)", "error");
+                window.setSystemStatus("ОШИБКА ЗАГРУЗКИ (ПРАВА STORAGE ИЛИ CORS)", "error");
                 document.getElementById('office-logo').innerHTML = '';
             }
             e.target.value = '';
@@ -603,15 +633,33 @@
             }
         };
 
+        /* ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК ПРАВОЙ ПАНЕЛИ */
+        window.switchRightTab = (tab) => {
+            document.getElementById('tab-news').classList.remove('active-tab');
+            document.getElementById('tab-rep').classList.remove('active-tab');
+            document.getElementById('wrapper-news').style.display = 'none';
+            document.getElementById('wrapper-rep').style.display = 'none';
+            
+            if(tab === 'news') {
+                document.getElementById('tab-news').classList.add('active-tab');
+                document.getElementById('wrapper-news').style.display = 'block';
+            } else {
+                document.getElementById('tab-rep').classList.add('active-tab');
+                document.getElementById('wrapper-rep').style.display = 'block';
+            }
+        };
+
+        /* УПРАВЛЕНИЕ НОВОСТЯМИ */
         window.addNews = async () => {
-            const input = document.getElementById('news-input');
-            const text = input.value.trim();
-            if (!text || !currentOfficeId) return;
+            const authorInput = document.getElementById('news-author').value.trim() || 'Менеджер';
+            const textInput = document.getElementById('news-input').value.trim();
+            if (!textInput || !currentOfficeId) return;
             
             const newsObj = {
                 id: Date.now().toString(),
                 date: new Date().toLocaleDateString('ru-RU'),
-                text: text
+                author: authorInput,
+                text: textInput
             };
             
             window.setSystemStatus("ПУБЛИКАЦИЯ СВОДКИ...", "loading");
@@ -619,7 +667,8 @@
                 await updateDoc(doc(db, "offices", currentOfficeId), {
                     news: arrayUnion(newsObj)
                 });
-                input.value = '';
+                document.getElementById('news-input').value = '';
+                document.getElementById('news-author').value = '';
                 window.openOffice(currentOfficeId);
             } catch(err) { window.setSystemStatus("ОШИБКА ПУБЛИКАЦИИ", "error"); }
         };
@@ -640,6 +689,7 @@
                     <div class="news-item">
                         ${delBtn}
                         <div class="news-date">${n.date}</div>
+                        <div class="news-author">${n.author}</div>
                         <div class="news-text">${n.text}</div>
                     </div>
                 `;
@@ -659,6 +709,90 @@
                     });
                     window.openOffice(currentOfficeId);
                 } catch (err) { window.setSystemStatus("ОШИБКА УДАЛЕНИЯ СВОДКИ", "error"); }
+            }
+        };
+
+        /* УПРАВЛЕНИЕ РЕПУТАЦИЕЙ */
+        window.addReputation = async () => {
+            const name = document.getElementById('rep-name').value.trim();
+            const score = parseInt(document.getElementById('rep-score').value);
+            
+            if (!name || isNaN(score) || !currentOfficeId) return;
+            if (score < -100 || score > 100) return alert("Репутация должна быть от -100 до 100");
+
+            window.setSystemStatus("ОБНОВЛЕНИЕ РЕПУТАЦИИ...", "loading");
+            try {
+                // Если фракция уже есть - удаляем старую запись
+                const existing = window._currentReps.find(r => r.name.toLowerCase() === name.toLowerCase());
+                if (existing) {
+                    await updateDoc(doc(db, "offices", currentOfficeId), {
+                        reputations: arrayRemove(existing)
+                    });
+                }
+                
+                const repObj = { id: Date.now().toString(), name: name, score: score };
+                await updateDoc(doc(db, "offices", currentOfficeId), {
+                    reputations: arrayUnion(repObj)
+                });
+                
+                document.getElementById('rep-name').value = '';
+                document.getElementById('rep-score').value = '';
+                window.openOffice(currentOfficeId);
+            } catch(err) { window.setSystemStatus("ОШИБКА ОБНОВЛЕНИЯ РЕПУТАЦИИ", "error"); }
+        };
+
+        function renderReputations(repArr) {
+            const container = document.getElementById('rep-container');
+            if (repArr.length === 0) {
+                container.innerHTML = '<div class="tech-text" style="color: var(--text-dim);">Данные о репутации отсутствуют.</div>';
+                return;
+            }
+            
+            let html = '';
+            repArr.forEach(r => {
+                const delBtn = isCreator ? `<button class="btn-trash" style="opacity: 1;" onclick="window.deleteReputation('${r.id}')"><i class="fa-solid fa-trash"></i></button>` : '';
+                
+                let colorVar = 'var(--text-main)'; // White (-50 to 50)
+                if (r.score < -50) colorVar = 'var(--color-red)';
+                if (r.score > 50) colorVar = 'var(--accent-primary)'; // Green (Gluttony)
+
+                const absScore = Math.abs(r.score);
+                const blockCount = Math.floor(absScore / 10);
+                
+                let blocksHtml = '';
+                for(let i=0; i<10; i++) {
+                    if (i < blockCount) {
+                        blocksHtml += `<div style="flex:1; height: 10px; background-color: ${colorVar}; margin-right: 2px;"></div>`;
+                    } else {
+                        blocksHtml += `<div style="flex:1; height: 10px; border: 1px solid #333; margin-right: 2px;"></div>`;
+                    }
+                }
+
+                html += `
+                    <div class="news-item" style="border-left-color: ${colorVar}; margin-bottom: 24px;">
+                        <div style="position: absolute; right: 0; top: -5px;">${delBtn}</div>
+                        <div class="news-date" style="color: ${colorVar}; font-size:1rem;">${r.name} [${r.score}]</div>
+                        <div style="display:flex; margin-top: 6px; width: calc(100% - 20px);">
+                            ${blocksHtml}
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+            window._currentReps = repArr;
+        }
+
+        window.deleteReputation = async (id) => {
+            if (!confirm("Удалить данные фракции?")) return;
+            const rObj = window._currentReps.find(r => r.id === id);
+            if(rObj) {
+                window.setSystemStatus("УДАЛЕНИЕ РЕПУТАЦИИ...", "loading");
+                try {
+                    await updateDoc(doc(db, "offices", currentOfficeId), {
+                        reputations: arrayRemove(rObj)
+                    });
+                    window.openOffice(currentOfficeId);
+                } catch (err) { window.setSystemStatus("ОШИБКА УДАЛЕНИЯ РЕПУТАЦИИ", "error"); }
             }
         };
 
@@ -684,7 +818,7 @@
                 document.getElementById('q-icon-preview').style.backgroundImage = `url('${url}')`;
                 window.setSystemStatus("ИКОНКА КОНТРАКТА ГОТОВА", "success");
             } catch (err) {
-                window.setSystemStatus("ОШИБКА ЗАГРУЗКИ ИКОНКИ", "error");
+                window.setSystemStatus("ОШИБКА ЗАГРУЗКИ ИКОНКИ (CORS ИЛИ ПРАВА STORAGE)", "error");
                 console.error(err);
             }
             e.target.value = '';
@@ -715,7 +849,6 @@
                 window.setSystemStatus("КОНТРАКТ УСПЕШНО ДОБАВЛЕН", "success");
                 window.toggleQuestBuilder();
                 
-                // Очистка формы
                 document.getElementById('q-name').value = '';
                 document.getElementById('q-desc').value = '';
                 document.getElementById('q-icon-url').value = '';
@@ -775,7 +908,6 @@
             
             document.querySelectorAll('.grade-block').forEach(b => b.classList.remove('expanded'));
             
-            // Объединяем системные квесты и кастомные квесты текущего офиса
             const officeQuests = (window.currentOfficeData && window.currentOfficeData.customQuests) ? window.currentOfficeData.customQuests : [];
             const allQuests = questsDB.concat(officeQuests);
             
@@ -789,7 +921,7 @@
                     const j = Math.floor(Math.random() * (i + 1));
                     [filtered[i], filtered[j]] = [filtered[j], filtered[i]];
                 }
-                const selected = filtered.slice(0, 5); // Показываем 5 случайных (включая кастомные)
+                const selected = filtered.slice(0, 5); 
                 
                 let qHtml = '';
                 let uniqueIcons = new Set();
@@ -801,7 +933,6 @@
                         uniqueIcons.add(q.Icon);
                     }
                     
-                    // Добавим визуальное отличие для кастомных квестов (звёздочка)
                     const isCustomMarker = q.id ? `<span style="color:var(--text-dim); font-size:0.8rem; margin-left:8px;" title="Кастомный контракт">[OFFICE]</span>` : '';
 
                     qHtml += `
