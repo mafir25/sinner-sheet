@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>База Статусов / Status Effects Compendium</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Merriweather:ital,wght@0,300;1,300;1,700&family=Oswald:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-main: #070707; --bg-panel: #000000; --accent-primary: #45B3CB; /* Gloom / Уныние */
+            --accent-muted: #2c6e7d; --color-red: #C7243A; --color-yellow: #F1C40F;
+            --text-main: #E0D8C8; --text-dim: #696969;
+            --border-width: 1px; --chamfer: 14px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-main); color: var(--text-main); font-family: 'Inter', sans-serif;
+            min-height: 100vh; padding: 60px 20px 40px 20px; display: flex; flex-direction: column; align-items: center;
+            background-image: linear-gradient(rgba(7,7,7,0.8), rgba(7,7,7,0.8)), repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.02) 2px, rgba(255,255,255,0.02) 4px);
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4, .oswald { font-family: 'Oswald', sans-serif; text-transform: uppercase; }
+        .tech-text { font-family: 'Inter', sans-serif; color: var(--accent-primary); font-size: 0.8rem; }
+
+        /* Навигация */
+        .top-nav-btn { position: fixed; top: 10px; left: 20px; padding: 6px 12px; font-size: 0.8rem; border-color: var(--accent-primary); color: var(--accent-primary); font-family: 'Oswald', sans-serif; z-index: 100; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; border: 1px solid var(--accent-primary); cursor: pointer; text-transform: uppercase; transition: 0.2s; }
+        .top-nav-btn:hover { background-color: var(--accent-primary); color: #000; }
+
+        .right-controls { position: fixed; top: 10px; right: 20px; z-index: 1000; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+        .side-nav-btn { padding: 6px 12px; font-size: 0.8rem; font-family: 'Oswald', sans-serif; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; cursor: pointer; text-transform: uppercase; transition: 0.2s; border-radius: 2px; }
+        .create-class-btn { border: 1px solid var(--accent-primary); color: var(--accent-primary); }
+        .create-class-btn:hover { background-color: var(--accent-primary); color: #000; }
+
+        /* Заголовок страницы */
+        .header-bar { width: 100%; max-width: 1000px; display: flex; justify-content: center; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--accent-muted); padding-bottom: 10px; margin-top: 10px; }
+        .header-title { color: var(--accent-primary); font-size: 1.5rem; letter-spacing: 2px; text-align: center; }
+
+        /* Поиск */
+        .filters-section { width: 100%; max-width: 1000px; margin-bottom: 24px; display: flex; flex-direction: column; gap: 16px; }
+        .search-wrapper { background-color: var(--accent-muted); padding: var(--border-width); transition: background-color 0.2s; }
+        .search-wrapper:focus-within { background-color: var(--accent-primary); }
+        .search-inner { background: rgba(0,0,0,0.7); padding: 0; display: flex; align-items: center; flex-direction: row; }
+        .search-icon { padding-left: 14px; font-size: 0.9rem; color: var(--text-dim); }
+        .search-input { width: 100%; background: transparent; border: none; color: var(--text-main); padding: 8px 14px 8px 10px; font-family: 'Inter', sans-serif; font-size: 0.95rem; outline: none; }
+        .search-input::placeholder { color: var(--text-dim); }
+
+        /* Сетка Статусов */
+        .compendium-grid { display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: 1000px; }
+
+        .panel-outer { background-color: var(--accent-primary); padding: var(--border-width); position: relative; display: flex; flex-direction: column; }
+        .panel-inner { background-color: var(--bg-panel); padding: 16px 20px; height: 100%; display: flex; flex-direction: column; }
+        .cut-tl { clip-path: polygon(var(--chamfer) 0, 100% 0, 100% 100%, 0 100%, 0 var(--chamfer)); }
+        
+        .hazard-tape { height: 6px; background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--accent-muted) 10px, var(--accent-muted) 20px); border-bottom: 1px solid var(--accent-primary); }
+
+        .card-header-clickable { cursor: pointer; position: relative; padding-right: 24px; user-select: none; }
+        .card-header-clickable:hover .class-title { color: #fff; text-shadow: 0 0 8px rgba(69, 179, 203, 0.6); }
+        .expand-icon { position: absolute; right: 0; top: 50%; transform: translateY(-50%); color: var(--text-dim); transition: transform 0.3s ease; }
+        .panel-outer.expanded .expand-icon { transform: translateY(-50%) rotate(180deg); color: var(--accent-primary); }
+
+        .class-title-wrapper { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; padding-bottom: 8px; }
+        .class-title { font-size: 1.5rem; color: var(--accent-primary); transition: color 0.2s; text-shadow: 0 0 2px rgba(69, 179, 203, 0.3); }
+
+        /* Описание статуса */
+        .talents-wrapper { max-height: 0; opacity: 0; overflow: hidden; transition: max-height 0.4s ease, margin-top 0.4s ease, opacity 0.3s ease; position: relative; }
+        .status-main-desc { font-size: 0.95rem; color: var(--text-main); line-height: 1.6; white-space: pre-wrap; padding-top: 12px; margin-bottom: 16px; border-bottom: 1px dashed #333; padding-bottom: 16px; }
+
+        /* Сайд-эффекты (Вложенные карточки) */
+        .side-effect-block { margin-bottom: 12px; border-left: 2px solid var(--color-yellow); padding: 8px 10px; cursor: pointer; position: relative; transition: background-color 0.2s; background: rgba(255,255,255,0.02); }
+        .side-effect-block:last-child { margin-bottom: 0; }
+        .side-effect-block:hover { background-color: rgba(255,255,255,0.05); }
+        
+        .se-header { display: flex; justify-content: space-between; align-items: center; }
+        .se-name { font-family: 'Oswald', sans-serif; color: var(--color-yellow); font-size: 1.1rem; transition: 0.2s; }
+        .se-collapse-icon { color: var(--text-dim); font-size: 0.8rem; transition: transform 0.3s; margin-right: 8px; }
+        .side-effect-block.collapsed .se-collapse-icon { transform: rotate(-90deg); }
+
+        .se-desc-wrapper { display: grid; grid-template-rows: 1fr; transition: grid-template-rows 0.3s ease; margin-top: 6px; }
+        .side-effect-block.collapsed .se-desc-wrapper { grid-template-rows: 0fr; margin-top: 0; }
+        .se-desc { overflow: hidden; font-size: 0.9rem; color: var(--text-main); line-height: 1.5; white-space: pre-wrap; }
+
+        .btn-copy-status { background: transparent; border: 1px solid var(--text-dim); color: var(--text-dim); cursor: pointer; padding: 4px 8px; font-size: 0.75rem; text-transform: uppercase; transition: 0.2s; font-family: 'Oswald'; margin-top: 10px; width: 100%; }
+        .btn-copy-status:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
+        
+        .copy-msg-global { text-align: center; color: var(--accent-primary); font-size: 0.8rem; opacity: 0; transition: opacity 0.2s; font-family: 'Oswald', sans-serif; height: 0; }
+
+        .loading-text { text-align: center; color: var(--text-dim); font-family: 'Oswald', sans-serif; font-size: 1.2rem; width: 100%; padding: 20px; }
+
+        /* МОДАЛЬНОЕ ОКНО КОНСТРУКТОРА */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: flex-start; z-index: 2000; backdrop-filter: blur(4px); padding-top: 50px; overflow-y: auto; }
+        .modal-overlay.active { display: flex; }
+        .modal-box { width: 700px; max-width: 95%; position: relative; margin-bottom: 50px; }
+        
+        .cloud-input { width: 100%; background: #111; border: 1px solid #333; color: var(--text-main); padding: 10px; margin-bottom: 12px; outline: none; font-family: 'Inter'; font-size: 0.95rem; }
+        .cloud-input:focus { border-color: var(--accent-primary); }
+        textarea.cloud-input { resize: vertical; min-height: 100px; }
+        
+        .btn-small-bld { background: transparent; border: 1px solid var(--text-dim); color: var(--text-dim); cursor: pointer; padding: 6px 12px; font-size: 0.8rem; text-transform: uppercase; transition: 0.2s; font-family: 'Oswald'; }
+        .btn-small-bld:hover { border-color: var(--color-yellow); color: var(--color-yellow); }
+        
+        .b-se-entry { border: 1px solid #333; padding: 12px; margin-bottom: 12px; position: relative; background: rgba(255,255,255,0.02); border-left: 3px solid var(--color-yellow); }
+        .b-se-entry input, .b-se-entry textarea { margin-bottom: 8px; }
+        .btn-close-modal { background: transparent; border: none; color: var(--color-red); font-size: 1.5rem; cursor: pointer; transition: 0.2s; position: absolute; right: 16px; top: 16px; }
+        .btn-close-modal:hover { color: #ff0044; }
+
+    </style>
+</head>
+<body>
+
+    <!-- Навигация -->
+    <a href="navigation.html" class="top-nav-btn"><i class="fa-solid fa-arrow-left"></i> НАЗАД (НАВИГАЦИЯ)</a>
+
+    <!-- Правая панель управления -->
+    <div class="right-controls">
+        <button class="side-nav-btn create-class-btn" onclick="window.toggleBuilderModal()"><i class="fa-solid fa-plus"></i> СОЗДАТЬ СТАТУС</button>
+    </div>
+
+    <!-- Модальное окно: Конструктор Статуса -->
+    <div class="modal-overlay" id="builderModal" onclick="window.closeBuilderOnBg(event)">
+        <div class="panel-outer cut-tl modal-box">
+            <div class="hazard-tape" style="height: 6px; background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--accent-primary) 10px, var(--accent-primary) 20px); border-bottom: 1px solid var(--accent-primary);"></div>
+            <div class="panel-inner cut-tl" style="border-top: none;">
+                <button class="btn-close-modal" onclick="window.toggleBuilderModal()"><i class="fa-solid fa-xmark"></i></button>
+                <div class="header-title oswald" style="font-size: 1.5rem; margin-bottom: 20px; border-bottom: 1px solid var(--accent-primary); padding-bottom: 8px; text-align: left;">КОНСТРУКТОР СТАТУСА</div>
+                
+                <div class="tech-text" style="margin-bottom: 4px;">НАЗВАНИЕ СТАТУСА (NAME)</div>
+                <input type="text" id="b-name" class="cloud-input" placeholder="Например: Tremor (Тремор)">
+                
+                <div class="tech-text" style="margin-bottom: 4px;">БАЗОВЫЙ ЭФФЕКТ (EFFECT)</div>
+                <textarea id="b-effect" class="cloud-input" placeholder="Полное описание базового эффекта статуса..."></textarea>
+
+                <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1px solid #333; padding-bottom: 8px; margin-top: 16px; margin-bottom: 12px;">
+                    <div class="tech-text" style="color: var(--color-yellow); font-size: 1rem;">САЙД-ЭФФЕКТЫ (ПОД-ЭФФЕКТЫ)</div>
+                    <button class="btn-small-bld" onclick="window.addSideEffect()">+ ДОБАВИТЬ САЙД-ЭФФЕКТ</button>
+                </div>
+
+                <div id="builder-sideeffects">
+                    <!-- Сайд эффекты генератора будут здесь -->
+                </div>
+
+                <button class="btn-small-bld" style="width: 100%; padding: 12px; margin-top: 16px; font-size: 1rem; border-color: var(--accent-primary); color: var(--accent-primary);" onclick="window.exportBuilderJson()"><i class="fa-solid fa-file-export"></i> ЭКСПОРТИРОВАТЬ В JSON</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Заголовок страницы -->
+    <div class="header-bar">
+        <div class="header-title oswald">БАЗА ДАННЫХ: СТАТУС ЭФФЕКТЫ</div>
+    </div>
+
+    <div class="filters-section">
+        <!-- Поиск -->
+        <div class="panel-outer cut-tl search-wrapper">
+            <div class="panel-inner cut-tl search-inner">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input type="text" id="search-input" class="search-input" placeholder="Поиск по названию статуса или эффекта..." onkeyup="window.filterStatuses()">
+            </div>
+        </div>
+    </div>
+
+    <div class="compendium-grid" id="compendium">
+        <div class="loading-text">Установка соединения с базой данных...</div>
+    </div>
+
+    <script>
+        // Открытие/закрытие конструктора
+        window.toggleBuilderModal = () => {
+            const modal = document.getElementById('builderModal');
+            modal.classList.toggle('active');
+        };
+        window.closeBuilderOnBg = (e) => {
+            if (e.target.id === 'builderModal') window.toggleBuilderModal();
+        };
+
+        // Добавление поля сайд-эффекта в конструкторе
+        window.addSideEffect = () => {
+            const container = document.getElementById('builder-sideeffects');
+            const html = `
+                <div class="b-se-entry">
+                    <button class="btn-small-bld" style="position: absolute; right: 12px; top: 12px; border-color: var(--color-red); color: var(--color-red); padding: 4px;" onclick="this.parentElement.remove()"><i class="fa-solid fa-trash"></i></button>
+                    <input type="text" class="cloud-input b-se-name" style="width: calc(100% - 40px);" placeholder="Название сайд-эффекта (sideeffectname)">
+                    <textarea class="cloud-input b-se-desc" placeholder="Описание сайд-эффекта (sideeffect)..." style="min-height: 60px; margin-bottom: 0;"></textarea>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', html);
+        };
+
+        // Экспорт JSON из конструктора
+        window.exportBuilderJson = () => {
+            const name = document.getElementById('b-name').value || "Новый Статус";
+            const effect = document.getElementById('b-effect').value || "Нет описания";
+            
+            const sideEffects = [];
+            document.querySelectorAll('.b-se-entry').forEach(el => {
+                const seName = el.querySelector('.b-se-name').value;
+                const seDesc = el.querySelector('.b-se-desc').value;
+                if (seName || seDesc) {
+                    sideEffects.push({
+                        sideeffectname: seName || "Без названия",
+                        sideeffect: seDesc || "Нет описания"
+                    });
+                }
+            });
+
+            const newStatus = {
+                Name: name,
+                Effect: effect,
+                SideEffects: sideEffects
+            };
+
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify([newStatus], null, 2));
+            const dl = document.createElement('a');
+            dl.setAttribute("href", dataStr);
+            dl.setAttribute("download", name + ".json");
+            document.body.appendChild(dl);
+            dl.click();
+            dl.remove();
+        };
+
+        // Поиск по статусам
+        window.filterStatuses = () => {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const cards = document.querySelectorAll('.compendium-card');
+            
+            cards.forEach(card => {
+                const nameData = card.getAttribute('data-name').toLowerCase();
+                // Также ищем по описанию, чтобы можно было найти скрытые механики
+                const effectData = card.getAttribute('data-effect').toLowerCase();
+                
+                if (nameData.includes(query) || effectData.includes(query)) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        };
+
+        // Раскрытие главной карточки
+        window.toggleCard = (el) => {
+            const card = el.closest('.panel-outer');
+            const talentsWrapper = card.querySelector('.talents-wrapper');
+            const isExpanded = card.classList.toggle('expanded');
+            
+            if (isExpanded) {
+                talentsWrapper.style.maxHeight = talentsWrapper.scrollHeight + 100 + "px"; // + запас для вложенных
+                talentsWrapper.style.marginTop = "8px";
+                talentsWrapper.style.opacity = "1";
+                setTimeout(() => { if (card.classList.contains('expanded')) talentsWrapper.style.maxHeight = 'none'; }, 400);
+            } else {
+                talentsWrapper.style.maxHeight = talentsWrapper.scrollHeight + "px";
+                setTimeout(() => {
+                    talentsWrapper.style.maxHeight = "0px";
+                    talentsWrapper.style.marginTop = "0px";
+                    talentsWrapper.style.opacity = "0";
+                }, 10);
+            }
+        };
+
+        // Раскрытие вложенного сайд-эффекта
+        window.toggleSideEffect = (e, btn) => {
+            e.stopPropagation();
+            const block = btn.closest('.side-effect-block');
+            block.classList.toggle('collapsed');
+        };
+
+        // Копирование всего статуса
+        window.copyStatus = (btn) => {
+            const card = btn.closest('.panel-outer');
+            const name = card.getAttribute('data-name');
+            const effect = card.getAttribute('data-effect');
+            
+            let textToCopy = `=== ${name} ===\n${effect}\n`;
+            
+            const seBlocks = card.querySelectorAll('.side-effect-block');
+            if (seBlocks.length > 0) {
+                textToCopy += `\n--- Сайд-эффекты ---\n`;
+                seBlocks.forEach(block => {
+                    const seName = block.getAttribute('data-sename');
+                    const seDesc = block.getAttribute('data-sedesc');
+                    textToCopy += `* ${seName}:\n${seDesc}\n\n`;
+                });
+            }
+            
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                const msg = card.querySelector('.copy-msg-global');
+                msg.style.opacity = '1';
+                msg.style.height = 'auto';
+                setTimeout(() => {
+                    msg.style.opacity = '0';
+                    msg.style.height = '0';
+                }, 2000);
+            }).catch(err => {
+                console.error('Ошибка копирования:', err);
+            });
+        };
+
+        // Загрузка JSON
+        async function loadStatuses() {
+            const container = document.getElementById('compendium');
+            
+            try {
+                const response = await fetch('statuses.json');
+                if (!response.ok) throw new Error('Файл statuses.json не найден');
+                
+                const statusesData = await response.json();
+                container.innerHTML = '';
+                
+                statusesData.forEach(status => {
+                    const safeName = status.Name ? status.Name.replace(/"/g, '&quot;') : 'Без названия';
+                    const safeEffect = status.Effect ? status.Effect.replace(/"/g, '&quot;') : '';
+
+                    let sideEffectsHtml = '';
+                    if (status.SideEffects && Array.isArray(status.SideEffects) && status.SideEffects.length > 0) {
+                        status.SideEffects.forEach(se => {
+                            const seNameSafe = se.sideeffectname.replace(/"/g, '&quot;');
+                            const seDescSafe = se.sideeffect.replace(/"/g, '&quot;');
+                            
+                            sideEffectsHtml += `
+                                <div class="side-effect-block collapsed" data-sename="${seNameSafe}" data-sedesc="${seDescSafe}">
+                                    <div class="se-header" onclick="window.toggleSideEffect(event, this)">
+                                        <div style="display:flex; align-items:center;">
+                                            <i class="fa-solid fa-chevron-down se-collapse-icon"></i>
+                                            <span class="se-name">${se.sideeffectname}</span>
+                                        </div>
+                                    </div>
+                                    <div class="se-desc-wrapper">
+                                        <div class="se-desc">${se.sideeffect}</div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    }
+
+                    const cardHtml = `
+                        <div class="panel-outer cut-tl compendium-card" data-name="${safeName}" data-effect="${safeEffect}">
+                            <div class="hazard-tape"></div>
+                            <div class="panel-inner cut-tl" style="border-top: none;">
+                                
+                                <div class="card-header-clickable" onclick="window.toggleCard(this)">
+                                    <i class="fa-solid fa-chevron-down expand-icon"></i>
+                                    <div class="class-title-wrapper">
+                                        <div class="class-title oswald">${status.Name}</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="talents-wrapper">
+                                    <div class="status-main-desc">${status.Effect}</div>
+                                    ${sideEffectsHtml !== '' ? `<div class="talents-container">${sideEffectsHtml}</div>` : ''}
+                                    
+                                    <button class="btn-copy-status" onclick="window.copyStatus(this)"><i class="fa-regular fa-copy"></i> КОПИРОВАТЬ СТАТУС В БУФЕР</button>
+                                    <div class="copy-msg-global">СКОПИРОВАНО!</div>
+                                </div>
+
+                            </div>
+                        </div>
+                    `;
+                    
+                    container.insertAdjacentHTML('beforeend', cardHtml);
+                });
+
+            } catch (error) {
+                console.error("Ошибка загрузки статусов:", error);
+                container.innerHTML = `<div class="loading-text" style="color: var(--color-red);">Ошибка связи с базой данных.<br><span style="font-size: 0.8rem; color: var(--text-dim);">Убедитесь, что файл statuses.json существует.</span></div>`;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStatuses();
+        });
+    </script>
+</body>
+</html>
