@@ -12,18 +12,19 @@
         :root {
             --bg-main: #070707; --bg-panel: #000000; 
             --accent-primary: #D9772F; --accent-muted: #8B5A2B;
-            --color-cyan: #45B3CB; --text-main: #E0D8C8; --text-dim: #696969;
+            --color-cyan: #45B3CB; --color-red: #C7243A; 
+            --color-yellow: #F1C40F; --text-main: #E0D8C8; --text-dim: #696969;
             --border-width: 1px; --chamfer: 14px;
 
             /* Цвета Грехов Project Moon */
-            --sin-pride: #1E3A8A;   
-            --sin-wrath: #C7243A;   
-            --sin-envy: #9B59B6;    
-            --sin-sloth: #F1C40F;   
-            --sin-gluttony: #8FCC2A; 
-            --sin-lust: #E67E22;    
-            --sin-gloom: #45B3CB;   
-            --sin-other: #27AE60;   
+            --sin-pride: #1E3A8A;   /* Темно-синий */
+            --sin-wrath: #C7243A;   /* Красный */
+            --sin-envy: #9B59B6;    /* Фиолетовый */
+            --sin-sloth: #F1C40F;   /* Желтый */
+            --sin-gluttony: #8FCC2A; /* Салатовый */
+            --sin-lust: #E67E22;    /* Оранжевый */
+            --sin-gloom: #45B3CB;   /* Голубой */
+            --sin-other: #27AE60;   /* Изумрудный */
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -42,11 +43,8 @@
         .top-nav-btn { position: fixed; top: 10px; left: 20px; padding: 6px 12px; font-size: 0.8rem; border-color: var(--color-cyan); color: var(--color-cyan); font-family: 'Oswald', sans-serif; z-index: 100; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; border: 1px solid var(--color-cyan); cursor: pointer; text-transform: uppercase; transition: 0.2s; }
         .top-nav-btn:hover { background-color: var(--color-cyan); color: #000; }
 
-        .lang-toggle-btn { position: fixed; top: 10px; right: 20px; padding: 6px 12px; font-size: 0.8rem; border-color: var(--text-dim); color: var(--text-dim); font-family: 'Oswald', sans-serif; z-index: 100; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; border: 1px solid var(--text-dim); cursor: pointer; text-transform: uppercase; transition: 0.2s; }
-        .lang-toggle-btn:hover { background-color: var(--text-main); color: #000; border-color: var(--text-main); }
-
         /* Заголовок страницы */
-        .header-bar { width: 100%; max-width: 1200px; display: flex; justify-content: center; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px; margin-top: 10px; }
+        .header-bar { width: 100%; max-width: 1200px; display: flex; justify-content: center; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--accent-muted); padding-bottom: 10px; margin-top: 10px; }
         .header-title { color: var(--color-cyan); font-size: 1.8rem; letter-spacing: 2px; text-align: center; }
 
         /* Секция с официальной вики */
@@ -54,6 +52,7 @@
         
         .official-wiki-btn { width: 100%; display: flex; align-items: center; justify-content: center; gap: 12px; background: rgba(69, 179, 203, 0.1); border: 1px solid var(--color-cyan); color: var(--color-cyan); padding: 16px; font-family: 'Oswald', sans-serif; font-size: 1.2rem; text-decoration: none; text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; border-radius: 2px; }
         .official-wiki-btn:hover { background: var(--color-cyan); color: #000; box-shadow: 0 0 20px rgba(69, 179, 203, 0.4); }
+        .official-wiki-btn i { font-size: 1.5rem; }
 
         /* Сетка Навигации */
         .compendium-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; width: 100%; max-width: 1200px; align-items: start; }
@@ -73,42 +72,51 @@
         .status-badge { display: inline-block; padding: 4px 10px; font-family: 'Oswald', sans-serif; font-size: 0.75rem; border: 1px solid var(--text-dim); color: var(--text-dim); border-radius: 2px; letter-spacing: 1px; margin-top: auto; align-self: flex-start; }
         .panel-outer:hover .status-badge { border-color: var(--text-main); color: var(--text-main); }
 
-        /* ЦВЕТА ГРЕХОВ */
+        /* ================= ЦВЕТОВЫЕ СХЕМЫ ГРЕХОВ ================= */
+        
+        /* 1. Гордыня (Pride) */
         .card-pride { background-color: var(--sin-pride); }
         .card-pride .hazard-tape { background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--sin-pride) 10px, var(--sin-pride) 20px); border-color: var(--sin-pride); }
         .card-pride .card-icon { color: var(--sin-pride); }
         .card-pride:hover { transform: translateY(-3px); box-shadow: 0 0 15px rgba(30, 58, 138, 0.4); }
 
+        /* 2. Гнев (Wrath) */
         .card-wrath { background-color: var(--sin-wrath); }
         .card-wrath .hazard-tape { background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--sin-wrath) 10px, var(--sin-wrath) 20px); border-color: var(--sin-wrath); }
         .card-wrath .card-icon { color: var(--sin-wrath); }
         .card-wrath:hover { transform: translateY(-3px); box-shadow: 0 0 15px rgba(199, 36, 58, 0.4); }
 
+        /* 3. Зависть (Envy) */
         .card-envy { background-color: var(--sin-envy); }
         .card-envy .hazard-tape { background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--sin-envy) 10px, var(--sin-envy) 20px); border-color: var(--sin-envy); }
         .card-envy .card-icon { color: var(--sin-envy); }
         .card-envy:hover { transform: translateY(-3px); box-shadow: 0 0 15px rgba(155, 89, 182, 0.4); }
 
+        /* 4. Лень (Sloth) */
         .card-sloth { background-color: var(--sin-sloth); }
         .card-sloth .hazard-tape { background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--sin-sloth) 10px, var(--sin-sloth) 20px); border-color: var(--sin-sloth); }
         .card-sloth .card-icon { color: var(--sin-sloth); }
         .card-sloth:hover { transform: translateY(-3px); box-shadow: 0 0 15px rgba(241, 196, 15, 0.4); }
 
+        /* 5. Обжорство (Gluttony) */
         .card-gluttony { background-color: var(--sin-gluttony); }
         .card-gluttony .hazard-tape { background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--sin-gluttony) 10px, var(--sin-gluttony) 20px); border-color: var(--sin-gluttony); }
         .card-gluttony .card-icon { color: var(--sin-gluttony); }
         .card-gluttony:hover { transform: translateY(-3px); box-shadow: 0 0 15px rgba(143, 204, 42, 0.4); }
 
+        /* 6. Похоть (Lust) */
         .card-lust { background-color: var(--sin-lust); }
         .card-lust .hazard-tape { background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--sin-lust) 10px, var(--sin-lust) 20px); border-color: var(--sin-lust); }
         .card-lust .card-icon { color: var(--sin-lust); }
         .card-lust:hover { transform: translateY(-3px); box-shadow: 0 0 15px rgba(230, 126, 34, 0.4); }
 
+        /* 7. Уныние (Gloom) */
         .card-gloom { background-color: var(--sin-gloom); }
         .card-gloom .hazard-tape { background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--sin-gloom) 10px, var(--sin-gloom) 20px); border-color: var(--sin-gloom); }
         .card-gloom .card-icon { color: var(--sin-gloom); }
         .card-gloom:hover { transform: translateY(-3px); box-shadow: 0 0 15px rgba(69, 179, 203, 0.4); }
 
+        /* 8. Иное (Other - Emerald) */
         .card-other { background-color: var(--sin-other); }
         .card-other .hazard-tape { background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--sin-other) 10px, var(--sin-other) 20px); border-color: var(--sin-other); }
         .card-other .card-icon { color: var(--sin-other); }
@@ -119,172 +127,144 @@
 <body>
 
     <!-- Навигация -->
-    <a href="index.html" class="top-nav-btn" data-ru="<i class='fa-solid fa-house'></i> ГЛАВНОЕ МЕНЮ" data-en="<i class='fa-solid fa-house'></i> MAIN MENU"><i class="fa-solid fa-house"></i> ГЛАВНОЕ МЕНЮ</a>
-    
-    <button class="lang-toggle-btn" onclick="toggleLanguage()">
-        <i class="fa-solid fa-globe"></i> <span id="lang-display">EN</span>
-    </button>
+    <a href="index.html" class="top-nav-btn"><i class="fa-solid fa-house"></i> ГЛАВНОЕ МЕНЮ</a>
 
     <!-- Заголовок страницы -->
     <div class="header-bar">
-        <div class="header-title oswald translatable" data-ru="БАЗА ЗНАНИЙ И АРХИВЫ (НАВИГАЦИЯ)" data-en="KNOWLEDGE BASE & ARCHIVES (NAVIGATION)">БАЗА ЗНАНИЙ И АРХИВЫ (НАВИГАЦИЯ)</div>
+        <div class="header-title oswald">БАЗА ЗНАНИЙ И АРХИВЫ (НАВИГАЦИЯ)</div>
     </div>
 
     <!-- Кнопка на официальную WIKI -->
     <div class="wiki-section">
-        <a href="https://www.dandwiki.com/wiki/Project_Moon_(5e_Campaign_Setting)" target="_blank" class="official-wiki-btn translatable" data-ru="<i class='fa-solid fa-globe'></i> ОФИЦИАЛЬНАЯ WIKI МОДУЛЯ D&D 5E" data-en="<i class='fa-solid fa-globe'></i> OFFICIAL D&D 5E MODULE WIKI">
+        <a href="https://www.dandwiki.com/wiki/Project_Moon_(5e_Campaign_Setting)" target="_blank" class="official-wiki-btn">
             <i class="fa-solid fa-globe"></i> ОФИЦИАЛЬНАЯ WIKI МОДУЛЯ D&D 5E
         </a>
     </div>
 
     <!-- Сетка с локальными базами (8 кнопок) -->
-    <!-- ВНИМАНИЕ: Ссылки теперь ведут в папку Wiki/ -->
     <div class="compendium-grid">
         
         <!-- 1. Гордыня (Pride) -->
-        <a href="Wiki/grimoire.html" class="panel-outer cut-tl card-pride">
+        <a href="grimoire.html" class="panel-outer cut-tl card-pride">
             <div class="hazard-tape"></div>
             <div class="panel-inner cut-tl" style="border-top: none;">
                 <div class="card-header">
                     <i class="fa-solid fa-book-journal-whills card-icon"></i>
-                    <div class="card-title oswald translatable" data-ru="ГРИМУАР АРХЕТИПОВ" data-en="ARCHETYPE GRIMOIRE">ГРИМУАР АРХЕТИПОВ</div>
+                    <div class="card-title oswald">ГРИМУАР АРХЕТИПОВ</div>
                 </div>
-                <div class="lore-text translatable" style="margin-bottom: 16px;" data-ru="Полный перечень корпоративных, офисных и синдикатных классов." data-en="Full list of corporate, office, and syndicate classes.">
+                <div class="lore-text" style="margin-bottom: 16px;">
                     Полный перечень корпоративных, офисных и синдикатных классов.
                 </div>
-                <div class="status-badge translatable" data-ru="ДОСТУП РАЗРЕШЕН" data-en="ACCESS GRANTED">ДОСТУП РАЗРЕШЕН</div>
+                <div class="status-badge" style="border-color: var(--sin-pride); color: var(--sin-pride);">ДОСТУП РАЗРЕШЕН</div>
             </div>
         </a>
 
         <!-- 2. Гнев (Wrath) -->
-        <a href="Wiki/feats.html" class="panel-outer cut-tl card-wrath">
+        <a href="feats.html" class="panel-outer cut-tl card-wrath">
             <div class="hazard-tape"></div>
             <div class="panel-inner cut-tl" style="border-top: none;">
                 <div class="card-header">
                     <i class="fa-solid fa-dumbbell card-icon"></i>
-                    <div class="card-title oswald translatable" data-ru="БАЗА ЧЕРТ (FEATS)" data-en="FEATS COMPENDIUM">БАЗА ЧЕРТ (FEATS)</div>
+                    <div class="card-title oswald">БАЗА ЧЕРТ (FEATS)</div>
                 </div>
-                <div class="lore-text translatable" style="margin-bottom: 16px;" data-ru="Архив уникальных пассивных умений, стилей боя и мутаций." data-en="Archive of unique passive skills, combat styles, and mutations.">
+                <div class="lore-text" style="margin-bottom: 16px;">
                     Архив уникальных пассивных умений, стилей боя и мутаций.
                 </div>
-                <div class="status-badge translatable" data-ru="ДОСТУП РАЗРЕШЕН" data-en="ACCESS GRANTED">ДОСТУП РАЗРЕШЕН</div>
+                <div class="status-badge" style="border-color: var(--sin-wrath); color: var(--sin-wrath);">ДОСТУП РАЗРЕШЕН</div>
             </div>
         </a>
 
         <!-- 3. Зависть (Envy) -->
-        <a href="Wiki/equipment.html" class="panel-outer cut-tl card-envy">
+        <a href="equipment.html" class="panel-outer cut-tl card-envy">
             <div class="hazard-tape"></div>
             <div class="panel-inner cut-tl" style="border-top: none;">
                 <div class="card-header">
                     <i class="fa-solid fa-shield-halved card-icon"></i>
-                    <div class="card-title oswald translatable" data-ru="БАЗА СНАРЯЖЕНИЯ" data-en="EQUIPMENT DATABASE">БАЗА СНАРЯЖЕНИЯ</div>
+                    <div class="card-title oswald">БАЗА СНАРЯЖЕНИЯ</div>
                 </div>
-                <div class="lore-text translatable" style="margin-bottom: 16px;" data-ru="Мастерское оружие, броня, аугментации и импланты." data-en="Workshop weapons, armor, augmentations, and implants.">
+                <div class="lore-text" style="margin-bottom: 16px;">
                     Мастерское оружие, броня, аугментации и импланты.
                 </div>
-                <div class="status-badge translatable" data-ru="ДОСТУП РАЗРЕШЕН" data-en="ACCESS GRANTED">ДОСТУП РАЗРЕШЕН</div>
+                <div class="status-badge" style="border-color: var(--sin-envy); color: var(--sin-envy);">ДОСТУП РАЗРЕШЕН</div>
             </div>
         </a>
 
         <!-- 4. Лень (Sloth) -->
-        <a href="Wiki/rules.html" class="panel-outer cut-tl card-sloth">
+        <a href="rules.html" class="panel-outer cut-tl card-sloth">
             <div class="hazard-tape"></div>
             <div class="panel-inner cut-tl" style="border-top: none;">
                 <div class="card-header">
                     <i class="fa-solid fa-scale-balanced card-icon"></i>
-                    <div class="card-title oswald translatable" data-ru="ПРАВИЛА И МЕХАНИКИ" data-en="RULES & MECHANICS">ПРАВИЛА И МЕХАНИКИ</div>
+                    <div class="card-title oswald">ПРАВИЛА И МЕХАНИКИ</div>
                 </div>
-                <div class="lore-text translatable" style="margin-bottom: 16px;" data-ru="Свод правил по Столкновениям (Clashing) и рассудку." data-en="Rulebook for Clashing, Sanity, and other systems.">
+                <div class="lore-text" style="margin-bottom: 16px;">
                     Свод правил по Столкновениям (Clashing) и рассудку.
                 </div>
-                <div class="status-badge translatable" data-ru="ДОСТУП РАЗРЕШЕН" data-en="ACCESS GRANTED">ДОСТУП РАЗРЕШЕН</div>
+                <div class="status-badge" style="border-color: var(--sin-sloth); color: var(--sin-sloth);">ДОСТУП РАЗРЕШЕН</div>
             </div>
         </a>
 
         <!-- 5. Обжорство (Gluttony) -->
-        <a href="Wiki/bestiary.html" class="panel-outer cut-tl card-gluttony">
+        <a href="bestiary.html" class="panel-outer cut-tl card-gluttony">
             <div class="hazard-tape"></div>
             <div class="panel-inner cut-tl" style="border-top: none;">
                 <div class="card-header">
                     <i class="fa-solid fa-skull card-icon"></i>
-                    <div class="card-title oswald translatable" data-ru="БЕСТИАРИЙ" data-en="BESTIARY">БЕСТИАРИЙ</div>
+                    <div class="card-title oswald">БЕСТИАРИЙ</div>
                 </div>
-                <div class="lore-text translatable" style="margin-bottom: 16px;" data-ru="Архив Аномалий, Искажений и прочих угроз Города." data-en="Archive of Abnormalities, Distortions, and City threats.">
+                <div class="lore-text" style="margin-bottom: 16px;">
                     Архив Аномалий, Искажений и прочих угроз Города.
                 </div>
-                <div class="status-badge translatable" data-ru="ДОСТУП РАЗРЕШЕН" data-en="ACCESS GRANTED">ДОСТУП РАЗРЕШЕН</div>
+                <div class="status-badge" style="border-color: var(--sin-gluttony); color: var(--sin-gluttony);">ДОСТУП РАЗРЕШЕН</div>
             </div>
         </a>
 
         <!-- 6. Похоть (Lust) -->
-        <a href="Wiki/egogifts.html" class="panel-outer cut-tl card-lust">
+        <a href="egogifts.html" class="panel-outer cut-tl card-lust">
             <div class="hazard-tape"></div>
             <div class="panel-inner cut-tl" style="border-top: none;">
                 <div class="card-header">
                     <i class="fa-solid fa-gem card-icon"></i>
-                    <div class="card-title oswald translatable" data-ru="Э.Г.О. ГИФТЫ" data-en="E.G.O. GIFTS">Э.Г.О. ГИФТЫ</div>
+                    <div class="card-title oswald">Э.Г.О. ГИФТЫ</div>
                 </div>
-                <div class="lore-text translatable" style="margin-bottom: 16px;" data-ru="Каталог проявлений Э.Г.О. и даров Аномалий (E.G.O. Gifts)." data-en="Catalog of E.G.O. manifestations and Abnormality gifts.">
+                <div class="lore-text" style="margin-bottom: 16px;">
                     Каталог проявлений Э.Г.О. и даров Аномалий (E.G.O. Gifts).
                 </div>
-                <div class="status-badge translatable" data-ru="ДОСТУП РАЗРЕШЕН" data-en="ACCESS GRANTED">ДОСТУП РАЗРЕШЕН</div>
+                <div class="status-badge" style="border-color: var(--sin-lust); color: var(--sin-lust);">ДОСТУП РАЗРЕШЕН</div>
             </div>
         </a>
 
         <!-- 7. Уныние (Gloom) -->
-        <a href="Wiki/statuses.html" class="panel-outer cut-tl card-gloom">
+        <a href="statuses.html" class="panel-outer cut-tl card-gloom">
             <div class="hazard-tape"></div>
             <div class="panel-inner cut-tl" style="border-top: none;">
                 <div class="card-header">
                     <i class="fa-solid fa-biohazard card-icon"></i>
-                    <div class="card-title oswald translatable" data-ru="СТАТУС ЭФФЕКТЫ" data-en="STATUS EFFECTS">СТАТУС ЭФФЕКТЫ</div>
+                    <div class="card-title oswald">СТАТУС ЭФФЕКТЫ</div>
                 </div>
-                <div class="lore-text translatable" style="margin-bottom: 16px;" data-ru="Подробное описание Кровотечения, Огня, Тремора, Разрыва и прочих." data-en="Detailed descriptions of Bleed, Burn, Tremor, Rupture, etc.">
+                <div class="lore-text" style="margin-bottom: 16px;">
                     Подробное описание Кровотечения, Огня, Тремора, Разрыва и прочих.
                 </div>
-                <div class="status-badge translatable" data-ru="ДОСТУП РАЗРЕШЕН" data-en="ACCESS GRANTED">ДОСТУП РАЗРЕШЕН</div>
+                <div class="status-badge" style="border-color: var(--sin-gloom); color: var(--sin-gloom);">ДОСТУП РАЗРЕШЕН</div>
             </div>
         </a>
 
         <!-- 8. Иное (Other / Emerald) -->
-        <a href="Wiki/lore.html" class="panel-outer cut-tl card-other">
+        <a href="lore.html" class="panel-outer cut-tl card-other">
             <div class="hazard-tape"></div>
             <div class="panel-inner cut-tl" style="border-top: none;">
                 <div class="card-header">
                     <i class="fa-solid fa-hourglass-half card-icon"></i>
-                    <div class="card-title oswald translatable" data-ru="ВРЕМЯ И ИСТОРИЯ" data-en="TIME AND HISTORY">ВРЕМЯ И ИСТОРИЯ</div>
+                    <div class="card-title oswald">ВРЕМЯ И ИСТОРИЯ</div>
                 </div>
-                <div class="lore-text translatable" style="margin-bottom: 16px;" data-ru="Хронология событий Города, падение корпораций и лор." data-en="Timeline of City events, fall of corporations, and lore.">
+                <div class="lore-text" style="margin-bottom: 16px;">
                     Хронология событий Города, падение корпораций и лор.
                 </div>
-                <div class="status-badge translatable" data-ru="ДОСТУП РАЗРЕШЕН" data-en="ACCESS GRANTED">ДОСТУП РАЗРЕШЕН</div>
+                <div class="status-badge" style="border-color: var(--sin-other); color: var(--sin-other);">ДОСТУП РАЗРЕШЕН</div>
             </div>
         </a>
 
     </div>
 
-    <script>
-        // Скрипт мультиязычности
-        let currentLang = localStorage.getItem('pmd_lang') || 'ru';
-
-        function applyLanguage() {
-            document.querySelectorAll('.translatable, .top-nav-btn').forEach(el => {
-                if(el.hasAttribute(`data-${currentLang}`)) {
-                    el.innerHTML = el.getAttribute(`data-${currentLang}`);
-                }
-            });
-            // Текст на кнопке переключения показывает язык, на который МЫ МОЖЕМ переключиться
-            document.getElementById('lang-display').innerText = currentLang === 'ru' ? 'EN' : 'RU';
-        }
-
-        function toggleLanguage() {
-            currentLang = currentLang === 'ru' ? 'en' : 'ru';
-            localStorage.setItem('pmd_lang', currentLang);
-            applyLanguage();
-        }
-
-        // Запуск при загрузке страницы
-        document.addEventListener('DOMContentLoaded', applyLanguage);
-    </script>
 </body>
 </html>
