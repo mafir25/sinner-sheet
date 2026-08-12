@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>База Снаряжения / Equipment Database</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Merriweather:ital,wght@0,300;1,300;1,700&family=Oswald:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-main: #070707; --bg-panel: #000000; 
+            --accent-primary: #9B59B6; /* Envy / Зависть */
+            --accent-muted: #5e3370; 
+            --color-red: #C7243A; --color-cyan: #45B3CB; --color-yellow: #F1C40F;
+            --text-main: #E0D8C8; --text-dim: #696969;
+            --border-width: 1px; --chamfer: 14px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-main); color: var(--text-main); font-family: 'Inter', sans-serif;
+            min-height: 100vh; padding: 60px 20px 40px 20px; display: flex; flex-direction: column; align-items: center;
+            background-image: linear-gradient(rgba(7,7,7,0.85), rgba(7,7,7,0.85)), repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.02) 2px, rgba(255,255,255,0.02) 4px);
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4, .oswald { font-family: 'Oswald', sans-serif; text-transform: uppercase; }
+        .tech-text { font-family: 'Inter', sans-serif; color: var(--accent-primary); font-size: 0.8rem; }
+        .lore-text { font-family: 'Merriweather', serif; font-style: italic; color: var(--text-main); font-size: 0.95rem; line-height: 1.6; }
+
+        /* Навигация */
+        .top-nav-btn { position: fixed; top: 10px; left: 20px; padding: 6px 12px; font-size: 0.8rem; border-color: var(--accent-primary); color: var(--accent-primary); font-family: 'Oswald', sans-serif; z-index: 100; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; border: 1px solid var(--accent-primary); cursor: pointer; text-transform: uppercase; transition: 0.2s; }
+        .top-nav-btn:hover { background-color: var(--accent-primary); color: #000; }
+
+        /* Заголовок страницы */
+        .header-bar { width: 100%; max-width: 1000px; display: flex; justify-content: center; align-items: center; margin-bottom: 30px; border-bottom: 1px solid var(--accent-muted); padding-bottom: 10px; margin-top: 10px; flex-direction: column; gap: 8px;}
+        .header-title { color: var(--accent-primary); font-size: 2rem; letter-spacing: 2px; text-align: center; }
+        .header-subtitle { color: var(--text-dim); font-size: 0.9rem; font-family: 'Inter'; text-align: center; }
+
+        /* Лейаут */
+        .content-grid { display: flex; flex-direction: column; gap: 30px; width: 100%; max-width: 1000px; }
+
+        .panel-outer { background-color: var(--accent-primary); padding: var(--border-width); position: relative; display: flex; flex-direction: column; }
+        .panel-inner { background-color: var(--bg-panel); padding: 30px; height: 100%; display: flex; flex-direction: column; }
+        .cut-tl { clip-path: polygon(var(--chamfer) 0, 100% 0, 100% 100%, 0 100%, 0 var(--chamfer)); }
+        
+        .hazard-tape { height: 6px; background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--accent-muted) 10px, var(--accent-muted) 20px); border-bottom: 1px solid var(--accent-primary); }
+
+        .section-title { font-size: 1.6rem; color: var(--accent-primary); margin-bottom: 16px; border-bottom: 1px solid #333; padding-bottom: 8px; display: flex; align-items: center; gap: 12px; }
+        .section-title i { font-size: 1.3rem; }
+
+        .paragraph { margin-bottom: 16px; text-align: justify; }
+        .paragraph:last-child { margin-bottom: 0; }
+        
+        .highlight { color: var(--accent-primary); font-weight: bold; font-family: 'Oswald', sans-serif; font-size: 1.1rem; letter-spacing: 1px; text-transform: uppercase;}
+        
+        .info-block { border-left: 3px solid var(--accent-primary); padding-left: 16px; margin-bottom: 24px; position: relative; background: rgba(255,255,255,0.02); padding: 16px; border-radius: 0 4px 4px 0; transition: background 0.2s; }
+        .info-block:hover { background: rgba(255,255,255,0.04); }
+        .info-block:last-child { margin-bottom: 0; }
+
+        .warning-text { color: var(--color-red); font-family: 'Oswald'; font-weight: normal; letter-spacing: 1px; }
+
+    </style>
+</head>
+<body>
+
+    <a href="navigation.html" class="top-nav-btn"><i class="fa-solid fa-arrow-left"></i> НАЗАД (НАВИГАЦИЯ)</a>
+
+    <div class="header-bar">
+        <div class="header-title oswald">БАЗА СНАРЯЖЕНИЯ (EQUIPMENT)</div>
+        <div class="header-subtitle">Сводная информация о Мастерских, аугментациях, налогах на огнестрельное оружие и дресс-кодах Города.</div>
+    </div>
+
+    <div class="content-grid">
+        
+        <!-- АУГМЕНТАЦИИ -->
+        <div class="panel-outer cut-tl">
+            <div class="hazard-tape"></div>
+            <div class="panel-inner cut-tl" style="border-top: none;">
+                <div class="section-title oswald"><i class="fa-solid fa-microchip"></i> АУГМЕНТАЦИИ (AUGMENTATION)</div>
+                <div class="lore-text">
+                    <div class="paragraph">
+                        В Городе лучше иметь физические улучшения, чем обходиться без них. Из-за бесчисленных опасностей, сопровождающих жизнь в Городе, аугментации стали основным способом самозащиты. Фиксеры, члены Синдикатов и даже обычные горожане знают это, и это правило применимо ко всем в равной степени. Фиксер, который не модифицирует свое тело, всегда будет находиться в невыгодном положении перед конкурентами, не говоря уже о врагах, которые уже давно аугментированы.
+                    </div>
+                    <div class="paragraph">
+                        Существует бесчисленное множество вариантов улучшений: от механических экзоскелетов и бионических имплантов до протезов конечностей и даже полной замены тела на протез. Все они могут быть специализированы для самых разных задач. <span class="highlight">Единственный ограничивающий фактор — это деньги</span>, так как первоклассные процедуры по установке аугментаций стоят колоссальных сумм, а более дешевые аналоги могут быть крайне ненадежными и даже опасными. Тем не менее, сверхчеловеческие возможности, которые предоставляют модификации, жизненно необходимы для Фиксеров, что полностью оправдывает их цену.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ОДЕЖДА И УНИФОРМА -->
+        <div class="panel-outer cut-tl">
+            <div class="hazard-tape"></div>
+            <div class="panel-inner cut-tl" style="border-top: none;">
+                <div class="section-title oswald"><i class="fa-solid fa-user-tie"></i> ОДЕЖДА И УНИФОРМА (ATTIRE)</div>
+                <div class="lore-text">
+                    <div class="paragraph">
+                        Фиксеры украшают себя широким спектром одежды и аксессуаров, опираясь в основном на личные предпочтения. Однако в этом бизнесе одежда также выполняет важнейшую маркетинговую функцию. Профессиональный и единообразный внешний вид заставляет Офисы казаться более надежными в глазах потенциальных клиентов. Из-за этого многие Офисы придерживаются строгого дресс-кода. Каждая Ассоциация (Association) также имеет свою собственную узнаваемую униформу, соответствующую ее идентичности.
+                    </div>
+                    <div class="info-block">
+                        <div class="paragraph">
+                            Хотя может показаться иначе, одежда Фиксеров <span class="highlight">не жертвует защитой ради стиля</span>. Они уделяют пристальное внимание тканям, из которых сшиты их наряды, ведь именно они делают костюм практичным.
+                        </div>
+                        <div class="paragraph">
+                            В зависимости от характеристик и качества, ткань может обеспечивать такую же защиту, как латный доспех, а иногда и превосходить его, одновременно давая тактические преимущества вроде повышенной мобильности. Высококачественная ткань способна даже заменить аугментацию в плане защиты, что делает подобный текстиль идеальной броней для Фиксеров. Для получения одежды с нужными спецификациями они плотно сотрудничают с Портными (Tailors).
+                        </div>
+                    </div>
+                    <div class="paragraph">
+                        Возможны и другие, более специализированные модификации экипировки. Например, Фиксеры Ассоциации Лю (Liu Association) носят костюмы, расшитые лунным камнем — Сингулярностью Корпорации M, — который многократно повышает их сопротивляемость психологическим атакам.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ОРУЖИЕ И ОГНЕСТРЕЛ -->
+        <div class="panel-outer cut-tl">
+            <div class="hazard-tape"></div>
+            <div class="panel-inner cut-tl" style="border-top: none;">
+                <div class="section-title oswald"><i class="fa-solid fa-gavel"></i> ОРУЖИЕ И ОГНЕСТРЕЛ (WEAPONRY & FIREARMS)</div>
+                
+                <div class="lore-text">
+                    <div class="paragraph">
+                        Арсенал Фиксеров так же разнообразен, как и их одежда: от молотов и дубинок до ножей, мечей, копий, бензопил, цепов и многого другого. Большинство Фиксеров приобретают свое оружие и инструменты в <strong>Мастерских (Workshops)</strong>, которые специально производят и продают эту продукцию, наживаясь на прибыльной торговле в сфере Фиксеров. Например, Мастерская «Стигма» (Stigma Workshop) создает оружие ближнего боя с раскаленными нитями, а «Union Co.» — бионическое оружие, которое напрямую крепится к телу.
+                    </div>
+                    
+                    <div class="info-block">
+                        <span class="highlight">КОНТРОЛЬ АССОЦИАЦИИ ТРЕ</span><br><br>
+                        Все оружие и инструменты, используемые Фиксерами, контролируются <strong>Ассоциацией Тре (Tres Association)</strong>. Она тестирует и проверяет чертежи оружия, передает их на утверждение Главе (The Head) и взимает за них налоги. <span class="warning-text">Использование любого оружия, не прошедшего их оценку, считается строжайше незаконным.</span>
+                    </div>
+
+                    <div class="paragraph">
+                        Существует одна категория оружия, которая крайне редко используется Фиксерами: <strong>огнестрельное оружие</strong>. Ряд факторов делает стволы невыгодными, и главная из них — крайняя неэкономичность. В Городе <strong>два полных магазина патронов могут стоить столько же, сколько сам пистолет</strong>. К этому добавляются колоссальные налоги, которыми Глава облагает любую покупку огнестрела. 
+                    </div>
+                    <div class="paragraph">
+                        Поставщиков тоже крайне мало, так как лишь единицы Мастерских имеют лицензию на создание огнестрельного оружия, и они жестко ограничены в том, как именно они могут его проектировать. Это целенаправленная политика Главы, призванная воспрепятствовать использованию огнестрельного оружия, хотя никто не знает истинных мотивов подобных запретов.
+                    </div>
+                    <div class="paragraph" style="color: var(--accent-primary);">
+                        Несмотря на огромные затраты и ограничения, некоторые Фиксеры продолжают пользоваться огнестрелом просто потому, что он невероятно эффективен. Главный плюс непопулярности огнестрела в том, что мало кто знает, как от него защищаться. При грамотном использовании он позволяет уничтожать цели максимально быстро и без шансов на сопротивление.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- СТРАХОВКА ФИКСЕРОВ -->
+        <div class="panel-outer cut-tl">
+            <div class="hazard-tape"></div>
+            <div class="panel-inner cut-tl" style="border-top: none;">
+                <div class="section-title oswald"><i class="fa-solid fa-file-signature"></i> СТРАХОВКА ФИКСЕРОВ (INSURANCE)</div>
+                <div class="lore-text">
+                    <div class="paragraph">
+                        В Городе планы страхования Фиксеров — это отдельная, уникальная категория бизнеса. Множество страховых компаний предлагают страхование жизни специально для Фиксеров, однако большинство из этих программ — <span class="highlight">откровенное мошенничество</span>.
+                    </div>
+                    <div class="paragraph">
+                        Фиксеры получают право на страховые выплаты только в том случае, если они находятся на самом краю гибели, но мертвый Фиксер, очевидно, этими выплатами воспользоваться уже не сможет. Компании могут на законных основаниях отказать в возврате денег, если Фиксер решит расторгнуть свой договор. Бывают редкие случаи, когда страховка действительно спасает Фиксера, как, например, в случае с Памели и её биологической страховкой по восстановлению тела, но такие прецеденты — скорее чудесное исключение, чем правило.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>
