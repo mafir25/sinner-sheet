@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Управление Офисом / Office Management</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Merriweather:ital,wght@0,300;1,300;1,700&family=Oswald:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-main: #070707; --bg-panel: #000000; --accent-primary: #8FCC2A; /* Gluttony для контрактов/офиса */
+            --accent-muted: #4d7311; --color-cyan: #45B3CB; --color-red: #C7243A; --color-yellow: #F1C40F;
+            --text-main: #E0D8C8; --text-dim: #696969;
+            --border-width: 1px; --chamfer: 14px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-main); color: var(--text-main); font-family: 'Inter', sans-serif;
+            min-height: 100vh; padding: 60px 20px 40px 20px; display: flex; flex-direction: column; align-items: center;
+            background-image: linear-gradient(rgba(7,7,7,0.85), rgba(7,7,7,0.85)), repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.02) 2px, rgba(255,255,255,0.02) 4px);
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4, .oswald { font-family: 'Oswald', sans-serif; text-transform: uppercase; }
+        .tech-text { font-family: 'Inter', sans-serif; color: var(--accent-primary); font-size: 0.8rem; }
+        .lore-text { font-family: 'Merriweather', serif; font-style: italic; color: var(--text-dim); font-size: 0.85rem; }
+
+        /* Навигация */
+        .top-nav-btn { position: fixed; top: 10px; left: 20px; padding: 6px 12px; font-size: 0.8rem; border-color: var(--accent-primary); color: var(--accent-primary); font-family: 'Oswald', sans-serif; z-index: 100; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; border: 1px solid var(--accent-primary); cursor: pointer; text-transform: uppercase; transition: 0.2s; }
+        .top-nav-btn:hover { background-color: var(--accent-primary); color: #000; }
+
+        .right-controls { position: fixed; top: 10px; right: 20px; z-index: 1000; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+        
+        .dropdown { position: relative; display: inline-block; }
+        .dropdown-btn { padding: 6px 12px; font-size: 0.8rem; font-family: 'Oswald', sans-serif; background: var(--bg-main); border: 1px solid var(--color-cyan); color: var(--color-cyan); text-decoration: none; display: flex; align-items: center; gap: 6px; cursor: pointer; text-transform: uppercase; transition: 0.2s; }
+        .dropdown-btn:hover { background-color: var(--color-cyan); color: #000; }
+        
+        .dropdown-content { display: none; position: absolute; right: 0; background-color: var(--bg-panel); min-width: 200px; border: 1px solid var(--color-cyan); z-index: 1; margin-top: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.8); }
+        .dropdown.active .dropdown-content { display: block; }
+        .dropdown-item { padding: 10px 12px; color: var(--text-main); text-decoration: none; display: block; font-family: 'Oswald'; font-size: 0.9rem; border-bottom: 1px solid #222; cursor: pointer; transition: 0.2s; }
+        .dropdown-item:hover { background-color: rgba(69, 179, 203, 0.2); color: var(--color-cyan); }
+        .dropdown-create { color: var(--color-yellow); border-top: 1px dashed var(--color-yellow); border-bottom: none; }
+        .dropdown-create:hover { background-color: rgba(241, 196, 15, 0.2); color: var(--color-yellow); }
+
+        .header-bar { width: 100%; max-width: 1400px; display: flex; justify-content: center; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--accent-muted); padding-bottom: 10px; margin-top: 10px; }
+        .header-title { color: var(--accent-primary); font-size: 1.8rem; letter-spacing: 2px; text-align: center; text-shadow: 0 0 10px rgba(143, 204, 42, 0.4); }
+
+        /* Лейаут (3 колонки: 20% - 60% - 20%) */
+        .office-grid { display: grid; grid-template-columns: 1fr 2.5fr 1fr; gap: 20px; width: 100%; max-width: 1600px; align-items: start; }
+
+        .panel-outer { background-color: var(--accent-primary); padding: var(--border-width); position: relative; display: flex; flex-direction: column; }
+        .panel-inner { background-color: var(--bg-panel); padding: 16px; height: 100%; display: flex; flex-direction: column; }
+        .cut-tl { clip-path: polygon(var(--chamfer) 0, 100% 0, 100% 100%, 0 100%, 0 var(--chamfer)); }
+        .hazard-tape { height: 6px; background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--accent-muted) 10px, var(--accent-muted) 20px); border-bottom: 1px solid var(--accent-primary); }
+
+        .panel-title { color: var(--accent-primary); font-size: 1.2rem; margin-bottom: 12px; letter-spacing: 1px; border-bottom: 1px solid var(--accent-muted); padding-bottom: 4px; font-family: 'Oswald'; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; }
+
+        /* Микро-UI */
+        .btn-small { background: transparent; border: 1px solid var(--text-dim); color: var(--text-dim); cursor: pointer; padding: 4px 8px; font-size: 0.75rem; text-transform: uppercase; transition: 0.2s; font-family: 'Oswald'; }
+        .btn-small:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
+        .cloud-input { width: 100%; background: #111; border: 1px solid #333; color: var(--text-main); padding: 8px; outline: none; font-family: 'Inter'; font-size: 0.9rem; margin-bottom: 8px;}
+        .cloud-input:focus { border-color: var(--accent-primary); }
+        
+        /* ЛЕВАЯ КОЛОНКА */
+        .logo-area { width: 100%; aspect-ratio: 1/1; background-color: #111; border: 1px dashed var(--text-dim); display: flex; justify-content: center; align-items: center; margin-bottom: 12px; cursor: pointer; background-size: cover; background-position: center; position: relative; }
+        .logo-area.creator:hover { border-color: var(--accent-primary); }
+        .logo-area.creator::after { content: "\f03e"; font-family: 'FontAwesome'; position: absolute; font-size: 2rem; color: var(--accent-primary); opacity: 0; transition: 0.2s; background: rgba(0,0,0,0.6); padding: 10px; border-radius: 50%; }
+        .logo-area.creator:hover::after { opacity: 1; }
+        .office-name-input { background: transparent; border: none; color: var(--color-cyan); font-family: 'Oswald'; font-size: 1.5rem; width: 100%; text-align: center; text-transform: uppercase; border-bottom: 1px dashed transparent; margin-bottom: 16px; outline: none;}
+        .office-name-input:focus { border-bottom-color: var(--color-cyan); }
+
+        .preset-card { border: 1px solid #333; padding: 8px; margin-bottom: 8px; background: rgba(255,255,255,0.02); }
+        .preset-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .preset-name { font-family: 'Oswald'; color: var(--text-main); font-size: 1rem; }
+        .preset-desc { max-height: 0; overflow: hidden; opacity: 0; transition: 0.3s; font-size: 0.8rem; margin-top: 0; color: var(--text-dim); }
+        .preset-card.expanded .preset-desc { max-height: 200px; opacity: 1; margin-top: 8px; border-top: 1px dashed #333; padding-top: 8px; }
+        
+        /* ЦЕНТРАЛЬНАЯ КОЛОНКА (КВЕСТЫ) */
+        .grade-block { margin-bottom: 12px; border: 1px solid #222; }
+        .grade-header { background: rgba(0,0,0,0.6); padding: 12px 16px; font-family: 'Oswald'; font-size: 1.2rem; color: var(--color-yellow); cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; border-left: 3px solid var(--color-yellow); }
+        .grade-header:hover { background: rgba(241, 196, 15, 0.1); }
+        .grade-content { max-height: 0; overflow: hidden; transition: 0.4s; background: #0a0a0a; }
+        .grade-block.expanded .grade-content { max-height: 800px; }
+        
+        .quest-item { padding: 10px 16px; border-bottom: 1px solid #222; cursor: pointer; }
+        .quest-item:last-child { border-bottom: none; }
+        .quest-item:hover { background: rgba(255,255,255,0.03); }
+        .quest-title { color: var(--text-main); font-family: 'Oswald'; font-size: 1.1rem; }
+        .quest-desc { display: none; font-size: 0.85rem; color: var(--text-dim); margin-top: 6px; line-height: 1.4; white-space: pre-wrap;}
+        .quest-item.open .quest-desc { display: block; }
+        .quest-item.open .quest-title { color: var(--color-cyan); }
+
+        /* ПРАВАЯ КОЛОНКА (НОВОСТИ) */
+        .news-item { border-left: 2px solid var(--color-red); padding-left: 10px; margin-bottom: 16px; position: relative; }
+        .news-date { font-size: 0.7rem; color: var(--color-red); font-family: 'Oswald'; letter-spacing: 1px; }
+        .news-text { font-size: 0.85rem; color: var(--text-main); margin-top: 4px; white-space: pre-wrap; line-height: 1.4; }
+        .btn-trash { position: absolute; top: 0; right: 0; background: transparent; border: none; color: var(--text-dim); cursor: pointer; opacity: 0; transition: 0.2s; }
+        .news-item:hover .btn-trash { opacity: 1; color: var(--color-red); }
+
+        /* Модалка Авторизации */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 2000; backdrop-filter: blur(4px); }
+        .modal-overlay.hidden { display: none; }
+        .modal-box { width: 400px; max-width: 90%; }
+        .modal-btn { width: 100%; padding: 10px; font-size: 1rem; cursor: pointer; border: 1px solid var(--color-cyan); background: transparent; color: var(--color-cyan); text-transform: uppercase; font-family: 'Oswald'; transition: 0.2s; margin-top: 8px;}
+        .modal-btn:hover { background: var(--color-cyan); color: #000; }
+
+        .creator-only { display: none; }
+    </style>
+</head>
+<body>
+
+    <!-- Навигация -->
+    <a href="index.html" class="top-nav-btn"><i class="fa-solid fa-house"></i> ХАБ</a>
+    
+    <div class="right-controls">
+        <div class="dropdown" id="office-dropdown">
+            <button class="dropdown-btn" onclick="document.getElementById('office-dropdown').classList.toggle('active')">
+                <i class="fa-solid fa-building"></i> МОИ ОФИСЫ
+            </button>
+            <div class="dropdown-content" id="office-list">
+                <!-- Заполняется из Firebase -->
+                <div style="padding: 10px; color: var(--text-dim); font-size: 0.8rem;">Загрузка...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно Авторизации -->
+    <div class="modal-overlay" id="authModal">
+        <div class="panel-outer cut-tl modal-box">
+            <div class="hazard-tape" style="background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--color-cyan) 10px, var(--color-cyan) 20px); border-bottom-color: var(--color-cyan);"></div>
+            <div class="panel-inner cut-tl" style="border-top: none;">
+                <div class="panel-title" style="color: var(--color-cyan); border-color: var(--color-cyan); text-align: center; display: block;">СЕТЬ АССОЦИАЦИЙ</div>
+                <div class="tech-text" style="color: var(--text-dim); margin-bottom: 16px; text-align: center;">Введите ваш Email для идентификации в базе Фиксеров.</div>
+                
+                <input type="email" id="auth-email" class="cloud-input" placeholder="ID Сотрудника (Email)">
+                <input type="password" id="auth-pass" class="cloud-input" placeholder="Пароль">
+                
+                <button class="modal-btn" onclick="window.loginUser()">ВОЙТИ / ЗАРЕГИСТРИРОВАТЬСЯ</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="header-bar">
+        <div class="header-title oswald">БАЗА ДАННЫХ: УПРАВЛЕНИЕ ОФИСОМ</div>
+    </div>
+
+    <div class="office-grid" id="office-workspace" style="display: none;">
+        
+        <!-- ЛЕВАЯ КОЛОНКА (Инфо Офиса и Агенты) -->
+        <div class="panel-outer cut-tl">
+            <div class="hazard-tape"></div>
+            <div class="panel-inner cut-tl" style="border-top: none;">
+                
+                <input type="file" id="logo-upload" accept="image/*" style="display: none;" onchange="window.uploadLogo(event)">
+                <div class="logo-area" id="office-logo" onclick="window.triggerLogoUpload()"></div>
+                
+                <input type="text" id="office-name" class="office-name-input" value="НОВЫЙ ОФИС" readonly onblur="window.saveOfficeInfo()">
+
+                <div class="creator-only" style="margin-bottom: 16px; border-bottom: 1px solid #222; padding-bottom: 12px;">
+                    <div class="tech-text" style="margin-bottom: 4px;">УПРАВЛЕНИЕ ДОСТУПОМ</div>
+                    <div style="display: flex; gap: 4px;">
+                        <input type="email" id="new-member-email" class="cloud-input" placeholder="Email фиксера..." style="margin: 0;">
+                        <button class="btn-small" onclick="window.addMember()"><i class="fa-solid fa-plus"></i></button>
+                    </div>
+                </div>
+
+                <div class="panel-title" style="font-size: 1rem;">
+                    АГЕНТЫ ОФИСА
+                    <label class="btn-small creator-only" style="cursor: pointer;">
+                        <input type="file" accept=".json" style="display: none;" onchange="window.uploadCharacter(event)">
+                        <i class="fa-solid fa-upload"></i>
+                    </label>
+                </div>
+                
+                <div id="characters-container">
+                    <!-- Пресеты -->
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ЦЕНТРАЛЬНАЯ КОЛОНКА (Контракты / Квесты) -->
+        <div class="panel-outer cut-tl">
+            <div class="hazard-tape" style="background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--color-yellow) 10px, var(--color-yellow) 20px); border-bottom-color: var(--color-yellow);"></div>
+            <div class="panel-inner cut-tl" style="border-top: none;">
+                <div class="panel-title" style="color: var(--color-yellow); border-color: var(--color-yellow);">ДОСКА КОНТРАКТОВ (СИСТЕМНАЯ ВЫДАЧА)</div>
+                
+                <div id="grades-container">
+                    <!-- Заполняется JS (9 Ранг -> Цветной) -->
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ПРАВАЯ КОЛОНКА (Новости ДМа) -->
+        <div class="panel-outer cut-tl">
+            <div class="hazard-tape" style="background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--color-red) 10px, var(--color-red) 20px); border-bottom-color: var(--color-red);"></div>
+            <div class="panel-inner cut-tl" style="border-top: none;">
+                <div class="panel-title" style="color: var(--color-red); border-color: var(--color-red);">СВОДКИ СОБЫТИЙ</div>
+                
+                <div class="creator-only" style="margin-bottom: 16px; border-bottom: 1px solid #222; padding-bottom: 12px;">
+                    <textarea id="news-input" class="cloud-input" placeholder="Описать события отдыха..." style="min-height: 80px;"></textarea>
+                    <button class="btn-small" style="width: 100%; color: var(--color-red); border-color: var(--color-red);" onclick="window.addNews()">ПУБЛИКОВАТЬ</button>
+                </div>
+
+                <div id="news-container">
+                    <!-- Новости -->
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Firebase SDK Setup -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-storage.js";
+
+        // КОНФИГУРАЦИЯ ИЗ ВАШЕГО SHEET.HTML
+        const firebaseConfig = {
+            apiKey: "AIzaSyDaFNBCW76UsBnziHoGveo7TcC11uAdmqs",
+            authDomain: "projectmoonchar.firebaseapp.com",
+            projectId: "projectmoonchar",
+            storageBucket: "projectmoonchar.firebasestorage.app",
+            messagingSenderId: "516028417887",
+            appId: "1:516028417887:web:4c0404f653b09ecffb58ea"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
+
+        let currentUser = null;
+        let currentOfficeId = null;
+        let isCreator = false;
+        let questsDB = [];
+
+        // 1. АВТОРИЗАЦИЯ
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('authModal').classList.add('hidden');
+                document.getElementById('office-workspace').style.display = 'grid';
+                loadUserOffices();
+                loadQuestsDB();
+            } else {
+                document.getElementById('authModal').classList.remove('hidden');
+                document.getElementById('office-workspace').style.display = 'none';
+            }
+        });
+
+        window.loginUser = async () => {
+            const e = document.getElementById('auth-email').value;
+            const p = document.getElementById('auth-pass').value;
+            if (!e || !p) return alert("Введите Email и Пароль");
+            try {
+                await signInWithEmailAndPassword(auth, e, p);
+            } catch (err) {
+                if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
+                    try {
+                        await createUserWithEmailAndPassword(auth, e, p);
+                        alert("Регистрация успешна!");
+                    } catch (err2) { alert(err2.message); }
+                } else { alert(err.message); }
+            }
+        };
+
+        // Закрытие дропдауна кликом вне
+        window.onclick = function(event) {
+            if (!event.target.matches('.dropdown-btn') && !event.target.closest('.dropdown-btn')) {
+                const drops = document.getElementsByClassName("dropdown-content");
+                for (let i = 0; i < drops.length; i++) {
+                    const openDropdown = drops[i];
+                    if (openDropdown.parentElement.classList.contains('active')) {
+                        openDropdown.parentElement.classList.remove('active');
+                    }
+                }
+            }
+        }
+
+        // 2. УПРАВЛЕНИЕ СПИСКОМ ОФИСОВ
+        async function loadUserOffices() {
+            const listEl = document.getElementById('office-list');
+            listEl.innerHTML = '<div style="padding: 10px; color: var(--text-dim);">Поиск баз данных...</div>';
+            
+            try {
+                const q = query(collection(db, "offices"), where("members", "array-contains", currentUser.email));
+                const querySnapshot = await getDocs(q);
+                
+                let html = '';
+                querySnapshot.forEach((docSnap) => {
+                    const data = docSnap.data();
+                    html += `<div class="dropdown-item" onclick="window.openOffice('${docSnap.id}')">${data.name}</div>`;
+                });
+                
+                html += `<div class="dropdown-item dropdown-create" onclick="window.createNewOffice()"><i class="fa-solid fa-plus"></i> СОЗДАТЬ ОФИС</div>`;
+                listEl.innerHTML = html;
+                
+                // Авто-открытие первого офиса, если есть
+                if (!currentOfficeId && !querySnapshot.empty) {
+                    window.openOffice(querySnapshot.docs[0].id);
+                } else if (querySnapshot.empty) {
+                    document.getElementById('office-name').value = "ВЫБЕРИТЕ ИЛИ СОЗДАЙТЕ ОФИС";
+                }
+            } catch (error) {
+                console.error(error);
+                listEl.innerHTML = '<div style="padding: 10px; color: var(--color-red);">Ошибка загрузки.</div>';
+            }
+        }
+
+        window.createNewOffice = async () => {
+            const newOfficeRef = doc(collection(db, "offices"));
+            const newOfficeData = {
+                name: "НОВЫЙ ОФИС " + Math.floor(Math.random() * 1000),
+                creator: currentUser.email,
+                members: [currentUser.email],
+                logoUrl: "",
+                characters: [],
+                news: []
+            };
+            await setDoc(newOfficeRef, newOfficeData);
+            await loadUserOffices();
+            window.openOffice(newOfficeRef.id);
+        };
+
+        window.openOffice = async (id) => {
+            currentOfficeId = id;
+            try {
+                const docSnap = await getDoc(doc(db, "offices", id));
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    isCreator = (data.creator === currentUser.email);
+                    
+                    // Обновление UI Права доступа
+                    const creatorEls = document.querySelectorAll('.creator-only');
+                    creatorEls.forEach(el => el.style.display = isCreator ? 'block' : 'none');
+                    
+                    const nameInput = document.getElementById('office-name');
+                    nameInput.value = data.name;
+                    nameInput.readOnly = !isCreator;
+                    
+                    const logoArea = document.getElementById('office-logo');
+                    if (data.logoUrl) logoArea.style.backgroundImage = `url('${data.logoUrl}')`;
+                    else logoArea.style.backgroundImage = 'none';
+                    if (isCreator) logoArea.classList.add('creator'); else logoArea.classList.remove('creator');
+
+                    renderCharacters(data.characters || []);
+                    renderNews(data.news || []);
+                }
+            } catch(e) { console.error(e); }
+        };
+
+        window.saveOfficeInfo = async () => {
+            if (!currentOfficeId || !isCreator) return;
+            const newName = document.getElementById('office-name').value;
+            await updateDoc(doc(db, "offices", currentOfficeId), { name: newName });
+            loadUserOffices(); // Обновить название в меню
+        };
+
+        // 3. УПРАВЛЕНИЕ ЛОГОТИПОМ (Firebase Storage)
+        window.triggerLogoUpload = () => {
+            if (isCreator) document.getElementById('logo-upload').click();
+        };
+
+        window.uploadLogo = async (e) => {
+            const file = e.target.files[0];
+            if (!file || !currentOfficeId) return;
+            
+            document.getElementById('office-logo').style.backgroundImage = 'none';
+            document.getElementById('office-logo').innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="color:var(--color-cyan);"></i>';
+
+            try {
+                const storageRef = ref(storage, `offices/${currentOfficeId}/logo_${Date.now()}`);
+                await uploadBytes(storageRef, file);
+                const url = await getDownloadURL(storageRef);
+                
+                await updateDoc(doc(db, "offices", currentOfficeId), { logoUrl: url });
+                document.getElementById('office-logo').innerHTML = '';
+                document.getElementById('office-logo').style.backgroundImage = `url('${url}')`;
+            } catch (err) {
+                console.error(err);
+                alert("Ошибка загрузки изображения.");
+                document.getElementById('office-logo').innerHTML = '';
+            }
+            e.target.value = '';
+        };
+
+        // 4. ДОБАВЛЕНИЕ УЧАСТНИКОВ
+        window.addMember = async () => {
+            const input = document.getElementById('new-member-email');
+            const email = input.value.trim();
+            if (!email || !currentOfficeId || !isCreator) return;
+            
+            try {
+                await updateDoc(doc(db, "offices", currentOfficeId), {
+                    members: arrayUnion(email)
+                });
+                alert(`Агент ${email} добавлен в Офис!`);
+                input.value = '';
+            } catch (err) { console.error(err); }
+        };
+
+        // 5. УПРАВЛЕНИЕ ПРЕСЕТАМИ
+        window.uploadCharacter = (e) => {
+            const file = e.target.files[0];
+            if (!file || !currentOfficeId) return;
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                try {
+                    const preset = JSON.parse(event.target.result);
+                    // Валидация
+                    if (!preset.characterName) throw new Error();
+                    
+                    const charObj = {
+                        id: Date.now().toString(),
+                        name: preset.characterName,
+                        race: preset.race || 'Неизвестно',
+                        className: preset.className || 'Фиксер',
+                        desc: `Раса: ${preset.race}\nКласс: ${preset.className}\nЧерты: ${(preset.feats || []).join(', ')}`,
+                        rawJson: preset
+                    };
+                    
+                    await updateDoc(doc(db, "offices", currentOfficeId), {
+                        characters: arrayUnion(charObj)
+                    });
+                    window.openOffice(currentOfficeId); // Перерисовка
+                } catch (err) { alert("Ошибка чтения JSON пресета. Убедитесь, что файл из Конструктора."); }
+            };
+            reader.readAsText(file);
+            e.target.value = '';
+        };
+
+        function renderCharacters(chars) {
+            const container = document.getElementById('characters-container');
+            if (chars.length === 0) {
+                container.innerHTML = '<div class="tech-text" style="color: var(--text-dim);">Досье отсутствуют.</div>';
+                return;
+            }
+            
+            let html = '';
+            chars.forEach(c => {
+                const delBtn = isCreator ? `<i class="fa-solid fa-trash btn-trash" style="position:relative; opacity:1;" onclick="window.deleteCharacter(event, '${c.id}')"></i>` : '';
+                html += `
+                    <div class="preset-card">
+                        <div class="preset-header" onclick="this.parentElement.classList.toggle('expanded')">
+                            <span class="preset-name">${c.name}</span>
+                            <div style="display:flex; gap: 8px; align-items:center;">
+                                <i class="fa-solid fa-download btn-trash" style="position:relative; opacity:1; color: var(--color-cyan);" title="Скачать пресет" onclick="window.downloadPreset(event, '${c.id}')"></i>
+                                ${delBtn}
+                            </div>
+                        </div>
+                        <div class="preset-desc">${c.desc}</div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+            window._currentChars = chars; // Кэш для скачивания/удаления
+        }
+
+        window.deleteCharacter = async (e, id) => {
+            e.stopPropagation();
+            if (!confirm("Удалить досье из Офиса?")) return;
+            const charObj = window._currentChars.find(c => c.id === id);
+            if(charObj) {
+                await updateDoc(doc(db, "offices", currentOfficeId), {
+                    characters: arrayRemove(charObj)
+                });
+                window.openOffice(currentOfficeId);
+            }
+        };
+
+        window.downloadPreset = (e, id) => {
+            e.stopPropagation();
+            const charObj = window._currentChars.find(c => c.id === id);
+            if (charObj && charObj.rawJson) {
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(charObj.rawJson, null, 2));
+                const dl = document.createElement('a');
+                dl.setAttribute("href", dataStr);
+                dl.setAttribute("download", charObj.name + "_preset.json");
+                document.body.appendChild(dl);
+                dl.click();
+                dl.remove();
+            }
+        };
+
+        // 6. УПРАВЛЕНИЕ НОВОСТЯМИ ДМа
+        window.addNews = async () => {
+            const input = document.getElementById('news-input');
+            const text = input.value.trim();
+            if (!text || !currentOfficeId) return;
+            
+            const newsObj = {
+                id: Date.now().toString(),
+                date: new Date().toLocaleDateString('ru-RU'),
+                text: text
+            };
+            
+            await updateDoc(doc(db, "offices", currentOfficeId), {
+                news: arrayUnion(newsObj)
+            });
+            input.value = '';
+            window.openOffice(currentOfficeId);
+        };
+
+        function renderNews(newsArr) {
+            const container = document.getElementById('news-container');
+            if (newsArr.length === 0) {
+                container.innerHTML = '<div class="tech-text" style="color: var(--text-dim);">Событий не зафиксировано.</div>';
+                return;
+            }
+            
+            // Сортировка: новые сверху
+            const sorted = [...newsArr].sort((a,b) => parseInt(b.id) - parseInt(a.id));
+            
+            let html = '';
+            sorted.forEach(n => {
+                const delBtn = isCreator ? `<button class="btn-trash" onclick="window.deleteNews('${n.id}')"><i class="fa-solid fa-trash"></i></button>` : '';
+                html += `
+                    <div class="news-item">
+                        ${delBtn}
+                        <div class="news-date">${n.date}</div>
+                        <div class="news-text">${n.text}</div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+            window._currentNews = newsArr;
+        }
+
+        window.deleteNews = async (id) => {
+            if (!confirm("Удалить сводку?")) return;
+            const nObj = window._currentNews.find(n => n.id === id);
+            if(nObj) {
+                await updateDoc(doc(db, "offices", currentOfficeId), {
+                    news: arrayRemove(nObj)
+                });
+                window.openOffice(currentOfficeId);
+            }
+        };
+
+        // 7. КВЕСТЫ (Контракты)
+        const gradeMapping = {
+            10: "9 РАНГ", 9: "8 РАНГ", 8: "7 РАНГ", 7: "6 РАНГ", 6: "5 РАНГ", 
+            5: "4 РАНГ", 4: "3 РАНГ", 3: "2 РАНГ", 2: "1 РАНГ", 1: "ЦВЕТНОЙ"
+        };
+
+        async function loadQuestsDB() {
+            try {
+                const res = await fetch('quests.json');
+                if (res.ok) questsDB = await res.json();
+            } catch(e) { console.error("Quests not found", e); }
+            
+            renderGradeAccordions();
+        }
+
+        function renderGradeAccordions() {
+            const container = document.getElementById('grades-container');
+            let html = '';
+            
+            // От 9 ранга (10) до Цветного (1)
+            for (let i = 10; i >= 1; i--) {
+                html += `
+                    <div class="grade-block" id="grade-block-${i}">
+                        <div class="grade-header" onclick="window.toggleGrade(${i})">
+                            <span>КОНТРАКТЫ: ${gradeMapping[i]}</span>
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+                        <div class="grade-content" id="grade-content-${i}">
+                            <!-- Квесты -->
+                        </div>
+                    </div>
+                `;
+            }
+            container.innerHTML = html;
+        }
+
+        window.toggleGrade = (gradeNum) => {
+            const block = document.getElementById(`grade-block-${gradeNum}`);
+            const content = document.getElementById(`grade-content-${gradeNum}`);
+            
+            // Если закрываем
+            if (block.classList.contains('expanded')) {
+                block.classList.remove('expanded');
+                return;
+            }
+            
+            // Закрываем остальные
+            document.querySelectorAll('.grade-block').forEach(b => b.classList.remove('expanded'));
+            
+            // Загружаем рандомные 5 квестов
+            const filtered = questsDB.filter(q => parseInt(q.grade) === gradeNum);
+            
+            if (filtered.length === 0) {
+                content.innerHTML = '<div style="padding:16px; color:var(--text-dim); font-family:Oswald;">НЕТ ДОСТУПНЫХ КОНТРАКТОВ ДАННОГО РАНГА.</div>';
+            } else {
+                // Перемешиваем (Fisher-Yates)
+                for (let i = filtered.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [filtered[i], filtered[j]] = [filtered[j], filtered[i]];
+                }
+                const selected = filtered.slice(0, 5);
+                
+                let qHtml = '';
+                selected.forEach(q => {
+                    qHtml += `
+                        <div class="quest-item" onclick="this.classList.toggle('open')">
+                            <div class="quest-title">${q.name}</div>
+                            <div class="quest-desc">${q.desc}</div>
+                        </div>
+                    `;
+                });
+                content.innerHTML = qHtml;
+            }
+            
+            block.classList.add('expanded');
+        };
+
+    </script>
+</body>
+</html>
