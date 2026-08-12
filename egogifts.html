@@ -81,6 +81,7 @@
 
         .types-container { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; margin-top: 8px;}
         .type-badge { display: flex; align-items: center; gap: 6px; font-family: 'Oswald', sans-serif; font-size: 0.75rem; text-transform: uppercase; border: 1px solid; padding: 2px 6px; border-radius: 2px; background: rgba(0,0,0,0.5); }
+        .type-icon { width: 16px; height: 16px; object-fit: contain; }
 
         /* Описание Гифта */
         .talents-wrapper { max-height: 0; opacity: 0; overflow: hidden; transition: max-height 0.4s ease, margin-top 0.4s ease, opacity 0.3s ease; position: relative; }
@@ -141,11 +142,11 @@
                     <div style="flex: 1;">
                         <div class="tech-text" style="margin-bottom: 4px;">УРОВЕНЬ (LEVEL)</div>
                         <select id="b-level" class="cloud-select">
-                            <option value="1">1</option>
-                            <option value="2">2</option>
-                            <option value="3">3</option>
-                            <option value="4">4</option>
-                            <option value="5">5</option>
+                            <option value="1">I</option>
+                            <option value="2">II</option>
+                            <option value="3">III</option>
+                            <option value="4">IV</option>
+                            <option value="5">V</option>
                         </select>
                     </div>
                 </div>
@@ -199,21 +200,26 @@
 
     <script>
         const typeDictionary = {
-            "Burn": { name: "Burn", color: "#C7243A" },
-            "Bleed": { name: "Bleed", color: "#E67E22" },
-            "Tremor": { name: "Tremor", color: "#F1C40F" },
-            "Rupture": { name: "Rupture", color: "#40E0D0" },
-            "Sinking": { name: "Sinking", color: "#45B3CB" },
-            "Poise": { name: "Poise", color: "#1E3A8A" },
-            "Charge": { name: "Charge", color: "#9B59B6" },
-            "Other": { name: "Other", color: "#27AE60" }, 
-            "None": { name: "None", color: "#696969" } 
+            "Burn": { name: "Burn", color: "#C7243A", icon: "Burn.png" },
+            "Bleed": { name: "Bleed", color: "#E67E22", icon: "Bleed.png" },
+            "Tremor": { name: "Tremor", color: "#F1C40F", icon: "Tremor.png" },
+            "Rupture": { name: "Rupture", color: "#40E0D0", icon: "Rupture.png" },
+            "Sinking": { name: "Sinking", color: "#45B3CB", icon: "Sinking.png" },
+            "Poise": { name: "Poise", color: "#1E3A8A", icon: "Poise.png" },
+            "Charge": { name: "Charge", color: "#9B59B6", icon: "Charge.png" },
+            "Other": { name: "Other", color: "#27AE60", icon: "Other.png" }, 
+            "None": { name: "None", color: "#696969", icon: "" } 
         };
 
         const levelDictionary = [1, 2, 3, 4, 5];
 
         let selectedTypes = new Set();
         let selectedLevels = new Set();
+
+        function getRomanNumeral(num) {
+            const romans = ["I", "II", "III", "IV", "V"];
+            return romans[num - 1] || num;
+        }
 
         function renderFilters() {
             // Типы
@@ -222,7 +228,8 @@
             for (const [key, data] of Object.entries(typeDictionary)) {
                 const isActive = selectedTypes.has(key) ? 'active' : '';
                 const style = isActive ? `border-color: ${data.color}; color: ${data.color}; background: color-mix(in srgb, ${data.color} 15%, transparent);` : '';
-                typeHtml += `<button class="filter-btn ${isActive}" style="${style}" onclick="window.toggleTypeFilter('${key}')">${data.name}</button>`;
+                const imgTag = data.icon ? `<img src="${data.icon}" class="type-icon" onerror="this.style.display='none'">` : '';
+                typeHtml += `<button class="filter-btn ${isActive}" style="${style}" onclick="window.toggleTypeFilter('${key}')">${imgTag} ${data.name}</button>`;
             }
             typeContainer.innerHTML = typeHtml;
 
@@ -231,7 +238,7 @@
             let levelHtml = `<button class="filter-btn ${selectedLevels.size === 0 ? 'active' : ''}" onclick="window.clearFilters('level')">ВСЕ УРОВНИ</button>`;
             levelDictionary.forEach(lvl => {
                 const isActive = selectedLevels.has(lvl) ? 'active' : '';
-                levelHtml += `<button class="filter-btn ${isActive}" onclick="window.toggleLevelFilter(${lvl})">Уровень ${lvl}</button>`;
+                levelHtml += `<button class="filter-btn ${isActive}" onclick="window.toggleLevelFilter(${lvl})">Уровень ${getRomanNumeral(lvl)}</button>`;
             });
             levelContainer.innerHTML = levelHtml;
         }
@@ -305,8 +312,9 @@
             const name = card.getAttribute('data-name');
             const lvl = card.getAttribute('data-level');
             const desc = card.getAttribute('data-desc');
+            const romanLvl = getRomanNumeral(lvl);
             
-            const textToCopy = `[Ур. ${lvl}] ${name}\n${desc}`;
+            const textToCopy = `[Ур. ${romanLvl}] ${name}\n${desc}`;
             
             navigator.clipboard.writeText(textToCopy).then(() => {
                 const msg = card.querySelector('.copy-msg-global');
@@ -350,11 +358,6 @@
             dl.remove();
         };
 
-        function getRomanNumeral(num) {
-            const romans = ["I", "II", "III", "IV", "V"];
-            return romans[num - 1] || num;
-        }
-
         async function loadGifts() {
             const container = document.getElementById('compendium');
             
@@ -383,7 +386,8 @@
                         gift.Type.forEach(t => {
                             const config = typeDictionary[t];
                             if (config) {
-                                badgesHtml += `<div class="type-badge" style="color: ${config.color}; border-color: ${config.color};">${config.name}</div>`;
+                                const imgTag = config.icon ? `<img src="${config.icon}" alt="${config.name}" class="type-icon" onerror="this.style.display='none'">` : '';
+                                badgesHtml += `<div class="type-badge" style="color: ${config.color}; border-color: ${config.color};">${imgTag} ${config.name}</div>`;
                             }
                         });
                     }
