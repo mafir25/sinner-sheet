@@ -67,8 +67,8 @@
         .filter-btn:hover { border-color: var(--text-main); color: var(--text-main); }
         .filter-btn.active { border-color: var(--accent-primary); color: var(--accent-primary); background: rgba(30, 58, 138, 0.2); }
         
-        /* Исправление размера иконок в фильтрах */
-        .filter-btn .type-icon { width: 14px; height: 14px; object-fit: contain; vertical-align: middle; display: inline-block; }
+        /* СТРОГИЙ РАЗМЕР ИКОНОК В ФИЛЬТРАХ */
+        .filter-btn img { width: 14px !important; height: 14px !important; object-fit: contain !important; vertical-align: middle !important; display: inline-block !important; }
 
         .compendium-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; width: 100%; max-width: 1200px; align-items: start; }
 
@@ -92,8 +92,8 @@
         .types-container { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
         .type-badge { display: flex; align-items: center; gap: 6px; font-family: 'Oswald', sans-serif; font-size: 0.9rem; text-transform: uppercase; border: 1px solid; padding: 2px 8px; border-radius: 2px; background: rgba(0,0,0,0.5); }
         
-        /* Жесткая фиксация размера иконок на карточках */
-        .type-badge .type-icon { width: 16px; height: 16px; object-fit: contain; vertical-align: middle; display: inline-block; flex-shrink: 0; }
+        /* СТРОГИЙ РАЗМЕР ИКОНОК НА КАРТОЧКАХ */
+        .type-badge img { width: 16px !important; height: 16px !important; object-fit: contain !important; vertical-align: middle !important; display: inline-block !important; flex-shrink: 0 !important; }
 
         body[data-mode="stats"] .badge-type { display: none !important; }
         body[data-mode="types"] .badge-stat { display: none !important; }
@@ -481,7 +481,7 @@
                         cls.Type.forEach(typeKey => {
                             const config = typeDictionary[typeKey];
                             if (config) {
-                                badgesHtml += `<div class="type-badge badge-type" style="color: ${config.color}; border-color: ${config.color};"><img src="${config.icon}" class="type-icon" onerror="this.style.display='none'">${config.name}</div>`;
+                                badgesHtml += `<div class="type-badge badge-type" style="color: ${config.color}; border-color: ${config.color};"><img src="${config.icon}" style="width:16px; height:16px; object-fit:contain; vertical-align:middle; display:inline-block;" onerror="this.style.display='none'">${config.name}</div>`;
                             } else {
                                 badgesHtml += `<div class="type-badge badge-type" style="color: var(--text-main); border-color: var(--text-dim);">${typeKey}</div>`;
                             }
