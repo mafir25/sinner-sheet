@@ -10,9 +10,11 @@
     
     <style>
         :root {
-            --bg-main: #070707; --bg-panel: #000000; --accent-primary: #D9772F; --accent-muted: #8B5A2B;
-            --color-cyan: #45B3CB; --color-red: #C7243A; --color-indigo: #40E0D0; --color-yellow: #F1C40F;
-            --color-orange: #E67E22; --color-lightblue: #ADD8E6; --text-main: #E0D8C8; --text-dim: #696969;
+            --bg-main: #070707; --bg-panel: #000000; 
+            --accent-primary: #C7243A; /* Wrath / Гнев (Красный) */
+            --accent-muted: #5c101a; 
+            --color-cyan: #45B3CB; --color-red: #C7243A; --color-yellow: #F1C40F;
+            --text-main: #E0D8C8; --text-dim: #696969;
             --border-width: 1px; --chamfer: 14px;
         }
 
@@ -29,18 +31,18 @@
         .tech-text { font-family: 'Inter', sans-serif; color: var(--accent-primary); font-size: 0.8rem; }
 
         /* Навигация */
-        .top-nav-btn { position: fixed; top: 10px; left: 20px; padding: 6px 12px; font-size: 0.8rem; border-color: var(--color-cyan); color: var(--color-cyan); font-family: 'Oswald', sans-serif; z-index: 100; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; border: 1px solid var(--color-cyan); cursor: pointer; text-transform: uppercase; transition: 0.2s; }
-        .top-nav-btn:hover { background-color: var(--color-cyan); color: #000; }
+        .top-nav-btn { position: fixed; top: 10px; left: 20px; padding: 6px 12px; font-size: 0.8rem; border-color: var(--accent-primary); color: var(--accent-primary); font-family: 'Oswald', sans-serif; z-index: 100; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; border: 1px solid var(--accent-primary); cursor: pointer; text-transform: uppercase; transition: 0.2s; }
+        .top-nav-btn:hover { background-color: var(--accent-primary); color: #fff; }
 
         /* Правая панель управления */
         .right-controls { position: fixed; top: 10px; right: 20px; z-index: 1000; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
         .side-nav-btn { padding: 6px 12px; font-size: 0.8rem; font-family: 'Oswald', sans-serif; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; cursor: pointer; text-transform: uppercase; transition: 0.2s; border-radius: 2px; }
-        .create-class-btn { border: 1px solid var(--color-cyan); color: var(--color-cyan); }
-        .create-class-btn:hover { background-color: var(--color-cyan); color: #000; }
+        .create-class-btn { border: 1px solid var(--accent-primary); color: var(--accent-primary); }
+        .create-class-btn:hover { background-color: var(--accent-primary); color: #fff; }
 
         /* Заголовок страницы */
         .header-bar { width: 100%; max-width: 1200px; display: flex; justify-content: center; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--accent-muted); padding-bottom: 10px; margin-top: 10px; }
-        .header-title { color: var(--accent-primary); font-size: 1.5rem; letter-spacing: 2px; text-align: center; }
+        .header-title { color: var(--accent-primary); font-size: 1.5rem; letter-spacing: 2px; text-align: center; text-shadow: 0 0 10px rgba(199, 36, 58, 0.5); }
 
         /* Поиск и Фильтры */
         .filters-section { width: 100%; max-width: 1200px; margin-bottom: 24px; display: flex; flex-direction: column; gap: 16px; }
@@ -54,7 +56,7 @@
         .type-filters { display: flex; flex-wrap: wrap; gap: 8px; }
         .filter-btn { display: flex; align-items: center; gap: 6px; font-family: 'Oswald', sans-serif; font-size: 0.85rem; text-transform: uppercase; border: 1px solid var(--text-dim); color: var(--text-dim); background: rgba(0,0,0,0.5); padding: 4px 10px; cursor: pointer; transition: 0.2s; border-radius: 2px; }
         .filter-btn:hover { border-color: var(--text-main); color: var(--text-main); }
-        .filter-btn.active { border-color: var(--accent-primary); color: var(--accent-primary); background: rgba(217, 119, 47, 0.1); }
+        .filter-btn.active { border-color: var(--accent-primary); color: var(--accent-primary); background: rgba(199, 36, 58, 0.2); }
 
         /* Сетка Черт */
         .compendium-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; width: 100%; max-width: 1200px; align-items: start; }
@@ -66,7 +68,7 @@
         .compendium-card.expanded { grid-column: 1 / -1; }
 
         .card-header-clickable { cursor: pointer; position: relative; padding-right: 24px; user-select: none; }
-        .card-header-clickable:hover .class-title { color: var(--color-orange); }
+        .card-header-clickable:hover .class-title { color: var(--color-yellow); }
         .expand-icon { position: absolute; right: 0; top: 6px; color: var(--text-dim); transition: transform 0.3s ease; }
         .panel-outer.expanded .expand-icon { transform: rotate(180deg); color: var(--accent-primary); }
 
@@ -83,24 +85,24 @@
         .feat-body { padding-top: 12px; border-top: 1px solid #222; margin-top: 8px; cursor: pointer; position: relative; transition: background-color 0.2s; padding-bottom: 12px; }
         .feat-body:hover { background-color: rgba(255,255,255,0.05); }
         
-        .feat-need { color: var(--color-red); font-size: 1rem; font-family: 'Oswald', sans-serif; text-transform: uppercase; margin-bottom: 8px; }
+        .feat-need { color: var(--color-yellow); font-size: 1rem; font-family: 'Oswald', sans-serif; text-transform: uppercase; margin-bottom: 8px; }
         .feat-desc { font-size: 0.9rem; color: var(--text-main); line-height: 1.5; white-space: pre-wrap; }
 
         .copy-msg { text-align: right; color: var(--accent-primary); font-size: 0.7rem; position: absolute; bottom: 4px; right: 10px; opacity: 0; transition: opacity 0.2s; font-family: 'Oswald', sans-serif; }
         .loading-text { text-align: center; color: var(--text-dim); font-family: 'Oswald', sans-serif; font-size: 1.2rem; width: 100%; grid-column: 1 / -1; }
 
-        /* МОДАЛЬНОЕ ОКНО КОНСТРУКТОРА */
+        /* Модалка */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: flex-start; z-index: 2000; backdrop-filter: blur(4px); padding-top: 50px; overflow-y: auto; }
         .modal-overlay.active { display: flex; }
         .modal-box { width: 700px; max-width: 95%; position: relative; margin-bottom: 50px; }
         
         .cloud-input { width: 100%; background: #111; border: 1px solid #333; color: var(--text-main); padding: 10px; margin-bottom: 12px; outline: none; font-family: 'Inter'; }
-        .cloud-input:focus { border-color: var(--color-cyan); }
+        .cloud-input:focus { border-color: var(--accent-primary); }
         textarea.cloud-input { resize: vertical; min-height: 80px; }
         
         .builder-checkbox-group { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
         .builder-checkbox-label { display: flex; align-items: center; gap: 4px; font-size: 0.85rem; cursor: pointer; color: var(--text-dim); }
-        .builder-checkbox-label input { accent-color: var(--color-cyan); }
+        .builder-checkbox-label input { accent-color: var(--accent-primary); }
         .builder-checkbox-label:hover { color: var(--text-main); }
 
         .btn-small-bld { background: transparent; border: 1px solid var(--text-dim); color: var(--text-dim); cursor: pointer; padding: 4px 8px; font-size: 0.75rem; text-transform: uppercase; transition: 0.2s; font-family: 'Oswald'; }
@@ -108,32 +110,29 @@
         
         .btn-close-modal { background: transparent; border: none; color: var(--color-red); font-size: 1.5rem; cursor: pointer; transition: 0.2s; position: absolute; right: 16px; top: 16px; }
         .btn-close-modal:hover { color: #ff0044; }
-
     </style>
 </head>
 <body>
 
-    <!-- Левая навигация -->
-    <a href="index.html" class="top-nav-btn"><i class="fa-solid fa-arrow-left"></i> ГЛАВНОЕ МЕНЮ</a>
+    <a href="navigation.html" class="top-nav-btn"><i class="fa-solid fa-arrow-left"></i> НАЗАД (НАВИГАЦИЯ)</a>
 
-    <!-- Правая панель управления -->
     <div class="right-controls">
         <button class="side-nav-btn create-class-btn" onclick="window.toggleBuilderModal()"><i class="fa-solid fa-plus"></i> СОЗДАТЬ ЧЕРТУ</button>
     </div>
 
-    <!-- Модальное окно: Конструктор Черты -->
+    <!-- Модальное окно -->
     <div class="modal-overlay" id="builderModal" onclick="window.closeBuilderOnBg(event)">
         <div class="panel-outer cut-tl modal-box">
-            <div class="hazard-tape" style="height: 6px; background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--color-cyan) 10px, var(--color-cyan) 20px); border-bottom: 1px solid var(--color-cyan);"></div>
+            <div class="hazard-tape" style="height: 6px; background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--accent-primary) 10px, var(--accent-primary) 20px); border-bottom: 1px solid var(--accent-primary);"></div>
             <div class="panel-inner cut-tl" style="border-top: none;">
                 <button class="btn-close-modal" onclick="window.toggleBuilderModal()"><i class="fa-solid fa-xmark"></i></button>
-                <div class="sidebar-title oswald" style="color: var(--color-cyan); font-size: 1.5rem; margin-bottom: 20px; border-bottom: 1px solid var(--color-cyan); padding-bottom: 8px;">КОНСТРУКТОР ЧЕРТЫ</div>
+                <div class="sidebar-title oswald" style="color: var(--accent-primary); font-size: 1.5rem; margin-bottom: 20px; border-bottom: 1px solid var(--accent-primary); padding-bottom: 8px;">КОНСТРУКТОР ЧЕРТЫ</div>
                 
                 <div class="tech-text" style="margin-bottom: 4px;">НАЗВАНИЕ ЧЕРТЫ</div>
                 <input type="text" id="b-name" class="cloud-input" placeholder="Например: Железная хватка">
                 
                 <div class="tech-text" style="margin-bottom: 4px;">ТРЕБОВАНИЯ (NEED)</div>
-                <input type="text" id="b-need" class="cloud-input" placeholder="Например: Сила 16 (Оставьте пустым, если требований нет)">
+                <input type="text" id="b-need" class="cloud-input" placeholder="Например: Сила 16">
                 
                 <div class="tech-text" style="margin-bottom: 4px;">КАТЕГОРИИ (BASE)</div>
                 <div class="builder-checkbox-group">
@@ -152,25 +151,22 @@
                 <div class="tech-text" style="margin-bottom: 4px; margin-top: 10px;">ОПИСАНИЕ ЧЕРТЫ (DESC)</div>
                 <textarea id="b-desc" class="cloud-input" placeholder="Полное описание черты..." style="min-height: 140px;"></textarea>
 
-                <button class="btn-small-bld" style="width: 100%; padding: 12px; margin-top: 16px; font-size: 1rem; border-color: var(--color-cyan); color: var(--color-cyan);" onclick="window.exportBuilderJson()"><i class="fa-solid fa-file-export"></i> ЭКСПОРТИРОВАТЬ В JSON</button>
+                <button class="btn-small-bld" style="width: 100%; padding: 12px; margin-top: 16px; font-size: 1rem; border-color: var(--accent-primary); color: var(--accent-primary);" onclick="window.exportBuilderJson()"><i class="fa-solid fa-file-export"></i> ЭКСПОРТИРОВАТЬ В JSON</button>
             </div>
         </div>
     </div>
 
-    <!-- Заголовок страницы -->
     <div class="header-bar">
         <div class="header-title oswald">БАЗА ДАННЫХ: ЧЕРТЫ (FEATS)</div>
     </div>
 
     <div class="filters-section">
-        <!-- Поиск -->
         <div class="panel-outer cut-tl search-wrapper">
             <div class="panel-inner cut-tl search-inner">
                 <i class="fa-solid fa-magnifying-glass search-icon"></i>
                 <input type="text" id="search-input" class="search-input" placeholder="Поиск по названию черты..." onkeyup="window.filterFeats()">
             </div>
         </div>
-        <!-- Кнопки фильтров -->
         <div class="type-filters" id="type-filters"></div>
     </div>
 
@@ -179,31 +175,20 @@
     </div>
 
     <script>
-        // Открытие/закрытие конструктора
         window.toggleBuilderModal = () => {
-            const modal = document.getElementById('builderModal');
-            modal.classList.toggle('active');
+            document.getElementById('builderModal').classList.toggle('active');
         };
         window.closeBuilderOnBg = (e) => {
             if (e.target.id === 'builderModal') window.toggleBuilderModal();
         };
 
-        // Экспорт JSON из конструктора
         window.exportBuilderJson = () => {
             const name = document.getElementById('b-name').value || "Новая Черта";
             const need = document.getElementById('b-need').value.trim();
             const desc = document.getElementById('b-desc').value || "Нет описания";
-            
-            const baseChecks = document.querySelectorAll('.b-base-check:checked');
-            const baseArr = Array.from(baseChecks).map(c => c.value);
+            const baseArr = Array.from(document.querySelectorAll('.b-base-check:checked')).map(c => c.value);
 
-            const newFeat = {
-                Name: name,
-                Need: need !== "" ? need : null,
-                Base: baseArr,
-                desc: desc
-            };
-
+            const newFeat = { Name: name, Need: need !== "" ? need : null, Base: baseArr, desc: desc };
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify([newFeat], null, 2));
             const dl = document.createElement('a');
             dl.setAttribute("href", dataStr);
@@ -213,7 +198,6 @@
             dl.remove();
         };
 
-        // Словарь категорий (Базы)
         const baseDictionary = {
             "Background": { name: "Предыстория", color: "#696969" }, 
             "Body": { name: "Тело", color: "#E67E22" }, 
@@ -232,27 +216,20 @@
         function renderFilters() {
             const container = document.getElementById('type-filters');
             let html = `<button class="filter-btn active" data-filter="all" onclick="window.setBaseFilter('all', this)" style="border-color: var(--accent-primary); color: var(--accent-primary);">ВСЕ</button>`;
-            
             for (const [key, data] of Object.entries(baseDictionary)) {
-                html += `
-                    <button class="filter-btn" data-filter="${key}" data-color="${data.color}" onclick="window.setBaseFilter('${key}', this)">
-                        ${data.name}
-                    </button>
-                `;
+                html += `<button class="filter-btn" data-filter="${key}" data-color="${data.color}" onclick="window.setBaseFilter('${key}', this)">${data.name}</button>`;
             }
             container.innerHTML = html;
         }
 
         window.setBaseFilter = (filterKey, btn) => {
             currentBaseFilter = filterKey;
-            
             document.querySelectorAll('.filter-btn').forEach(b => {
                 b.classList.remove('active');
                 b.style.borderColor = 'var(--text-dim)';
                 b.style.color = 'var(--text-dim)';
                 b.style.backgroundColor = 'rgba(0,0,0,0.5)';
             });
-            
             btn.classList.add('active');
             if(filterKey !== 'all') {
                 const color = btn.getAttribute('data-color');
@@ -262,25 +239,17 @@
             } else {
                 btn.style.borderColor = 'var(--accent-primary)';
                 btn.style.color = 'var(--accent-primary)';
-                btn.style.backgroundColor = 'rgba(217, 119, 47, 0.1)';
+                btn.style.backgroundColor = 'rgba(199, 36, 58, 0.2)';
             }
-            
             window.filterFeats();
         };
 
         window.filterFeats = () => {
             const query = document.getElementById('search-input').value.toLowerCase();
-            const cards = document.querySelectorAll('.compendium-card');
-            
-            cards.forEach(card => {
+            document.querySelectorAll('.compendium-card').forEach(card => {
                 const nameData = card.getAttribute('data-name').toLowerCase();
-                const baseDataStr = card.getAttribute('data-base');
-                const baseData = baseDataStr ? baseDataStr.split('|') : [];
-                
-                const matchesName = nameData.includes(query);
-                const matchesFilter = currentBaseFilter === 'all' || baseData.includes(currentBaseFilter);
-                
-                if (matchesName && matchesFilter) {
+                const baseData = card.getAttribute('data-base') ? card.getAttribute('data-base').split('|') : [];
+                if (nameData.includes(query) && (currentBaseFilter === 'all' || baseData.includes(currentBaseFilter))) {
                     card.style.display = 'flex';
                 } else {
                     card.style.display = 'none';
@@ -292,7 +261,6 @@
             const card = el.closest('.panel-outer');
             const talentsWrapper = card.querySelector('.talents-wrapper');
             const isExpanded = card.classList.toggle('expanded');
-            
             if (isExpanded) {
                 talentsWrapper.style.maxHeight = talentsWrapper.scrollHeight + 30 + "px";
                 talentsWrapper.style.marginTop = "8px";
@@ -309,32 +277,23 @@
         };
 
         window.copyFeat = (el) => {
-            const name = el.getAttribute('data-name');
+            let textToCopy = `${el.getAttribute('data-name')}\n`;
             const need = el.getAttribute('data-need');
-            const desc = el.getAttribute('data-desc');
-            
-            let textToCopy = `${name}\n`;
-            if (need && need !== "null") {
-                textToCopy += `Требования: ${need}\n`;
-            }
-            textToCopy += `${desc}`;
+            if (need && need !== "null") textToCopy += `Требования: ${need}\n`;
+            textToCopy += `${el.getAttribute('data-desc')}`;
             
             navigator.clipboard.writeText(textToCopy).then(() => {
                 const msg = el.querySelector('.copy-msg');
                 msg.style.opacity = '1';
                 setTimeout(() => msg.style.opacity = '0', 1500);
-            }).catch(err => {
-                console.error('Ошибка копирования:', err);
             });
         };
 
         async function loadFeats() {
             const container = document.getElementById('compendium');
-            
             try {
                 const response = await fetch('feats.json');
-                if (!response.ok) throw new Error('Файл feats.json не найден');
-                
+                if (!response.ok) throw new Error();
                 const featsData = await response.json();
                 container.innerHTML = '';
                 
@@ -346,11 +305,7 @@
                         feat.Base.forEach(baseKey => {
                             const config = baseDictionary[baseKey];
                             if (config) {
-                                badgesHtml += `
-                                    <div class="type-badge" style="color: ${config.color}; border-color: ${config.color};">
-                                        ${config.name}
-                                    </div>
-                                `;
+                                badgesHtml += `<div class="type-badge" style="color: ${config.color}; border-color: ${config.color};">${config.name}</div>`;
                             } else {
                                 badgesHtml += `<div class="type-badge" style="color: var(--text-main); border-color: var(--text-dim);">${baseKey}</div>`;
                             }
@@ -360,15 +315,12 @@
                     const safeName = feat.Name ? feat.Name.replace(/"/g, '&quot;') : 'Без названия';
                     const safeDesc = feat.desc ? feat.desc.replace(/"/g, '&quot;') : '';
                     const safeNeed = feat.Need ? feat.Need.replace(/"/g, '&quot;') : '';
-                    
                     const aggroIconHtml = feat.Need ? `<img src="Aggro.png" class="aggro-icon" title="Требования: ${safeNeed}" alt="Aggro">` : '';
-                    const needHtml = feat.Need ? `<div class="feat-need">ТРЕБОВАНИЯ: ${feat.Need}</div>` : '';
 
-                    const cardHtml = `
+                    container.insertAdjacentHTML('beforeend', `
                         <div class="panel-outer cut-tl compendium-card" data-name="${safeName}" data-base="${baseString}">
                             <div class="hazard-tape" style="height: 6px; background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--accent-muted) 10px, var(--accent-muted) 20px);"></div>
                             <div class="panel-inner cut-tl" style="border-top: none;">
-                                
                                 <div class="card-header-clickable" onclick="window.toggleCard(this)">
                                     <i class="fa-solid fa-chevron-down expand-icon"></i>
                                     <div class="class-title-wrapper">
@@ -377,32 +329,22 @@
                                     </div>
                                     <div class="types-container">${badgesHtml}</div>
                                 </div>
-                                
                                 <div class="talents-wrapper">
                                     <div class="feat-body" data-name="${safeName}" data-need="${safeNeed}" data-desc="${safeDesc}" onclick="window.copyFeat(this)">
-                                        ${needHtml}
+                                        ${feat.Need ? `<div class="feat-need">ТРЕБОВАНИЯ: ${feat.Need}</div>` : ''}
                                         <div class="feat-desc">${feat.desc}</div>
                                         <div class="copy-msg">Скопировано!</div>
                                     </div>
                                 </div>
-
                             </div>
-                        </div>
-                    `;
-                    
-                    container.insertAdjacentHTML('beforeend', cardHtml);
+                        </div>`);
                 });
-
             } catch (error) {
-                console.error("Ошибка загрузки черт:", error);
-                container.innerHTML = `<div class="loading-text" style="color: var(--color-red);">Ошибка связи с базой данных.<br><span style="font-size: 0.8rem; color: var(--text-dim);">Убедитесь, что файл feats.json существует.</span></div>`;
+                container.innerHTML = `<div class="loading-text" style="color: var(--color-red);">Ошибка связи с базой данных.</div>`;
             }
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            renderFilters();
-            loadFeats();
-        });
+        document.addEventListener('DOMContentLoaded', () => { renderFilters(); loadFeats(); });
     </script>
 </body>
 </html>
