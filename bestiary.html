@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Бестиарий / Bestiary</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Merriweather:ital,wght@0,300;1,300;1,700&family=Oswald:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-main: #070707; --bg-panel: #000000; 
+            --accent-primary: #8FCC2A; /* Gluttony / Обжорство */
+            --accent-muted: #4d7311; 
+            --color-red: #C7243A; --color-cyan: #45B3CB; --color-yellow: #F1C40F;
+            --text-main: #E0D8C8; --text-dim: #696969;
+            --border-width: 1px; --chamfer: 14px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-main); color: var(--text-main); font-family: 'Inter', sans-serif;
+            min-height: 100vh; padding: 60px 20px 40px 20px; display: flex; flex-direction: column; align-items: center;
+            background-image: linear-gradient(rgba(7,7,7,0.8), rgba(7,7,7,0.8)), repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.02) 2px, rgba(255,255,255,0.02) 4px);
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4, .oswald { font-family: 'Oswald', sans-serif; text-transform: uppercase; }
+        .lore-text { font-family: 'Merriweather', serif; font-style: italic; color: var(--text-dim); font-size: 0.85rem; line-height: 1.5; white-space: pre-wrap;}
+        .tech-text { font-family: 'Inter', sans-serif; color: var(--accent-primary); font-size: 0.8rem; }
+
+        /* Навигация */
+        .top-nav-btn { position: fixed; top: 10px; left: 20px; padding: 6px 12px; font-size: 0.8rem; border-color: var(--accent-primary); color: var(--accent-primary); font-family: 'Oswald', sans-serif; z-index: 100; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; border: 1px solid var(--accent-primary); cursor: pointer; text-transform: uppercase; transition: 0.2s; }
+        .top-nav-btn:hover { background-color: var(--accent-primary); color: #000; }
+
+        .right-controls { position: fixed; top: 10px; right: 20px; z-index: 1000; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+        .side-nav-btn { padding: 6px 12px; font-size: 0.8rem; font-family: 'Oswald', sans-serif; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; cursor: pointer; text-transform: uppercase; transition: 0.2s; border-radius: 2px; }
+        .create-class-btn { border: 1px solid var(--accent-primary); color: var(--accent-primary); }
+        .create-class-btn:hover { background-color: var(--accent-primary); color: #000; }
+
+        /* Заголовок страницы */
+        .header-bar { width: 100%; max-width: 1000px; display: flex; justify-content: center; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--accent-muted); padding-bottom: 10px; margin-top: 10px; }
+        .header-title { color: var(--accent-primary); font-size: 1.5rem; letter-spacing: 2px; text-align: center; }
+
+        /* Фильтры и поиск */
+        .filters-section { width: 100%; max-width: 1000px; margin-bottom: 24px; display: flex; flex-direction: column; gap: 16px; }
+        .search-wrapper { background-color: var(--accent-muted); padding: var(--border-width); transition: background-color 0.2s; }
+        .search-wrapper:focus-within { background-color: var(--accent-primary); }
+        .search-inner { background: rgba(0,0,0,0.7); padding: 0; display: flex; align-items: center; flex-direction: row; }
+        .search-icon { padding-left: 14px; font-size: 0.9rem; color: var(--text-dim); }
+        .search-input { width: 100%; background: transparent; border: none; color: var(--text-main); padding: 8px 14px 8px 10px; font-family: 'Inter', sans-serif; font-size: 0.95rem; outline: none; }
+        .search-input::placeholder { color: var(--text-dim); }
+
+        .type-filters { display: flex; flex-wrap: wrap; gap: 8px; }
+        .filter-btn { display: flex; align-items: center; gap: 6px; font-family: 'Oswald', sans-serif; font-size: 0.85rem; text-transform: uppercase; border: 1px solid var(--text-dim); color: var(--text-dim); background: rgba(0,0,0,0.5); padding: 4px 10px; cursor: pointer; transition: 0.2s; border-radius: 2px; }
+        .filter-btn:hover { border-color: var(--text-main); color: var(--text-main); }
+        .filter-btn.active { border-color: var(--accent-primary); color: var(--accent-primary); background: rgba(143, 204, 42, 0.1); }
+
+        /* Сетка Бестиария */
+        .compendium-grid { display: flex; flex-direction: column; gap: 16px; width: 100%; max-width: 1000px; }
+
+        .panel-outer { background-color: var(--accent-primary); padding: var(--border-width); position: relative; display: flex; flex-direction: column; }
+        .panel-inner { background-color: var(--bg-panel); padding: 16px 20px; height: 100%; display: flex; flex-direction: column; }
+        .cut-tl { clip-path: polygon(var(--chamfer) 0, 100% 0, 100% 100%, 0 100%, 0 var(--chamfer)); }
+        
+        .hazard-tape { height: 6px; background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--accent-muted) 10px, var(--accent-muted) 20px); border-bottom: 1px solid var(--accent-primary); }
+
+        .card-header-clickable { cursor: pointer; position: relative; padding-right: 24px; user-select: none; }
+        .card-header-clickable:hover .class-title { color: #fff; text-shadow: 0 0 8px rgba(143, 204, 42, 0.6); }
+        .expand-icon { position: absolute; right: 0; top: 10px; color: var(--text-dim); transition: transform 0.3s ease; }
+        .panel-outer.expanded .expand-icon { transform: rotate(180deg); color: var(--accent-primary); }
+
+        .class-title-wrapper { display: flex; flex-direction: column; border-bottom: 1px solid #222; padding-bottom: 8px; margin-bottom: 8px;}
+        .class-title { font-size: 1.5rem; color: var(--accent-primary); transition: color 0.2s; text-shadow: 0 0 2px rgba(143, 204, 42, 0.3); }
+        .monster-meta { font-size: 0.85rem; color: var(--text-dim); font-style: italic; }
+
+        .types-container { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; margin-top: 8px;}
+        .type-badge { display: flex; align-items: center; gap: 6px; font-family: 'Oswald', sans-serif; font-size: 0.9rem; text-transform: uppercase; border: 1px solid; padding: 2px 8px; border-radius: 2px; background: rgba(0,0,0,0.5); }
+
+        /* Статблок Монстра */
+        .talents-wrapper { max-height: 0; opacity: 0; overflow: hidden; transition: max-height 0.4s ease, margin-top 0.4s ease, opacity 0.3s ease; position: relative; }
+        
+        .stat-block { width: 100%; font-size: 0.9rem; line-height: 1.5; color: var(--text-main); margin-bottom: 16px; }
+        .stat-line { margin-bottom: 4px; }
+        .stat-line strong { color: var(--accent-primary); font-family: 'Oswald', sans-serif; letter-spacing: 1px; }
+
+        .stat-grid { display: flex; justify-content: space-between; text-align: center; margin: 12px 0; padding: 12px 0; border-top: 2px solid var(--accent-primary); border-bottom: 2px solid var(--accent-primary); }
+        .stat-col { display: flex; flex-direction: column; width: 16%; }
+        .stat-name { font-family: 'Oswald', sans-serif; color: var(--accent-primary); font-size: 1rem; }
+        .stat-val { font-size: 0.9rem; font-weight: bold; }
+
+        .monster-section-title { font-family: 'Oswald', sans-serif; font-size: 1.2rem; color: var(--accent-primary); border-bottom: 1px dashed #333; margin-top: 16px; margin-bottom: 8px; padding-bottom: 4px; }
+
+        .trait-block { margin-bottom: 10px; }
+        .trait-block strong { color: var(--color-yellow); font-family: 'Oswald', sans-serif; font-size: 1.05rem; }
+        .action-block strong { color: var(--color-red); font-family: 'Oswald', sans-serif; font-size: 1.05rem; }
+
+        .btn-copy-status { background: transparent; border: 1px solid var(--text-dim); color: var(--text-dim); cursor: pointer; padding: 4px 8px; font-size: 0.75rem; text-transform: uppercase; transition: 0.2s; font-family: 'Oswald'; margin-top: 20px; width: 100%; }
+        .btn-copy-status:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
+        .copy-msg-global { text-align: center; color: var(--accent-primary); font-size: 0.8rem; opacity: 0; transition: opacity 0.2s; font-family: 'Oswald', sans-serif; height: 0; }
+        .loading-text { text-align: center; color: var(--text-dim); font-family: 'Oswald', sans-serif; font-size: 1.2rem; width: 100%; padding: 20px; }
+
+        /* МОДАЛЬНОЕ ОКНО КОНСТРУКТОРА */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: flex-start; z-index: 2000; backdrop-filter: blur(4px); padding-top: 50px; overflow-y: auto; }
+        .modal-overlay.active { display: flex; }
+        .modal-box { width: 800px; max-width: 95%; position: relative; margin-bottom: 50px; }
+        
+        .cloud-input, .cloud-select { width: 100%; background: #111; border: 1px solid #333; color: var(--text-main); padding: 10px; margin-bottom: 12px; outline: none; font-family: 'Inter'; font-size: 0.95rem; }
+        .cloud-input:focus, .cloud-select:focus { border-color: var(--accent-primary); }
+        textarea.cloud-input { resize: vertical; min-height: 60px; }
+        
+        .b-row { display: flex; gap: 10px; }
+        .b-row .cloud-input { flex: 1; }
+
+        .builder-checkbox-group { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+        .builder-checkbox-label { display: flex; align-items: center; gap: 4px; font-size: 0.85rem; cursor: pointer; color: var(--text-dim); }
+        .builder-checkbox-label input { accent-color: var(--accent-primary); }
+        .builder-checkbox-label:hover { color: var(--text-main); }
+
+        .btn-small-bld { background: transparent; border: 1px solid var(--text-dim); color: var(--text-dim); cursor: pointer; padding: 6px 12px; font-size: 0.8rem; text-transform: uppercase; transition: 0.2s; font-family: 'Oswald'; }
+        .btn-small-bld:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
+        
+        .b-se-entry { border: 1px solid #333; padding: 12px; margin-bottom: 12px; position: relative; background: rgba(255,255,255,0.02); border-left: 3px solid var(--color-yellow); }
+        .b-se-entry.action-entry { border-left-color: var(--color-red); }
+        .b-se-entry input, .b-se-entry textarea { margin-bottom: 8px; }
+        
+        .btn-close-modal { background: transparent; border: none; color: var(--color-red); font-size: 1.5rem; cursor: pointer; transition: 0.2s; position: absolute; right: 16px; top: 16px; }
+        .btn-close-modal:hover { color: #ff0044; }
+
+    </style>
+</head>
+<body>
+
+    <a href="navigation.html" class="top-nav-btn"><i class="fa-solid fa-arrow-left"></i> НАЗАД (НАВИГАЦИЯ)</a>
+
+    <div class="right-controls">
+        <button class="side-nav-btn create-class-btn" onclick="window.toggleBuilderModal()"><i class="fa-solid fa-plus"></i> СОЗДАТЬ МОНСТРА</button>
+    </div>
+
+    <!-- Модальное окно: Конструктор Монстра -->
+    <div class="modal-overlay" id="builderModal" onclick="window.closeBuilderOnBg(event)">
+        <div class="panel-outer cut-tl modal-box">
+            <div class="hazard-tape"></div>
+            <div class="panel-inner cut-tl" style="border-top: none;">
+                <button class="btn-close-modal" onclick="window.toggleBuilderModal()"><i class="fa-solid fa-xmark"></i></button>
+                <div class="header-title oswald" style="font-size: 1.5rem; margin-bottom: 20px; border-bottom: 1px solid var(--accent-primary); padding-bottom: 8px; text-align: left;">КОНСТРУКТОР БЕСТИАРИЯ</div>
+                
+                <div class="b-row">
+                    <input type="text" id="b-name" class="cloud-input" placeholder="Имя монстра (Например: Bloodbag)">
+                    <input type="text" id="b-meta" class="cloud-input" placeholder="Мета (Например: Средняя нежить, хаотично-злое)">
+                </div>
+
+                <div class="tech-text" style="margin-bottom: 4px;">КАТЕГОРИИ (УРОВЕНЬ УГРОЗЫ)</div>
+                <div class="builder-checkbox-group">
+                    <label class="builder-checkbox-label"><input type="checkbox" class="b-cat-check" value="ZAYIN"> ZAYIN</label>
+                    <label class="builder-checkbox-label"><input type="checkbox" class="b-cat-check" value="TETH"> TETH</label>
+                    <label class="builder-checkbox-label"><input type="checkbox" class="b-cat-check" value="HE"> HE</label>
+                    <label class="builder-checkbox-label"><input type="checkbox" class="b-cat-check" value="WAW"> WAW</label>
+                    <label class="builder-checkbox-label"><input type="checkbox" class="b-cat-check" value="ALEPH"> ALEPH</label>
+                    <label class="builder-checkbox-label"><input type="checkbox" class="b-cat-check" value="City"> Город (City)</label>
+                    <label class="builder-checkbox-label"><input type="checkbox" class="b-cat-check" value="Distortions"> Искажения (Distortions)</label>
+                </div>
+
+                <div class="b-row">
+                    <input type="text" id="b-ac" class="cloud-input" placeholder="Armor Class (КД)">
+                    <input type="text" id="b-hp" class="cloud-input" placeholder="Hit Points (ХП)">
+                    <input type="text" id="b-speed" class="cloud-input" placeholder="Speed (Скорость)">
+                </div>
+
+                <div class="tech-text" style="margin-bottom: 4px;">ХАРАКТЕРИСТИКИ (STATS) - Формат: "10 (+0)"</div>
+                <div class="b-row">
+                    <input type="text" id="b-str" class="cloud-input" placeholder="STR">
+                    <input type="text" id="b-dex" class="cloud-input" placeholder="DEX">
+                    <input type="text" id="b-con" class="cloud-input" placeholder="CON">
+                </div>
+                <div class="b-row">
+                    <input type="text" id="b-int" class="cloud-input" placeholder="INT">
+                    <input type="text" id="b-wis" class="cloud-input" placeholder="WIS">
+                    <input type="text" id="b-cha" class="cloud-input" placeholder="CHA">
+                </div>
+
+                <div class="b-row">
+                    <input type="text" id="b-saves" class="cloud-input" placeholder="Saving Throws (Спасы)">
+                    <input type="text" id="b-skills" class="cloud-input" placeholder="Skills (Навыки)">
+                </div>
+                <div class="b-row">
+                    <input type="text" id="b-senses" class="cloud-input" placeholder="Senses (Чувства)">
+                    <input type="text" id="b-langs" class="cloud-input" placeholder="Languages (Языки)">
+                </div>
+                <input type="text" id="b-challenge" class="cloud-input" placeholder="Challenge (Опасность / XP)">
+
+                <!-- ЧЕРТЫ (TRAITS) -->
+                <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1px solid #333; padding-bottom: 8px; margin-top: 16px; margin-bottom: 12px;">
+                    <div class="tech-text" style="color: var(--color-yellow); font-size: 1rem;">ОСОБЕННОСТИ (TRAITS)</div>
+                    <button class="btn-small-bld" onclick="window.addTrait()">+ ДОБАВИТЬ ОСОБЕННОСТЬ</button>
+                </div>
+                <div id="builder-traits"></div>
+
+                <!-- ДЕЙСТВИЯ (ACTIONS) -->
+                <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1px solid #333; padding-bottom: 8px; margin-top: 16px; margin-bottom: 12px;">
+                    <div class="tech-text" style="color: var(--color-red); font-size: 1rem;">ДЕЙСТВИЯ (ACTIONS)</div>
+                    <button class="btn-small-bld" onclick="window.addAction()">+ ДОБАВИТЬ ДЕЙСТВИЕ</button>
+                </div>
+                <div id="builder-actions"></div>
+
+                <!-- LORE -->
+                <div class="tech-text" style="margin-bottom: 4px; margin-top: 16px;">ЛОР И ОПИСАНИЕ (LORE)</div>
+                <textarea id="b-lore" class="cloud-input" placeholder="Дополнительная информация, механики призыва или лор..."></textarea>
+
+                <button class="btn-small-bld" style="width: 100%; padding: 12px; margin-top: 16px; font-size: 1rem; border-color: var(--accent-primary); color: var(--accent-primary);" onclick="window.exportBuilderJson()"><i class="fa-solid fa-file-export"></i> ЭКСПОРТИРОВАТЬ В JSON</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Заголовок страницы -->
+    <div class="header-bar">
+        <div class="header-title oswald">БЕСТИАРИЙ ГОРОДА</div>
+    </div>
+
+    <div class="filters-section">
+        <div class="panel-outer cut-tl search-wrapper">
+            <div class="panel-inner cut-tl search-inner">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input type="text" id="search-input" class="search-input" placeholder="Поиск по названию монстра..." onkeyup="window.filterMonsters()">
+            </div>
+        </div>
+        <div class="type-filters" id="type-filters"></div>
+    </div>
+
+    <div class="compendium-grid" id="compendium">
+        <div class="loading-text">Установка соединения с базой данных...</div>
+    </div>
+
+    <script>
+        const catDictionary = {
+            "ZAYIN": { name: "ZAYIN", color: "#27AE60" },
+            "TETH": { name: "TETH", color: "#45B3CB" },
+            "HE": { name: "HE", color: "#F1C40F" },
+            "WAW": { name: "WAW", color: "#9B59B6" },
+            "ALEPH": { name: "ALEPH", color: "#C7243A" },
+            "City": { name: "Город", color: "#696969" },
+            "Distortions": { name: "Искажения", color: "#E0D8C8" }
+        };
+
+        let currentCatFilter = 'all';
+
+        function renderFilters() {
+            const container = document.getElementById('type-filters');
+            let html = `<button class="filter-btn active" data-filter="all" onclick="window.setCatFilter('all', this)" style="border-color: var(--accent-primary); color: var(--accent-primary);">ВСЕ</button>`;
+            
+            for (const [key, data] of Object.entries(catDictionary)) {
+                html += `
+                    <button class="filter-btn" data-filter="${key}" data-color="${data.color}" onclick="window.setCatFilter('${key}', this)">
+                        ${data.name}
+                    </button>
+                `;
+            }
+            container.innerHTML = html;
+        }
+
+        window.setCatFilter = (filterKey, btn) => {
+            currentCatFilter = filterKey;
+            
+            document.querySelectorAll('.filter-btn').forEach(b => {
+                b.classList.remove('active');
+                b.style.borderColor = 'var(--text-dim)';
+                b.style.color = 'var(--text-dim)';
+                b.style.backgroundColor = 'rgba(0,0,0,0.5)';
+            });
+            
+            btn.classList.add('active');
+            if(filterKey !== 'all') {
+                const color = btn.getAttribute('data-color');
+                btn.style.borderColor = color;
+                btn.style.color = color;
+                btn.style.backgroundColor = `color-mix(in srgb, ${color} 15%, transparent)`;
+            } else {
+                btn.style.borderColor = 'var(--accent-primary)';
+                btn.style.color = 'var(--accent-primary)';
+                btn.style.backgroundColor = 'rgba(143, 204, 42, 0.1)';
+            }
+            
+            window.filterMonsters();
+        };
+
+        window.filterMonsters = () => {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const cards = document.querySelectorAll('.compendium-card');
+            
+            cards.forEach(card => {
+                const nameData = card.getAttribute('data-name').toLowerCase();
+                const catDataStr = card.getAttribute('data-cat');
+                const catData = catDataStr ? catDataStr.split(',') : [];
+                
+                const matchesName = nameData.includes(query);
+                const matchesFilter = currentCatFilter === 'all' || catData.includes(currentCatFilter);
+                
+                if (matchesName && matchesFilter) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        };
+
+        window.toggleCard = (el) => {
+            const card = el.closest('.panel-outer');
+            const talentsWrapper = card.querySelector('.talents-wrapper');
+            const isExpanded = card.classList.toggle('expanded');
+            
+            if (isExpanded) {
+                talentsWrapper.style.maxHeight = talentsWrapper.scrollHeight + 100 + "px";
+                talentsWrapper.style.marginTop = "8px";
+                talentsWrapper.style.opacity = "1";
+                setTimeout(() => { if (card.classList.contains('expanded')) talentsWrapper.style.maxHeight = 'none'; }, 400);
+            } else {
+                talentsWrapper.style.maxHeight = talentsWrapper.scrollHeight + "px";
+                setTimeout(() => {
+                    talentsWrapper.style.maxHeight = "0px";
+                    talentsWrapper.style.marginTop = "0px";
+                    talentsWrapper.style.opacity = "0";
+                }, 10);
+            }
+        };
+
+        window.copyMonster = (btn) => {
+            const card = btn.closest('.panel-outer');
+            const content = card.querySelector('.stat-block').innerText;
+            
+            navigator.clipboard.writeText(content).then(() => {
+                const msg = card.querySelector('.copy-msg-global');
+                msg.style.opacity = '1';
+                msg.style.height = 'auto';
+                setTimeout(() => {
+                    msg.style.opacity = '0';
+                    msg.style.height = '0';
+                }, 2000);
+            }).catch(err => console.error('Ошибка:', err));
+        };
+
+        // Конструктор
+        window.toggleBuilderModal = () => {
+            const modal = document.getElementById('builderModal');
+            modal.classList.toggle('active');
+        };
+        window.closeBuilderOnBg = (e) => {
+            if (e.target.id === 'builderModal') window.toggleBuilderModal();
+        };
+
+        window.addTrait = () => {
+            const container = document.getElementById('builder-traits');
+            container.insertAdjacentHTML('beforeend', `
+                <div class="b-se-entry">
+                    <button class="btn-small-bld" style="position: absolute; right: 12px; top: 12px; border-color: var(--color-red); color: var(--color-red); padding: 4px;" onclick="this.parentElement.remove()"><i class="fa-solid fa-trash"></i></button>
+                    <input type="text" class="cloud-input b-t-name" style="width: calc(100% - 40px);" placeholder="Название особенности">
+                    <textarea class="cloud-input b-t-desc" placeholder="Описание особенности..." style="margin-bottom: 0;"></textarea>
+                </div>
+            `);
+        };
+
+        window.addAction = () => {
+            const container = document.getElementById('builder-actions');
+            container.insertAdjacentHTML('beforeend', `
+                <div class="b-se-entry action-entry">
+                    <button class="btn-small-bld" style="position: absolute; right: 12px; top: 12px; border-color: var(--color-red); color: var(--color-red); padding: 4px;" onclick="this.parentElement.remove()"><i class="fa-solid fa-trash"></i></button>
+                    <input type="text" class="cloud-input b-a-name" style="width: calc(100% - 40px);" placeholder="Название действия">
+                    <textarea class="cloud-input b-a-desc" placeholder="Описание действия..." style="margin-bottom: 0;"></textarea>
+                </div>
+            `);
+        };
+
+        window.exportBuilderJson = () => {
+            const name = document.getElementById('b-name').value || "Новый Монстр";
+            const cats = Array.from(document.querySelectorAll('.b-cat-check:checked')).map(c => c.value);
+            
+            const traits = [];
+            document.querySelectorAll('#builder-traits .b-se-entry').forEach(el => {
+                traits.push({
+                    name: el.querySelector('.b-t-name').value || "Безымянная особенность",
+                    desc: el.querySelector('.b-t-desc').value || "Нет описания"
+                });
+            });
+
+            const actions = [];
+            document.querySelectorAll('#builder-actions .b-se-entry').forEach(el => {
+                actions.push({
+                    name: el.querySelector('.b-a-name').value || "Безымянное действие",
+                    desc: el.querySelector('.b-a-desc').value || "Нет описания"
+                });
+            });
+
+            const newMonster = {
+                Name: name,
+                Category: cats,
+                Meta: document.getElementById('b-meta').value,
+                ArmorClass: document.getElementById('b-ac').value,
+                HitPoints: document.getElementById('b-hp').value,
+                Speed: document.getElementById('b-speed').value,
+                Stats: {
+                    STR: document.getElementById('b-str').value,
+                    DEX: document.getElementById('b-dex').value,
+                    CON: document.getElementById('b-con').value,
+                    INT: document.getElementById('b-int').value,
+                    WIS: document.getElementById('b-wis').value,
+                    CHA: document.getElementById('b-cha').value
+                },
+                SavingThrows: document.getElementById('b-saves').value,
+                Skills: document.getElementById('b-skills').value,
+                Senses: document.getElementById('b-senses').value,
+                Languages: document.getElementById('b-langs').value,
+                Challenge: document.getElementById('b-challenge').value,
+                Traits: traits,
+                Actions: actions,
+                Lore: document.getElementById('b-lore').value
+            };
+
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify([newMonster], null, 2));
+            const dl = document.createElement('a');
+            dl.setAttribute("href", dataStr);
+            dl.setAttribute("download", name + ".json");
+            document.body.appendChild(dl);
+            dl.click();
+            dl.remove();
+        };
+
+        async function loadBestiary() {
+            const container = document.getElementById('compendium');
+            
+            try {
+                const response = await fetch('bestiary.json');
+                if (!response.ok) throw new Error('Файл bestiary.json не найден');
+                
+                const data = await response.json();
+                container.innerHTML = '';
+                
+                data.forEach(monster => {
+                    const safeName = monster.Name ? monster.Name.replace(/"/g, '&quot;') : 'Без названия';
+                    let catString = (monster.Category && Array.isArray(monster.Category)) ? monster.Category.join(',') : '';
+
+                    let badgesHtml = '';
+                    if (monster.Category && Array.isArray(monster.Category)) {
+                        monster.Category.forEach(cat => {
+                            const config = catDictionary[cat];
+                            if (config) {
+                                badgesHtml += `<div class="type-badge" style="color: ${config.color}; border-color: ${config.color};">${config.name}</div>`;
+                            }
+                        });
+                    }
+
+                    let traitsHtml = '';
+                    if (monster.Traits) {
+                        monster.Traits.forEach(t => {
+                            traitsHtml += `<div class="trait-block"><strong>${t.name}.</strong> ${t.desc}</div>`;
+                        });
+                    }
+
+                    let actionsHtml = '';
+                    if (monster.Actions) {
+                        monster.Actions.forEach(a => {
+                            actionsHtml += `<div class="action-block trait-block"><strong>${a.name}.</strong> ${a.desc}</div>`;
+                        });
+                    }
+
+                    const cardHtml = `
+                        <div class="panel-outer cut-tl compendium-card" data-name="${safeName}" data-cat="${catString}">
+                            <div class="hazard-tape"></div>
+                            <div class="panel-inner cut-tl" style="border-top: none;">
+                                
+                                <div class="card-header-clickable" onclick="window.toggleCard(this)">
+                                    <i class="fa-solid fa-chevron-down expand-icon"></i>
+                                    <div class="class-title-wrapper">
+                                        <div class="class-title oswald">${monster.Name}</div>
+                                        <div class="monster-meta">${monster.Meta || ''}</div>
+                                    </div>
+                                    <div class="types-container">${badgesHtml}</div>
+                                </div>
+                                
+                                <div class="talents-wrapper">
+                                    <div class="stat-block">
+                                        <div class="stat-line"><strong>КД (Armor Class):</strong> ${monster.ArmorClass || '-'}</div>
+                                        <div class="stat-line"><strong>Хиты (Hit Points):</strong> ${monster.HitPoints || '-'}</div>
+                                        <div class="stat-line"><strong>Скорость (Speed):</strong> ${monster.Speed || '-'}</div>
+                                        
+                                        <div class="stat-grid">
+                                            <div class="stat-col"><span class="stat-name">STR</span><span class="stat-val">${monster.Stats?.STR || '-'}</span></div>
+                                            <div class="stat-col"><span class="stat-name">DEX</span><span class="stat-val">${monster.Stats?.DEX || '-'}</span></div>
+                                            <div class="stat-col"><span class="stat-name">CON</span><span class="stat-val">${monster.Stats?.CON || '-'}</span></div>
+                                            <div class="stat-col"><span class="stat-name">INT</span><span class="stat-val">${monster.Stats?.INT || '-'}</span></div>
+                                            <div class="stat-col"><span class="stat-name">WIS</span><span class="stat-val">${monster.Stats?.WIS || '-'}</span></div>
+                                            <div class="stat-col"><span class="stat-name">CHA</span><span class="stat-val">${monster.Stats?.CHA || '-'}</span></div>
+                                        </div>
+
+                                        ${monster.SavingThrows ? `<div class="stat-line"><strong>Спасброски:</strong> ${monster.SavingThrows}</div>` : ''}
+                                        ${monster.Skills ? `<div class="stat-line"><strong>Навыки:</strong> ${monster.Skills}</div>` : ''}
+                                        ${monster.Senses ? `<div class="stat-line"><strong>Чувства:</strong> ${monster.Senses}</div>` : ''}
+                                        ${monster.Languages ? `<div class="stat-line"><strong>Языки:</strong> ${monster.Languages}</div>` : ''}
+                                        ${monster.Challenge ? `<div class="stat-line"><strong>Опасность (CR):</strong> ${monster.Challenge}</div>` : ''}
+
+                                        <div style="margin-top: 16px;">
+                                            ${traitsHtml}
+                                        </div>
+
+                                        ${actionsHtml ? `<div class="monster-section-title">ДЕЙСТВИЯ (ACTIONS)</div>${actionsHtml}` : ''}
+                                    </div>
+                                    
+                                    ${monster.Lore ? `<div class="lore-text" style="margin-top: 16px; border-top: 1px dashed #333; padding-top: 16px;">${monster.Lore}</div>` : ''}
+
+                                    <button class="btn-copy-status" onclick="window.copyMonster(this)"><i class="fa-regular fa-copy"></i> КОПИРОВАТЬ СТАТБЛОК</button>
+                                    <div class="copy-msg-global">СКОПИРОВАНО В БУФЕР!</div>
+                                </div>
+
+                            </div>
+                        </div>
+                    `;
+                    
+                    container.insertAdjacentHTML('beforeend', cardHtml);
+                });
+
+            } catch (error) {
+                console.error("Ошибка загрузки бестиария:", error);
+                container.innerHTML = `<div class="loading-text" style="color: var(--color-red);">Ошибка связи с базой данных.<br><span style="font-size: 0.8rem; color: var(--text-dim);">Убедитесь, что файл bestiary.json существует.</span></div>`;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderFilters();
+            loadBestiary();
+        });
+    </script>
+</body>
+</html>
