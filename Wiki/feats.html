@@ -34,8 +34,11 @@
         .top-nav-btn { position: fixed; top: 10px; left: 20px; padding: 6px 12px; font-size: 0.8rem; border-color: var(--accent-primary); color: var(--accent-primary); font-family: 'Oswald', sans-serif; z-index: 100; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; border: 1px solid var(--accent-primary); cursor: pointer; text-transform: uppercase; transition: 0.2s; }
         .top-nav-btn:hover { background-color: var(--accent-primary); color: #fff; }
 
+        .lang-toggle-btn { position: fixed; top: 10px; right: 20px; padding: 6px 12px; font-size: 0.8rem; border-color: var(--text-dim); color: var(--text-dim); font-family: 'Oswald', sans-serif; z-index: 1000; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; border: 1px solid var(--text-dim); cursor: pointer; text-transform: uppercase; transition: 0.2s; }
+        .lang-toggle-btn:hover { background-color: var(--text-main); color: #000; border-color: var(--text-main); }
+
         /* Правая панель управления */
-        .right-controls { position: fixed; top: 10px; right: 20px; z-index: 1000; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+        .right-controls { position: fixed; top: 45px; right: 20px; z-index: 990; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
         .side-nav-btn { padding: 6px 12px; font-size: 0.8rem; font-family: 'Oswald', sans-serif; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; cursor: pointer; text-transform: uppercase; transition: 0.2s; border-radius: 2px; }
         .create-class-btn { border: 1px solid var(--accent-primary); color: var(--accent-primary); }
         .create-class-btn:hover { background-color: var(--accent-primary); color: #fff; }
@@ -114,10 +117,14 @@
 </head>
 <body>
 
-    <a href="navigation.html" class="top-nav-btn"><i class="fa-solid fa-arrow-left"></i> НАЗАД (НАВИГАЦИЯ)</a>
+    <a href="../navigation.html" class="top-nav-btn translatable" data-ru="<i class='fa-solid fa-arrow-left'></i> НАЗАД (НАВИГАЦИЯ)" data-en="<i class='fa-solid fa-arrow-left'></i> BACK (NAVIGATION)"><i class="fa-solid fa-arrow-left"></i> НАЗАД (НАВИГАЦИЯ)</a>
+    
+    <button class="lang-toggle-btn" onclick="toggleLanguage()">
+        <i class="fa-solid fa-globe"></i> <span id="lang-display">EN</span>
+    </button>
 
     <div class="right-controls">
-        <button class="side-nav-btn create-class-btn" onclick="window.toggleBuilderModal()"><i class="fa-solid fa-plus"></i> СОЗДАТЬ ЧЕРТУ</button>
+        <button class="side-nav-btn create-class-btn translatable" onclick="window.toggleBuilderModal()" data-ru="<i class='fa-solid fa-plus'></i> СОЗДАТЬ ЧЕРТУ" data-en="<i class='fa-solid fa-plus'></i> CREATE FEAT"><i class="fa-solid fa-plus"></i> СОЗДАТЬ ЧЕРТУ</button>
     </div>
 
     <!-- Модальное окно -->
@@ -126,55 +133,79 @@
             <div class="hazard-tape" style="height: 6px; background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--accent-primary) 10px, var(--accent-primary) 20px); border-bottom: 1px solid var(--accent-primary);"></div>
             <div class="panel-inner cut-tl" style="border-top: none;">
                 <button class="btn-close-modal" onclick="window.toggleBuilderModal()"><i class="fa-solid fa-xmark"></i></button>
-                <div class="sidebar-title oswald" style="color: var(--accent-primary); font-size: 1.5rem; margin-bottom: 20px; border-bottom: 1px solid var(--accent-primary); padding-bottom: 8px;">КОНСТРУКТОР ЧЕРТЫ</div>
+                <div class="sidebar-title oswald translatable" style="color: var(--accent-primary); font-size: 1.5rem; margin-bottom: 20px; border-bottom: 1px solid var(--accent-primary); padding-bottom: 8px;" data-ru="КОНСТРУКТОР ЧЕРТЫ" data-en="FEAT BUILDER">КОНСТРУКТОР ЧЕРТЫ</div>
                 
-                <div class="tech-text" style="margin-bottom: 4px;">НАЗВАНИЕ ЧЕРТЫ</div>
-                <input type="text" id="b-name" class="cloud-input" placeholder="Например: Железная хватка">
+                <div class="tech-text translatable" style="margin-bottom: 4px;" data-ru="НАЗВАНИЕ ЧЕРТЫ" data-en="FEAT NAME">НАЗВАНИЕ ЧЕРТЫ</div>
+                <input type="text" id="b-name" class="cloud-input translatable" data-ru="Например: Железная хватка" data-en="E.g.: Iron Grip" placeholder="Например: Железная хватка">
                 
-                <div class="tech-text" style="margin-bottom: 4px;">ТРЕБОВАНИЯ (NEED)</div>
-                <input type="text" id="b-need" class="cloud-input" placeholder="Например: Сила 16 (Оставьте пустым, если нет требований)">
+                <div class="tech-text translatable" style="margin-bottom: 4px;" data-ru="ТРЕБОВАНИЯ (NEED)" data-en="PREREQUISITES (NEED)">ТРЕБОВАНИЯ (NEED)</div>
+                <input type="text" id="b-need" class="cloud-input translatable" data-ru="Например: Сила 16 (Оставьте пустым, если нет требований)" data-en="E.g.: Strength 16 (Leave blank if none)" placeholder="Например: Сила 16 (Оставьте пустым, если нет требований)">
                 
-                <div class="tech-text" style="margin-bottom: 4px;">КАТЕГОРИИ (BASE)</div>
+                <div class="tech-text translatable" style="margin-bottom: 4px;" data-ru="КАТЕГОРИИ (BASE)" data-en="CATEGORIES (BASE)">КАТЕГОРИИ (BASE)</div>
                 <div class="builder-checkbox-group">
-                    <label class="builder-checkbox-label"><input type="checkbox" class="b-base-check" value="Background"> Предыстория</label>
-                    <label class="builder-checkbox-label"><input type="checkbox" class="b-base-check" value="Body"> Тело</label>
-                    <label class="builder-checkbox-label"><input type="checkbox" class="b-base-check" value="Mind"> Разум</label>
-                    <label class="builder-checkbox-label"><input type="checkbox" class="b-base-check" value="Martial Arts"> Боевые искусства</label>
-                    <label class="builder-checkbox-label"><input type="checkbox" class="b-base-check" value="Affiliation"> Принадлежность</label>
-                    <label class="builder-checkbox-label"><input type="checkbox" class="b-base-check" value="Weapon"> Оружие</label>
-                    <label class="builder-checkbox-label"><input type="checkbox" class="b-base-check" value="Status"> Статус</label>
-                    <label class="builder-checkbox-label"><input type="checkbox" class="b-base-check" value="Sin"> Грех</label>
-                    <label class="builder-checkbox-label"><input type="checkbox" class="b-base-check" value="Shin and Mang"> Шин и Манг</label>
-                    <label class="builder-checkbox-label"><input type="checkbox" class="b-base-check" value="E.G.O Feats"> Черты Э.Г.О.</label>
+                    <label class="builder-checkbox-label"><input type="checkbox" class="b-base-check" value="Background"> <span class="translatable" data-ru="Предыстория" data-en="Background">Предыстория</span></label>
+                    <label class="builder-checkbox-label"><input type="checkbox" class="b-base-check" value="Body"> <span class="translatable" data-ru="Тело" data-en="Body">Тело</span></label>
+                    <label class="builder-checkbox-label"><input type="checkbox" class="b-base-check" value="Mind"> <span class="translatable" data-ru="Разум" data-en="Mind">Разум</span></label>
+                    <label class="builder-checkbox-label"><input type="checkbox" class="b-base-check" value="Martial Arts"> <span class="translatable" data-ru="Боевые искусства" data-en="Martial Arts">Боевые искусства</span></label>
+                    <label class="builder-checkbox-label"><input type="checkbox" class="b-base-check" value="Affiliation"> <span class="translatable" data-ru="Принадлежность" data-en="Affiliation">Принадлежность</span></label>
+                    <label class="builder-checkbox-label"><input type="checkbox" class="b-base-check" value="Weapon"> <span class="translatable" data-ru="Оружие" data-en="Weapon">Оружие</span></label>
+                    <label class="builder-checkbox-label"><input type="checkbox" class="b-base-check" value="Status"> <span class="translatable" data-ru="Статус" data-en="Status">Статус</span></label>
+                    <label class="builder-checkbox-label"><input type="checkbox" class="b-base-check" value="Sin"> <span class="translatable" data-ru="Грех" data-en="Sin">Грех</span></label>
+                    <label class="builder-checkbox-label"><input type="checkbox" class="b-base-check" value="Shin and Mang"> <span class="translatable" data-ru="Шин и Манг" data-en="Shin and Mang">Шин и Манг</span></label>
+                    <label class="builder-checkbox-label"><input type="checkbox" class="b-base-check" value="E.G.O Feats"> <span class="translatable" data-ru="Черты Э.Г.О." data-en="E.G.O Feats">Черты Э.Г.О.</span></label>
                 </div>
 
-                <div class="tech-text" style="margin-bottom: 4px; margin-top: 10px;">ОПИСАНИЕ ЧЕРТЫ (DESC)</div>
-                <textarea id="b-desc" class="cloud-input" placeholder="Полное описание черты..." style="min-height: 140px;"></textarea>
+                <div class="tech-text translatable" style="margin-bottom: 4px; margin-top: 10px;" data-ru="ОПИСАНИЕ ЧЕРТЫ (DESC)" data-en="FEAT DESCRIPTION (DESC)">ОПИСАНИЕ ЧЕРТЫ (DESC)</div>
+                <textarea id="b-desc" class="cloud-input translatable" data-ru="Полное описание черты..." data-en="Full description of the feat..." placeholder="Полное описание черты..." style="min-height: 140px;"></textarea>
 
-                <button class="btn-small-bld" style="width: 100%; padding: 12px; margin-top: 16px; font-size: 1rem; border-color: var(--accent-primary); color: var(--accent-primary);" onclick="window.exportBuilderJson()"><i class="fa-solid fa-file-export"></i> ЭКСПОРТИРОВАТЬ В JSON</button>
+                <button class="btn-small-bld translatable" style="width: 100%; padding: 12px; margin-top: 16px; font-size: 1rem; border-color: var(--accent-primary); color: var(--accent-primary);" onclick="window.exportBuilderJson()" data-ru="<i class='fa-solid fa-file-export'></i> ЭКСПОРТИРОВАТЬ В JSON" data-en="<i class='fa-solid fa-file-export'></i> EXPORT TO JSON"><i class="fa-solid fa-file-export"></i> ЭКСПОРТИРОВАТЬ В JSON</button>
             </div>
         </div>
     </div>
 
     <div class="header-bar">
-        <div class="header-title oswald">БАЗА ДАННЫХ: ЧЕРТЫ (FEATS)</div>
+        <div class="header-title oswald translatable" data-ru="БАЗА ДАННЫХ: ЧЕРТЫ (FEATS)" data-en="DATABASE: FEATS">БАЗА ДАННЫХ: ЧЕРТЫ (FEATS)</div>
     </div>
 
     <div class="filters-section">
         <div class="panel-outer cut-tl search-wrapper">
             <div class="panel-inner cut-tl search-inner">
                 <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                <input type="text" id="search-input" class="search-input" placeholder="Поиск по названию черты..." onkeyup="window.filterFeats()">
+                <input type="text" id="search-input" class="search-input translatable" data-ru="Поиск по названию черты..." data-en="Search by feat name..." placeholder="Поиск по названию черты..." onkeyup="window.filterFeats()">
             </div>
         </div>
         <div class="type-filters" id="type-filters"></div>
     </div>
 
     <div class="compendium-grid" id="compendium">
-        <div class="loading-text">Установка соединения с базой данных...</div>
+        <div class="loading-text translatable" id="loading-msg" data-ru="Установка соединения с базой данных..." data-en="Establishing connection to the database...">Установка соединения с базой данных...</div>
     </div>
 
     <script>
+        let currentLang = localStorage.getItem('pmd_lang') || 'ru';
+
+        function applyLanguage() {
+            document.querySelectorAll('.translatable').forEach(el => {
+                if(el.hasAttribute(`data-${currentLang}`)) {
+                    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                        el.setAttribute('placeholder', el.getAttribute(`data-${currentLang}`));
+                    } else {
+                        el.innerHTML = el.getAttribute(`data-${currentLang}`);
+                    }
+                }
+            });
+            const langBtn = document.getElementById('lang-display');
+            if(langBtn) langBtn.innerText = currentLang === 'ru' ? 'EN' : 'RU';
+        }
+
+        window.toggleLanguage = () => {
+            currentLang = currentLang === 'ru' ? 'en' : 'ru';
+            localStorage.setItem('pmd_lang', currentLang);
+            applyLanguage();
+            renderFilters();
+            loadFeats();
+        };
+
         window.toggleBuilderModal = () => {
             document.getElementById('builderModal').classList.toggle('active');
         };
@@ -183,9 +214,9 @@
         };
 
         window.exportBuilderJson = () => {
-            const name = document.getElementById('b-name').value || "Новая Черта";
+            const name = document.getElementById('b-name').value || "New Feat";
             const need = document.getElementById('b-need').value.trim();
-            const desc = document.getElementById('b-desc').value || "Нет описания";
+            const desc = document.getElementById('b-desc').value || "No description";
             const baseArr = Array.from(document.querySelectorAll('.b-base-check:checked')).map(c => c.value);
 
             const newFeat = { Name: name, Need: need !== "" ? need : null, Base: baseArr, desc: desc };
@@ -199,25 +230,26 @@
         };
 
         const baseDictionary = {
-            "Background": { name: "Предыстория", color: "#696969" }, 
-            "Body": { name: "Тело", color: "#E67E22" }, 
-            "Mind": { name: "Разум", color: "#1E3A8A" }, 
-            "Martial Arts": { name: "Боевые искусства", color: "#45B3CB" }, 
-            "Affiliation": { name: "Принадлежность", color: "#F1C40F" }, 
-            "Weapon": { name: "Оружие", color: "#C7243A" }, 
-            "Status": { name: "Статус", color: "#8FCC2A" }, 
-            "Sin": { name: "Грех", color: "#45B3CB" }, 
-            "Shin and Mang": { name: "Шин и Манг", color: "#D94285" }, 
-            "E.G.O Feats": { name: "Черты Э.Г.О.", color: "#27AE60" } 
+            "Background": { name: { ru: "Предыстория", en: "Background" }, color: "#696969" }, 
+            "Body": { name: { ru: "Тело", en: "Body" }, color: "#E67E22" }, 
+            "Mind": { name: { ru: "Разум", en: "Mind" }, color: "#1E3A8A" }, 
+            "Martial Arts": { name: { ru: "Боевые искусства", en: "Martial Arts" }, color: "#45B3CB" }, 
+            "Affiliation": { name: { ru: "Принадлежность", en: "Affiliation" }, color: "#F1C40F" }, 
+            "Weapon": { name: { ru: "Оружие", en: "Weapon" }, color: "#C7243A" }, 
+            "Status": { name: { ru: "Статус", en: "Status" }, color: "#8FCC2A" }, 
+            "Sin": { name: { ru: "Грех", en: "Sin" }, color: "#45B3CB" }, 
+            "Shin and Mang": { name: { ru: "Шин и Манг", en: "Shin and Mang" }, color: "#D94285" }, 
+            "E.G.O Feats": { name: { ru: "Черты Э.Г.О.", en: "E.G.O Feats" }, color: "#27AE60" } 
         };
 
         let currentBaseFilter = 'all';
 
         function renderFilters() {
             const container = document.getElementById('type-filters');
-            let html = `<button class="filter-btn active" data-filter="all" onclick="window.setBaseFilter('all', this)" style="border-color: var(--accent-primary); color: var(--accent-primary);">ВСЕ</button>`;
+            const allText = currentLang === 'en' ? 'ALL' : 'ВСЕ';
+            let html = `<button class="filter-btn active" data-filter="all" onclick="window.setBaseFilter('all', this)" style="border-color: var(--accent-primary); color: var(--accent-primary);">${allText}</button>`;
             for (const [key, data] of Object.entries(baseDictionary)) {
-                html += `<button class="filter-btn" data-filter="${key}" data-color="${data.color}" onclick="window.setBaseFilter('${key}', this)">${data.name}</button>`;
+                html += `<button class="filter-btn" data-filter="${key}" data-color="${data.color}" onclick="window.setBaseFilter('${key}', this)">${data.name[currentLang]}</button>`;
             }
             container.innerHTML = html;
         }
@@ -277,9 +309,10 @@
         };
 
         window.copyFeat = (el) => {
+            const reqPrefix = currentLang === 'en' ? 'Requirements:' : 'Требования:';
             let textToCopy = `${el.getAttribute('data-name')}\n`;
             const need = el.getAttribute('data-need');
-            if (need && need !== "null") textToCopy += `Требования: ${need}\n`;
+            if (need && need !== "null") textToCopy += `${reqPrefix} ${need}\n`;
             textToCopy += `${el.getAttribute('data-desc')}`;
             
             navigator.clipboard.writeText(textToCopy).then(() => {
@@ -291,12 +324,18 @@
 
         async function loadFeats() {
             const container = document.getElementById('compendium');
+            const fileSuffix = currentLang === 'en' ? '_en' : '';
+            const errorText = currentLang === 'en' ? 'Database connection error. Make sure feats_en.json exists in Wiki_data folder.' : 'Ошибка связи с базой данных. Убедитесь, что файл feats.json существует в папке Wiki_data.';
+            
             try {
-                const response = await fetch('feats.json');
+                const response = await fetch(`Wiki_data/feats${fileSuffix}.json`);
                 if (!response.ok) throw new Error();
                 const featsData = await response.json();
                 container.innerHTML = '';
                 
+                const reqPrefix = currentLang === 'en' ? 'PREREQUISITES:' : 'ТРЕБОВАНИЯ:';
+                const copyText = currentLang === 'en' ? 'Copied!' : 'Скопировано!';
+
                 featsData.forEach(feat => {
                     let badgesHtml = '';
                     let baseString = (feat.Base && Array.isArray(feat.Base)) ? feat.Base.join('|') : '';
@@ -305,17 +344,17 @@
                         feat.Base.forEach(baseKey => {
                             const config = baseDictionary[baseKey];
                             if (config) {
-                                badgesHtml += `<div class="type-badge" style="color: ${config.color}; border-color: ${config.color};">${config.name}</div>`;
+                                badgesHtml += `<div class="type-badge" style="color: ${config.color}; border-color: ${config.color};">${config.name[currentLang]}</div>`;
                             } else {
                                 badgesHtml += `<div class="type-badge" style="color: var(--text-main); border-color: var(--text-dim);">${baseKey}</div>`;
                             }
                         });
                     }
 
-                    const safeName = feat.Name ? feat.Name.replace(/"/g, '&quot;') : 'Без названия';
+                    const safeName = feat.Name ? feat.Name.replace(/"/g, '&quot;') : 'Untitled';
                     const safeDesc = feat.desc ? feat.desc.replace(/"/g, '&quot;') : '';
                     const safeNeed = feat.Need ? feat.Need.replace(/"/g, '&quot;') : '';
-                    const aggroIconHtml = feat.Need ? `<img src="Aggro.png" class="aggro-icon" title="Требования: ${safeNeed}" alt="Aggro" onerror="this.style.display='none'">` : '';
+                    const aggroIconHtml = feat.Need ? `<img src="../Asset/Aggro.png" class="aggro-icon" title="${reqPrefix} ${safeNeed}" alt="Aggro" onerror="this.style.display='none'">` : '';
 
                     container.insertAdjacentHTML('beforeend', `
                         <div class="panel-outer cut-tl compendium-card" data-name="${safeName}" data-base="${baseString}">
@@ -331,20 +370,24 @@
                                 </div>
                                 <div class="talents-wrapper">
                                     <div class="feat-body" data-name="${safeName}" data-need="${safeNeed}" data-desc="${safeDesc}" onclick="window.copyFeat(this)">
-                                        ${feat.Need ? `<div class="feat-need">ТРЕБОВАНИЯ: ${feat.Need}</div>` : ''}
+                                        ${feat.Need ? `<div class="feat-need">${reqPrefix} ${feat.Need}</div>` : ''}
                                         <div class="feat-desc">${feat.desc}</div>
-                                        <div class="copy-msg">Скопировано!</div>
+                                        <div class="copy-msg">${copyText}</div>
                                     </div>
                                 </div>
                             </div>
                         </div>`);
                 });
             } catch (error) {
-                container.innerHTML = `<div class="loading-text" style="color: var(--color-red);">Ошибка связи с базой данных. Убедитесь, что файл feats.json существует.</div>`;
+                container.innerHTML = `<div class="loading-text" style="color: var(--color-red);">${errorText}</div>`;
             }
         }
 
-        document.addEventListener('DOMContentLoaded', () => { renderFilters(); loadFeats(); });
+        document.addEventListener('DOMContentLoaded', () => { 
+            applyLanguage();
+            renderFilters(); 
+            loadFeats(); 
+        });
     </script>
 </body>
 </html>
