@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Э.Г.О. Гифты / E.G.O. Gifts Compendium</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Merriweather:ital,wght@0,300;1,300;1,700&family=Oswald:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-main: #070707; --bg-panel: #000000; 
+            --accent-primary: #E67E22; /* Lust / Похоть */
+            --accent-muted: #8a4a12; 
+            --color-red: #C7243A; --color-cyan: #45B3CB; --color-yellow: #F1C40F;
+            --text-main: #E0D8C8; --text-dim: #696969;
+            --border-width: 1px; --chamfer: 14px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-main); color: var(--text-main); font-family: 'Inter', sans-serif;
+            min-height: 100vh; padding: 60px 20px 40px 20px; display: flex; flex-direction: column; align-items: center;
+            background-image: linear-gradient(rgba(7,7,7,0.8), rgba(7,7,7,0.8)), repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.02) 2px, rgba(255,255,255,0.02) 4px);
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4, .oswald { font-family: 'Oswald', sans-serif; text-transform: uppercase; }
+        .tech-text { font-family: 'Inter', sans-serif; color: var(--accent-primary); font-size: 0.8rem; }
+
+        /* Навигация */
+        .top-nav-btn { position: fixed; top: 10px; left: 20px; padding: 6px 12px; font-size: 0.8rem; border-color: var(--accent-primary); color: var(--accent-primary); font-family: 'Oswald', sans-serif; z-index: 100; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; border: 1px solid var(--accent-primary); cursor: pointer; text-transform: uppercase; transition: 0.2s; }
+        .top-nav-btn:hover { background-color: var(--accent-primary); color: #000; }
+
+        .right-controls { position: fixed; top: 10px; right: 20px; z-index: 1000; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+        .side-nav-btn { padding: 6px 12px; font-size: 0.8rem; font-family: 'Oswald', sans-serif; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; cursor: pointer; text-transform: uppercase; transition: 0.2s; border-radius: 2px; }
+        .create-class-btn { border: 1px solid var(--accent-primary); color: var(--accent-primary); }
+        .create-class-btn:hover { background-color: var(--accent-primary); color: #000; }
+
+        /* Заголовок страницы */
+        .header-bar { width: 100%; max-width: 1200px; display: flex; justify-content: center; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--accent-muted); padding-bottom: 10px; margin-top: 10px; }
+        .header-title { color: var(--accent-primary); font-size: 1.5rem; letter-spacing: 2px; text-align: center; }
+
+        /* Фильтры и поиск */
+        .filters-section { width: 100%; max-width: 1200px; margin-bottom: 24px; display: flex; flex-direction: column; gap: 16px; }
+        .search-wrapper { background-color: var(--accent-muted); padding: var(--border-width); transition: background-color 0.2s; }
+        .search-wrapper:focus-within { background-color: var(--accent-primary); }
+        .search-inner { background: rgba(0,0,0,0.7); padding: 0; display: flex; align-items: center; flex-direction: row; }
+        .search-icon { padding-left: 14px; font-size: 0.9rem; color: var(--text-dim); }
+        .search-input { width: 100%; background: transparent; border: none; color: var(--text-main); padding: 8px 14px 8px 10px; font-family: 'Inter', sans-serif; font-size: 0.95rem; outline: none; }
+        .search-input::placeholder { color: var(--text-dim); }
+
+        .filter-group-title { font-family: 'Oswald', sans-serif; color: var(--accent-primary); font-size: 0.9rem; border-bottom: 1px dashed #333; padding-bottom: 4px; margin-bottom: 8px; margin-top: 8px; }
+        
+        .type-filters { display: flex; flex-wrap: wrap; gap: 8px; }
+        .filter-btn { display: flex; align-items: center; gap: 6px; font-family: 'Oswald', sans-serif; font-size: 0.85rem; text-transform: uppercase; border: 1px solid var(--text-dim); color: var(--text-dim); background: rgba(0,0,0,0.5); padding: 4px 10px; cursor: pointer; transition: 0.2s; border-radius: 2px; }
+        .filter-btn:hover { border-color: var(--text-main); color: var(--text-main); }
+        .filter-btn.active { border-color: var(--accent-primary); color: var(--accent-primary); background: rgba(230, 126, 34, 0.1); }
+        .filter-btn .type-icon { width: 14px; height: 14px; object-fit: contain; }
+
+        /* Сетка Гифтов */
+        .compendium-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; width: 100%; max-width: 1200px; align-items: start; }
+
+        .panel-outer { background-color: var(--accent-primary); padding: var(--border-width); position: relative; display: flex; flex-direction: column; }
+        .panel-inner { background-color: var(--bg-panel); padding: 16px 20px; height: 100%; display: flex; flex-direction: column; }
+        .cut-tl { clip-path: polygon(var(--chamfer) 0, 100% 0, 100% 100%, 0 100%, 0 var(--chamfer)); }
+        
+        .hazard-tape { height: 6px; background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--accent-muted) 10px, var(--accent-muted) 20px); border-bottom: 1px solid var(--accent-primary); }
+
+        .card-header-clickable { cursor: pointer; position: relative; padding-right: 24px; user-select: none; }
+        .card-header-clickable:hover .class-title { color: #fff; text-shadow: 0 0 8px rgba(230, 126, 34, 0.6); }
+        .expand-icon { position: absolute; right: 0; top: 10px; color: var(--text-dim); transition: transform 0.3s ease; }
+        .panel-outer.expanded .expand-icon { transform: rotate(180deg); color: var(--accent-primary); }
+
+        .class-title-wrapper { display: flex; flex-direction: column; border-bottom: 1px solid #222; padding-bottom: 8px; margin-bottom: 8px;}
+        .class-title { font-size: 1.3rem; color: var(--accent-primary); transition: color 0.2s; }
+        
+        .level-badge { align-self: flex-start; background: var(--accent-primary); color: #000; font-family: 'Oswald'; font-size: 0.75rem; padding: 2px 6px; border-radius: 2px; margin-bottom: 4px;}
+
+        .types-container { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; margin-top: 8px;}
+        .type-badge { display: flex; align-items: center; gap: 6px; font-family: 'Oswald', sans-serif; font-size: 0.75rem; text-transform: uppercase; border: 1px solid; padding: 2px 6px; border-radius: 2px; background: rgba(0,0,0,0.5); }
+
+        /* Описание Гифта */
+        .talents-wrapper { max-height: 0; opacity: 0; overflow: hidden; transition: max-height 0.4s ease, margin-top 0.4s ease, opacity 0.3s ease; position: relative; }
+        
+        .gift-desc { font-size: 0.9rem; color: var(--text-main); line-height: 1.5; margin-bottom: 16px; margin-top: 12px; white-space: pre-wrap;}
+
+        .btn-copy-status { background: transparent; border: 1px solid var(--text-dim); color: var(--text-dim); cursor: pointer; padding: 4px 8px; font-size: 0.75rem; text-transform: uppercase; transition: 0.2s; font-family: 'Oswald'; margin-top: 10px; width: 100%; }
+        .btn-copy-status:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
+        .copy-msg-global { text-align: center; color: var(--accent-primary); font-size: 0.8rem; opacity: 0; transition: opacity 0.2s; font-family: 'Oswald', sans-serif; height: 0; }
+        .loading-text { text-align: center; color: var(--text-dim); font-family: 'Oswald', sans-serif; font-size: 1.2rem; width: 100%; padding: 20px; }
+
+        /* МОДАЛЬНОЕ ОКНО КОНСТРУКТОРА */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: flex-start; z-index: 2000; backdrop-filter: blur(4px); padding-top: 50px; overflow-y: auto; }
+        .modal-overlay.active { display: flex; }
+        .modal-box { width: 700px; max-width: 95%; position: relative; margin-bottom: 50px; }
+        
+        .cloud-input, .cloud-select { width: 100%; background: #111; border: 1px solid #333; color: var(--text-main); padding: 10px; margin-bottom: 12px; outline: none; font-family: 'Inter'; font-size: 0.95rem; }
+        .cloud-input:focus, .cloud-select:focus { border-color: var(--accent-primary); }
+        textarea.cloud-input { resize: vertical; min-height: 100px; }
+        
+        .b-row { display: flex; gap: 10px; }
+        .b-row .cloud-input, .b-row .cloud-select { flex: 1; }
+
+        .builder-checkbox-group { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+        .builder-checkbox-label { display: flex; align-items: center; gap: 4px; font-size: 0.85rem; cursor: pointer; color: var(--text-dim); }
+        .builder-checkbox-label input { accent-color: var(--accent-primary); }
+        .builder-checkbox-label:hover { color: var(--text-main); }
+
+        .btn-small-bld { background: transparent; border: 1px solid var(--text-dim); color: var(--text-dim); cursor: pointer; padding: 6px 12px; font-size: 0.8rem; text-transform: uppercase; transition: 0.2s; font-family: 'Oswald'; }
+        .btn-small-bld:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
+        
+        .btn-close-modal { background: transparent; border: none; color: var(--color-red); font-size: 1.5rem; cursor: pointer; transition: 0.2s; position: absolute; right: 16px; top: 16px; }
+        .btn-close-modal:hover { color: #ff0044; }
+
+    </style>
+</head>
+<body>
+
+    <a href="navigation.html" class="top-nav-btn"><i class="fa-solid fa-arrow-left"></i> НАЗАД (НАВИГАЦИЯ)</a>
+
+    <div class="right-controls">
+        <button class="side-nav-btn create-class-btn" onclick="window.toggleBuilderModal()"><i class="fa-solid fa-plus"></i> СОЗДАТЬ ГИФТ</button>
+    </div>
+
+    <!-- Модальное окно: Конструктор Э.Г.О. Гифта -->
+    <div class="modal-overlay" id="builderModal" onclick="window.closeBuilderOnBg(event)">
+        <div class="panel-outer cut-tl modal-box">
+            <div class="hazard-tape"></div>
+            <div class="panel-inner cut-tl" style="border-top: none;">
+                <button class="btn-close-modal" onclick="window.toggleBuilderModal()"><i class="fa-solid fa-xmark"></i></button>
+                <div class="header-title oswald" style="font-size: 1.5rem; margin-bottom: 20px; border-bottom: 1px solid var(--accent-primary); padding-bottom: 8px; text-align: left;">КОНСТРУКТОР Э.Г.О. ГИФТА</div>
+                
+                <div class="b-row">
+                    <div style="flex: 3;">
+                        <div class="tech-text" style="margin-bottom: 4px;">НАЗВАНИЕ (NAME)</div>
+                        <input type="text" id="b-name" class="cloud-input" placeholder="Например: Blood-stained Gossypium">
+                    </div>
+                    <div style="flex: 1;">
+                        <div class="tech-text" style="margin-bottom: 4px;">УРОВЕНЬ (LEVEL)</div>
+                        <select id="b-level" class="cloud-select">
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="tech-text" style="margin-bottom: 4px;">ТИП УРОНА / СТАТУСА (TYPE)</div>
+                <div class="builder-checkbox-group">
+                    <label class="builder-checkbox-label"><input type="checkbox" class="b-type-check" value="Burn"> Burn</label>
+                    <label class="builder-checkbox-label"><input type="checkbox" class="b-type-check" value="Bleed"> Bleed</label>
+                    <label class="builder-checkbox-label"><input type="checkbox" class="b-type-check" value="Tremor"> Tremor</label>
+                    <label class="builder-checkbox-label"><input type="checkbox" class="b-type-check" value="Rupture"> Rupture</label>
+                    <label class="builder-checkbox-label"><input type="checkbox" class="b-type-check" value="Sinking"> Sinking</label>
+                    <label class="builder-checkbox-label"><input type="checkbox" class="b-type-check" value="Poise"> Poise</label>
+                    <label class="builder-checkbox-label"><input type="checkbox" class="b-type-check" value="Charge"> Charge</label>
+                    <label class="builder-checkbox-label"><input type="checkbox" class="b-type-check" value="Other"> Other</label>
+                    <label class="builder-checkbox-label"><input type="checkbox" class="b-type-check" value="None"> None (Пусто)</label>
+                </div>
+
+                <div class="tech-text" style="margin-bottom: 4px; margin-top: 10px;">ОПИСАНИЕ (DESCRIPTION)</div>
+                <textarea id="b-desc" class="cloud-input" placeholder="Полное описание эффектов гифта..."></textarea>
+
+                <button class="btn-small-bld" style="width: 100%; padding: 12px; margin-top: 16px; font-size: 1rem; border-color: var(--accent-primary); color: var(--accent-primary);" onclick="window.exportBuilderJson()"><i class="fa-solid fa-file-export"></i> ЭКСПОРТИРОВАТЬ В JSON</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Заголовок страницы -->
+    <div class="header-bar">
+        <div class="header-title oswald">БАЗА ДАННЫХ: Э.Г.О. ГИФТЫ</div>
+    </div>
+
+    <div class="filters-section">
+        <!-- Поиск -->
+        <div class="panel-outer cut-tl search-wrapper">
+            <div class="panel-inner cut-tl search-inner">
+                <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                <input type="text" id="search-input" class="search-input" placeholder="Поиск по названию гифта или эффекту..." onkeyup="window.filterGifts()">
+            </div>
+        </div>
+        
+        <!-- Мульти-фильтры -->
+        <div class="filter-group-title">ФИЛЬТР ПО ТИПУ (TYPE)</div>
+        <div class="type-filters" id="type-filters"></div>
+
+        <div class="filter-group-title">ФИЛЬТР ПО УРОВНЮ (LEVEL)</div>
+        <div class="type-filters" id="level-filters"></div>
+    </div>
+
+    <div class="compendium-grid" id="compendium">
+        <div class="loading-text">Установка соединения с базой данных...</div>
+    </div>
+
+    <script>
+        const typeDictionary = {
+            "Burn": { name: "Burn", color: "#C7243A" },
+            "Bleed": { name: "Bleed", color: "#E67E22" },
+            "Tremor": { name: "Tremor", color: "#F1C40F" },
+            "Rupture": { name: "Rupture", color: "#40E0D0" },
+            "Sinking": { name: "Sinking", color: "#45B3CB" },
+            "Poise": { name: "Poise", color: "#1E3A8A" },
+            "Charge": { name: "Charge", color: "#9B59B6" },
+            "Other": { name: "Other", color: "#27AE60" }, 
+            "None": { name: "None", color: "#696969" } 
+        };
+
+        const levelDictionary = [1, 2, 3, 4, 5];
+
+        let selectedTypes = new Set();
+        let selectedLevels = new Set();
+
+        function renderFilters() {
+            // Типы
+            const typeContainer = document.getElementById('type-filters');
+            let typeHtml = `<button class="filter-btn ${selectedTypes.size === 0 ? 'active' : ''}" onclick="window.clearFilters('type')">ВСЕ ТИПЫ</button>`;
+            for (const [key, data] of Object.entries(typeDictionary)) {
+                const isActive = selectedTypes.has(key) ? 'active' : '';
+                const style = isActive ? `border-color: ${data.color}; color: ${data.color}; background: color-mix(in srgb, ${data.color} 15%, transparent);` : '';
+                typeHtml += `<button class="filter-btn ${isActive}" style="${style}" onclick="window.toggleTypeFilter('${key}')">${data.name}</button>`;
+            }
+            typeContainer.innerHTML = typeHtml;
+
+            // Уровни
+            const levelContainer = document.getElementById('level-filters');
+            let levelHtml = `<button class="filter-btn ${selectedLevels.size === 0 ? 'active' : ''}" onclick="window.clearFilters('level')">ВСЕ УРОВНИ</button>`;
+            levelDictionary.forEach(lvl => {
+                const isActive = selectedLevels.has(lvl) ? 'active' : '';
+                levelHtml += `<button class="filter-btn ${isActive}" onclick="window.toggleLevelFilter(${lvl})">Уровень ${lvl}</button>`;
+            });
+            levelContainer.innerHTML = levelHtml;
+        }
+
+        window.toggleTypeFilter = (typeKey) => {
+            if (selectedTypes.has(typeKey)) selectedTypes.delete(typeKey);
+            else selectedTypes.add(typeKey);
+            renderFilters();
+            window.filterGifts();
+        };
+
+        window.toggleLevelFilter = (lvl) => {
+            if (selectedLevels.has(lvl)) selectedLevels.delete(lvl);
+            else selectedLevels.add(lvl);
+            renderFilters();
+            window.filterGifts();
+        };
+
+        window.clearFilters = (category) => {
+            if (category === 'type') selectedTypes.clear();
+            if (category === 'level') selectedLevels.clear();
+            renderFilters();
+            window.filterGifts();
+        };
+
+        window.filterGifts = () => {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const cards = document.querySelectorAll('.compendium-card');
+            
+            cards.forEach(card => {
+                const nameData = card.getAttribute('data-name').toLowerCase();
+                const descData = card.getAttribute('data-desc').toLowerCase();
+                const typeDataStr = card.getAttribute('data-types');
+                const types = typeDataStr ? typeDataStr.split(',') : [];
+                const levelData = parseInt(card.getAttribute('data-level'));
+                
+                const matchesName = nameData.includes(query) || descData.includes(query);
+                
+                // Мульти-выбор: если фильтры пусты, пропускаем все. Иначе проверяем пересечение массивов.
+                const matchesType = selectedTypes.size === 0 || types.some(t => selectedTypes.has(t));
+                const matchesLevel = selectedLevels.size === 0 || selectedLevels.has(levelData);
+                
+                if (matchesName && matchesType && matchesLevel) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        };
+
+        window.toggleCard = (el) => {
+            const card = el.closest('.panel-outer');
+            const talentsWrapper = card.querySelector('.talents-wrapper');
+            const isExpanded = card.classList.toggle('expanded');
+            
+            if (isExpanded) {
+                talentsWrapper.style.maxHeight = talentsWrapper.scrollHeight + 50 + "px";
+                talentsWrapper.style.opacity = "1";
+                setTimeout(() => { if (card.classList.contains('expanded')) talentsWrapper.style.maxHeight = 'none'; }, 400);
+            } else {
+                talentsWrapper.style.maxHeight = talentsWrapper.scrollHeight + "px";
+                setTimeout(() => {
+                    talentsWrapper.style.maxHeight = "0px";
+                    talentsWrapper.style.opacity = "0";
+                }, 10);
+            }
+        };
+
+        window.copyGift = (btn) => {
+            const card = btn.closest('.panel-outer');
+            const name = card.getAttribute('data-name');
+            const lvl = card.getAttribute('data-level');
+            const desc = card.getAttribute('data-desc');
+            
+            const textToCopy = `[Ур. ${lvl}] ${name}\n${desc}`;
+            
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                const msg = card.querySelector('.copy-msg-global');
+                msg.style.opacity = '1';
+                msg.style.height = 'auto';
+                setTimeout(() => {
+                    msg.style.opacity = '0';
+                    msg.style.height = '0';
+                }, 2000);
+            }).catch(err => console.error('Ошибка:', err));
+        };
+
+        // Конструктор
+        window.toggleBuilderModal = () => {
+            const modal = document.getElementById('builderModal');
+            modal.classList.toggle('active');
+        };
+        window.closeBuilderOnBg = (e) => {
+            if (e.target.id === 'builderModal') window.toggleBuilderModal();
+        };
+
+        window.exportBuilderJson = () => {
+            const name = document.getElementById('b-name').value || "Новый Гифт";
+            const level = parseInt(document.getElementById('b-level').value) || 1;
+            const desc = document.getElementById('b-desc').value || "Нет описания";
+            const types = Array.from(document.querySelectorAll('.b-type-check:checked')).map(c => c.value);
+
+            const newGift = {
+                Name: name,
+                Type: types.length > 0 ? types : ["None"],
+                Level: level,
+                Description: desc
+            };
+
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify([newGift], null, 2));
+            const dl = document.createElement('a');
+            dl.setAttribute("href", dataStr);
+            dl.setAttribute("download", name + ".json");
+            document.body.appendChild(dl);
+            dl.click();
+            dl.remove();
+        };
+
+        function getRomanNumeral(num) {
+            const romans = ["I", "II", "III", "IV", "V"];
+            return romans[num - 1] || num;
+        }
+
+        async function loadGifts() {
+            const container = document.getElementById('compendium');
+            
+            try {
+                const response = await fetch('egogifts.json');
+                if (!response.ok) throw new Error('Файл egogifts.json не найден');
+                
+                const data = await response.json();
+                
+                // Сортировка по уровню, затем по алфавиту
+                data.sort((a, b) => {
+                    if (a.Level !== b.Level) return a.Level - b.Level;
+                    return a.Name.localeCompare(b.Name);
+                });
+
+                container.innerHTML = '';
+                
+                data.forEach(gift => {
+                    const safeName = gift.Name ? gift.Name.replace(/"/g, '&quot;') : 'Без названия';
+                    const safeDesc = gift.Description ? gift.Description.replace(/"/g, '&quot;') : '';
+                    let typeString = (gift.Type && Array.isArray(gift.Type)) ? gift.Type.join(',') : 'None';
+                    let levelRoman = getRomanNumeral(gift.Level);
+
+                    let badgesHtml = '';
+                    if (gift.Type && Array.isArray(gift.Type)) {
+                        gift.Type.forEach(t => {
+                            const config = typeDictionary[t];
+                            if (config) {
+                                badgesHtml += `<div class="type-badge" style="color: ${config.color}; border-color: ${config.color};">${config.name}</div>`;
+                            }
+                        });
+                    }
+
+                    const cardHtml = `
+                        <div class="panel-outer cut-tl compendium-card" data-name="${safeName}" data-desc="${safeDesc}" data-types="${typeString}" data-level="${gift.Level}">
+                            <div class="hazard-tape"></div>
+                            <div class="panel-inner cut-tl" style="border-top: none;">
+                                
+                                <div class="card-header-clickable" onclick="window.toggleCard(this)">
+                                    <i class="fa-solid fa-chevron-down expand-icon"></i>
+                                    <div class="class-title-wrapper">
+                                        <div class="level-badge">УРОВЕНЬ ${levelRoman}</div>
+                                        <div class="class-title oswald">${gift.Name}</div>
+                                    </div>
+                                    <div class="types-container">${badgesHtml}</div>
+                                </div>
+                                
+                                <div class="talents-wrapper">
+                                    <div class="gift-desc">${gift.Description}</div>
+                                    <button class="btn-copy-status" onclick="window.copyGift(this)"><i class="fa-regular fa-copy"></i> КОПИРОВАТЬ Э.Г.О. ГИФТ</button>
+                                    <div class="copy-msg-global">СКОПИРОВАНО В БУФЕР!</div>
+                                </div>
+
+                            </div>
+                        </div>
+                    `;
+                    
+                    container.insertAdjacentHTML('beforeend', cardHtml);
+                });
+
+            } catch (error) {
+                console.error("Ошибка загрузки гифтов:", error);
+                container.innerHTML = `<div class="loading-text" style="color: var(--color-red);">Ошибка связи с базой данных.<br><span style="font-size: 0.8rem; color: var(--text-dim);">Убедитесь, что файл egogifts.json существует.</span></div>`;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderFilters();
+            loadGifts();
+        });
+    </script>
+</body>
+</html>
