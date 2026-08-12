@@ -45,6 +45,12 @@
         .dropdown-create { color: var(--color-yellow); border-top: 1px dashed var(--color-yellow); border-bottom: none; }
         .dropdown-create:hover { background-color: rgba(241, 196, 15, 0.2); color: var(--color-yellow); }
 
+        /* ИЗМЕНЕНИЕ +: Плашка статуса системы */
+        .status-banner { width: 100%; max-width: 1400px; background: rgba(0,0,0,0.8); border: 1px solid var(--text-dim); color: var(--text-dim); padding: 10px 16px; margin-top: 10px; font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 0.9rem; display: flex; align-items: center; gap: 10px; transition: 0.3s; }
+        .status-banner.loading { border-color: var(--color-yellow); color: var(--color-yellow); background: rgba(241, 196, 15, 0.1); }
+        .status-banner.success { border-color: var(--accent-primary); color: var(--accent-primary); background: rgba(143, 204, 42, 0.1); }
+        .status-banner.error { border-color: var(--color-red); color: var(--color-red); background: rgba(199, 36, 58, 0.1); }
+
         .header-bar { width: 100%; max-width: 1400px; display: flex; justify-content: center; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--accent-muted); padding-bottom: 10px; margin-top: 10px; }
         .header-title { color: var(--accent-primary); font-size: 1.8rem; letter-spacing: 2px; text-align: center; text-shadow: 0 0 10px rgba(143, 204, 42, 0.4); }
 
@@ -138,6 +144,11 @@
         </div>
     </div>
 
+    <!-- ИЗМЕНЕНИЕ: Плашка статуса -->
+    <div id="system-status-banner" class="status-banner">
+        <i class="fa-solid fa-circle-notch fa-spin"></i> СИСТЕМА: ОЖИДАНИЕ ИНИЦИАЛИЗАЦИИ...
+    </div>
+
     <div class="header-bar">
         <div class="header-title oswald">БАЗА ДАННЫХ: УПРАВЛЕНИЕ ОФИСОМ</div>
     </div>
@@ -228,16 +239,29 @@
         let isCreator = false;
         let questsDB = [];
 
+        // Управление плашкой статуса
+        window.setSystemStatus = (msg, type = 'normal') => {
+            const banner = document.getElementById('system-status-banner');
+            banner.className = 'status-banner ' + type;
+            let icon = '<i class="fa-solid fa-info-circle"></i>';
+            if (type === 'loading') icon = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
+            if (type === 'success') icon = '<i class="fa-solid fa-check"></i>';
+            if (type === 'error') icon = '<i class="fa-solid fa-triangle-exclamation"></i>';
+            banner.innerHTML = `${icon} СИСТЕМА: ${msg}`;
+        };
+
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = user;
                 document.getElementById('authModal').classList.add('hidden');
                 document.getElementById('office-workspace').style.display = 'grid';
+                window.setSystemStatus("АВТОРИЗАЦИЯ УСПЕШНА. ЗАГРУЗКА ДАННЫХ...", "loading");
                 loadUserOffices();
                 loadQuestsDB();
             } else {
                 document.getElementById('authModal').classList.remove('hidden');
                 document.getElementById('office-workspace').style.display = 'none';
+                window.setSystemStatus("ОЖИДАНИЕ ВХОДА СЕТЕВОГО ОПЕРАТОРА", "normal");
             }
         });
 
@@ -245,15 +269,24 @@
             const e = document.getElementById('auth-email').value;
             const p = document.getElementById('auth-pass').value;
             if (!e || !p) return alert("Введите Email и Пароль");
+            
+            window.setSystemStatus("ПРОВЕРКА УЧЕТНЫХ ДАННЫХ...", "loading");
             try {
                 await signInWithEmailAndPassword(auth, e, p);
             } catch (err) {
                 if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
                     try {
+                        window.setSystemStatus("НОВЫЙ ПОЛЬЗОВАТЕЛЬ. РЕГИСТРАЦИЯ...", "loading");
                         await createUserWithEmailAndPassword(auth, e, p);
                         alert("Регистрация успешна!");
-                    } catch (err2) { alert(err2.message); }
-                } else { alert(err.message); }
+                    } catch (err2) { 
+                        window.setSystemStatus("ОШИБКА РЕГИСТРАЦИИ: " + err2.message, "error");
+                        alert(err2.message); 
+                    }
+                } else { 
+                    window.setSystemStatus("ОШИБКА АВТОРИЗАЦИИ: " + err.message, "error");
+                    alert(err.message); 
+                }
             }
         };
 
@@ -289,10 +322,14 @@
                     window.openOffice(querySnapshot.docs[0].id);
                 } else if (querySnapshot.empty) {
                     document.getElementById('office-name').value = "ВЫБЕРИТЕ ИЛИ СОЗДАЙТЕ ОФИС";
+                    window.setSystemStatus("СПИСОК ОФИСОВ ПУСТ. СОЗДАЙТЕ НОВЫЙ ОФИС В МЕНЮ.", "normal");
+                } else {
+                    window.setSystemStatus("СИНХРОНИЗАЦИЯ ЗАВЕРШЕНА.", "success");
                 }
             } catch (error) {
                 console.error(error);
                 listEl.innerHTML = '<div style="padding: 10px; color: var(--color-red);">Ошибка загрузки. Вероятно, блокировка правилами Firebase.</div>';
+                window.setSystemStatus("ОШИБКА ДОСТУПА К БАЗЕ ОФИСОВ (FIRESTORE RULES)", "error");
             }
         }
 
@@ -302,6 +339,7 @@
             
             const nameInput = document.getElementById('office-name');
             nameInput.value = "СИСТЕМА СОЗДАЕТ ОФИС...";
+            window.setSystemStatus("ОТПРАВКА ЗАПРОСА В FIRESTORE...", "loading");
             
             try {
                 const newOfficeRef = doc(collection(db, "offices"));
@@ -314,11 +352,12 @@
                     news: []
                 };
                 await setDoc(newOfficeRef, newOfficeData);
+                window.setSystemStatus("ОФИС УСПЕШНО СОЗДАН. ПОДКЛЮЧЕНИЕ...", "success");
                 await loadUserOffices();
                 window.openOffice(newOfficeRef.id);
             } catch (err) {
                 nameInput.value = "ОШИБКА ДОСТУПА В БАЗУ";
-                alert("Ошибка при создании офиса! Убедитесь, что в Firestore Rules разрешена запись (allow read, write: if request.auth != null;).");
+                window.setSystemStatus("ОШИБКА ЗАПИСИ (ПРАВА FIRESTORE). " + err.message, "error");
                 console.error(err);
             }
         };
@@ -326,6 +365,7 @@
         window.openOffice = async (id) => {
             document.getElementById('office-dropdown').classList.remove('active');
             currentOfficeId = id;
+            window.setSystemStatus("ПОЛУЧЕНИЕ ДАННЫХ ОФИСА...", "loading");
             try {
                 const docSnap = await getDoc(doc(db, "offices", id));
                 if (docSnap.exists()) {
@@ -346,18 +386,23 @@
 
                     renderCharacters(data.characters || []);
                     renderNews(data.news || []);
+                    window.setSystemStatus("ОФИС ЗАГРУЖЕН УСПЕШНО", "success");
                 }
-            } catch(e) { console.error(e); }
+            } catch(e) { 
+                console.error(e);
+                window.setSystemStatus("ОШИБКА ЧТЕНИЯ ДОКУМЕНТА ОФИСА", "error");
+            }
         };
 
         window.saveOfficeInfo = async () => {
             if (!currentOfficeId || !isCreator) return;
             const newName = document.getElementById('office-name').value;
+            window.setSystemStatus("ОБНОВЛЕНИЕ НАЗВАНИЯ...", "loading");
             try {
                 await updateDoc(doc(db, "offices", currentOfficeId), { name: newName });
                 loadUserOffices();
             } catch (err) {
-                alert("Ошибка сохранения имени.");
+                window.setSystemStatus("ОШИБКА СОХРАНЕНИЯ ИМЕНИ", "error");
             }
         };
 
@@ -371,6 +416,7 @@
             
             document.getElementById('office-logo').style.backgroundImage = 'none';
             document.getElementById('office-logo').innerHTML = '<i class="fa-solid fa-spinner fa-spin" style="color:var(--color-cyan);"></i>';
+            window.setSystemStatus("ЗАГРУЗКА ИЗОБРАЖЕНИЯ В STORAGE...", "loading");
 
             try {
                 const storageRef = ref(storage, `offices/${currentOfficeId}/logo_${Date.now()}`);
@@ -380,9 +426,10 @@
                 await updateDoc(doc(db, "offices", currentOfficeId), { logoUrl: url });
                 document.getElementById('office-logo').innerHTML = '';
                 document.getElementById('office-logo').style.backgroundImage = `url('${url}')`;
+                window.setSystemStatus("ЛОГОТИП ОБНОВЛЕН", "success");
             } catch (err) {
                 console.error(err);
-                alert("Ошибка загрузки изображения в Storage.");
+                window.setSystemStatus("ОШИБКА ЗАГРУЗКИ (ПРАВА STORAGE)", "error");
                 document.getElementById('office-logo').innerHTML = '';
             }
             e.target.value = '';
@@ -393,19 +440,25 @@
             const email = input.value.trim();
             if (!email || !currentOfficeId || !isCreator) return;
             
+            window.setSystemStatus("ДОБАВЛЕНИЕ АГЕНТА...", "loading");
             try {
                 await updateDoc(doc(db, "offices", currentOfficeId), {
                     members: arrayUnion(email)
                 });
-                alert(`Агент ${email} добавлен в Офис!`);
+                window.setSystemStatus(`АГЕНТ ${email.toUpperCase()} ДОБАВЛЕН В БАЗУ`, "success");
                 input.value = '';
-            } catch (err) { alert("Ошибка добавления пользователя."); console.error(err); }
+            } catch (err) { 
+                window.setSystemStatus("ОШИБКА ДОБАВЛЕНИЯ", "error");
+                console.error(err); 
+            }
         };
 
         window.uploadCharacter = (e) => {
             const file = e.target.files[0];
             if (!file || !currentOfficeId) return;
             const reader = new FileReader();
+            
+            window.setSystemStatus("ИНТЕГРАЦИЯ ДОСЬЕ...", "loading");
             reader.onload = async (event) => {
                 try {
                     const preset = JSON.parse(event.target.result);
@@ -424,7 +477,9 @@
                         characters: arrayUnion(charObj)
                     });
                     window.openOffice(currentOfficeId);
-                } catch (err) { alert("Ошибка чтения JSON пресета."); }
+                } catch (err) { 
+                    window.setSystemStatus("ОШИБКА ФОРМАТА JSON", "error");
+                }
             };
             reader.readAsText(file);
             e.target.value = '';
@@ -462,12 +517,15 @@
             if (!confirm("Удалить досье из Офиса?")) return;
             const charObj = window._currentChars.find(c => c.id === id);
             if(charObj) {
+                window.setSystemStatus("УДАЛЕНИЕ ДОСЬЕ...", "loading");
                 try {
                     await updateDoc(doc(db, "offices", currentOfficeId), {
                         characters: arrayRemove(charObj)
                     });
                     window.openOffice(currentOfficeId);
-                } catch(err) { alert("Ошибка удаления."); }
+                } catch(err) { 
+                    window.setSystemStatus("ОШИБКА УДАЛЕНИЯ", "error");
+                }
             }
         };
 
@@ -496,13 +554,14 @@
                 text: text
             };
             
+            window.setSystemStatus("ПУБЛИКАЦИЯ СВОДКИ...", "loading");
             try {
                 await updateDoc(doc(db, "offices", currentOfficeId), {
                     news: arrayUnion(newsObj)
                 });
                 input.value = '';
                 window.openOffice(currentOfficeId);
-            } catch(err) { alert("Ошибка публикации."); }
+            } catch(err) { window.setSystemStatus("ОШИБКА ПУБЛИКАЦИИ", "error"); }
         };
 
         function renderNews(newsArr) {
@@ -533,12 +592,13 @@
             if (!confirm("Удалить сводку?")) return;
             const nObj = window._currentNews.find(n => n.id === id);
             if(nObj) {
+                window.setSystemStatus("УДАЛЕНИЕ СВОДКИ...", "loading");
                 try {
                     await updateDoc(doc(db, "offices", currentOfficeId), {
                         news: arrayRemove(nObj)
                     });
                     window.openOffice(currentOfficeId);
-                } catch (err) { alert("Ошибка удаления новости."); }
+                } catch (err) { window.setSystemStatus("ОШИБКА УДАЛЕНИЯ СВОДКИ", "error"); }
             }
         };
 
