@@ -35,33 +35,105 @@
         .top-nav-btn { position: fixed; top: 10px; left: 20px; padding: 6px 12px; font-size: 0.8rem; border-color: var(--accent-primary); color: var(--accent-primary); font-family: 'Oswald', sans-serif; z-index: 100; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; border: 1px solid var(--accent-primary); cursor: pointer; text-transform: uppercase; transition: 0.2s; }
         .top-nav-btn:hover { background-color: var(--accent-primary); color: #000; }
 
+        .right-controls { position: fixed; top: 10px; right: 20px; z-index: 1000; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+        .side-nav-btn { padding: 6px 12px; font-size: 0.8rem; font-family: 'Oswald', sans-serif; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; cursor: pointer; text-transform: uppercase; transition: 0.2s; border-radius: 2px; }
+        .create-btn { border: 1px solid var(--accent-primary); color: var(--accent-primary); }
+        .create-btn:hover { background-color: var(--accent-primary); color: #000; }
+
         /* Заголовок страницы */
-        .header-bar { width: 100%; max-width: 1000px; display: flex; justify-content: center; align-items: center; margin-bottom: 30px; border-bottom: 1px solid var(--accent-muted); padding-bottom: 10px; margin-top: 10px; flex-direction: column; gap: 8px;}
-        .header-title { color: var(--accent-primary); font-size: 2rem; letter-spacing: 2px; text-align: center; }
+        .header-bar { width: 100%; max-width: 1200px; display: flex; justify-content: center; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--accent-muted); padding-bottom: 10px; margin-top: 10px; flex-direction: column; gap: 8px;}
+        .header-title { color: var(--accent-primary); font-size: 2rem; letter-spacing: 2px; text-align: center; text-shadow: 0 0 10px rgba(155, 89, 182, 0.4);}
         .header-subtitle { color: var(--text-dim); font-size: 0.9rem; font-family: 'Inter'; text-align: center; }
 
-        /* Лейаут */
-        .content-grid { display: flex; flex-direction: column; gap: 30px; width: 100%; max-width: 1000px; }
+        /* Таб-кнопки */
+        .tabs-container { width: 100%; max-width: 1200px; display: flex; gap: 10px; margin-bottom: 24px; }
+        .tab-btn { flex: 1; padding: 12px; background: rgba(0,0,0,0.5); border: 1px solid var(--text-dim); color: var(--text-dim); font-family: 'Oswald'; font-size: 1.2rem; cursor: pointer; transition: 0.2s; text-transform: uppercase; letter-spacing: 1px;}
+        .tab-btn:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
+        .tab-btn.active { border-color: var(--accent-primary); color: var(--text-main); background: rgba(155, 89, 182, 0.2); }
 
-        .panel-outer { background-color: var(--accent-primary); padding: var(--border-width); position: relative; display: flex; flex-direction: column; }
-        .panel-inner { background-color: var(--bg-panel); padding: 30px; height: 100%; display: flex; flex-direction: column; }
-        .cut-tl { clip-path: polygon(var(--chamfer) 0, 100% 0, 100% 100%, 0 100%, 0 var(--chamfer)); }
-        
-        .hazard-tape { height: 6px; background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--accent-muted) 10px, var(--accent-muted) 20px); border-bottom: 1px solid var(--accent-primary); }
-
-        .section-title { font-size: 1.6rem; color: var(--accent-primary); margin-bottom: 16px; border-bottom: 1px solid #333; padding-bottom: 8px; display: flex; align-items: center; gap: 12px; }
-        .section-title i { font-size: 1.3rem; }
-
+        /* ЛОР ЛЕЙАУТ */
+        .content-grid-lore { display: none; flex-direction: column; gap: 30px; width: 100%; max-width: 1200px; }
         .paragraph { margin-bottom: 16px; text-align: justify; }
         .paragraph:last-child { margin-bottom: 0; }
-        
         .highlight { color: var(--accent-primary); font-weight: bold; font-family: 'Oswald', sans-serif; font-size: 1.1rem; letter-spacing: 1px; text-transform: uppercase;}
-        
         .info-block { border-left: 3px solid var(--accent-primary); padding-left: 16px; margin-bottom: 24px; position: relative; background: rgba(255,255,255,0.02); padding: 16px; border-radius: 0 4px 4px 0; transition: background 0.2s; }
         .info-block:hover { background: rgba(255,255,255,0.04); }
         .info-block:last-child { margin-bottom: 0; }
-
         .warning-text { color: var(--color-red); font-family: 'Oswald'; font-weight: normal; letter-spacing: 1px; }
+
+        /* БАЗА ЛЕЙАУТ */
+        .content-grid-db { display: block; width: 100%; max-width: 1200px; }
+
+        .filters-section { display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px; }
+        .search-wrapper { background-color: var(--accent-muted); padding: var(--border-width); transition: background-color 0.2s; }
+        .search-wrapper:focus-within { background-color: var(--accent-primary); }
+        .search-inner { background: rgba(0,0,0,0.7); padding: 0; display: flex; align-items: center; flex-direction: row; }
+        .search-icon { padding-left: 14px; font-size: 0.9rem; color: var(--text-dim); }
+        .search-input { width: 100%; background: transparent; border: none; color: var(--text-main); padding: 8px 14px 8px 10px; font-family: 'Inter', sans-serif; font-size: 0.95rem; outline: none; }
+
+        .filter-group-title { font-family: 'Oswald', sans-serif; color: var(--accent-primary); font-size: 0.9rem; border-bottom: 1px dashed #333; padding-bottom: 4px; margin-bottom: 8px; margin-top: 8px; }
+        .type-filters { display: flex; flex-wrap: wrap; gap: 8px; }
+        .filter-btn { display: flex; align-items: center; gap: 6px; font-family: 'Oswald', sans-serif; font-size: 0.85rem; text-transform: uppercase; border: 1px solid var(--text-dim); color: var(--text-dim); background: rgba(0,0,0,0.5); padding: 4px 10px; cursor: pointer; transition: 0.2s; border-radius: 2px; }
+        .filter-btn:hover { border-color: var(--text-main); color: var(--text-main); }
+        .filter-btn.active { border-color: var(--accent-primary); color: var(--text-main); background: rgba(155, 89, 182, 0.2); }
+
+        .compendium-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; width: 100%; align-items: start; }
+
+        .panel-outer { background-color: var(--accent-primary); padding: var(--border-width); position: relative; display: flex; flex-direction: column; }
+        .panel-inner { background-color: var(--bg-panel); padding: 20px; height: 100%; display: flex; flex-direction: column; }
+        .cut-tl { clip-path: polygon(var(--chamfer) 0, 100% 0, 100% 100%, 0 100%, 0 var(--chamfer)); }
+        .hazard-tape { height: 6px; background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--accent-muted) 10px, var(--accent-muted) 20px); border-bottom: 1px solid var(--accent-primary); }
+
+        .card-header-clickable { cursor: pointer; position: relative; padding-right: 24px; user-select: none; }
+        .card-header-clickable:hover .class-title { color: #fff; text-shadow: 0 0 8px rgba(155, 89, 182, 0.6); }
+        .expand-icon { position: absolute; right: 0; top: 10px; color: var(--text-dim); transition: transform 0.3s ease; }
+        .panel-outer.expanded .expand-icon { transform: rotate(180deg); color: var(--accent-primary); }
+
+        .class-title-wrapper { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid #222; padding-bottom: 8px; margin-bottom: 8px;}
+        .class-title { font-size: 1.3rem; color: var(--accent-primary); transition: color 0.2s; font-family: 'Oswald'; text-transform: uppercase; width: 75%;}
+        
+        .array-icon-wrapper { display: flex; flex-direction: column; align-items: flex-end; text-align: right; }
+        .array-icon { height: 24px; object-fit: contain; margin-bottom: 4px; }
+        .rarity-text { font-family: 'Oswald'; font-size: 0.75rem; text-transform: uppercase; }
+
+        .level-badge { align-self: flex-start; background: var(--accent-primary); color: #000; font-family: 'Oswald'; font-size: 0.75rem; padding: 2px 6px; border-radius: 2px; margin-bottom: 4px;}
+
+        .types-container { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; margin-top: 8px;}
+        .type-badge { display: flex; align-items: center; gap: 6px; font-family: 'Oswald', sans-serif; font-size: 0.75rem; text-transform: uppercase; border: 1px solid; padding: 2px 6px; border-radius: 2px; background: rgba(0,0,0,0.5); }
+
+        /* Описание Эквипа */
+        .talents-wrapper { max-height: 0; opacity: 0; overflow: hidden; transition: max-height 0.4s ease, margin-top 0.4s ease, opacity 0.3s ease; position: relative; }
+        
+        .req-text { color: var(--color-red); font-size: 0.85rem; font-family: 'Oswald', sans-serif; text-transform: uppercase; margin-top: 12px; margin-bottom: 4px; }
+        .item-desc { font-size: 0.9rem; color: var(--text-main); line-height: 1.5; margin-bottom: 16px; white-space: pre-wrap;}
+
+        .btn-copy-status { background: transparent; border: 1px solid var(--text-dim); color: var(--text-dim); cursor: pointer; padding: 4px 8px; font-size: 0.75rem; text-transform: uppercase; transition: 0.2s; font-family: 'Oswald'; margin-top: 10px; width: 100%; }
+        .btn-copy-status:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
+        .copy-msg-global { text-align: center; color: var(--accent-primary); font-size: 0.8rem; opacity: 0; transition: opacity 0.2s; font-family: 'Oswald', sans-serif; height: 0; }
+        .loading-text { text-align: center; color: var(--text-dim); font-family: 'Oswald', sans-serif; font-size: 1.2rem; width: 100%; padding: 20px; }
+
+        /* МОДАЛЬНОЕ ОКНО КОНСТРУКТОРА */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: flex-start; z-index: 2000; backdrop-filter: blur(4px); padding-top: 50px; overflow-y: auto; }
+        .modal-overlay.active { display: flex; }
+        .modal-box { width: 700px; max-width: 95%; position: relative; margin-bottom: 50px; }
+        
+        .cloud-input, .cloud-select { width: 100%; background: #111; border: 1px solid #333; color: var(--text-main); padding: 10px; margin-bottom: 12px; outline: none; font-family: 'Inter'; font-size: 0.95rem; }
+        .cloud-input:focus, .cloud-select:focus { border-color: var(--accent-primary); }
+        textarea.cloud-input { resize: vertical; min-height: 100px; }
+        
+        .b-row { display: flex; gap: 10px; }
+        .b-row .cloud-input, .b-row .cloud-select { flex: 1; }
+
+        .builder-checkbox-group { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+        .builder-checkbox-label { display: flex; align-items: center; gap: 4px; font-size: 0.85rem; cursor: pointer; color: var(--text-dim); }
+        .builder-checkbox-label input { accent-color: var(--accent-primary); }
+        .builder-checkbox-label:hover { color: var(--text-main); }
+
+        .btn-small-bld { background: transparent; border: 1px solid var(--text-dim); color: var(--text-dim); cursor: pointer; padding: 6px 12px; font-size: 0.8rem; text-transform: uppercase; transition: 0.2s; font-family: 'Oswald'; }
+        .btn-small-bld:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
+        
+        .btn-close-modal { background: transparent; border: none; color: var(--color-red); font-size: 1.5rem; cursor: pointer; transition: 0.2s; position: absolute; right: 16px; top: 16px; }
+        .btn-close-modal:hover { color: #ff0044; }
 
     </style>
 </head>
@@ -69,99 +141,466 @@
 
     <a href="navigation.html" class="top-nav-btn"><i class="fa-solid fa-arrow-left"></i> НАЗАД (НАВИГАЦИЯ)</a>
 
+    <div class="right-controls">
+        <button class="side-nav-btn create-btn" onclick="window.toggleBuilderModal()" id="btn-create"><i class="fa-solid fa-plus"></i> СОЗДАТЬ ПРЕДМЕТ</button>
+    </div>
+
+    <!-- Заголовок страницы -->
     <div class="header-bar">
         <div class="header-title oswald">БАЗА СНАРЯЖЕНИЯ (EQUIPMENT)</div>
-        <div class="header-subtitle">Сводная информация о Мастерских, аугментациях, налогах на огнестрельное оружие и дресс-кодах Города.</div>
+        <div class="header-subtitle">Сводная информация о Мастерских, аугментациях, налогах и арсенал Фиксеров.</div>
     </div>
 
-    <div class="content-grid">
-        
-        <!-- АУГМЕНТАЦИИ -->
+    <!-- Вкладки -->
+    <div class="tabs-container">
+        <button class="tab-btn active" id="tab-db-btn" onclick="window.switchTab('db')">БАЗА ДАННЫХ (ЭКВИП)</button>
+        <button class="tab-btn" id="tab-lore-btn" onclick="window.switchTab('lore')">ЛОР И ПРАВИЛА</button>
+    </div>
+
+    <!-- КОНТЕНТ: БАЗА ДАННЫХ -->
+    <div class="content-grid-db" id="tab-db">
+        <div class="filters-section">
+            <div class="panel-outer cut-tl search-wrapper">
+                <div class="panel-inner cut-tl search-inner">
+                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                    <input type="text" id="search-input" class="search-input" placeholder="Поиск по названию или описанию..." onkeyup="window.filterItems()">
+                </div>
+            </div>
+            
+            <div class="filter-group-title">ФИЛЬТР ПО ТИПУ (ITEM TYPE)</div>
+            <div class="type-filters" id="item-type-filters"></div>
+
+            <div class="filter-group-title">ФИЛЬТР ПО ХАРАКТЕРИСТИКЕ (SCALING STAT)</div>
+            <div class="type-filters" id="stat-filters"></div>
+
+            <div class="filter-group-title">ФИЛЬТР ПО РЕДКОСТИ (RARITY)</div>
+            <div class="type-filters" id="rarity-filters"></div>
+        </div>
+
+        <div class="compendium-grid" id="compendium">
+            <div class="loading-text">Установка соединения с базой данных...</div>
+        </div>
+    </div>
+
+    <!-- КОНТЕНТ: ЛОР И ПРАВИЛА -->
+    <div class="content-grid-lore" id="tab-lore">
         <div class="panel-outer cut-tl">
             <div class="hazard-tape"></div>
             <div class="panel-inner cut-tl" style="border-top: none;">
-                <div class="section-title oswald"><i class="fa-solid fa-microchip"></i> АУГМЕНТАЦИИ (AUGMENTATION)</div>
+                <div class="section-title oswald" style="font-size: 1.6rem; color: var(--accent-primary); margin-bottom: 16px; border-bottom: 1px solid #333; padding-bottom: 8px; display: flex; align-items: center; gap: 12px;"><i class="fa-solid fa-microchip"></i> АУГМЕНТАЦИИ (AUGMENTATION)</div>
                 <div class="lore-text">
-                    <div class="paragraph">
-                        В Городе лучше иметь физические улучшения, чем обходиться без них. Из-за бесчисленных опасностей, сопровождающих жизнь в Городе, аугментации стали основным способом самозащиты. Фиксеры, члены Синдикатов и даже обычные горожане знают это, и это правило применимо ко всем в равной степени. Фиксер, который не модифицирует свое тело, всегда будет находиться в невыгодном положении перед конкурентами, не говоря уже о врагах, которые уже давно аугментированы.
-                    </div>
-                    <div class="paragraph">
-                        Существует бесчисленное множество вариантов улучшений: от механических экзоскелетов и бионических имплантов до протезов конечностей и даже полной замены тела на протез. Все они могут быть специализированы для самых разных задач. <span class="highlight">Единственный ограничивающий фактор — это деньги</span>, так как первоклассные процедуры по установке аугментаций стоят колоссальных сумм, а более дешевые аналоги могут быть крайне ненадежными и даже опасными. Тем не менее, сверхчеловеческие возможности, которые предоставляют модификации, жизненно необходимы для Фиксеров, что полностью оправдывает их цену.
-                    </div>
+                    <div class="paragraph">В Городе лучше иметь физические улучшения, чем обходиться без них. Из-за бесчисленных опасностей, сопровождающих жизнь в Городе, аугментации стали основным способом самозащиты. Фиксеры, члены Синдикатов и даже обычные горожане знают это. Фиксер, который не модифицирует свое тело, всегда будет находиться в невыгодном положении.</div>
+                    <div class="paragraph">Существует бесчисленное множество вариантов улучшений: от механических экзоскелетов и бионических имплантов до протезов конечностей и даже полной замены тела на протез. <span class="highlight">Единственный ограничивающий фактор — это деньги</span>.</div>
                 </div>
             </div>
         </div>
 
-        <!-- ОДЕЖДА И УНИФОРМА -->
         <div class="panel-outer cut-tl">
             <div class="hazard-tape"></div>
             <div class="panel-inner cut-tl" style="border-top: none;">
-                <div class="section-title oswald"><i class="fa-solid fa-user-tie"></i> ОДЕЖДА И УНИФОРМА (ATTIRE)</div>
+                <div class="section-title oswald" style="font-size: 1.6rem; color: var(--accent-primary); margin-bottom: 16px; border-bottom: 1px solid #333; padding-bottom: 8px; display: flex; align-items: center; gap: 12px;"><i class="fa-solid fa-user-tie"></i> ОДЕЖДА И УНИФОРМА (ATTIRE)</div>
                 <div class="lore-text">
-                    <div class="paragraph">
-                        Фиксеры украшают себя широким спектром одежды и аксессуаров, опираясь в основном на личные предпочтения. Однако в этом бизнесе одежда также выполняет важнейшую маркетинговую функцию. Профессиональный и единообразный внешний вид заставляет Офисы казаться более надежными в глазах потенциальных клиентов. Из-за этого многие Офисы придерживаются строгого дресс-кода. Каждая Ассоциация (Association) также имеет свою собственную узнаваемую униформу, соответствующую ее идентичности.
-                    </div>
+                    <div class="paragraph">Профессиональный и единообразный внешний вид заставляет Офисы казаться более надежными в глазах потенциальных клиентов. Из-за этого многие Офисы придерживаются строгого дресс-кода. Каждая Ассоциация (Association) также имеет свою собственную узнаваемую униформу.</div>
                     <div class="info-block">
-                        <div class="paragraph">
-                            Хотя может показаться иначе, одежда Фиксеров <span class="highlight">не жертвует защитой ради стиля</span>. Они уделяют пристальное внимание тканям, из которых сшиты их наряды, ведь именно они делают костюм практичным.
-                        </div>
-                        <div class="paragraph">
-                            В зависимости от характеристик и качества, ткань может обеспечивать такую же защиту, как латный доспех, а иногда и превосходить его, одновременно давая тактические преимущества вроде повышенной мобильности. Высококачественная ткань способна даже заменить аугментацию в плане защиты, что делает подобный текстиль идеальной броней для Фиксеров. Для получения одежды с нужными спецификациями они плотно сотрудничают с Портными (Tailors).
-                        </div>
-                    </div>
-                    <div class="paragraph">
-                        Возможны и другие, более специализированные модификации экипировки. Например, Фиксеры Ассоциации Лю (Liu Association) носят костюмы, расшитые лунным камнем — Сингулярностью Корпорации M, — который многократно повышает их сопротивляемость психологическим атакам.
+                        <div class="paragraph">Одежда Фиксеров <span class="highlight">не жертвует защитой ради стиля</span>. В зависимости от характеристик и качества, ткань может обеспечивать такую же защиту, как латный доспех, а иногда и превосходить его.</div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- ОРУЖИЕ И ОГНЕСТРЕЛ -->
         <div class="panel-outer cut-tl">
             <div class="hazard-tape"></div>
             <div class="panel-inner cut-tl" style="border-top: none;">
-                <div class="section-title oswald"><i class="fa-solid fa-gavel"></i> ОРУЖИЕ И ОГНЕСТРЕЛ (WEAPONRY & FIREARMS)</div>
+                <div class="section-title oswald" style="font-size: 1.6rem; color: var(--accent-primary); margin-bottom: 16px; border-bottom: 1px solid #333; padding-bottom: 8px; display: flex; align-items: center; gap: 12px;"><i class="fa-solid fa-gavel"></i> ОРУЖИЕ И ОГНЕСТРЕЛ (WEAPONRY & FIREARMS)</div>
+                <div class="lore-text">
+                    <div class="paragraph">Большинство Фиксеров приобретают свое оружие в <strong>Мастерских (Workshops)</strong>. Все оружие контролируется <strong>Ассоциацией Тре (Tres Association)</strong>. <span class="warning-text">Использование любого оружия, не прошедшего их оценку, считается строжайше незаконным.</span></div>
+                    <div class="paragraph">Огнестрельное оружие крайне редко используется Фиксерами. <strong>Два полных магазина патронов могут стоить столько же, сколько сам пистолет</strong>. К этому добавляются колоссальные налоги Главы. Лишь единицы Мастерских имеют лицензию на создание огнестрельного оружия.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно: Конструктор Эквипа -->
+    <div class="modal-overlay" id="builderModal" onclick="window.closeBuilderOnBg(event)">
+        <div class="panel-outer cut-tl modal-box">
+            <div class="hazard-tape" style="height: 6px; background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--accent-primary) 10px, var(--accent-primary) 20px); border-bottom: 1px solid var(--accent-primary);"></div>
+            <div class="panel-inner cut-tl" style="border-top: none;">
+                <button class="btn-close-modal" onclick="window.toggleBuilderModal()"><i class="fa-solid fa-xmark"></i></button>
+                <div class="header-title oswald" style="font-size: 1.5rem; margin-bottom: 20px; border-bottom: 1px solid var(--accent-primary); padding-bottom: 8px; text-align: left;">КОНСТРУКТОР СНАРЯЖЕНИЯ</div>
                 
-                <div class="lore-text">
-                    <div class="paragraph">
-                        Арсенал Фиксеров так же разнообразен, как и их одежда: от молотов и дубинок до ножей, мечей, копий, бензопил, цепов и многого другого. Большинство Фиксеров приобретают свое оружие и инструменты в <strong>Мастерских (Workshops)</strong>, которые специально производят и продают эту продукцию, наживаясь на прибыльной торговле в сфере Фиксеров. Например, Мастерская «Стигма» (Stigma Workshop) создает оружие ближнего боя с раскаленными нитями, а «Union Co.» — бионическое оружие, которое напрямую крепится к телу.
+                <div class="b-row">
+                    <div style="flex: 2;">
+                        <div class="tech-text" style="margin-bottom: 4px;">НАЗВАНИЕ (NAME)</div>
+                        <input type="text" id="b-name" class="cloud-input" placeholder="Например: Solemn Lament">
                     </div>
-                    
-                    <div class="info-block">
-                        <span class="highlight">КОНТРОЛЬ АССОЦИАЦИИ ТРЕ</span><br><br>
-                        Все оружие и инструменты, используемые Фиксерами, контролируются <strong>Ассоциацией Тре (Tres Association)</strong>. Она тестирует и проверяет чертежи оружия, передает их на утверждение Главе (The Head) и взимает за них налоги. <span class="warning-text">Использование любого оружия, не прошедшего их оценку, считается строжайше незаконным.</span>
-                    </div>
-
-                    <div class="paragraph">
-                        Существует одна категория оружия, которая крайне редко используется Фиксерами: <strong>огнестрельное оружие</strong>. Ряд факторов делает стволы невыгодными, и главная из них — крайняя неэкономичность. В Городе <strong>два полных магазина патронов могут стоить столько же, сколько сам пистолет</strong>. К этому добавляются колоссальные налоги, которыми Глава облагает любую покупку огнестрела. 
-                    </div>
-                    <div class="paragraph">
-                        Поставщиков тоже крайне мало, так как лишь единицы Мастерских имеют лицензию на создание огнестрельного оружия, и они жестко ограничены в том, как именно они могут его проектировать. Это целенаправленная политика Главы, призванная воспрепятствовать использованию огнестрельного оружия, хотя никто не знает истинных мотивов подобных запретов.
-                    </div>
-                    <div class="paragraph" style="color: var(--accent-primary);">
-                        Несмотря на огромные затраты и ограничения, некоторые Фиксеры продолжают пользоваться огнестрелом просто потому, что он невероятно эффективен. Главный плюс непопулярности огнестрела в том, что мало кто знает, как от него защищаться. При грамотном использовании он позволяет уничтожать цели максимально быстро и без шансов на сопротивление.
+                    <div style="flex: 1;">
+                        <div class="tech-text" style="margin-bottom: 4px;">ТРЕБУЕМЫЙ УРОВЕНЬ</div>
+                        <input type="number" id="b-level" class="cloud-input" value="1" min="1" max="20">
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- СТРАХОВКА ФИКСЕРОВ -->
-        <div class="panel-outer cut-tl">
-            <div class="hazard-tape"></div>
-            <div class="panel-inner cut-tl" style="border-top: none;">
-                <div class="section-title oswald"><i class="fa-solid fa-file-signature"></i> СТРАХОВКА ФИКСЕРОВ (INSURANCE)</div>
-                <div class="lore-text">
-                    <div class="paragraph">
-                        В Городе планы страхования Фиксеров — это отдельная, уникальная категория бизнеса. Множество страховых компаний предлагают страхование жизни специально для Фиксеров, однако большинство из этих программ — <span class="highlight">откровенное мошенничество</span>.
+                <div class="b-row">
+                    <div style="flex: 1;">
+                        <div class="tech-text" style="margin-bottom: 4px;">ТИП ПРЕДМЕТА</div>
+                        <select id="b-itemtype" class="cloud-select">
+                            <option value="Weapon">Оружие (Weapon)</option>
+                            <option value="Armor">Броня (Armor)</option>
+                            <option value="Mod">Модификатор/Аугмент (Mod)</option>
+                        </select>
                     </div>
-                    <div class="paragraph">
-                        Фиксеры получают право на страховые выплаты только в том случае, если они находятся на самом краю гибели, но мертвый Фиксер, очевидно, этими выплатами воспользоваться уже не сможет. Компании могут на законных основаниях отказать в возврате денег, если Фиксер решит расторгнуть свой договор. Бывают редкие случаи, когда страховка действительно спасает Фиксера, как, например, в случае с Памели и её биологической страховкой по восстановлению тела, но такие прецеденты — скорее чудесное исключение, чем правило.
+                    <div style="flex: 1;">
+                        <div class="tech-text" style="margin-bottom: 4px;">РЕДКОСТЬ (RARITY)</div>
+                        <select id="b-rarity" class="cloud-select">
+                            <option value="Common">Common</option>
+                            <option value="Uncommon">Uncommon</option>
+                            <option value="Rare">Rare</option>
+                            <option value="Very Rare">Very Rare</option>
+                            <option value="Legendary">Legendary</option>
+                        </select>
                     </div>
                 </div>
+
+                <div class="tech-text" style="margin-bottom: 4px;">Э.П.О.С / E.G.O (ПОДТИП)</div>
+                <div class="builder-checkbox-group" style="margin-bottom: 10px;">
+                    <label class="builder-checkbox-label"><input type="checkbox" id="b-isego"> Является Э.Г.О. экипировкой</label>
+                </div>
+
+                <div class="tech-text" style="margin-bottom: 4px;">ТРЕБОВАНИЯ ДЛЯ ИСПОЛЬЗОВАНИЯ (NEED)</div>
+                <input type="text" id="b-need" class="cloud-input" placeholder="Например: Сила 15 (Оставьте пустым, если нет)">
+
+                <div class="tech-text" style="margin-bottom: 4px;">СКАЕЙЛИНГ / ХАРАКТЕРИСТИКИ (STATS)</div>
+                <div class="builder-checkbox-group">
+                    <label class="builder-checkbox-label"><input type="checkbox" class="b-stat-check" value="Str"> STR</label>
+                    <label class="builder-checkbox-label"><input type="checkbox" class="b-stat-check" value="Dex"> DEX</label>
+                    <label class="builder-checkbox-label"><input type="checkbox" class="b-stat-check" value="Con"> CON</label>
+                    <label class="builder-checkbox-label"><input type="checkbox" class="b-stat-check" value="Int"> INT</label>
+                    <label class="builder-checkbox-label"><input type="checkbox" class="b-stat-check" value="Wis"> WIS</label>
+                    <label class="builder-checkbox-label"><input type="checkbox" class="b-stat-check" value="Cha"> CHA</label>
+                    <label class="builder-checkbox-label"><input type="checkbox" class="b-stat-check" value="None"> None</label>
+                </div>
+
+                <div class="tech-text" style="margin-bottom: 4px; margin-top: 10px;">ОПИСАНИЕ (DESCRIPTION)</div>
+                <textarea id="b-desc" class="cloud-input" placeholder="Характеристики оружия, урон, пассивные эффекты брони..."></textarea>
+
+                <button class="btn-small-bld" style="width: 100%; padding: 12px; margin-top: 16px; font-size: 1rem; border-color: var(--accent-primary); color: var(--accent-primary);" onclick="window.exportBuilderJson()"><i class="fa-solid fa-file-export"></i> ЭКСПОРТИРОВАТЬ В JSON</button>
             </div>
         </div>
-
     </div>
 
+    <script>
+        // Словари фильтров
+        const itemTypeDict = {
+            "Weapon": { name: "Оружие", color: "#C7243A" },
+            "Armor": { name: "Броня", color: "#3498DB" },
+            "Mod": { name: "Модификатор", color: "#F1C40F" },
+            "EGO": { name: "Э.Г.О. Экипировка", color: "#D94285" } // Виртуальный тип для фильтра
+        };
+
+        const statDict = {
+            "Str": { name: "Сила (STR)" },
+            "Dex": { name: "Ловкость (DEX)" },
+            "Con": { name: "Телосложение (CON)" },
+            "Int": { name: "Интеллект (INT)" },
+            "Wis": { name: "Мудрость (WIS)" },
+            "Cha": { name: "Харизма (CHA)" },
+            "None": { name: "Нет скейлинга" }
+        };
+
+        const rarityDict = {
+            "Common": { name: "Common", color: "#B0B0B0" },
+            "Uncommon": { name: "Uncommon", color: "#2ECC71" },
+            "Rare": { name: "Rare", color: "#3498DB" },
+            "Very Rare": { name: "Very Rare", color: "#9B59B6" },
+            "Legendary": { name: "Legendary", color: "#F1C40F" }
+        };
+
+        let selectedItemTypes = new Set();
+        let selectedStats = new Set();
+        let selectedRarities = new Set();
+
+        // Переключение Вкладок
+        window.switchTab = (tab) => {
+            document.getElementById('tab-db-btn').classList.remove('active');
+            document.getElementById('tab-lore-btn').classList.remove('active');
+            document.getElementById('tab-db').style.display = 'none';
+            document.getElementById('tab-lore').style.display = 'none';
+            document.getElementById('btn-create').style.display = 'none';
+
+            if (tab === 'db') {
+                document.getElementById('tab-db-btn').classList.add('active');
+                document.getElementById('tab-db').style.display = 'block';
+                document.getElementById('btn-create').style.display = 'flex';
+            } else {
+                document.getElementById('tab-lore-btn').classList.add('active');
+                document.getElementById('tab-lore').style.display = 'flex';
+            }
+        };
+
+        function renderFilters() {
+            // Тип предмета
+            const typeContainer = document.getElementById('item-type-filters');
+            let typeHtml = `<button class="filter-btn ${selectedItemTypes.size === 0 ? 'active' : ''}" onclick="window.clearFilters('itemtype')">ВСЕ ТИПЫ</button>`;
+            for (const [key, data] of Object.entries(itemTypeDict)) {
+                const isActive = selectedItemTypes.has(key) ? 'active' : '';
+                const style = isActive ? `border-color: ${data.color}; color: ${data.color}; background: color-mix(in srgb, ${data.color} 15%, transparent);` : '';
+                typeHtml += `<button class="filter-btn ${isActive}" style="${style}" onclick="window.toggleFilter('itemtype', '${key}')">${data.name}</button>`;
+            }
+            typeContainer.innerHTML = typeHtml;
+
+            // Характеристики
+            const statContainer = document.getElementById('stat-filters');
+            let statHtml = `<button class="filter-btn ${selectedStats.size === 0 ? 'active' : ''}" onclick="window.clearFilters('stat')">ЛЮБАЯ</button>`;
+            for (const [key, data] of Object.entries(statDict)) {
+                const isActive = selectedStats.has(key) ? 'active' : '';
+                statHtml += `<button class="filter-btn ${isActive}" onclick="window.toggleFilter('stat', '${key}')">${data.name}</button>`;
+            }
+            statContainer.innerHTML = statHtml;
+
+            // Редкость
+            const rarityContainer = document.getElementById('rarity-filters');
+            let rarityHtml = `<button class="filter-btn ${selectedRarities.size === 0 ? 'active' : ''}" onclick="window.clearFilters('rarity')">ЛЮБАЯ</button>`;
+            for (const [key, data] of Object.entries(rarityDict)) {
+                const isActive = selectedRarities.has(key) ? 'active' : '';
+                const style = isActive ? `border-color: ${data.color}; color: ${data.color}; background: color-mix(in srgb, ${data.color} 15%, transparent);` : '';
+                rarityHtml += `<button class="filter-btn ${isActive}" style="${style}" onclick="window.toggleFilter('rarity', '${key}')">${data.name}</button>`;
+            }
+            rarityContainer.innerHTML = rarityHtml;
+        }
+
+        window.toggleFilter = (category, key) => {
+            if (category === 'itemtype') {
+                if (selectedItemTypes.has(key)) selectedItemTypes.delete(key);
+                else selectedItemTypes.add(key);
+            } else if (category === 'stat') {
+                if (selectedStats.has(key)) selectedStats.delete(key);
+                else selectedStats.add(key);
+            } else if (category === 'rarity') {
+                if (selectedRarities.has(key)) selectedRarities.delete(key);
+                else selectedRarities.add(key);
+            }
+            renderFilters();
+            window.filterItems();
+        };
+
+        window.clearFilters = (category) => {
+            if (category === 'itemtype') selectedItemTypes.clear();
+            if (category === 'stat') selectedStats.clear();
+            if (category === 'rarity') selectedRarities.clear();
+            renderFilters();
+            window.filterItems();
+        };
+
+        window.filterItems = () => {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const cards = document.querySelectorAll('.compendium-card');
+            
+            cards.forEach(card => {
+                const nameData = card.getAttribute('data-name').toLowerCase();
+                const descData = card.getAttribute('data-desc').toLowerCase();
+                
+                const itemType = card.getAttribute('data-itemtype');
+                const isEGO = card.getAttribute('data-isego') === 'true';
+                const statsStr = card.getAttribute('data-stats');
+                const statsArr = statsStr ? statsStr.split(',') : [];
+                const rarity = card.getAttribute('data-rarity');
+                
+                const matchesName = nameData.includes(query) || descData.includes(query);
+                
+                // Проверка типа (если выбран EGO, проверяем флаг, иначе совпадение базового типа)
+                let matchesType = true;
+                if (selectedItemTypes.size > 0) {
+                    matchesType = false;
+                    if (selectedItemTypes.has(itemType)) matchesType = true;
+                    if (selectedItemTypes.has('EGO') && isEGO) matchesType = true;
+                }
+
+                const matchesStat = selectedStats.size === 0 || statsArr.some(s => selectedStats.has(s));
+                const matchesRarity = selectedRarities.size === 0 || selectedRarities.has(rarity);
+                
+                if (matchesName && matchesType && matchesStat && matchesRarity) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        };
+
+        window.toggleCard = (el) => {
+            const card = el.closest('.panel-outer');
+            const talentsWrapper = card.querySelector('.talents-wrapper');
+            const isExpanded = card.classList.toggle('expanded');
+            
+            if (isExpanded) {
+                talentsWrapper.style.maxHeight = talentsWrapper.scrollHeight + 50 + "px";
+                talentsWrapper.style.opacity = "1";
+                setTimeout(() => { if (card.classList.contains('expanded')) talentsWrapper.style.maxHeight = 'none'; }, 400);
+            } else {
+                talentsWrapper.style.maxHeight = talentsWrapper.scrollHeight + "px";
+                setTimeout(() => {
+                    talentsWrapper.style.maxHeight = "0px";
+                    talentsWrapper.style.opacity = "0";
+                }, 10);
+            }
+        };
+
+        window.copyItem = (btn) => {
+            const card = btn.closest('.panel-outer');
+            const name = card.getAttribute('data-name');
+            const lvl = card.getAttribute('data-level');
+            const rarity = card.getAttribute('data-rarity');
+            const need = card.getAttribute('data-need');
+            const desc = card.getAttribute('data-desc');
+            
+            let textToCopy = `[Ур. ${lvl} | ${rarity}] ${name}\n`;
+            if (need && need !== 'null') textToCopy += `Требования: ${need}\n`;
+            textToCopy += `${desc}`;
+            
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                const msg = card.querySelector('.copy-msg-global');
+                msg.style.opacity = '1';
+                msg.style.height = 'auto';
+                setTimeout(() => {
+                    msg.style.opacity = '0';
+                    msg.style.height = '0';
+                }, 2000);
+            }).catch(err => console.error('Ошибка:', err));
+        };
+
+        // Конструктор
+        window.toggleBuilderModal = () => {
+            document.getElementById('builderModal').classList.toggle('active');
+        };
+        window.closeBuilderOnBg = (e) => {
+            if (e.target.id === 'builderModal') window.toggleBuilderModal();
+        };
+
+        window.exportBuilderJson = () => {
+            const name = document.getElementById('b-name').value || "Новый Предмет";
+            const level = parseInt(document.getElementById('b-level').value) || 1;
+            const itemType = document.getElementById('b-itemtype').value;
+            const rarity = document.getElementById('b-rarity').value;
+            const isEGO = document.getElementById('b-isego').checked;
+            const need = document.getElementById('b-need').value.trim();
+            const desc = document.getElementById('b-desc').value || "Нет описания";
+            
+            const statsArr = Array.from(document.querySelectorAll('.b-stat-check:checked')).map(c => c.value);
+
+            const newItem = {
+                Name: name,
+                ItemType: itemType,
+                IsEGO: isEGO,
+                Level: level,
+                Rarity: rarity,
+                Need: need !== "" ? need : null,
+                Stats: statsArr.length > 0 ? statsArr : ["None"],
+                Desc: desc
+            };
+
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify([newItem], null, 2));
+            const dl = document.createElement('a');
+            dl.setAttribute("href", dataStr);
+            dl.setAttribute("download", name + ".json");
+            document.body.appendChild(dl);
+            dl.click();
+            dl.remove();
+        };
+
+        async function loadEquipment() {
+            const container = document.getElementById('compendium');
+            
+            try {
+                const response = await fetch('equipment.json');
+                if (!response.ok) throw new Error('Файл equipment.json не найден');
+                
+                const data = await response.json();
+                
+                // Сортировка по уровню, затем по имени
+                data.sort((a, b) => {
+                    if (a.Level !== b.Level) return a.Level - b.Level;
+                    return a.Name.localeCompare(b.Name);
+                });
+
+                container.innerHTML = '';
+                
+                data.forEach(item => {
+                    const safeName = item.Name ? item.Name.replace(/"/g, '&quot;') : 'Без названия';
+                    const safeDesc = item.Desc ? item.Desc.replace(/"/g, '&quot;') : '';
+                    const safeNeed = item.Need ? item.Need.replace(/"/g, '&quot;') : 'null';
+                    
+                    let statString = (item.Stats && Array.isArray(item.Stats)) ? item.Stats.join(',') : 'None';
+                    
+                    let badgesHtml = '';
+                    // Тип предмета
+                    const tConf = itemTypeDict[item.ItemType];
+                    if (tConf) badgesHtml += `<div class="type-badge" style="color: ${tConf.color}; border-color: ${tConf.color};">${tConf.name}</div>`;
+                    
+                    // Э.Г.О. тег
+                    if (item.IsEGO) badgesHtml += `<div class="type-badge" style="color: #D94285; border-color: #D94285;">Э.Г.О.</div>`;
+                    
+                    // Статы
+                    if (item.Stats && Array.isArray(item.Stats)) {
+                        item.Stats.forEach(s => {
+                            if (s !== 'None' && statDict[s]) {
+                                badgesHtml += `<div class="type-badge" style="color: var(--text-dim); border-color: var(--text-dim);">${s}</div>`;
+                            }
+                        });
+                    }
+
+                    // Требования и иконка Array
+                    let arrayIconHtml = '';
+                    let reqTextHtml = '';
+                    if (item.Need && item.Need !== 'null') {
+                        arrayIconHtml = `<img src="Array.png" class="array-icon" title="Требования: ${safeNeed}" alt="Array" onerror="this.style.display='none'">`;
+                        reqTextHtml = `<div class="req-text">Требования: ${item.Need}</div>`;
+                    }
+
+                    const rConf = rarityDict[item.Rarity] || { color: "var(--text-main)" };
+
+                    const cardHtml = `
+                        <div class="panel-outer cut-tl compendium-card" data-name="${safeName}" data-desc="${safeDesc}" data-itemtype="${item.ItemType}" data-isego="${item.IsEGO}" data-stats="${statString}" data-rarity="${item.Rarity}" data-level="${item.Level}" data-need="${safeNeed}">
+                            <div class="hazard-tape"></div>
+                            <div class="panel-inner cut-tl" style="border-top: none;">
+                                
+                                <div class="card-header-clickable" onclick="window.toggleCard(this)">
+                                    <i class="fa-solid fa-chevron-down expand-icon"></i>
+                                    <div class="class-title-wrapper">
+                                        <div style="display:flex; flex-direction:column; width:75%;">
+                                            <div class="level-badge">УРОВЕНЬ ${item.Level}</div>
+                                            <div class="class-title">${item.Name}</div>
+                                        </div>
+                                        <div class="array-icon-wrapper">
+                                            ${arrayIconHtml}
+                                            <div class="rarity-text" style="color: ${rConf.color};">${item.Rarity}</div>
+                                        </div>
+                                    </div>
+                                    <div class="types-container">${badgesHtml}</div>
+                                </div>
+                                
+                                <div class="talents-wrapper">
+                                    ${reqTextHtml}
+                                    <div class="item-desc">${item.Desc}</div>
+                                    <button class="btn-copy-status" onclick="window.copyItem(this)"><i class="fa-regular fa-copy"></i> КОПИРОВАТЬ</button>
+                                    <div class="copy-msg-global">СКОПИРОВАНО В БУФЕР!</div>
+                                </div>
+
+                            </div>
+                        </div>
+                    `;
+                    
+                    container.insertAdjacentHTML('beforeend', cardHtml);
+                });
+
+            } catch (error) {
+                console.error("Ошибка загрузки снаряжения:", error);
+                container.innerHTML = `<div class="loading-text" style="color: var(--color-red);">Ошибка связи с базой данных.<br><span style="font-size: 0.8rem; color: var(--text-dim);">Убедитесь, что файл equipment.json существует.</span></div>`;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderFilters();
+            loadEquipment();
+            window.switchTab('db'); // По умолчанию открываем БД
+        });
+    </script>
 </body>
 </html>
