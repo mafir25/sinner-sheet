@@ -293,17 +293,17 @@
             "Weapon": { name: "Оружие", color: "#C7243A" },
             "Armor": { name: "Броня", color: "#3498DB" },
             "Mod": { name: "Модификатор", color: "#F1C40F" },
-            "EGO": { name: "Э.Г.О. Экипировка", color: "#D94285" } // Виртуальный тип для фильтра
+            "EGO": { name: "Э.Г.О. Экипировка", color: "#D94285" } // Виртуальный тип
         };
 
         const statDict = {
-            "Str": { name: "Сила (STR)" },
-            "Dex": { name: "Ловкость (DEX)" },
-            "Con": { name: "Телосложение (CON)" },
-            "Int": { name: "Интеллект (INT)" },
-            "Wis": { name: "Мудрость (WIS)" },
-            "Cha": { name: "Харизма (CHA)" },
-            "None": { name: "Нет скейлинга" }
+            "Str": { name: "Сила (STR)", color: "#C7243A" },
+            "Dex": { name: "Ловкость (DEX)", color: "#45B3CB" },
+            "Con": { name: "Телосложение (CON)", color: "#F1C40F" },
+            "Int": { name: "Интеллект (INT)", color: "#1E3A8A" },
+            "Wis": { name: "Мудрость (WIS)", color: "#9B59B6" },
+            "Cha": { name: "Харизма (CHA)", color: "#E67E22" },
+            "None": { name: "Нет скейлинга", color: "#696969" }
         };
 
         const rarityDict = {
@@ -347,12 +347,13 @@
             }
             typeContainer.innerHTML = typeHtml;
 
-            // Характеристики
+            // Характеристики (С цветными бейджами)
             const statContainer = document.getElementById('stat-filters');
             let statHtml = `<button class="filter-btn ${selectedStats.size === 0 ? 'active' : ''}" onclick="window.clearFilters('stat')">ЛЮБАЯ</button>`;
             for (const [key, data] of Object.entries(statDict)) {
                 const isActive = selectedStats.has(key) ? 'active' : '';
-                statHtml += `<button class="filter-btn ${isActive}" onclick="window.toggleFilter('stat', '${key}')">${data.name}</button>`;
+                const style = isActive ? `border-color: ${data.color}; color: ${data.color}; background: color-mix(in srgb, ${data.color} 15%, transparent);` : '';
+                statHtml += `<button class="filter-btn ${isActive}" style="${style}" onclick="window.toggleFilter('stat', '${key}')">${data.name}</button>`;
             }
             statContainer.innerHTML = statHtml;
 
@@ -406,15 +407,19 @@
                 
                 const matchesName = nameData.includes(query) || descData.includes(query);
                 
-                // Проверка типа (если выбран EGO, проверяем флаг, иначе совпадение базового типа)
+                // Проверка типа (Обязательное совпадение ВСЕХ выбранных типов, с учетом флага EGO)
                 let matchesType = true;
                 if (selectedItemTypes.size > 0) {
-                    matchesType = false;
-                    if (selectedItemTypes.has(itemType)) matchesType = true;
-                    if (selectedItemTypes.has('EGO') && isEGO) matchesType = true;
+                    matchesType = [...selectedItemTypes].every(t => {
+                        if (t === 'EGO') return isEGO;
+                        return itemType === t;
+                    });
                 }
 
-                const matchesStat = selectedStats.size === 0 || statsArr.some(s => selectedStats.has(s));
+                // Перекрёстная проверка характеристик (Смежное: должны быть ВСЕ выбранные)
+                const matchesStat = selectedStats.size === 0 || [...selectedStats].every(s => statsArr.includes(s));
+                
+                // Проверка редкости (ИЛИ)
                 const matchesRarity = selectedRarities.size === 0 || selectedRarities.has(rarity);
                 
                 if (matchesName && matchesType && matchesStat && matchesRarity) {
@@ -537,20 +542,23 @@
                     // Э.Г.О. тег
                     if (item.IsEGO) badgesHtml += `<div class="type-badge" style="color: #D94285; border-color: #D94285;">Э.Г.О.</div>`;
                     
-                    // Статы
+                    // Статы с цветами
                     if (item.Stats && Array.isArray(item.Stats)) {
                         item.Stats.forEach(s => {
-                            if (s !== 'None' && statDict[s]) {
-                                badgesHtml += `<div class="type-badge" style="color: var(--text-dim); border-color: var(--text-dim);">${s}</div>`;
+                            const sConfig = statDict[s];
+                            if (sConfig && s !== 'None') {
+                                badgesHtml += `<div class="type-badge" style="color: ${sConfig.color}; border-color: ${sConfig.color};">${sConfig.name}</div>`;
+                            } else if (s === 'None') {
+                                badgesHtml += `<div class="type-badge" style="color: var(--text-dim); border-color: var(--text-dim);">Нет скейлинга</div>`;
                             }
                         });
                     }
 
-                    // Требования и иконка Array
-                    let arrayIconHtml = '';
+                    // Требования и иконка Aggro
+                    let aggroIconHtml = '';
                     let reqTextHtml = '';
                     if (item.Need && item.Need !== 'null') {
-                        arrayIconHtml = `<img src="Array.png" class="array-icon" title="Требования: ${safeNeed}" alt="Array" onerror="this.style.display='none'">`;
+                        aggroIconHtml = `<img src="Aggro.png" class="array-icon" title="Требования: ${safeNeed}" alt="Aggro" onerror="this.style.display='none'">`;
                         reqTextHtml = `<div class="req-text">Требования: ${item.Need}</div>`;
                     }
 
@@ -569,7 +577,7 @@
                                             <div class="class-title">${item.Name}</div>
                                         </div>
                                         <div class="array-icon-wrapper">
-                                            ${arrayIconHtml}
+                                            ${aggroIconHtml}
                                             <div class="rarity-text" style="color: ${rConf.color};">${item.Rarity}</div>
                                         </div>
                                     </div>
