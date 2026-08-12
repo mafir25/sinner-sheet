@@ -10,7 +10,7 @@
     
     <style>
         :root {
-            --bg-main: #070707; --bg-panel: #000000; --accent-primary: #8FCC2A; /* Gluttony для контрактов/офиса */
+            --bg-main: #070707; --bg-panel: #000000; --accent-primary: #8FCC2A;
             --accent-muted: #4d7311; --color-cyan: #45B3CB; --color-red: #C7243A; --color-yellow: #F1C40F;
             --text-main: #E0D8C8; --text-dim: #696969;
             --border-width: 1px; --chamfer: 14px;
@@ -29,7 +29,6 @@
         .tech-text { font-family: 'Inter', sans-serif; color: var(--accent-primary); font-size: 0.8rem; }
         .lore-text { font-family: 'Merriweather', serif; font-style: italic; color: var(--text-dim); font-size: 0.85rem; }
 
-        /* Навигация */
         .top-nav-btn { position: fixed; top: 10px; left: 20px; padding: 6px 12px; font-size: 0.8rem; border-color: var(--accent-primary); color: var(--accent-primary); font-family: 'Oswald', sans-serif; z-index: 100; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; border: 1px solid var(--accent-primary); cursor: pointer; text-transform: uppercase; transition: 0.2s; }
         .top-nav-btn:hover { background-color: var(--accent-primary); color: #000; }
 
@@ -49,18 +48,17 @@
         .header-bar { width: 100%; max-width: 1400px; display: flex; justify-content: center; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--accent-muted); padding-bottom: 10px; margin-top: 10px; }
         .header-title { color: var(--accent-primary); font-size: 1.8rem; letter-spacing: 2px; text-align: center; text-shadow: 0 0 10px rgba(143, 204, 42, 0.4); }
 
-        /* Лейаут (3 колонки: 20% - 60% - 20%) */
-        .office-grid { display: grid; grid-template-columns: 1fr 2.5fr 1fr; gap: 20px; width: 100%; max-width: 1600px; align-items: start; }
+        /* ИЗМЕНЕНИЕ 2: align-items: stretch для выравнивания колонок по высоте */
+        .office-grid { display: grid; grid-template-columns: 1fr 2.5fr 1fr; gap: 20px; width: 100%; max-width: 1600px; align-items: stretch; }
 
-        .panel-outer { background-color: var(--accent-primary); padding: var(--border-width); position: relative; display: flex; flex-direction: column; }
+        .panel-outer { background-color: var(--accent-primary); padding: var(--border-width); position: relative; display: flex; flex-direction: column; height: 100%; }
         .panel-inner { background-color: var(--bg-panel); padding: 16px; height: 100%; display: flex; flex-direction: column; }
         .cut-tl { clip-path: polygon(var(--chamfer) 0, 100% 0, 100% 100%, 0 100%, 0 var(--chamfer)); }
         .hazard-tape { height: 6px; background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--accent-muted) 10px, var(--accent-muted) 20px); border-bottom: 1px solid var(--accent-primary); }
 
         .panel-title { color: var(--accent-primary); font-size: 1.2rem; margin-bottom: 12px; letter-spacing: 1px; border-bottom: 1px solid var(--accent-muted); padding-bottom: 4px; font-family: 'Oswald'; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; }
 
-        /* Микро-UI */
-        .btn-small { background: transparent; border: 1px solid var(--text-dim); color: var(--text-dim); cursor: pointer; padding: 4px 8px; font-size: 0.75rem; text-transform: uppercase; transition: 0.2s; font-family: 'Oswald'; }
+        .btn-small { background: transparent; border: 1px solid var(--text-dim); color: var(--text-dim); cursor: pointer; padding: 6px 12px; font-size: 0.75rem; text-transform: uppercase; transition: 0.2s; font-family: 'Oswald'; display: inline-flex; align-items: center; gap: 6px;}
         .btn-small:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
         .cloud-input { width: 100%; background: #111; border: 1px solid #333; color: var(--text-main); padding: 8px; outline: none; font-family: 'Inter'; font-size: 0.9rem; margin-bottom: 8px;}
         .cloud-input:focus { border-color: var(--accent-primary); }
@@ -77,31 +75,34 @@
         .preset-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
         .preset-name { font-family: 'Oswald'; color: var(--text-main); font-size: 1rem; }
         .preset-desc { max-height: 0; overflow: hidden; opacity: 0; transition: 0.3s; font-size: 0.8rem; margin-top: 0; color: var(--text-dim); }
-        .preset-card.expanded .preset-desc { max-height: 200px; opacity: 1; margin-top: 8px; border-top: 1px dashed #333; padding-top: 8px; }
+        .preset-card.expanded .preset-desc { max-height: 300px; opacity: 1; margin-top: 8px; border-top: 1px dashed #333; padding-top: 8px; }
         
-        /* ЦЕНТРАЛЬНАЯ КОЛОНКА (КВЕСТЫ) */
+        /* ЦЕНТРАЛЬНАЯ КОЛОНКА (КВЕСТЫ И ИКОНКИ) */
         .grade-block { margin-bottom: 12px; border: 1px solid #222; }
         .grade-header { background: rgba(0,0,0,0.6); padding: 12px 16px; font-family: 'Oswald'; font-size: 1.2rem; color: var(--color-yellow); cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; border-left: 3px solid var(--color-yellow); }
         .grade-header:hover { background: rgba(241, 196, 15, 0.1); }
         .grade-content { max-height: 0; overflow: hidden; transition: 0.4s; background: #0a0a0a; }
-        .grade-block.expanded .grade-content { max-height: 800px; }
+        .grade-block.expanded .grade-content { max-height: 1000px; }
         
         .quest-item { padding: 10px 16px; border-bottom: 1px solid #222; cursor: pointer; }
         .quest-item:last-child { border-bottom: none; }
         .quest-item:hover { background: rgba(255,255,255,0.03); }
-        .quest-title { color: var(--text-main); font-family: 'Oswald'; font-size: 1.1rem; }
+        .quest-title { color: var(--text-main); font-family: 'Oswald'; font-size: 1.1rem; display: flex; align-items: center; }
         .quest-desc { display: none; font-size: 0.85rem; color: var(--text-dim); margin-top: 6px; line-height: 1.4; white-space: pre-wrap;}
         .quest-item.open .quest-desc { display: block; }
         .quest-item.open .quest-title { color: var(--color-cyan); }
+        
+        /* ИЗМЕНЕНИЕ +1: Стили для иконок квестов */
+        .quest-icon { height: 24px; object-fit: contain; margin-left: 12px; vertical-align: middle; }
+        .header-icons { display: flex; gap: 8px; align-items: center; margin-right: 12px; }
 
         /* ПРАВАЯ КОЛОНКА (НОВОСТИ) */
         .news-item { border-left: 2px solid var(--color-red); padding-left: 10px; margin-bottom: 16px; position: relative; }
         .news-date { font-size: 0.7rem; color: var(--color-red); font-family: 'Oswald'; letter-spacing: 1px; }
         .news-text { font-size: 0.85rem; color: var(--text-main); margin-top: 4px; white-space: pre-wrap; line-height: 1.4; }
-        .btn-trash { position: absolute; top: 0; right: 0; background: transparent; border: none; color: var(--text-dim); cursor: pointer; opacity: 0; transition: 0.2s; }
+        .btn-trash { position: absolute; top: 0; right: 0; background: transparent; border: none; color: var(--text-dim); cursor: pointer; opacity: 0; transition: 0.2s; font-size: 1rem; }
         .news-item:hover .btn-trash { opacity: 1; color: var(--color-red); }
 
-        /* Модалка Авторизации */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 2000; backdrop-filter: blur(4px); }
         .modal-overlay.hidden { display: none; }
         .modal-box { width: 400px; max-width: 90%; }
@@ -113,7 +114,6 @@
 </head>
 <body>
 
-    <!-- Навигация -->
     <a href="index.html" class="top-nav-btn"><i class="fa-solid fa-house"></i> ХАБ</a>
     
     <div class="right-controls">
@@ -122,7 +122,6 @@
                 <i class="fa-solid fa-building"></i> МОИ ОФИСЫ
             </button>
             <div class="dropdown-content" id="office-list">
-                <!-- Заполняется из Firebase -->
                 <div style="padding: 10px; color: var(--text-dim); font-size: 0.8rem;">Загрузка...</div>
             </div>
         </div>
@@ -164,7 +163,7 @@
                     <div class="tech-text" style="margin-bottom: 4px;">УПРАВЛЕНИЕ ДОСТУПОМ</div>
                     <div style="display: flex; gap: 4px;">
                         <input type="email" id="new-member-email" class="cloud-input" placeholder="Email фиксера..." style="margin: 0;">
-                        <button class="btn-small" onclick="window.addMember()"><i class="fa-solid fa-plus"></i></button>
+                        <button class="btn-small" style="padding: 0 12px;" onclick="window.addMember()"><i class="fa-solid fa-plus"></i></button>
                     </div>
                 </div>
 
@@ -172,27 +171,21 @@
                     АГЕНТЫ ОФИСА
                     <label class="btn-small creator-only" style="cursor: pointer;">
                         <input type="file" accept=".json" style="display: none;" onchange="window.uploadCharacter(event)">
-                        <i class="fa-solid fa-upload"></i>
+                        <i class="fa-solid fa-file-import"></i> ЗАГРУЗИТЬ JSON
                     </label>
                 </div>
                 
-                <div id="characters-container">
-                    <!-- Пресеты -->
-                </div>
+                <div id="characters-container"></div>
 
             </div>
         </div>
 
-        <!-- ЦЕНТРАЛЬНАЯ КОЛОНКА (Контракты / Квесты) -->
+        <!-- ЦЕНТРАЛЬНАЯ КОЛОНКА (Контракты) -->
         <div class="panel-outer cut-tl">
             <div class="hazard-tape" style="background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--color-yellow) 10px, var(--color-yellow) 20px); border-bottom-color: var(--color-yellow);"></div>
             <div class="panel-inner cut-tl" style="border-top: none;">
                 <div class="panel-title" style="color: var(--color-yellow); border-color: var(--color-yellow);">ДОСКА КОНТРАКТОВ (СИСТЕМНАЯ ВЫДАЧА)</div>
-                
-                <div id="grades-container">
-                    <!-- Заполняется JS (9 Ранг -> Цветной) -->
-                </div>
-
+                <div id="grades-container"></div>
             </div>
         </div>
 
@@ -204,25 +197,23 @@
                 
                 <div class="creator-only" style="margin-bottom: 16px; border-bottom: 1px solid #222; padding-bottom: 12px;">
                     <textarea id="news-input" class="cloud-input" placeholder="Описать события отдыха..." style="min-height: 80px;"></textarea>
-                    <button class="btn-small" style="width: 100%; color: var(--color-red); border-color: var(--color-red);" onclick="window.addNews()">ПУБЛИКОВАТЬ</button>
+                    <button class="btn-small" style="width: 100%; color: var(--color-red); border-color: var(--color-red); justify-content: center;" onclick="window.addNews()">
+                        <i class="fa-solid fa-bullhorn"></i> ПУБЛИКОВАТЬ НОВОСТЬ
+                    </button>
                 </div>
 
-                <div id="news-container">
-                    <!-- Новости -->
-                </div>
+                <div id="news-container"></div>
             </div>
         </div>
 
     </div>
 
-    <!-- Firebase SDK Setup -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-storage.js";
 
-        // КОНФИГУРАЦИЯ ИЗ ВАШЕГО SHEET.HTML
         const firebaseConfig = {
             apiKey: "AIzaSyDaFNBCW76UsBnziHoGveo7TcC11uAdmqs",
             authDomain: "projectmoonchar.firebaseapp.com",
@@ -242,7 +233,6 @@
         let isCreator = false;
         let questsDB = [];
 
-        // 1. АВТОРИЗАЦИЯ
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 currentUser = user;
@@ -272,20 +262,17 @@
             }
         };
 
-        // Закрытие дропдауна кликом вне
         window.onclick = function(event) {
             if (!event.target.matches('.dropdown-btn') && !event.target.closest('.dropdown-btn')) {
                 const drops = document.getElementsByClassName("dropdown-content");
                 for (let i = 0; i < drops.length; i++) {
-                    const openDropdown = drops[i];
-                    if (openDropdown.parentElement.classList.contains('active')) {
-                        openDropdown.parentElement.classList.remove('active');
+                    if (drops[i].parentElement.classList.contains('active')) {
+                        drops[i].parentElement.classList.remove('active');
                     }
                 }
             }
         }
 
-        // 2. УПРАВЛЕНИЕ СПИСКОМ ОФИСОВ
         async function loadUserOffices() {
             const listEl = document.getElementById('office-list');
             listEl.innerHTML = '<div style="padding: 10px; color: var(--text-dim);">Поиск баз данных...</div>';
@@ -303,7 +290,6 @@
                 html += `<div class="dropdown-item dropdown-create" onclick="window.createNewOffice()"><i class="fa-solid fa-plus"></i> СОЗДАТЬ ОФИС</div>`;
                 listEl.innerHTML = html;
                 
-                // Авто-открытие первого офиса, если есть
                 if (!currentOfficeId && !querySnapshot.empty) {
                     window.openOffice(querySnapshot.docs[0].id);
                 } else if (querySnapshot.empty) {
@@ -311,23 +297,28 @@
                 }
             } catch (error) {
                 console.error(error);
-                listEl.innerHTML = '<div style="padding: 10px; color: var(--color-red);">Ошибка загрузки.</div>';
+                listEl.innerHTML = '<div style="padding: 10px; color: var(--color-red);">Ошибка загрузки. Вероятно, блокировка правилами Firebase.</div>';
             }
         }
 
         window.createNewOffice = async () => {
-            const newOfficeRef = doc(collection(db, "offices"));
-            const newOfficeData = {
-                name: "НОВЫЙ ОФИС " + Math.floor(Math.random() * 1000),
-                creator: currentUser.email,
-                members: [currentUser.email],
-                logoUrl: "",
-                characters: [],
-                news: []
-            };
-            await setDoc(newOfficeRef, newOfficeData);
-            await loadUserOffices();
-            window.openOffice(newOfficeRef.id);
+            try {
+                const newOfficeRef = doc(collection(db, "offices"));
+                const newOfficeData = {
+                    name: "НОВЫЙ ОФИС " + Math.floor(Math.random() * 1000),
+                    creator: currentUser.email,
+                    members: [currentUser.email],
+                    logoUrl: "",
+                    characters: [],
+                    news: []
+                };
+                await setDoc(newOfficeRef, newOfficeData);
+                await loadUserOffices();
+                window.openOffice(newOfficeRef.id);
+            } catch (err) {
+                alert("Ошибка при создании офиса. Проверьте права записи в Firestore.");
+                console.error(err);
+            }
         };
 
         window.openOffice = async (id) => {
@@ -338,7 +329,6 @@
                     const data = docSnap.data();
                     isCreator = (data.creator === currentUser.email);
                     
-                    // Обновление UI Права доступа
                     const creatorEls = document.querySelectorAll('.creator-only');
                     creatorEls.forEach(el => el.style.display = isCreator ? 'block' : 'none');
                     
@@ -360,11 +350,14 @@
         window.saveOfficeInfo = async () => {
             if (!currentOfficeId || !isCreator) return;
             const newName = document.getElementById('office-name').value;
-            await updateDoc(doc(db, "offices", currentOfficeId), { name: newName });
-            loadUserOffices(); // Обновить название в меню
+            try {
+                await updateDoc(doc(db, "offices", currentOfficeId), { name: newName });
+                loadUserOffices();
+            } catch (err) {
+                alert("Ошибка сохранения имени.");
+            }
         };
 
-        // 3. УПРАВЛЕНИЕ ЛОГОТИПОМ (Firebase Storage)
         window.triggerLogoUpload = () => {
             if (isCreator) document.getElementById('logo-upload').click();
         };
@@ -386,13 +379,12 @@
                 document.getElementById('office-logo').style.backgroundImage = `url('${url}')`;
             } catch (err) {
                 console.error(err);
-                alert("Ошибка загрузки изображения.");
+                alert("Ошибка загрузки изображения в Storage.");
                 document.getElementById('office-logo').innerHTML = '';
             }
             e.target.value = '';
         };
 
-        // 4. ДОБАВЛЕНИЕ УЧАСТНИКОВ
         window.addMember = async () => {
             const input = document.getElementById('new-member-email');
             const email = input.value.trim();
@@ -404,10 +396,9 @@
                 });
                 alert(`Агент ${email} добавлен в Офис!`);
                 input.value = '';
-            } catch (err) { console.error(err); }
+            } catch (err) { alert("Ошибка добавления пользователя."); console.error(err); }
         };
 
-        // 5. УПРАВЛЕНИЕ ПРЕСЕТАМИ
         window.uploadCharacter = (e) => {
             const file = e.target.files[0];
             if (!file || !currentOfficeId) return;
@@ -415,7 +406,6 @@
             reader.onload = async (event) => {
                 try {
                     const preset = JSON.parse(event.target.result);
-                    // Валидация
                     if (!preset.characterName) throw new Error();
                     
                     const charObj = {
@@ -430,8 +420,8 @@
                     await updateDoc(doc(db, "offices", currentOfficeId), {
                         characters: arrayUnion(charObj)
                     });
-                    window.openOffice(currentOfficeId); // Перерисовка
-                } catch (err) { alert("Ошибка чтения JSON пресета. Убедитесь, что файл из Конструктора."); }
+                    window.openOffice(currentOfficeId);
+                } catch (err) { alert("Ошибка чтения JSON пресета."); }
             };
             reader.readAsText(file);
             e.target.value = '';
@@ -461,7 +451,7 @@
                 `;
             });
             container.innerHTML = html;
-            window._currentChars = chars; // Кэш для скачивания/удаления
+            window._currentChars = chars; 
         }
 
         window.deleteCharacter = async (e, id) => {
@@ -469,10 +459,12 @@
             if (!confirm("Удалить досье из Офиса?")) return;
             const charObj = window._currentChars.find(c => c.id === id);
             if(charObj) {
-                await updateDoc(doc(db, "offices", currentOfficeId), {
-                    characters: arrayRemove(charObj)
-                });
-                window.openOffice(currentOfficeId);
+                try {
+                    await updateDoc(doc(db, "offices", currentOfficeId), {
+                        characters: arrayRemove(charObj)
+                    });
+                    window.openOffice(currentOfficeId);
+                } catch(err) { alert("Ошибка удаления."); }
             }
         };
 
@@ -490,7 +482,6 @@
             }
         };
 
-        // 6. УПРАВЛЕНИЕ НОВОСТЯМИ ДМа
         window.addNews = async () => {
             const input = document.getElementById('news-input');
             const text = input.value.trim();
@@ -502,11 +493,13 @@
                 text: text
             };
             
-            await updateDoc(doc(db, "offices", currentOfficeId), {
-                news: arrayUnion(newsObj)
-            });
-            input.value = '';
-            window.openOffice(currentOfficeId);
+            try {
+                await updateDoc(doc(db, "offices", currentOfficeId), {
+                    news: arrayUnion(newsObj)
+                });
+                input.value = '';
+                window.openOffice(currentOfficeId);
+            } catch(err) { alert("Ошибка публикации."); }
         };
 
         function renderNews(newsArr) {
@@ -516,7 +509,6 @@
                 return;
             }
             
-            // Сортировка: новые сверху
             const sorted = [...newsArr].sort((a,b) => parseInt(b.id) - parseInt(a.id));
             
             let html = '';
@@ -538,24 +530,25 @@
             if (!confirm("Удалить сводку?")) return;
             const nObj = window._currentNews.find(n => n.id === id);
             if(nObj) {
-                await updateDoc(doc(db, "offices", currentOfficeId), {
-                    news: arrayRemove(nObj)
-                });
-                window.openOffice(currentOfficeId);
+                try {
+                    await updateDoc(doc(db, "offices", currentOfficeId), {
+                        news: arrayRemove(nObj)
+                    });
+                    window.openOffice(currentOfficeId);
+                } catch (err) { alert("Ошибка удаления новости."); }
             }
         };
 
-        // 7. КВЕСТЫ (Контракты)
         const gradeMapping = {
-            10: "9 РАНГ", 9: "8 РАНГ", 8: "7 РАНГ", 7: "6 РАНГ", 6: "5 РАНГ", 
-            5: "4 РАНГ", 4: "3 РАНГ", 3: "2 РАНГ", 2: "1 РАНГ", 1: "ЦВЕТНОЙ"
+            1: "ЦВЕТНОЙ", 2: "1 РАНГ", 3: "2 РАНГ", 4: "3 РАНГ", 5: "4 РАНГ", 
+            6: "5 РАНГ", 7: "6 РАНГ", 8: "7 РАНГ", 9: "8 РАНГ", 10: "9 РАНГ"
         };
 
         async function loadQuestsDB() {
             try {
                 const res = await fetch('quests.json');
                 if (res.ok) questsDB = await res.json();
-            } catch(e) { console.error("Quests not found", e); }
+            } catch(e) { console.error("Quests JSON not found", e); }
             
             renderGradeAccordions();
         }
@@ -564,17 +557,18 @@
             const container = document.getElementById('grades-container');
             let html = '';
             
-            // От 9 ранга (10) до Цветного (1)
-            for (let i = 10; i >= 1; i--) {
+            /* ИЗМЕНЕНИЕ 1: Инверсия цикла (От 1 "Цветной" до 10 "9 Ранг") */
+            for (let i = 1; i <= 10; i++) {
                 html += `
                     <div class="grade-block" id="grade-block-${i}">
                         <div class="grade-header" onclick="window.toggleGrade(${i})">
                             <span>КОНТРАКТЫ: ${gradeMapping[i]}</span>
-                            <i class="fa-solid fa-chevron-down"></i>
+                            <div style="display: flex; align-items: center;">
+                                <div class="header-icons" id="header-icons-${i}"></div>
+                                <i class="fa-solid fa-chevron-down"></i>
+                            </div>
                         </div>
-                        <div class="grade-content" id="grade-content-${i}">
-                            <!-- Квесты -->
-                        </div>
+                        <div class="grade-content" id="grade-content-${i}"></div>
                     </div>
                 `;
             }
@@ -584,23 +578,21 @@
         window.toggleGrade = (gradeNum) => {
             const block = document.getElementById(`grade-block-${gradeNum}`);
             const content = document.getElementById(`grade-content-${gradeNum}`);
+            const headerIconsContainer = document.getElementById(`header-icons-${gradeNum}`);
             
-            // Если закрываем
             if (block.classList.contains('expanded')) {
                 block.classList.remove('expanded');
                 return;
             }
             
-            // Закрываем остальные
             document.querySelectorAll('.grade-block').forEach(b => b.classList.remove('expanded'));
             
-            // Загружаем рандомные 5 квестов
             const filtered = questsDB.filter(q => parseInt(q.grade) === gradeNum);
             
             if (filtered.length === 0) {
                 content.innerHTML = '<div style="padding:16px; color:var(--text-dim); font-family:Oswald;">НЕТ ДОСТУПНЫХ КОНТРАКТОВ ДАННОГО РАНГА.</div>';
+                headerIconsContainer.innerHTML = '';
             } else {
-                // Перемешиваем (Fisher-Yates)
                 for (let i = filtered.length - 1; i > 0; i--) {
                     const j = Math.floor(Math.random() * (i + 1));
                     [filtered[i], filtered[j]] = [filtered[j], filtered[i]];
@@ -608,15 +600,29 @@
                 const selected = filtered.slice(0, 5);
                 
                 let qHtml = '';
+                let uniqueIcons = new Set();
+
                 selected.forEach(q => {
+                    let iconHtml = '';
+                    if (q.Icon && q.Icon.trim() !== '') {
+                        iconHtml = `&nbsp;&nbsp;&nbsp;<img src="${q.Icon}" class="quest-icon" onerror="this.style.display='none'">`;
+                        uniqueIcons.add(q.Icon);
+                    }
                     qHtml += `
                         <div class="quest-item" onclick="this.classList.toggle('open')">
-                            <div class="quest-title">${q.name}</div>
+                            <div class="quest-title">${q.name}${iconHtml}</div>
                             <div class="quest-desc">${q.desc}</div>
                         </div>
                     `;
                 });
+                
                 content.innerHTML = qHtml;
+
+                let hIconsHtml = '';
+                uniqueIcons.forEach(iconSrc => {
+                    hIconsHtml += `<img src="${iconSrc}" class="quest-icon" style="margin-left:0;" onerror="this.style.display='none'">`;
+                });
+                headerIconsContainer.innerHTML = hIconsHtml;
             }
             
             block.classList.add('expanded');
