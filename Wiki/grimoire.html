@@ -68,8 +68,9 @@
         .type-filters { display: flex; flex-wrap: wrap; gap: 8px; }
         .filter-btn { display: flex; align-items: center; gap: 6px; font-family: 'Oswald', sans-serif; font-size: 0.85rem; text-transform: uppercase; border: 1px solid var(--text-dim); color: var(--text-dim); background: rgba(0,0,0,0.5); padding: 4px 10px; cursor: pointer; transition: 0.2s; border-radius: 2px; }
         .filter-btn:hover { border-color: var(--text-main); color: var(--text-main); }
-        .filter-btn.active { border-color: var(--accent-primary); color: var(--accent-primary); background: rgba(30, 58, 138, 0.2); }
-        .filter-btn .type-icon { width: 14px; height: 14px; object-fit: contain; }
+        .filter-btn.active { border-color: var(--accent-primary); color: var(--text-main); background: rgba(30, 58, 138, 0.2); }
+        
+        .type-icon { width: 16px; height: 16px; object-fit: contain; margin-right: 4px; }
 
         .compendium-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; width: 100%; max-width: 1200px; align-items: start; }
 
@@ -91,8 +92,7 @@
         .select-archetype-btn.selected { border-color: var(--accent-primary); color: var(--accent-primary); background: rgba(30, 58, 138, 0.2); }
 
         .types-container { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
-        .type-badge { display: flex; align-items: center; gap: 6px; font-family: 'Oswald', sans-serif; font-size: 0.9rem; text-transform: uppercase; border: 1px solid; padding: 2px 8px; border-radius: 2px; background: rgba(0,0,0,0.5); }
-        .type-icon { width: 16px; height: 16px; object-fit: contain; }
+        .type-badge { display: flex; align-items: center; font-family: 'Oswald', sans-serif; font-size: 0.9rem; text-transform: uppercase; border: 1px solid; padding: 2px 8px; border-radius: 2px; background: rgba(0,0,0,0.5); }
 
         body[data-mode="stats"] .badge-type { display: none !important; }
         body[data-mode="types"] .badge-stat { display: none !important; }
@@ -227,7 +227,7 @@
         <div class="sidebar-text lore-text translatable" data-ru="Фиксеры — это аморальные наемники, готовые выполнить практически любую работу. Крупные корпорации и Офисы нанимают фиксеров, чтобы те делали за них грязную работу и помогали продвигаться по служебной лестнице." data-en="Fixers are amoral mercenaries willing to do almost any job. Corporations and Offices hire them to do their dirty work and help them climb the corporate ladder.">Фиксеры — это аморальные наемники, готовые выполнить практически любую работу. Крупные корпорации и Офисы нанимают фиксеров, чтобы те делали за них грязную работу и помогали продвигаться по служебной лестнице.</div>
         <div class="sidebar-h2 translatable" data-ru="Классовые характеристики" data-en="Class Features">Классовые характеристики</div>
         
-        <div class="talent-block" data-name="Хиты" data-level="1" data-desc="Кость хитов: 1d10 за уровень Фиксера" onclick="window.copyTalent(this)">
+        <div class="talent-block collapsed" data-name="Хиты" data-level="1" data-desc="" onclick="window.copyTalent(this)">
             <div class="talent-header" onclick="window.toggleTalent(event, this)">
                 <div class="talent-header-left"><i class="fa-solid fa-chevron-down collapse-icon-talent"></i><span class="talent-name translatable" data-ru="Хиты" data-en="Hit Points">Хиты</span></div>
                 <div class="talent-level tech-text translatable" data-ru="Уровень: 1" data-en="Level: 1">Уровень: 1</div>
@@ -236,7 +236,7 @@
             <div class="copy-msg translatable" data-ru="Скопировано!" data-en="Copied!">Скопировано!</div>
         </div>
 
-        <div class="talent-block collapsed" data-name="Владения" data-level="1" data-desc="Броня: Легкая броня, Средняя броня, Щиты..." onclick="window.copyTalent(this)">
+        <div class="talent-block collapsed" data-name="Владения" data-level="1" data-desc="" onclick="window.copyTalent(this)">
             <div class="talent-header" onclick="window.toggleTalent(event, this)">
                 <div class="talent-header-left"><i class="fa-solid fa-chevron-down collapse-icon-talent"></i><span class="talent-name translatable" data-ru="Владения" data-en="Proficiencies">Владения</span></div>
                 <div class="talent-level tech-text translatable" data-ru="Уровень: 1" data-en="Level: 1">Уровень: 1</div>
@@ -245,12 +245,39 @@
             <div class="copy-msg translatable" data-ru="Скопировано!" data-en="Copied!">Скопировано!</div>
         </div>
 
-        <div class="talent-block collapsed" data-name="Стартовое снаряжение" data-level="1" data-desc="• Кожаная броня и щит..." onclick="window.copyTalent(this)">
+        <div class="talent-block collapsed" data-name="Боевой стиль" data-level="2" data-desc="" onclick="window.copyTalent(this)">
             <div class="talent-header" onclick="window.toggleTalent(event, this)">
-                <div class="talent-header-left"><i class="fa-solid fa-chevron-down collapse-icon-talent"></i><span class="talent-name translatable" data-ru="Стартовое снаряжение" data-en="Starting Equipment">Стартовое снаряжение</span></div>
-                <div class="talent-level tech-text translatable" data-ru="Уровень: 1" data-en="Level: 1">Уровень: 1</div>
+                <div class="talent-header-left"><i class="fa-solid fa-chevron-down collapse-icon-talent"></i><span class="talent-name translatable" data-ru="Боевой стиль" data-en="Fighting Style">Боевой стиль</span></div>
+                <div class="talent-level tech-text translatable" data-ru="Уровень: 2" data-en="Level: 2">Уровень: 2</div>
             </div>
-            <div class="talent-desc-wrapper"><div class="talent-desc translatable" data-ru="• Кожаная броня и щит<br>• (а) 1 боевое оружие или (б) 2 простых оружия<br>Если вы используете стартовое золото, у вас есть 4d4 x 10 зм." data-en="• Leather armor and a shield<br>• (a) a martial weapon or (b) two simple weapons<br>If using starting wealth: 4d4 x 10 gp.">• Кожаная броня и щит<br>• (а) 1 боевое оружие или (б) 2 простых оружия<br>Если вы используете стартовое золото, у вас есть 4d4 x 10 зм.</div></div>
+            <div class="talent-desc-wrapper"><div class="talent-desc translatable" data-ru="Выберите один из стилей (Меткий стрелок, Дуэлянт, Парное оружие, Защита и т.д.), чтобы специализировать ваши боевые навыки." data-en="Choose one fighting style (Archery, Dueling, Two-Weapon Fighting, Protection, etc.) to specialize your combat skills.">Выберите один из стилей (Меткий стрелок, Дуэлянт, Парное оружие, Защита и т.д.), чтобы специализировать ваши боевые навыки.</div></div>
+            <div class="copy-msg translatable" data-ru="Скопировано!" data-en="Copied!">Скопировано!</div>
+        </div>
+
+        <div class="talent-block collapsed" data-name="Увеличение характеристик" data-level="4, 8, 12, 16, 19" data-desc="" onclick="window.copyTalent(this)">
+            <div class="talent-header" onclick="window.toggleTalent(event, this)">
+                <div class="talent-header-left"><i class="fa-solid fa-chevron-down collapse-icon-talent"></i><span class="talent-name translatable" data-ru="Увеличение характеристик" data-en="Ability Score Improvement">Увеличение характеристик</span></div>
+                <div class="talent-level tech-text translatable" data-ru="Уровень: 4, 8, 12, 16, 19" data-en="Level: 4, 8, 12, 16, 19">Уровень: 4, 8, 12, 16, 19</div>
+            </div>
+            <div class="talent-desc-wrapper"><div class="talent-desc translatable" data-ru="Вы можете повысить одну характеристику по вашему выбору на 2, или две характеристики на 1. Вы не можете повысить характеристику выше 20 таким образом. Либо вы можете выбрать одну Черту (Feat)." data-en="You can increase one ability score of your choice by 2, or two ability scores by 1. As normal, you can't increase an ability score above 20 using this feature. Alternatively, you can choose a Feat.">Вы можете повысить одну характеристику по вашему выбору на 2, или две характеристики на 1. Вы не можете повысить характеристику выше 20 таким образом. Либо вы можете выбрать одну Черту (Feat).</div></div>
+            <div class="copy-msg translatable" data-ru="Скопировано!" data-en="Copied!">Скопировано!</div>
+        </div>
+
+        <div class="talent-block collapsed" data-name="Пробуждение Э.Г.О." data-level="4, 8, 12, 16, 19" data-desc="" onclick="window.copyTalent(this)">
+            <div class="talent-header" onclick="window.toggleTalent(event, this)">
+                <div class="talent-header-left"><i class="fa-solid fa-chevron-down collapse-icon-talent"></i><span class="talent-name translatable" data-ru="Пробуждение Э.Г.О." data-en="E.G.O. Manifestation">Пробуждение Э.Г.О.</span></div>
+                <div class="talent-level tech-text translatable" data-ru="Уровень: 4, 8, 12, 16, 19" data-en="Level: 4, 8, 12, 16, 19">Уровень: 4, 8, 12, 16, 19</div>
+            </div>
+            <div class="talent-desc-wrapper"><div class="talent-desc translatable" data-ru="Вы получаете возможность использовать снаряжение и атаки Э.Г.О. в зависимости от вашего уровня:<br>Уровень 4: Ранг ZAYIN<br>Уровень 8: Ранг TETH<br>Уровень 12: Ранг HE<br>Уровень 16: Ранг WAW<br>Уровень 19: Ранг ALEPH" data-en="You gain the ability to use E.G.O. equipment and attacks depending on your level:<br>Level 4: ZAYIN Rank<br>Level 8: TETH Rank<br>Level 12: HE Rank<br>Level 16: WAW Rank<br>Level 19: ALEPH Rank">Вы получаете возможность использовать снаряжение и атаки Э.Г.О. в зависимости от вашего уровня:<br>Уровень 4: Ранг ZAYIN<br>Уровень 8: Ранг TETH<br>Уровень 12: Ранг HE<br>Уровень 16: Ранг WAW<br>Уровень 19: Ранг ALEPH</div></div>
+            <div class="copy-msg translatable" data-ru="Скопировано!" data-en="Copied!">Скопировано!</div>
+        </div>
+
+        <div class="talent-block collapsed" data-name="Дополнительная атака" data-level="5" data-desc="" onclick="window.copyTalent(this)">
+            <div class="talent-header" onclick="window.toggleTalent(event, this)">
+                <div class="talent-header-left"><i class="fa-solid fa-chevron-down collapse-icon-talent"></i><span class="talent-name translatable" data-ru="Дополнительная атака" data-en="Extra Attack">Дополнительная атака</span></div>
+                <div class="talent-level tech-text translatable" data-ru="Уровень: 5" data-en="Level: 5">Уровень: 5</div>
+            </div>
+            <div class="talent-desc-wrapper"><div class="talent-desc translatable" data-ru="Если вы совершаете действие Атака в свой ход, вы можете совершить две атаки вместо одной." data-en="Beginning at 5th level, you can attack twice, instead of once, whenever you take the Attack action on your turn.">Если вы совершаете действие Атака в свой ход, вы можете совершить две атаки вместо одной.</div></div>
             <div class="copy-msg translatable" data-ru="Скопировано!" data-en="Copied!">Скопировано!</div>
         </div>
 
@@ -549,7 +576,7 @@
                         cls.Type.forEach(typeKey => {
                             const config = typeDictionary[typeKey];
                             if (config) {
-                                badgesHtml += `<div class="type-badge badge-type" style="color: ${config.color}; border-color: ${config.color};"><img src="${config.icon}" class="type-icon" onerror="this.style.display='none'">${config.name[currentLang]}</div>`;
+                                badgesHtml += `<div class="type-badge badge-type" style="color: ${config.color}; border-color: ${config.color};"><img src="${config.icon}" class="type-icon" onerror="this.style.display='none'"> ${config.name[currentLang]}</div>`;
                             } else {
                                 badgesHtml += `<div class="type-badge badge-type" style="color: var(--text-main); border-color: var(--text-dim);">${typeKey}</div>`;
                             }
