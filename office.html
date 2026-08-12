@@ -1,4 +1,208 @@
-<!-- Firebase SDK Setup -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Управление Офисом / Office Management</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Merriweather:ital,wght@0,300;1,300;1,700&family=Oswald:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-main: #070707; --bg-panel: #000000; --accent-primary: #8FCC2A;
+            --accent-muted: #4d7311; --color-cyan: #45B3CB; --color-red: #C7243A; --color-yellow: #F1C40F;
+            --text-main: #E0D8C8; --text-dim: #696969;
+            --border-width: 1px; --chamfer: 14px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-main); color: var(--text-main); font-family: 'Inter', sans-serif;
+            min-height: 100vh; padding: 60px 20px 40px 20px; display: flex; flex-direction: column; align-items: center;
+            background-image: linear-gradient(rgba(7,7,7,0.85), rgba(7,7,7,0.85)), repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.02) 2px, rgba(255,255,255,0.02) 4px);
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4, .oswald { font-family: 'Oswald', sans-serif; text-transform: uppercase; }
+        .tech-text { font-family: 'Inter', sans-serif; color: var(--accent-primary); font-size: 0.8rem; }
+        .lore-text { font-family: 'Merriweather', serif; font-style: italic; color: var(--text-dim); font-size: 0.85rem; }
+
+        .top-nav-btn { position: fixed; top: 10px; left: 20px; padding: 6px 12px; font-size: 0.8rem; border-color: var(--accent-primary); color: var(--accent-primary); font-family: 'Oswald', sans-serif; z-index: 100; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; border: 1px solid var(--accent-primary); cursor: pointer; text-transform: uppercase; transition: 0.2s; }
+        .top-nav-btn:hover { background-color: var(--accent-primary); color: #000; }
+
+        .right-controls { position: fixed; top: 10px; right: 20px; z-index: 1000; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+        
+        .dropdown { position: relative; display: inline-block; }
+        .dropdown-btn { padding: 6px 12px; font-size: 0.8rem; font-family: 'Oswald', sans-serif; background: var(--bg-main); border: 1px solid var(--color-cyan); color: var(--color-cyan); text-decoration: none; display: flex; align-items: center; gap: 6px; cursor: pointer; text-transform: uppercase; transition: 0.2s; }
+        .dropdown-btn:hover { background-color: var(--color-cyan); color: #000; }
+        
+        .dropdown-content { display: none; position: absolute; right: 0; background-color: var(--bg-panel); min-width: 200px; border: 1px solid var(--color-cyan); z-index: 1; margin-top: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.8); }
+        .dropdown.active .dropdown-content { display: block; }
+        .dropdown-item { padding: 10px 12px; color: var(--text-main); text-decoration: none; display: block; font-family: 'Oswald'; font-size: 0.9rem; border-bottom: 1px solid #222; cursor: pointer; transition: 0.2s; }
+        .dropdown-item:hover { background-color: rgba(69, 179, 203, 0.2); color: var(--color-cyan); }
+        .dropdown-create { color: var(--color-yellow); border-top: 1px dashed var(--color-yellow); border-bottom: none; }
+        .dropdown-create:hover { background-color: rgba(241, 196, 15, 0.2); color: var(--color-yellow); }
+
+        .header-bar { width: 100%; max-width: 1400px; display: flex; justify-content: center; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--accent-muted); padding-bottom: 10px; margin-top: 10px; }
+        .header-title { color: var(--accent-primary); font-size: 1.8rem; letter-spacing: 2px; text-align: center; text-shadow: 0 0 10px rgba(143, 204, 42, 0.4); }
+
+        .office-grid { display: grid; grid-template-columns: 1fr 2.5fr 1fr; gap: 20px; width: 100%; max-width: 1600px; align-items: stretch; }
+
+        .panel-outer { background-color: var(--accent-primary); padding: var(--border-width); position: relative; display: flex; flex-direction: column; height: 100%; }
+        .panel-inner { background-color: var(--bg-panel); padding: 16px; height: 100%; display: flex; flex-direction: column; }
+        .cut-tl { clip-path: polygon(var(--chamfer) 0, 100% 0, 100% 100%, 0 100%, 0 var(--chamfer)); }
+        .hazard-tape { height: 6px; background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--accent-muted) 10px, var(--accent-muted) 20px); border-bottom: 1px solid var(--accent-primary); }
+
+        .panel-title { color: var(--accent-primary); font-size: 1.2rem; margin-bottom: 12px; letter-spacing: 1px; border-bottom: 1px solid var(--accent-muted); padding-bottom: 4px; font-family: 'Oswald'; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; }
+
+        .btn-small { background: transparent; border: 1px solid var(--text-dim); color: var(--text-dim); cursor: pointer; padding: 6px 12px; font-size: 0.75rem; text-transform: uppercase; transition: 0.2s; font-family: 'Oswald'; display: inline-flex; align-items: center; gap: 6px;}
+        .btn-small:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
+        .cloud-input { width: 100%; background: #111; border: 1px solid #333; color: var(--text-main); padding: 8px; outline: none; font-family: 'Inter'; font-size: 0.9rem; margin-bottom: 8px;}
+        .cloud-input:focus { border-color: var(--accent-primary); }
+        
+        .logo-area { width: 100%; aspect-ratio: 1/1; background-color: #111; border: 1px dashed var(--text-dim); display: flex; justify-content: center; align-items: center; margin-bottom: 12px; cursor: pointer; background-size: cover; background-position: center; position: relative; }
+        .logo-area.creator:hover { border-color: var(--accent-primary); }
+        .logo-area.creator::after { content: "\f03e"; font-family: 'FontAwesome'; position: absolute; font-size: 2rem; color: var(--accent-primary); opacity: 0; transition: 0.2s; background: rgba(0,0,0,0.6); padding: 10px; border-radius: 50%; }
+        .logo-area.creator:hover::after { opacity: 1; }
+        .office-name-input { background: transparent; border: none; color: var(--color-cyan); font-family: 'Oswald'; font-size: 1.5rem; width: 100%; text-align: center; text-transform: uppercase; border-bottom: 1px dashed transparent; margin-bottom: 16px; outline: none;}
+        .office-name-input:focus { border-bottom-color: var(--color-cyan); }
+
+        .preset-card { border: 1px solid #333; padding: 8px; margin-bottom: 8px; background: rgba(255,255,255,0.02); }
+        .preset-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .preset-name { font-family: 'Oswald'; color: var(--text-main); font-size: 1rem; }
+        .preset-desc { max-height: 0; overflow: hidden; opacity: 0; transition: 0.3s; font-size: 0.8rem; margin-top: 0; color: var(--text-dim); }
+        .preset-card.expanded .preset-desc { max-height: 300px; opacity: 1; margin-top: 8px; border-top: 1px dashed #333; padding-top: 8px; }
+        
+        .grade-block { margin-bottom: 12px; border: 1px solid #222; }
+        .grade-header { background: rgba(0,0,0,0.6); padding: 12px 16px; font-family: 'Oswald'; font-size: 1.2rem; color: var(--color-yellow); cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; border-left: 3px solid var(--color-yellow); }
+        .grade-header:hover { background: rgba(241, 196, 15, 0.1); }
+        .grade-content { max-height: 0; overflow: hidden; transition: 0.4s; background: #0a0a0a; }
+        .grade-block.expanded .grade-content { max-height: 1000px; }
+        
+        .quest-item { padding: 10px 16px; border-bottom: 1px solid #222; cursor: pointer; }
+        .quest-item:last-child { border-bottom: none; }
+        .quest-item:hover { background: rgba(255,255,255,0.03); }
+        .quest-title { color: var(--text-main); font-family: 'Oswald'; font-size: 1.1rem; display: flex; align-items: center; }
+        .quest-desc { display: none; font-size: 0.85rem; color: var(--text-dim); margin-top: 6px; line-height: 1.4; white-space: pre-wrap;}
+        .quest-item.open .quest-desc { display: block; }
+        .quest-item.open .quest-title { color: var(--color-cyan); }
+        
+        .quest-icon { height: 24px; object-fit: contain; margin-left: 12px; vertical-align: middle; }
+        .header-icons { display: flex; gap: 8px; align-items: center; margin-right: 12px; }
+
+        .news-item { border-left: 2px solid var(--color-red); padding-left: 10px; margin-bottom: 16px; position: relative; }
+        .news-date { font-size: 0.7rem; color: var(--color-red); font-family: 'Oswald'; letter-spacing: 1px; }
+        .news-text { font-size: 0.85rem; color: var(--text-main); margin-top: 4px; white-space: pre-wrap; line-height: 1.4; }
+        .btn-trash { position: absolute; top: 0; right: 0; background: transparent; border: none; color: var(--text-dim); cursor: pointer; opacity: 0; transition: 0.2s; font-size: 1rem; }
+        .news-item:hover .btn-trash { opacity: 1; color: var(--color-red); }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 2000; backdrop-filter: blur(4px); }
+        .modal-overlay.hidden { display: none; }
+        .modal-box { width: 400px; max-width: 90%; }
+        .modal-btn { width: 100%; padding: 10px; font-size: 1rem; cursor: pointer; border: 1px solid var(--color-cyan); background: transparent; color: var(--color-cyan); text-transform: uppercase; font-family: 'Oswald'; transition: 0.2s; margin-top: 8px;}
+        .modal-btn:hover { background: var(--color-cyan); color: #000; }
+
+        .creator-only { display: none; }
+    </style>
+</head>
+<body>
+
+    <a href="index.html" class="top-nav-btn"><i class="fa-solid fa-house"></i> ХАБ</a>
+    
+    <div class="right-controls">
+        <div class="dropdown" id="office-dropdown">
+            <button class="dropdown-btn" onclick="document.getElementById('office-dropdown').classList.toggle('active')">
+                <i class="fa-solid fa-building"></i> МОИ ОФИСЫ
+            </button>
+            <div class="dropdown-content" id="office-list">
+                <div style="padding: 10px; color: var(--text-dim); font-size: 0.8rem;">Загрузка...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно Авторизации -->
+    <div class="modal-overlay" id="authModal">
+        <div class="panel-outer cut-tl modal-box">
+            <div class="hazard-tape" style="background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--color-cyan) 10px, var(--color-cyan) 20px); border-bottom-color: var(--color-cyan);"></div>
+            <div class="panel-inner cut-tl" style="border-top: none;">
+                <div class="panel-title" style="color: var(--color-cyan); border-color: var(--color-cyan); text-align: center; display: block;">СЕТЬ АССОЦИАЦИЙ</div>
+                <div class="tech-text" style="color: var(--text-dim); margin-bottom: 16px; text-align: center;">Введите ваш Email для идентификации в базе Фиксеров.</div>
+                
+                <input type="email" id="auth-email" class="cloud-input" placeholder="ID Сотрудника (Email)">
+                <input type="password" id="auth-pass" class="cloud-input" placeholder="Пароль">
+                
+                <button class="modal-btn" onclick="window.loginUser()">ВОЙТИ / ЗАРЕГИСТРИРОВАТЬСЯ</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="header-bar">
+        <div class="header-title oswald">БАЗА ДАННЫХ: УПРАВЛЕНИЕ ОФИСОМ</div>
+    </div>
+
+    <div class="office-grid" id="office-workspace" style="display: none;">
+        
+        <!-- ЛЕВАЯ КОЛОНКА (Инфо Офиса и Агенты) -->
+        <div class="panel-outer cut-tl">
+            <div class="hazard-tape"></div>
+            <div class="panel-inner cut-tl" style="border-top: none;">
+                
+                <input type="file" id="logo-upload" accept="image/*" style="display: none;" onchange="window.uploadLogo(event)">
+                <div class="logo-area" id="office-logo" onclick="window.triggerLogoUpload()"></div>
+                
+                <input type="text" id="office-name" class="office-name-input" value="НОВЫЙ ОФИС" readonly onblur="window.saveOfficeInfo()">
+
+                <div class="creator-only" style="margin-bottom: 16px; border-bottom: 1px solid #222; padding-bottom: 12px;">
+                    <div class="tech-text" style="margin-bottom: 4px;">УПРАВЛЕНИЕ ДОСТУПОМ</div>
+                    <div style="display: flex; gap: 4px;">
+                        <input type="email" id="new-member-email" class="cloud-input" placeholder="Email фиксера..." style="margin: 0;">
+                        <button class="btn-small" style="padding: 0 12px;" onclick="window.addMember()"><i class="fa-solid fa-plus"></i></button>
+                    </div>
+                </div>
+
+                <div class="panel-title" style="font-size: 1rem;">
+                    АГЕНТЫ ОФИСА
+                    <label class="btn-small creator-only" style="cursor: pointer;">
+                        <input type="file" accept=".json" style="display: none;" onchange="window.uploadCharacter(event)">
+                        <i class="fa-solid fa-file-import"></i> ЗАГРУЗИТЬ JSON
+                    </label>
+                </div>
+                
+                <div id="characters-container"></div>
+
+            </div>
+        </div>
+
+        <!-- ЦЕНТРАЛЬНАЯ КОЛОНКА (Контракты) -->
+        <div class="panel-outer cut-tl">
+            <div class="hazard-tape" style="background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--color-yellow) 10px, var(--color-yellow) 20px); border-bottom-color: var(--color-yellow);"></div>
+            <div class="panel-inner cut-tl" style="border-top: none;">
+                <div class="panel-title" style="color: var(--color-yellow); border-color: var(--color-yellow);">ДОСКА КОНТРАКТОВ (СИСТЕМНАЯ ВЫДАЧА)</div>
+                <div id="grades-container"></div>
+            </div>
+        </div>
+
+        <!-- ПРАВАЯ КОЛОНКА (Новости ДМа) -->
+        <div class="panel-outer cut-tl">
+            <div class="hazard-tape" style="background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--color-red) 10px, var(--color-red) 20px); border-bottom-color: var(--color-red);"></div>
+            <div class="panel-inner cut-tl" style="border-top: none;">
+                <div class="panel-title" style="color: var(--color-red); border-color: var(--color-red);">СВОДКИ СОБЫТИЙ</div>
+                
+                <div class="creator-only" style="margin-bottom: 16px; border-bottom: 1px solid #222; padding-bottom: 12px;">
+                    <textarea id="news-input" class="cloud-input" placeholder="Описать события отдыха..." style="min-height: 80px;"></textarea>
+                    <button class="btn-small" style="width: 100%; color: var(--color-red); border-color: var(--color-red); justify-content: center;" onclick="window.addNews()">
+                        <i class="fa-solid fa-bullhorn"></i> ПУБЛИКОВАТЬ НОВОСТЬ
+                    </button>
+                </div>
+
+                <div id="news-container"></div>
+            </div>
+        </div>
+
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
@@ -53,7 +257,6 @@
             }
         };
 
-        /* ИСПРАВЛЕНИЕ 1: Игнорируем клики внутри самого дропдауна, чтобы он не закрывался раньше времени */
         window.onclick = function(event) {
             if (!event.target.closest('.dropdown')) {
                 const drops = document.getElementsByClassName("dropdown-content");
@@ -63,7 +266,7 @@
                     }
                 }
             }
-        }
+        };
 
         async function loadUserOffices() {
             const listEl = document.getElementById('office-list');
@@ -79,7 +282,6 @@
                     html += `<div class="dropdown-item" onclick="window.openOffice('${docSnap.id}')">${data.name}</div>`;
                 });
                 
-                /* Добавлен event для надежности */
                 html += `<div class="dropdown-item dropdown-create" onclick="window.createNewOffice(event)"><i class="fa-solid fa-plus"></i> СОЗДАТЬ ОФИС</div>`;
                 listEl.innerHTML = html;
                 
@@ -94,10 +296,9 @@
             }
         }
 
-        /* ИСПРАВЛЕНИЕ 2: Блокировка всплытия клика, ручное закрытие меню и визуальный отклик */
         window.createNewOffice = async (e) => {
             if (e) e.stopPropagation(); 
-            document.getElementById('office-dropdown').classList.remove('active'); 
+            document.getElementById('office-dropdown').classList.remove('active');
             
             const nameInput = document.getElementById('office-name');
             nameInput.value = "СИСТЕМА СОЗДАЕТ ОФИС...";
@@ -123,7 +324,7 @@
         };
 
         window.openOffice = async (id) => {
-            document.getElementById('office-dropdown').classList.remove('active'); // Закрываем меню
+            document.getElementById('office-dropdown').classList.remove('active');
             currentOfficeId = id;
             try {
                 const docSnap = await getDoc(doc(db, "offices", id));
@@ -429,3 +630,5 @@
             block.classList.add('expanded');
         };
     </script>
+</body>
+</html>
