@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Конструктор Э.Г.О. / E.G.O. Builder</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Merriweather:ital,wght@0,300;1,300;1,700&family=Oswald:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-main: #070707; --bg-panel: #000000; 
+            --accent-primary: #D94285; /* Маджента / Э.Г.О. */
+            --accent-muted: #752046; 
+            --color-red: #C7243A; --color-cyan: #45B3CB; --color-yellow: #F1C40F;
+            --text-main: #E0D8C8; --text-dim: #696969;
+            --border-width: 1px; --chamfer: 14px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-main); color: var(--text-main); font-family: 'Inter', sans-serif;
+            min-height: 100vh; padding: 60px 20px 40px 20px; display: flex; flex-direction: column; align-items: center;
+            background-image: linear-gradient(rgba(7,7,7,0.85), rgba(7,7,7,0.85)), repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.02) 2px, rgba(255,255,255,0.02) 4px);
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, h4, .oswald { font-family: 'Oswald', sans-serif; text-transform: uppercase; }
+        .tech-text { font-family: 'Inter', sans-serif; color: var(--accent-primary); font-size: 0.8rem; letter-spacing: 1px; }
+
+        /* Навигация */
+        .top-nav-btn { position: fixed; top: 10px; left: 20px; padding: 6px 12px; font-size: 0.8rem; border-color: var(--accent-primary); color: var(--accent-primary); font-family: 'Oswald', sans-serif; z-index: 100; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; border: 1px solid var(--accent-primary); cursor: pointer; text-transform: uppercase; transition: 0.2s; }
+        .top-nav-btn:hover { background-color: var(--accent-primary); color: #fff; }
+
+        .header-bar { width: 100%; max-width: 1400px; display: flex; justify-content: center; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--accent-muted); padding-bottom: 10px; margin-top: 10px; flex-direction: column; }
+        .header-title { color: var(--accent-primary); font-size: 2rem; letter-spacing: 2px; text-align: center; text-shadow: 0 0 10px rgba(217, 66, 133, 0.4); }
+
+        /* Лейаут */
+        .builder-container { display: grid; grid-template-columns: 1fr 1.2fr; gap: 30px; width: 100%; max-width: 1400px; align-items: start; }
+        
+        .panel-outer { background-color: var(--accent-primary); padding: var(--border-width); position: relative; display: flex; flex-direction: column; }
+        .panel-inner { background-color: var(--bg-panel); padding: 20px; height: 100%; display: flex; flex-direction: column; }
+        .cut-tl { clip-path: polygon(var(--chamfer) 0, 100% 0, 100% 100%, 0 100%, 0 var(--chamfer)); }
+        .hazard-tape { height: 6px; background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--accent-muted) 10px, var(--accent-muted) 20px); border-bottom: 1px solid var(--accent-primary); }
+
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-family: 'Oswald', sans-serif; color: var(--color-cyan); margin-bottom: 6px; font-size: 1rem; text-transform: uppercase; }
+        
+        .cloud-input, .cloud-select { width: 100%; background: #111; border: 1px solid #333; color: var(--text-main); padding: 10px; outline: none; font-family: 'Inter'; font-size: 0.95rem; margin-bottom: 8px;}
+        .cloud-input:focus, .cloud-select:focus { border-color: var(--accent-primary); }
+        textarea.cloud-input { min-height: 80px; resize: vertical; }
+
+        .points-display { font-size: 2rem; font-family: 'Oswald'; text-align: center; margin-bottom: 20px; padding: 10px; border: 2px dashed var(--accent-primary); background: rgba(217, 66, 133, 0.1); }
+        .points-display.error { border-color: var(--color-red); color: var(--color-red); background: rgba(199, 36, 58, 0.1); }
+
+        /* Покупка улучшений */
+        .upgrade-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; padding: 8px 0; }
+        .upgrade-info { flex: 1; }
+        .upgrade-name { color: var(--text-main); font-family: 'Oswald'; font-size: 1rem; }
+        .upgrade-desc { color: var(--text-dim); font-size: 0.8rem; }
+        .upgrade-cost { color: var(--color-yellow); font-family: 'Oswald'; font-size: 0.9rem; margin-right: 16px; }
+        .upgrade-controls { display: flex; align-items: center; gap: 8px; }
+        .btn-qty { background: #222; border: 1px solid #444; color: #fff; width: 28px; height: 28px; cursor: pointer; font-family: 'Oswald'; }
+        .btn-qty:hover { background: var(--accent-primary); border-color: var(--accent-primary); }
+        .qty-display { width: 20px; text-align: center; font-family: 'Oswald'; }
+
+        /* Вывод персонажа */
+        .output-panel { position: sticky; top: 60px; max-height: calc(100vh - 80px); overflow-y: auto; }
+        .output-panel::-webkit-scrollbar { width: 6px; }
+        .output-panel::-webkit-scrollbar-thumb { background: var(--accent-primary); }
+        
+        .output-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid var(--accent-primary); padding-bottom: 10px; margin-bottom: 20px; }
+        .ego-name-display { font-size: 2rem; color: var(--text-main); font-family: 'Oswald'; text-transform: uppercase; }
+        .ego-quote { font-style: italic; color: var(--text-dim); font-family: 'Merriweather'; font-size: 1rem; margin-top: 4px; }
+        .ego-meta { font-family: 'Oswald'; color: var(--color-cyan); font-size: 1rem; }
+        
+        .copy-btn { background: transparent; border: 1px solid var(--accent-primary); color: var(--accent-primary); padding: 6px 12px; font-family: 'Oswald'; cursor: pointer; transition: 0.2s; font-size: 0.9rem; text-transform: uppercase; }
+        .copy-btn:hover { background: var(--accent-primary); color: #000; }
+
+        .stat-block { margin-bottom: 16px; }
+        .stat-line { margin-bottom: 4px; font-size: 0.95rem; }
+        .stat-line strong { color: var(--accent-primary); font-family: 'Oswald'; letter-spacing: 1px; }
+
+        .effects-list { margin-left: 20px; margin-top: 10px; font-size: 0.95rem; line-height: 1.6; }
+        .effects-list li { margin-bottom: 6px; }
+
+        .corrosion-block { margin-top: 20px; padding: 16px; border: 1px solid var(--color-red); background: rgba(199, 36, 58, 0.05); }
+        .corrosion-title { color: var(--color-red); font-family: 'Oswald'; font-size: 1.4rem; margin-bottom: 8px; border-bottom: 1px solid var(--color-red); padding-bottom: 4px; }
+
+        /* Правила Лор */
+        .rules-container { grid-column: 1 / -1; margin-top: 40px; }
+        .rule-section { margin-bottom: 20px; }
+        .rule-section h3 { color: var(--accent-primary); border-bottom: 1px dashed #333; padding-bottom: 8px; margin-bottom: 12px; }
+        .rule-section p { font-size: 0.95rem; line-height: 1.6; color: var(--text-main); margin-bottom: 10px; text-align: justify; }
+
+        /* Таб-кнопки */
+        .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab-btn { flex: 1; padding: 10px; background: rgba(0,0,0,0.5); border: 1px solid var(--text-dim); color: var(--text-dim); font-family: 'Oswald'; font-size: 1.1rem; cursor: pointer; transition: 0.2s; text-transform: uppercase; }
+        .tab-btn.active { border-color: var(--accent-primary); color: var(--accent-primary); background: rgba(217, 66, 133, 0.1); }
+
+    </style>
+</head>
+<body>
+
+    <a href="navigation.html" class="top-nav-btn"><i class="fa-solid fa-arrow-left"></i> НАВИГАЦИЯ</a>
+
+    <div class="header-bar">
+        <div class="header-title oswald">КОНСТРУКТОР Э.Г.О. (E.G.O. MANIFESTATION)</div>
+    </div>
+
+    <div class="builder-container">
+        
+        <!-- ЛЕВАЯ ПАНЕЛЬ: ВВОД -->
+        <div class="panel-outer cut-tl">
+            <div class="hazard-tape"></div>
+            <div class="panel-inner cut-tl" style="border-top: none;">
+                
+                <div class="tabs">
+                    <button class="tab-btn active" id="tab-attack" onclick="window.switchTab('attack')">АТАКА Э.Г.О.</button>
+                    <button class="tab-btn" id="tab-eff" onclick="window.switchTab('efflorescent')">РАСЦВЕТАЮЩЕЕ Э.Г.О.</button>
+                </div>
+
+                <div class="points-display" id="points-display">
+                    ДОСТУПНЫЕ ОЧКИ: <span id="pts-count" style="color: #fff;">0</span> / <span id="pts-max">0</span>
+                </div>
+
+                <div class="form-group">
+                    <label>Название Э.Г.О.</label>
+                    <input type="text" id="ego-name" class="cloud-input" placeholder="Например: Bodysack" oninput="window.updateOutput()">
+                </div>
+                <div class="form-group">
+                    <label>Фраза при использовании (Quote)</label>
+                    <input type="text" id="ego-quote" class="cloud-input" placeholder="Например: Я ничего не смог изменить..." oninput="window.updateOutput()">
+                </div>
+
+                <!-- БЛОК АТАКИ -->
+                <div id="block-attack">
+                    <div class="form-group">
+                        <label>Уровень Угрозы (Ранг)</label>
+                        <select id="ego-rank" class="cloud-select" onchange="window.recalcPoints()">
+                            <option value="4">ZAYIN (4 Очка)</option>
+                            <option value="5">TETH (5 Очков)</option>
+                            <option value="6">HE (6 Очков)</option>
+                            <option value="7">WAW (7 Очков)</option>
+                            <option value="8">ALEPH (8 Очков)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Дистанция атаки (База)</label>
+                        <select id="ego-range" class="cloud-select" onchange="window.updateOutput()">
+                            <option value="ranged">Дальний бой - 30 футов (Урон 2d8)</option>
+                            <option value="melee">Ближний бой - 5 футов (Урон 2d12)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Тип Урона</label>
+                        <select id="ego-dmgtype" class="cloud-select" onchange="window.updateOutput()">
+                            <option value="Рубящий (Slashing)">Рубящий (Slashing)</option>
+                            <option value="Колющий (Piercing)">Колющий (Piercing)</option>
+                            <option value="Дробящий (Bludgeoning)">Дробящий (Bludgeoning)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="tech-text" style="margin-top: 20px; border-bottom: 1px solid #333; padding-bottom: 4px;">УЛУЧШЕНИЯ (ПОКУПКА ЗА ОЧКИ)</div>
+                    <div id="upgrades-attack"></div>
+
+                    <div class="form-group" style="margin-top: 20px;">
+                        <label>Кастомные эффекты / Статусы (1 Очко = 4 Негативных/Позитивных или 1 Бафф/Дебафф)</label>
+                        <textarea id="ego-custom" class="cloud-input" placeholder="Опишите накладываемые статусы, отхил или уникальные условия (например: накладывает 4 Кровотечения, лечит 2d4+2 и т.д.)..." oninput="window.updateOutput()"></textarea>
+                    </div>
+                </div>
+
+                <!-- БЛОК РАСЦВЕТАЮЩЕГО Э.Г.О. -->
+                <div id="block-eff" style="display: none;">
+                    <div class="form-group">
+                        <label>Тип формы</label>
+                        <select id="eff-type" class="cloud-select" onchange="window.recalcPoints()">
+                            <option value="7">Расцветающее Э.Г.О. / Трансформация (7 Очков)</option>
+                            <option value="pb">Нестабильное Э.Г.О. (Кол-во очков = Ваш ПБ)</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="pb-group" style="display: none;">
+                        <label>Ваш Бонус Мастерства (PB)</label>
+                        <input type="number" id="eff-pb" class="cloud-input" value="3" min="2" max="6" onchange="window.recalcPoints()">
+                    </div>
+                    <div class="form-group">
+                        <label>Форма (Form)</label>
+                        <select id="eff-form" class="cloud-select" onchange="window.updateOutput()">
+                            <option value="Transformation">Трансформация (Активация бонусным действием)</option>
+                            <option value="Equipment">Экипировка (Артефакт/Предмет)</option>
+                        </select>
+                    </div>
+
+                    <div class="tech-text" style="margin-top: 20px; border-bottom: 1px solid #333; padding-bottom: 4px;">УЛУЧШЕНИЯ (ПОКУПКА ЗА ОЧКИ)</div>
+                    <div id="upgrades-eff"></div>
+
+                    <div class="form-group" style="margin-top: 20px;">
+                        <label>Особые действия / Атаки (1-7 Очков)</label>
+                        <textarea id="eff-custom" class="cloud-input" placeholder="Опишите мощную спец-атаку (1-3 очка) или уникальную пассивку (1-7 очков)..." oninput="window.updateOutput()"></textarea>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ПРАВАЯ ПАНЕЛЬ: ВЫВОД -->
+        <div class="panel-outer cut-tl output-panel">
+            <div class="hazard-tape" style="background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--accent-primary) 10px, var(--accent-primary) 20px);"></div>
+            <div class="panel-inner cut-tl" style="border-top: none;" id="output-area">
+                
+                <div class="output-header">
+                    <div>
+                        <div class="ego-name-display" id="out-name">БЕЗ НАЗВАНИЯ</div>
+                        <div class="ego-quote" id="out-quote">"..."</div>
+                        <div class="ego-meta" id="out-meta">Атака Э.Г.О. | ZAYIN</div>
+                    </div>
+                    <button class="copy-btn" onclick="window.copyEgo()"><i class="fa-regular fa-copy"></i> КОПИРОВАТЬ</button>
+                </div>
+
+                <div id="out-content"></div>
+
+            </div>
+        </div>
+
+        <!-- ЛОР И ПРАВИЛА (Широкий блок внизу) -->
+        <div class="panel-outer cut-tl rules-container">
+            <div class="hazard-tape"></div>
+            <div class="panel-inner cut-tl" style="border-top: none;">
+                <h2 class="oswald" style="color: var(--accent-primary); margin-bottom: 20px; text-align: center;">ПРАВИЛА И ЛОР МАНИФЕСТАЦИИ Э.Г.О.</h2>
+                
+                <div class="rule-section">
+                    <h3>Семя Света и Феномен Искажения</h3>
+                    <p>После событий «Белых Ночей и Тёмных Дней» Семя Света было рассеяно по всему Городу, и некоторые его жители обрели способность манифестировать собственное Э.Г.О. Если человек не справляется с проявлением Э.Г.О. и поддается своим негативным эмоциям, он может вместо этого стать <strong>Искажением (Distortion)</strong>.</p>
+                    <p>Искажения — это могущественные, чудовищные сущности, бывшие люди, которых захлестнули их собственные эмоции (особенно часто это случается в момент попытки пробудить Э.Г.О.). Процесс превращения называется «Феноменом Искажения» и классифицируется Главой как угроза уровня <strong>«Кошмар Города» (Urban Nightmare)</strong>, хотя отдельные Искажения редко превышают уровень <strong>«Чума Города» (Urban Plague)</strong>.</p>
+                    <p>Искажения похожи на Аномалии (Abnormalities), но с одним ключевым отличием: Искажения добровольно или непроизвольно проявляются из желаний своего хозяина, в то время как Аномалии происходят из коллективного бессознательного человечества и по большей части были искусственно созданы в ходе экспериментов L-Corp.</p>
+                </div>
+
+                <div class="rule-section">
+                    <h3>Использование чужого Э.Г.О. и Коррозия</h3>
+                    <p>Хотя Э.Г.О. проявляется у конкретного человека (Персональное Э.Г.О.), любой, кто способен его использовать, может применить Э.Г.О. другого человека или Аномалии. Однако это связано с колоссальным риском: использование чужого Э.Г.О. сродни облачению в оболочку чужого разума. Это может привести к тому, что пользователь потеряет себя и подвергнется <strong>Коррозии Э.Г.О. (E.G.O. Corrosion)</strong> — состоянию, в котором экипировка перехватывает контроль над разумом и заставляет атаковать всех без разбору.</p>
+                </div>
+
+                <div class="rule-section">
+                    <h3>Правила Атак Э.Г.О.</h3>
+                    <p>Э.Г.О. Атаки делятся по уровню угрозы: <strong>ZAYIN (4 очка), TETH (5), HE (6), WAW (7), ALEPH (8)</strong>. Коррозия дает +1 очко для настройки. Уровень Фиксера определяет, какой ранг Э.Г.О. он может использовать:</p>
+                    <ul style="color: var(--text-main); margin-left: 20px; font-size: 0.95rem; margin-bottom: 10px;">
+                        <li><strong>4 Уровень:</strong> ZAYIN (Персональное Э.Г.О., основанное на личной травме, без Коррозии).</li>
+                        <li><strong>8 Уровень:</strong> Вплоть до TETH (Берется от Аномалий, имеет Коррозию).</li>
+                        <li><strong>12 Уровень:</strong> Вплоть до HE.</li>
+                        <li><strong>16 Уровень:</strong> Вплоть до WAW.</li>
+                        <li><strong>19 Уровень:</strong> Вплоть до ALEPH.</li>
+                    </ul>
+                    <p>Атака Э.Г.О. совершается броском атаки: <strong>Модификатор Мудрости ИЛИ Харизмы + Бонус Мастерства</strong>. Базовый урон <strong>2d8 (Дальний бой 30 футов)</strong> или <strong>2d12 (Ближний бой)</strong>. Увеличение тира кубов урона идет по схеме: 1d4 -> 1d6 -> 1d8 -> 1d10 -> 1d12 -> 2d6. Использовать каждую атаку Э.Г.О. можно только 1 раз за Длительный Отдых.</p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        let currentTab = 'attack';
+
+        // Базы апгрейдов
+        const atkUpgrades = [
+            { id: "add_dice", name: "Доп. куб урона (+1 кость)", cost: 1, max: 5 },
+            { id: "up_dice", name: "Повышение куба (Напр. d8 -> d10)", cost: 1, max: 4 },
+            { id: "add_range", name: "Увеличение дальности (+10 футов)", cost: 1, max: 10 },
+            { id: "spread", name: "Область/Доп. Цели (Конус или Радиус)", cost: 1, max: 5 },
+            { id: "custom_pts", name: "Вложения в Кастомные Статусы/Дебаффы", cost: 1, max: 8 }
+        ];
+
+        const effUpgrades = [
+            { id: "eff_dmg", name: "Увеличение урона (+1 тир кости)", cost: 1, max: 3 },
+            { id: "eff_spd", name: "Скорость (+15 футов)", cost: 1, max: 3 },
+            { id: "eff_ac", name: "Защита (+1 КД)", cost: 1, max: 3 },
+            { id: "eff_stat", name: "Характеристики (+2 к 1 или +1 к 2)", cost: 1, max: 3 },
+            { id: "eff_save", name: "Стойкость (+1 к спасброскам)", cost: 1, max: 3 },
+            { id: "eff_status", name: "+1 Статус при нанесении урона", cost: 1, max: 3 },
+            { id: "eff_custom", name: "Спец-атака / Пассивка", cost: 1, max: 7 }
+        ];
+
+        let state = {
+            attack: { pts: 0, max: 4 },
+            eff: { pts: 0, max: 7 }
+        };
+
+        function initBuilder() {
+            // Рендер кнопок Атаки
+            let atkHtml = '';
+            atkUpgrades.forEach(u => {
+                atkHtml += `
+                    <div class="upgrade-row">
+                        <div class="upgrade-info">
+                            <div class="upgrade-name">${u.name}</div>
+                            <div class="upgrade-desc">Стоимость: ${u.cost} очко</div>
+                        </div>
+                        <div class="upgrade-controls">
+                            <button class="btn-qty" onclick="changeQty('attack', '${u.id}', -1)">-</button>
+                            <div class="qty-display" id="qty-attack-${u.id}">0</div>
+                            <button class="btn-qty" onclick="changeQty('attack', '${u.id}', 1)">+</button>
+                        </div>
+                    </div>
+                `;
+                state.attack[u.id] = 0;
+            });
+            document.getElementById('upgrades-attack').innerHTML = atkHtml;
+
+            // Рендер кнопок Расцветающего
+            let effHtml = '';
+            effUpgrades.forEach(u => {
+                effHtml += `
+                    <div class="upgrade-row">
+                        <div class="upgrade-info">
+                            <div class="upgrade-name">${u.name}</div>
+                            <div class="upgrade-desc">Стоимость: ${u.cost} очко</div>
+                        </div>
+                        <div class="upgrade-controls">
+                            <button class="btn-qty" onclick="changeQty('eff', '${u.id}', -1)">-</button>
+                            <div class="qty-display" id="qty-eff-${u.id}">0</div>
+                            <button class="btn-qty" onclick="changeQty('eff', '${u.id}', 1)">+</button>
+                        </div>
+                    </div>
+                `;
+                state.eff[u.id] = 0;
+            });
+            document.getElementById('upgrades-eff').innerHTML = effHtml;
+
+            recalcPoints();
+        }
+
+        window.switchTab = (tab) => {
+            currentTab = tab;
+            document.getElementById('tab-attack').classList.remove('active');
+            document.getElementById('tab-eff').classList.remove('active');
+            
+            document.getElementById('block-attack').style.display = 'none';
+            document.getElementById('block-eff').style.display = 'none';
+
+            if (tab === 'attack') {
+                document.getElementById('tab-attack').classList.add('active');
+                document.getElementById('block-attack').style.display = 'block';
+            } else {
+                document.getElementById('tab-eff').classList.add('active');
+                document.getElementById('block-eff').style.display = 'block';
+            }
+            recalcPoints();
+        };
+
+        window.changeQty = (tab, id, delta) => {
+            const list = tab === 'attack' ? atkUpgrades : effUpgrades;
+            const item = list.find(x => x.id === id);
+            
+            let current = state[tab][id];
+            let next = current + delta;
+            
+            if (next < 0) next = 0;
+            if (next > item.max) next = item.max;
+            
+            state[tab][id] = next;
+            document.getElementById(`qty-${tab}-${id}`).innerText = next;
+            
+            recalcPoints();
+        };
+
+        window.recalcPoints = () => {
+            if (currentTab === 'attack') {
+                const rankSelect = document.getElementById('ego-rank');
+                state.attack.max = parseInt(rankSelect.value);
+                
+                let spent = 0;
+                atkUpgrades.forEach(u => { spent += state.attack[u.id] * u.cost; });
+                state.attack.pts = spent;
+                
+                updateDisplay('attack');
+            } else {
+                const typeSelect = document.getElementById('eff-type').value;
+                if (typeSelect === 'pb') {
+                    document.getElementById('pb-group').style.display = 'block';
+                    state.eff.max = parseInt(document.getElementById('eff-pb').value) || 2;
+                } else {
+                    document.getElementById('pb-group').style.display = 'none';
+                    state.eff.max = 7;
+                }
+
+                let spent = 0;
+                effUpgrades.forEach(u => { spent += state.eff[u.id] * u.cost; });
+                state.eff.pts = spent;
+
+                updateDisplay('eff');
+            }
+        };
+
+        function updateDisplay(tab) {
+            const display = document.getElementById('points-display');
+            const pts = state[tab].pts;
+            const max = state[tab].max;
+            
+            document.getElementById('pts-count').innerText = pts;
+            document.getElementById('pts-max').innerText = max;
+            
+            if (pts > max) {
+                display.classList.add('error');
+            } else {
+                display.classList.remove('error');
+            }
+            window.updateOutput();
+        }
+
+        // Логика расчета кубов
+        function calculateDice(baseCount, baseType, addDice, upDice) {
+            const diceTiers = [4, 6, 8, 10, 12, "2d6"]; // Индексы 0-5
+            let currentCount = baseCount + addDice;
+            
+            let startIndex = diceTiers.indexOf(baseType);
+            if (startIndex === -1) startIndex = 2; // фолбек на d8
+            
+            let finalIndex = startIndex + upDice;
+            if (finalIndex > 5) finalIndex = 5; // макс 2d6
+
+            if (finalIndex === 5) {
+                return `${currentCount * 2}d6`;
+            } else {
+                return `${currentCount}d${diceTiers[finalIndex]}`;
+            }
+        }
+
+        window.updateOutput = () => {
+            const name = document.getElementById('ego-name').value || "БЕЗ НАЗВАНИЯ";
+            const quote = document.getElementById('ego-quote').value || "...";
+            
+            document.getElementById('out-name').innerText = name;
+            document.getElementById('out-quote').innerText = `"${quote}"`;
+
+            let html = '';
+
+            if (currentTab === 'attack') {
+                const rankSelect = document.getElementById('ego-rank');
+                const rankText = rankSelect.options[rankSelect.selectedIndex].text.split(' ')[0];
+                const isMelee = document.getElementById('ego-range').value === 'melee';
+                const dmgType = document.getElementById('ego-dmgtype').value;
+                const customDesc = document.getElementById('ego-custom').value;
+                
+                const hasCorrosion = rankText !== 'ZAYIN';
+
+                document.getElementById('out-meta').innerText = `Атака Э.Г.О. | ${rankText}`;
+
+                // Расчет базы
+                let baseDiceCount = 2;
+                let baseDiceType = isMelee ? 12 : 8;
+                let baseRange = isMelee ? 5 : 30;
+
+                let finalDiceStr = calculateDice(baseDiceCount, baseDiceType, state.attack.add_dice, state.attack.up_dice);
+                let finalRange = baseRange + (state.attack.add_range * 10);
+                
+                html += `<div class="stat-block">
+                    <div class="stat-line"><strong>Тип Атаки:</strong> Бросок атаки от МУД или ХАР + БМ.</div>
+                    <div class="stat-line"><strong>Урон:</strong> ${finalDiceStr} + МУД/ХАР [${dmgType}]</div>
+                    <div class="stat-line"><strong>Дистанция:</strong> ${finalRange} футов</div>
+                </div>`;
+
+                html += `<div class="stat-line"><strong>Эффекты Атаки:</strong></div><ul class="effects-list">`;
+                if (state.attack.spread > 0) {
+                    html += `<li>Атака становится конусом (${finalRange} футов) или сферой (${Math.floor(finalRange/2)} футов). Вы совершаете атаку против +${state.attack.spread * 2} доп. целей в области.</li>`;
+                }
+                if (customDesc.trim() !== '') {
+                    html += `<li>${customDesc.replace(/\n/g, '<br>')}</li>`;
+                }
+                if (state.attack.spread === 0 && customDesc.trim() === '') {
+                    html += `<li style="color: var(--text-dim);">Нет дополнительных эффектов</li>`;
+                }
+                html += `</ul>`;
+
+                if (hasCorrosion) {
+                    html += `
+                    <div class="corrosion-block">
+                        <div class="corrosion-title">КОРРОЗИЯ Э.Г.О. (CORROSION)</div>
+                        <div class="stat-line"><strong>Активация:</strong> При падении Рассудка до 0 (-45) ИЛИ при провале спасброска МУД/ХАР (СЛ 10) при попытке использовать Э.Г.О.</div>
+                        <div class="stat-line"><strong>Целеуказание (Бросьте 1d4):</strong></div>
+                        <ul class="effects-list">
+                            <li>1. Ближайшая цель</li>
+                            <li>2. Существо с наибольшим количеством ХП в радиусе</li>
+                            <li>3. Существо с наименьшим количеством ХП в радиусе</li>
+                            <li>4. Ближайший союзник</li>
+                        </ul>
+                        <div class="stat-line" style="margin-top:10px;"><strong>Эффект Коррозии:</strong> Атака получает +1 Очко Улучшений. (Применяются те же базовые эффекты + 1 доп. эффект или условие).</div>
+                    </div>
+                    `;
+                }
+
+            } else {
+                const isVolatile = document.getElementById('eff-type').value === 'pb';
+                const formType = document.getElementById('eff-form').value;
+                const customDesc = document.getElementById('eff-custom').value;
+                
+                const metaType = isVolatile ? 'Нестабильное Э.Г.О.' : 'Расцветающее Э.Г.О.';
+                const metaForm = formType === 'Transformation' ? 'Трансформация' : 'Экипировка';
+                
+                document.getElementById('out-meta').innerText = `${metaType} | ${metaForm}`;
+
+                html += `<div class="stat-block">
+                    <div class="stat-line"><strong>Активация:</strong> ${formType === 'Transformation' ? 'Бонусное действие (1 раз за Длительный Отдых)' : 'Свойства магического артефакта 5e'}</div>
+                </div>`;
+
+                html += `<div class="stat-line"><strong>Дарованные эффекты:</strong></div><ul class="effects-list">`;
+                
+                if (state.eff.eff_dmg > 0) html += `<li><strong>Усиление урона:</strong> +${state.eff.eff_dmg} тир(а) кости урона.</li>`;
+                if (state.eff.eff_spd > 0) html += `<li><strong>Скорость:</strong> +${state.eff.eff_spd * 15} футов ко всем видам перемещения.</li>`;
+                if (state.eff.eff_ac > 0) html += `<li><strong>Защита:</strong> +${state.eff.eff_ac} КД.</li>`;
+                if (state.eff.eff_stat > 0) html += `<li><strong>Характеристики:</strong> +${state.eff.eff_stat * 2} к одной или +${state.eff.eff_stat} к двум характеристикам.</li>`;
+                if (state.eff.eff_save > 0) html += `<li><strong>Стойкость:</strong> +${state.eff.eff_save} ко всем спасброскам.</li>`;
+                if (state.eff.eff_status > 0) html += `<li><strong>Статус:</strong> Накладывает +${state.eff.eff_status} статус-эффекта при нанесении урона.</li>`;
+                
+                if (customDesc.trim() !== '') {
+                    html += `<li><strong>Особые черты/Атаки:</strong><br>${customDesc.replace(/\n/g, '<br>')}</li>`;
+                }
+                
+                html += `</ul>`;
+            }
+
+            document.getElementById('out-content').innerHTML = html;
+        };
+
+        window.copyEgo = () => {
+            const outContent = document.getElementById('output-area');
+            const textToCopy = outContent.innerText;
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                alert("Скопировано в буфер обмена!");
+            }).catch(err => console.error(err));
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initBuilder();
+        });
+    </script>
+</body>
+</html>
