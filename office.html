@@ -45,7 +45,6 @@
         .dropdown-create { color: var(--color-yellow); border-top: 1px dashed var(--color-yellow); border-bottom: none; }
         .dropdown-create:hover { background-color: rgba(241, 196, 15, 0.2); color: var(--color-yellow); }
 
-        /* ИЗМЕНЕНИЕ +: Плашка статуса системы */
         .status-banner { width: 100%; max-width: 1400px; background: rgba(0,0,0,0.8); border: 1px solid var(--text-dim); color: var(--text-dim); padding: 10px 16px; margin-top: 10px; font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 0.9rem; display: flex; align-items: center; gap: 10px; transition: 0.3s; }
         .status-banner.loading { border-color: var(--color-yellow); color: var(--color-yellow); background: rgba(241, 196, 15, 0.1); }
         .status-banner.success { border-color: var(--accent-primary); color: var(--accent-primary); background: rgba(143, 204, 42, 0.1); }
@@ -87,7 +86,7 @@
         .grade-content { max-height: 0; overflow: hidden; transition: 0.4s; background: #0a0a0a; }
         .grade-block.expanded .grade-content { max-height: 1000px; }
         
-        .quest-item { padding: 10px 16px; border-bottom: 1px solid #222; cursor: pointer; }
+        .quest-item { padding: 10px 16px; border-bottom: 1px solid #222; cursor: pointer; position: relative;}
         .quest-item:last-child { border-bottom: none; }
         .quest-item:hover { background: rgba(255,255,255,0.03); }
         .quest-title { color: var(--text-main); font-family: 'Oswald'; font-size: 1.1rem; display: flex; align-items: center; }
@@ -106,9 +105,12 @@
 
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 2000; backdrop-filter: blur(4px); }
         .modal-overlay.hidden { display: none; }
-        .modal-box { width: 400px; max-width: 90%; }
+        .modal-box { width: 500px; max-width: 90%; }
         .modal-btn { width: 100%; padding: 10px; font-size: 1rem; cursor: pointer; border: 1px solid var(--color-cyan); background: transparent; color: var(--color-cyan); text-transform: uppercase; font-family: 'Oswald'; transition: 0.2s; margin-top: 8px;}
         .modal-btn:hover { background: var(--color-cyan); color: #000; }
+        
+        .btn-close-modal { background: transparent; border: none; color: var(--color-red); font-size: 1.5rem; cursor: pointer; transition: 0.2s; }
+        .btn-close-modal:hover { color: #ff0044; }
 
         .creator-only { display: none; }
     </style>
@@ -144,7 +146,56 @@
         </div>
     </div>
 
-    <!-- ИЗМЕНЕНИЕ: Плашка статуса -->
+    <!-- Модальное окно Создания Контракта -->
+    <div class="modal-overlay hidden" id="questBuilderModal" onclick="window.closeQuestBuilderOnBg(event)">
+        <div class="panel-outer cut-tl modal-box">
+            <div class="hazard-tape" style="background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--color-yellow) 10px, var(--color-yellow) 20px); border-bottom-color: var(--color-yellow);"></div>
+            <div class="panel-inner cut-tl" style="border-top: none;">
+                <div class="panel-title" style="color: var(--color-yellow); border-color: var(--color-yellow); text-align: left;">
+                    СОЗДАНИЕ КОНТРАКТА
+                    <button class="btn-close-modal" onclick="window.toggleQuestBuilder()"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                
+                <div class="tech-text" style="color: var(--color-yellow); margin-bottom: 4px;">НАЗВАНИЕ КОНТРАКТА</div>
+                <input type="text" id="q-name" class="cloud-input" placeholder="Например: Зачистка переулка">
+                
+                <div style="display: flex; gap: 10px;">
+                    <div style="flex: 1;">
+                        <div class="tech-text" style="color: var(--color-yellow); margin-bottom: 4px;">РАНГ (GRADE)</div>
+                        <select id="q-grade" class="cloud-input" style="font-family: 'Oswald'; text-transform: uppercase;">
+                            <option value="1">Цветной</option>
+                            <option value="2">1 Ранг</option>
+                            <option value="3">2 Ранг</option>
+                            <option value="4">3 Ранг</option>
+                            <option value="5">4 Ранг</option>
+                            <option value="6">5 Ранг</option>
+                            <option value="7">6 Ранг</option>
+                            <option value="8">7 Ранг</option>
+                            <option value="9">8 Ранг</option>
+                            <option value="10">9 Ранг</option>
+                        </select>
+                    </div>
+                    <div style="flex: 1;">
+                        <div class="tech-text" style="color: var(--color-yellow); margin-bottom: 4px;">ИКОНКА (.PNG)</div>
+                        <label class="btn-small" style="width: 100%; justify-content: center; padding: 10px; border-color: var(--color-yellow); color: var(--color-yellow); cursor: pointer;">
+                            <input type="file" id="q-icon-upload" accept=".png" style="display: none;" onchange="window.uploadQuestIcon(event)">
+                            <i class="fa-solid fa-upload"></i> ЗАГРУЗИТЬ
+                        </label>
+                    </div>
+                </div>
+
+                <div id="q-icon-preview" style="height: 40px; margin-bottom: 12px; background-size: contain; background-repeat: no-repeat; background-position: left center;"></div>
+                <input type="hidden" id="q-icon-url" value="">
+
+                <div class="tech-text" style="color: var(--color-yellow); margin-bottom: 4px;">ОПИСАНИЕ И НАГРАДА</div>
+                <textarea id="q-desc" class="cloud-input" placeholder="Подробности задания..." style="min-height: 100px;"></textarea>
+                
+                <button class="modal-btn" style="border-color: var(--color-yellow); color: var(--color-yellow);" onclick="window.saveCustomQuest()">СОХРАНИТЬ В БАЗУ ОФИСА</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Плашка статуса системы -->
     <div id="system-status-banner" class="status-banner">
         <i class="fa-solid fa-circle-notch fa-spin"></i> СИСТЕМА: ОЖИДАНИЕ ИНИЦИАЛИЗАЦИИ...
     </div>
@@ -190,7 +241,10 @@
         <div class="panel-outer cut-tl">
             <div class="hazard-tape" style="background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--color-yellow) 10px, var(--color-yellow) 20px); border-bottom-color: var(--color-yellow);"></div>
             <div class="panel-inner cut-tl" style="border-top: none;">
-                <div class="panel-title" style="color: var(--color-yellow); border-color: var(--color-yellow);">ДОСКА КОНТРАКТОВ (СИСТЕМНАЯ ВЫДАЧА)</div>
+                <div class="panel-title" style="color: var(--color-yellow); border-color: var(--color-yellow);">
+                    ДОСКА КОНТРАКТОВ
+                    <button class="btn-small creator-only" style="border-color: var(--color-yellow); color: var(--color-yellow);" onclick="window.toggleQuestBuilder()"><i class="fa-solid fa-plus"></i> КОНТРАКТ</button>
+                </div>
                 <div id="grades-container"></div>
             </div>
         </div>
@@ -231,15 +285,15 @@
 
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
-        const db = getFirestore(app, "default");
+        const db = getFirestore(app, "default"); // Подключение к именованной БД
         const storage = getStorage(app);
 
         let currentUser = null;
         let currentOfficeId = null;
         let isCreator = false;
         let questsDB = [];
+        window.currentOfficeData = null; // Глобальное хранилище текущего офиса
 
-        // Управление плашкой статуса
         window.setSystemStatus = (msg, type = 'normal') => {
             const banner = document.getElementById('system-status-banner');
             banner.className = 'status-banner ' + type;
@@ -328,8 +382,8 @@
                 }
             } catch (error) {
                 console.error(error);
-                listEl.innerHTML = '<div style="padding: 10px; color: var(--color-red);">Ошибка загрузки. Вероятно, блокировка правилами Firebase.</div>';
-                window.setSystemStatus("ОШИБКА ДОСТУПА К БАЗЕ ОФИСОВ (FIRESTORE RULES)", "error");
+                listEl.innerHTML = '<div style="padding: 10px; color: var(--color-red);">Ошибка загрузки.</div>';
+                window.setSystemStatus("ОШИБКА ДОСТУПА К БАЗЕ ОФИСОВ", "error");
             }
         }
 
@@ -349,7 +403,8 @@
                     members: [currentUser.email],
                     logoUrl: "",
                     characters: [],
-                    news: []
+                    news: [],
+                    customQuests: [] // Добавлено поле для кастомных квестов
                 };
                 await setDoc(newOfficeRef, newOfficeData);
                 window.setSystemStatus("ОФИС УСПЕШНО СОЗДАН. ПОДКЛЮЧЕНИЕ...", "success");
@@ -370,6 +425,7 @@
                 const docSnap = await getDoc(doc(db, "offices", id));
                 if (docSnap.exists()) {
                     const data = docSnap.data();
+                    window.currentOfficeData = data; // Сохраняем в память для квестов
                     isCreator = (data.creator === currentUser.email);
                     
                     const creatorEls = document.querySelectorAll('.creator-only');
@@ -386,6 +442,10 @@
 
                     renderCharacters(data.characters || []);
                     renderNews(data.news || []);
+                    
+                    // Перерисовка аккордеонов квестов на случай, если они были открыты
+                    renderGradeAccordions();
+                    
                     window.setSystemStatus("ОФИС ЗАГРУЖЕН УСПЕШНО", "success");
                 }
             } catch(e) { 
@@ -602,6 +662,72 @@
             }
         };
 
+        // ======================= КОНСТРУКТОР КОНТРАКТОВ =======================
+        window.toggleQuestBuilder = () => {
+            document.getElementById('questBuilderModal').classList.toggle('hidden');
+        };
+        
+        window.closeQuestBuilderOnBg = (e) => {
+            if (e.target.id === 'questBuilderModal') window.toggleQuestBuilder();
+        };
+
+        window.uploadQuestIcon = async (e) => {
+            const file = e.target.files[0];
+            if (!file || !currentOfficeId) return;
+            window.setSystemStatus("ЗАГРУЗКА ИКОНКИ КОНТРАКТА...", "loading");
+            try {
+                const storageRef = ref(storage, `offices/${currentOfficeId}/quests/${Date.now()}_${file.name}`);
+                await uploadBytes(storageRef, file);
+                const url = await getDownloadURL(storageRef);
+                
+                document.getElementById('q-icon-url').value = url;
+                document.getElementById('q-icon-preview').style.backgroundImage = `url('${url}')`;
+                window.setSystemStatus("ИКОНКА КОНТРАКТА ГОТОВА", "success");
+            } catch (err) {
+                window.setSystemStatus("ОШИБКА ЗАГРУЗКИ ИКОНКИ", "error");
+                console.error(err);
+            }
+            e.target.value = '';
+        };
+
+        window.saveCustomQuest = async () => {
+            const name = document.getElementById('q-name').value.trim();
+            const grade = parseInt(document.getElementById('q-grade').value);
+            const iconUrl = document.getElementById('q-icon-url').value;
+            const desc = document.getElementById('q-desc').value.trim();
+
+            if (!name || !currentOfficeId) return alert("Введите название контракта.");
+
+            const newQuest = {
+                id: Date.now().toString(),
+                name: name,
+                grade: grade,
+                Icon: iconUrl,
+                desc: desc
+            };
+
+            window.setSystemStatus("СОХРАНЕНИЕ КОНТРАКТА В БАЗУ...", "loading");
+            try {
+                await updateDoc(doc(db, "offices", currentOfficeId), {
+                    customQuests: arrayUnion(newQuest)
+                });
+                
+                window.setSystemStatus("КОНТРАКТ УСПЕШНО ДОБАВЛЕН", "success");
+                window.toggleQuestBuilder();
+                
+                // Очистка формы
+                document.getElementById('q-name').value = '';
+                document.getElementById('q-desc').value = '';
+                document.getElementById('q-icon-url').value = '';
+                document.getElementById('q-icon-preview').style.backgroundImage = 'none';
+
+                window.openOffice(currentOfficeId);
+            } catch (err) {
+                window.setSystemStatus("ОШИБКА СОХРАНЕНИЯ КОНТРАКТА", "error");
+                console.error(err);
+            }
+        };
+
         const gradeMapping = {
             1: "ЦВЕТНОЙ", 2: "1 РАНГ", 3: "2 РАНГ", 4: "3 РАНГ", 5: "4 РАНГ", 
             6: "5 РАНГ", 7: "6 РАНГ", 8: "7 РАНГ", 9: "8 РАНГ", 10: "9 РАНГ"
@@ -649,7 +775,11 @@
             
             document.querySelectorAll('.grade-block').forEach(b => b.classList.remove('expanded'));
             
-            const filtered = questsDB.filter(q => parseInt(q.grade) === gradeNum);
+            // Объединяем системные квесты и кастомные квесты текущего офиса
+            const officeQuests = (window.currentOfficeData && window.currentOfficeData.customQuests) ? window.currentOfficeData.customQuests : [];
+            const allQuests = questsDB.concat(officeQuests);
+            
+            const filtered = allQuests.filter(q => parseInt(q.grade) === gradeNum);
             
             if (filtered.length === 0) {
                 content.innerHTML = '<div style="padding:16px; color:var(--text-dim); font-family:Oswald;">НЕТ ДОСТУПНЫХ КОНТРАКТОВ ДАННОГО РАНГА.</div>';
@@ -659,7 +789,7 @@
                     const j = Math.floor(Math.random() * (i + 1));
                     [filtered[i], filtered[j]] = [filtered[j], filtered[i]];
                 }
-                const selected = filtered.slice(0, 5);
+                const selected = filtered.slice(0, 5); // Показываем 5 случайных (включая кастомные)
                 
                 let qHtml = '';
                 let uniqueIcons = new Set();
@@ -670,9 +800,13 @@
                         iconHtml = `&nbsp;&nbsp;&nbsp;<img src="${q.Icon}" class="quest-icon" onerror="this.style.display='none'">`;
                         uniqueIcons.add(q.Icon);
                     }
+                    
+                    // Добавим визуальное отличие для кастомных квестов (звёздочка)
+                    const isCustomMarker = q.id ? `<span style="color:var(--text-dim); font-size:0.8rem; margin-left:8px;" title="Кастомный контракт">[OFFICE]</span>` : '';
+
                     qHtml += `
                         <div class="quest-item" onclick="this.classList.toggle('open')">
-                            <div class="quest-title">${q.name}${iconHtml}</div>
+                            <div class="quest-title">${q.name}${iconHtml}${isCustomMarker}</div>
                             <div class="quest-desc">${q.desc}</div>
                         </div>
                     `;
