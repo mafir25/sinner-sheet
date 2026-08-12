@@ -35,10 +35,7 @@
         .top-nav-btn { position: fixed; top: 10px; left: 20px; padding: 6px 12px; font-size: 0.8rem; border-color: var(--accent-primary); color: var(--accent-primary); font-family: 'Oswald', sans-serif; z-index: 100; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; border: 1px solid var(--accent-primary); cursor: pointer; text-transform: uppercase; transition: 0.2s; }
         .top-nav-btn:hover { background-color: var(--accent-primary); color: #000; }
 
-        .lang-toggle-btn { position: fixed; top: 10px; right: 20px; padding: 6px 12px; font-size: 0.8rem; border-color: var(--text-dim); color: var(--text-dim); font-family: 'Oswald', sans-serif; z-index: 1000; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; border: 1px solid var(--text-dim); cursor: pointer; text-transform: uppercase; transition: 0.2s; }
-        .lang-toggle-btn:hover { background-color: var(--text-main); color: #000; border-color: var(--text-main); }
-
-        .right-controls { position: fixed; top: 45px; right: 20px; z-index: 990; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+        .right-controls { position: fixed; top: 10px; right: 20px; z-index: 1000; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
         .side-nav-btn { padding: 6px 12px; font-size: 0.8rem; font-family: 'Oswald', sans-serif; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; cursor: pointer; text-transform: uppercase; transition: 0.2s; border-radius: 2px; }
         .create-btn { border: 1px solid var(--accent-primary); color: var(--accent-primary); }
         .create-btn:hover { background-color: var(--accent-primary); color: #000; }
@@ -142,26 +139,22 @@
 </head>
 <body>
 
-    <a href="../navigation.html" class="top-nav-btn translatable" data-ru="<i class='fa-solid fa-arrow-left'></i> НАЗАД (НАВИГАЦИЯ)" data-en="<i class='fa-solid fa-arrow-left'></i> BACK (NAVIGATION)"><i class="fa-solid fa-arrow-left"></i> НАЗАД (НАВИГАЦИЯ)</a>
-    
-    <button class="lang-toggle-btn" onclick="toggleLanguage()">
-        <i class="fa-solid fa-globe"></i> <span id="lang-display">EN</span>
-    </button>
+    <a href="navigation.html" class="top-nav-btn"><i class="fa-solid fa-arrow-left"></i> НАЗАД (НАВИГАЦИЯ)</a>
 
     <div class="right-controls">
-        <button class="side-nav-btn create-btn translatable" onclick="window.toggleBuilderModal()" id="btn-create" data-ru="<i class='fa-solid fa-plus'></i> СОЗДАТЬ ПРЕДМЕТ" data-en="<i class='fa-solid fa-plus'></i> CREATE ITEM"><i class="fa-solid fa-plus"></i> СОЗДАТЬ ПРЕДМЕТ</button>
+        <button class="side-nav-btn create-btn" onclick="window.toggleBuilderModal()" id="btn-create"><i class="fa-solid fa-plus"></i> СОЗДАТЬ ПРЕДМЕТ</button>
     </div>
 
     <!-- Заголовок страницы -->
     <div class="header-bar">
-        <div class="header-title oswald translatable" data-ru="БАЗА СНАРЯЖЕНИЯ (EQUIPMENT)" data-en="EQUIPMENT DATABASE">БАЗА СНАРЯЖЕНИЯ (EQUIPMENT)</div>
-        <div class="header-subtitle translatable" data-ru="Сводная информация о Мастерских, аугментациях, налогах и арсенал Фиксеров." data-en="Information on Workshops, augmentations, taxes, and Fixer arsenals.">Сводная информация о Мастерских, аугментациях, налогах и арсенал Фиксеров.</div>
+        <div class="header-title oswald">БАЗА СНАРЯЖЕНИЯ (EQUIPMENT)</div>
+        <div class="header-subtitle">Сводная информация о Мастерских, аугментациях, налогах и арсенал Фиксеров.</div>
     </div>
 
     <!-- Вкладки -->
     <div class="tabs-container">
-        <button class="tab-btn active translatable" id="tab-db-btn" onclick="window.switchTab('db')" data-ru="БАЗА ДАННЫХ (ЭКВИП)" data-en="EQUIPMENT DATABASE">БАЗА ДАННЫХ (ЭКВИП)</button>
-        <button class="tab-btn translatable" id="tab-lore-btn" onclick="window.switchTab('lore')" data-ru="ЛОР И ПРАВИЛА" data-en="LORE & RULES">ЛОР И ПРАВИЛА</button>
+        <button class="tab-btn active" id="tab-db-btn" onclick="window.switchTab('db')">БАЗА ДАННЫХ (ЭКВИП)</button>
+        <button class="tab-btn" id="tab-lore-btn" onclick="window.switchTab('lore')">ЛОР И ПРАВИЛА</button>
     </div>
 
     <!-- КОНТЕНТ: БАЗА ДАННЫХ -->
@@ -170,22 +163,22 @@
             <div class="panel-outer cut-tl search-wrapper">
                 <div class="panel-inner cut-tl search-inner">
                     <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                    <input type="text" id="search-input" class="search-input translatable" placeholder="Поиск по названию или описанию..." data-ru="Поиск по названию или описанию..." data-en="Search by name or description..." onkeyup="window.filterItems()">
+                    <input type="text" id="search-input" class="search-input" placeholder="Поиск по названию или описанию..." onkeyup="window.filterItems()">
                 </div>
             </div>
             
-            <div class="filter-group-title translatable" data-ru="ФИЛЬТР ПО ТИПУ (ITEM TYPE)" data-en="ITEM TYPE FILTER">ФИЛЬТР ПО ТИПУ (ITEM TYPE)</div>
+            <div class="filter-group-title">ФИЛЬТР ПО ТИПУ (ITEM TYPE)</div>
             <div class="type-filters" id="item-type-filters"></div>
 
-            <div class="filter-group-title translatable" data-ru="ФИЛЬТР ПО ХАРАКТЕРИСТИКЕ (SCALING STAT)" data-en="SCALING STAT FILTER">ФИЛЬТР ПО ХАРАКТЕРИСТИКЕ (SCALING STAT)</div>
+            <div class="filter-group-title">ФИЛЬТР ПО ХАРАКТЕРИСТИКЕ (SCALING STAT)</div>
             <div class="type-filters" id="stat-filters"></div>
 
-            <div class="filter-group-title translatable" data-ru="ФИЛЬТР ПО РЕДКОСТИ (RARITY)" data-en="RARITY FILTER">ФИЛЬТР ПО РЕДКОСТИ (RARITY)</div>
+            <div class="filter-group-title">ФИЛЬТР ПО РЕДКОСТИ (RARITY)</div>
             <div class="type-filters" id="rarity-filters"></div>
         </div>
 
         <div class="compendium-grid" id="compendium">
-            <div class="loading-text translatable" id="loading-msg" data-ru="Установка соединения с базой данных..." data-en="Establishing connection to the database...">Установка соединения с базой данных...</div>
+            <div class="loading-text">Установка соединения с базой данных...</div>
         </div>
     </div>
 
@@ -194,10 +187,10 @@
         <div class="panel-outer cut-tl">
             <div class="hazard-tape"></div>
             <div class="panel-inner cut-tl" style="border-top: none;">
-                <div class="section-title oswald translatable" style="font-size: 1.6rem; color: var(--accent-primary); margin-bottom: 16px; border-bottom: 1px solid #333; padding-bottom: 8px; display: flex; align-items: center; gap: 12px;" data-ru="<i class='fa-solid fa-microchip'></i> АУГМЕНТАЦИИ (AUGMENTATION)" data-en="<i class='fa-solid fa-microchip'></i> AUGMENTATION"><i class="fa-solid fa-microchip"></i> АУГМЕНТАЦИИ (AUGMENTATION)</div>
+                <div class="section-title oswald" style="font-size: 1.6rem; color: var(--accent-primary); margin-bottom: 16px; border-bottom: 1px solid #333; padding-bottom: 8px; display: flex; align-items: center; gap: 12px;"><i class="fa-solid fa-microchip"></i> АУГМЕНТАЦИИ (AUGMENTATION)</div>
                 <div class="lore-text">
-                    <div class="paragraph translatable" data-ru="В Городе лучше иметь физические улучшения, чем обходиться без них..." data-en="In the City, it is better to have physical enhancements than not. With the countless dangers that come with life in the City, augmentations are a way for people to protect themselves. Fixers, Syndicate members, and even the everyday Cityfolk know this, and it applies to them equally.">В Городе лучше иметь физические улучшения, чем обходиться без них. Из-за бесчисленных опасностей, сопровождающих жизнь в Городе, аугментации стали основным способом самозащиты. Фиксеры, члены Синдикатов и даже обычные горожане знают это. Фиксер, который не модифицирует свое тело, всегда будет находиться в невыгодном положении.</div>
-                    <div class="paragraph translatable" data-ru="Существует бесчисленное множество вариантов улучшений... <span class='highlight'>Единственный ограничивающий фактор — это деньги</span>." data-en="There are countless augmentation options available, from mechanical exoskeletons to bionic implants... <span class='highlight'>The only limiting factor is money</span>.">Существует бесчисленное множество вариантов улучшений: от механических экзоскелетов и бионических имплантов до протезов конечностей и даже полной замены тела на протез. <span class="highlight">Единственный ограничивающий фактор — это деньги</span>.</div>
+                    <div class="paragraph">В Городе лучше иметь физические улучшения, чем обходиться без них. Из-за бесчисленных опасностей, сопровождающих жизнь в Городе, аугментации стали основным способом самозащиты. Фиксеры, члены Синдикатов и даже обычные горожане знают это. Фиксер, который не модифицирует свое тело, всегда будет находиться в невыгодном положении.</div>
+                    <div class="paragraph">Существует бесчисленное множество вариантов улучшений: от механических экзоскелетов и бионических имплантов до протезов конечностей и даже полной замены тела на протез. <span class="highlight">Единственный ограничивающий фактор — это деньги</span>.</div>
                 </div>
             </div>
         </div>
@@ -205,11 +198,11 @@
         <div class="panel-outer cut-tl">
             <div class="hazard-tape"></div>
             <div class="panel-inner cut-tl" style="border-top: none;">
-                <div class="section-title oswald translatable" style="font-size: 1.6rem; color: var(--accent-primary); margin-bottom: 16px; border-bottom: 1px solid #333; padding-bottom: 8px; display: flex; align-items: center; gap: 12px;" data-ru="<i class='fa-solid fa-user-tie'></i> ОДЕЖДА И УНИФОРМА (ATTIRE)" data-en="<i class='fa-solid fa-user-tie'></i> ATTIRE"><i class="fa-solid fa-user-tie"></i> ОДЕЖДА И УНИФОРМА (ATTIRE)</div>
+                <div class="section-title oswald" style="font-size: 1.6rem; color: var(--accent-primary); margin-bottom: 16px; border-bottom: 1px solid #333; padding-bottom: 8px; display: flex; align-items: center; gap: 12px;"><i class="fa-solid fa-user-tie"></i> ОДЕЖДА И УНИФОРМА (ATTIRE)</div>
                 <div class="lore-text">
-                    <div class="paragraph translatable" data-ru="Профессиональный и единообразный внешний вид заставляет Офисы казаться более надежными..." data-en="A professional and uniform appearance makes Offices seem more reliable to potential clients. Because of this, many Offices use a strict dress code.">Профессиональный и единообразный внешний вид заставляет Офисы казаться более надежными в глазах потенциальных клиентов. Из-за этого многие Офисы придерживаются строгого дресс-кода. Каждая Ассоциация (Association) также имеет свою собственную узнаваемую униформу.</div>
+                    <div class="paragraph">Профессиональный и единообразный внешний вид заставляет Офисы казаться более надежными в глазах потенциальных клиентов. Из-за этого многие Офисы придерживаются строгого дресс-кода. Каждая Ассоциация (Association) также имеет свою собственную узнаваемую униформу.</div>
                     <div class="info-block">
-                        <div class="paragraph translatable" data-ru="Одежда Фиксеров <span class='highlight'>не жертвует защитой ради стиля</span>..." data-en="Fixer apparel <span class='highlight'>does not sacrifice protection for style</span>. Depending on its characteristics and quality, fabric can provide as much protection as plate armor if not more.">Одежда Фиксеров <span class="highlight">не жертвует защитой ради стиля</span>. В зависимости от характеристик и качества, ткань может обеспечивать такую же защиту, как латный доспех, а иногда и превосходить его.</div>
+                        <div class="paragraph">Одежда Фиксеров <span class="highlight">не жертвует защитой ради стиля</span>. В зависимости от характеристик и качества, ткань может обеспечивать такую же защиту, как латный доспех, а иногда и превосходить его.</div>
                     </div>
                 </div>
             </div>
@@ -218,10 +211,10 @@
         <div class="panel-outer cut-tl">
             <div class="hazard-tape"></div>
             <div class="panel-inner cut-tl" style="border-top: none;">
-                <div class="section-title oswald translatable" style="font-size: 1.6rem; color: var(--accent-primary); margin-bottom: 16px; border-bottom: 1px solid #333; padding-bottom: 8px; display: flex; align-items: center; gap: 12px;" data-ru="<i class='fa-solid fa-gavel'></i> ОРУЖИЕ И ОГНЕСТРЕЛ (WEAPONRY & FIREARMS)" data-en="<i class='fa-solid fa-gavel'></i> WEAPONRY & FIREARMS"><i class="fa-solid fa-gavel"></i> ОРУЖИЕ И ОГНЕСТРЕЛ (WEAPONRY & FIREARMS)</div>
+                <div class="section-title oswald" style="font-size: 1.6rem; color: var(--accent-primary); margin-bottom: 16px; border-bottom: 1px solid #333; padding-bottom: 8px; display: flex; align-items: center; gap: 12px;"><i class="fa-solid fa-gavel"></i> ОРУЖИЕ И ОГНЕСТРЕЛ (WEAPONRY & FIREARMS)</div>
                 <div class="lore-text">
-                    <div class="paragraph translatable" data-ru="Большинство Фиксеров приобретают свое оружие в <strong>Мастерских (Workshops)</strong>..." data-en="Most Fixers will acquire their weaponry from <strong>Workshops</strong>. All weapons are managed by the <strong>Tres Association</strong>. <span class='warning-text'>Using any weapon that hasn't passed its evaluation is illegal.</span>">Большинство Фиксеров приобретают свое оружие в <strong>Мастерских (Workshops)</strong>. Все оружие контролируется <strong>Ассоциацией Тре (Tres Association)</strong>. <span class="warning-text">Использование любого оружия, не прошедшего их оценку, считается строжайше незаконным.</span></div>
-                    <div class="paragraph translatable" data-ru="Огнестрельное оружие крайне редко используется Фиксерами. <strong>Два полных магазина патронов могут стоить столько же, сколько сам пистолет</strong>..." data-en="Firearms are rarely used by Fixers. <strong>Two full magazines of ammunition can cost as much as a gun itself</strong>. This is a deliberate outcome on the part of the Head to discourage firearm use.">Огнестрельное оружие крайне редко используется Фиксерами. <strong>Два полных магазина патронов могут стоить столько же, сколько сам пистолет</strong>. К этому добавляются колоссальные налоги Главы. Лишь единицы Мастерских имеют лицензию на создание огнестрельного оружия.</div>
+                    <div class="paragraph">Большинство Фиксеров приобретают свое оружие в <strong>Мастерских (Workshops)</strong>. Все оружие контролируется <strong>Ассоциацией Тре (Tres Association)</strong>. <span class="warning-text">Использование любого оружия, не прошедшего их оценку, считается строжайше незаконным.</span></div>
+                    <div class="paragraph">Огнестрельное оружие крайне редко используется Фиксерами. <strong>Два полных магазина патронов могут стоить столько же, сколько сам пистолет</strong>. К этому добавляются колоссальные налоги Главы. Лишь единицы Мастерских имеют лицензию на создание огнестрельного оружия.</div>
                 </div>
             </div>
         </div>
@@ -233,30 +226,30 @@
             <div class="hazard-tape" style="height: 6px; background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--accent-primary) 10px, var(--accent-primary) 20px); border-bottom: 1px solid var(--accent-primary);"></div>
             <div class="panel-inner cut-tl" style="border-top: none;">
                 <button class="btn-close-modal" onclick="window.toggleBuilderModal()"><i class="fa-solid fa-xmark"></i></button>
-                <div class="header-title oswald translatable" style="font-size: 1.5rem; margin-bottom: 20px; border-bottom: 1px solid var(--accent-primary); padding-bottom: 8px; text-align: left;" data-ru="КОНСТРУКТОР СНАРЯЖЕНИЯ" data-en="EQUIPMENT BUILDER">КОНСТРУКТОР СНАРЯЖЕНИЯ</div>
+                <div class="header-title oswald" style="font-size: 1.5rem; margin-bottom: 20px; border-bottom: 1px solid var(--accent-primary); padding-bottom: 8px; text-align: left;">КОНСТРУКТОР СНАРЯЖЕНИЯ</div>
                 
                 <div class="b-row">
                     <div style="flex: 2;">
-                        <div class="tech-text translatable" style="margin-bottom: 4px;" data-ru="НАЗВАНИЕ (NAME)" data-en="ITEM NAME">НАЗВАНИЕ (NAME)</div>
-                        <input type="text" id="b-name" class="cloud-input translatable" data-ru="Например: Solemn Lament" data-en="E.g.: Solemn Lament" placeholder="Например: Solemn Lament">
+                        <div class="tech-text" style="margin-bottom: 4px;">НАЗВАНИЕ (NAME)</div>
+                        <input type="text" id="b-name" class="cloud-input" placeholder="Например: Solemn Lament">
                     </div>
                     <div style="flex: 1;">
-                        <div class="tech-text translatable" style="margin-bottom: 4px;" data-ru="ТРЕБУЕМЫЙ УРОВЕНЬ" data-en="REQUIRED LEVEL">ТРЕБУЕМЫЙ УРОВЕНЬ</div>
+                        <div class="tech-text" style="margin-bottom: 4px;">ТРЕБУЕМЫЙ УРОВЕНЬ</div>
                         <input type="number" id="b-level" class="cloud-input" value="1" min="1" max="20">
                     </div>
                 </div>
 
                 <div class="b-row">
                     <div style="flex: 1;">
-                        <div class="tech-text translatable" style="margin-bottom: 4px;" data-ru="ТИП ПРЕДМЕТА" data-en="ITEM TYPE">ТИП ПРЕДМЕТА</div>
+                        <div class="tech-text" style="margin-bottom: 4px;">ТИП ПРЕДМЕТА</div>
                         <select id="b-itemtype" class="cloud-select">
-                            <option value="Weapon" class="translatable" data-ru="Оружие (Weapon)" data-en="Weapon">Оружие (Weapon)</option>
-                            <option value="Armor" class="translatable" data-ru="Броня (Armor)" data-en="Armor">Броня (Armor)</option>
-                            <option value="Mod" class="translatable" data-ru="Модификатор/Аугмент (Mod)" data-en="Modification / Augment">Модификатор/Аугмент (Mod)</option>
+                            <option value="Weapon">Оружие (Weapon)</option>
+                            <option value="Armor">Броня (Armor)</option>
+                            <option value="Mod">Модификатор/Аугмент (Mod)</option>
                         </select>
                     </div>
                     <div style="flex: 1;">
-                        <div class="tech-text translatable" style="margin-bottom: 4px;" data-ru="РЕДКОСТЬ (RARITY)" data-en="RARITY">РЕДКОСТЬ (RARITY)</div>
+                        <div class="tech-text" style="margin-bottom: 4px;">РЕДКОСТЬ (RARITY)</div>
                         <select id="b-rarity" class="cloud-select">
                             <option value="Common">Common</option>
                             <option value="Uncommon">Uncommon</option>
@@ -267,15 +260,15 @@
                     </div>
                 </div>
 
-                <div class="tech-text translatable" style="margin-bottom: 4px;" data-ru="Э.П.О.С / E.G.O (ПОДТИП)" data-en="IS E.G.O. EQUIPMENT?">Э.П.О.С / E.G.O (ПОДТИП)</div>
+                <div class="tech-text" style="margin-bottom: 4px;">Э.П.О.С / E.G.O (ПОДТИП)</div>
                 <div class="builder-checkbox-group" style="margin-bottom: 10px;">
-                    <label class="builder-checkbox-label"><input type="checkbox" id="b-isego"> <span class="translatable" data-ru="Является Э.Г.О. экипировкой" data-en="Is E.G.O. Equipment">Является Э.Г.О. экипировкой</span></label>
+                    <label class="builder-checkbox-label"><input type="checkbox" id="b-isego"> Является Э.Г.О. экипировкой</label>
                 </div>
 
-                <div class="tech-text translatable" style="margin-bottom: 4px;" data-ru="ТРЕБОВАНИЯ ДЛЯ ИСПОЛЬЗОВАНИЯ (NEED)" data-en="PREREQUISITES (NEED)">ТРЕБОВАНИЯ ДЛЯ ИСПОЛЬЗОВАНИЯ (NEED)</div>
-                <input type="text" id="b-need" class="cloud-input translatable" data-ru="Например: Сила 15 (Оставьте пустым, если нет)" data-en="E.g.: Strength 15 (Leave blank if none)" placeholder="Например: Сила 15 (Оставьте пустым, если нет)">
+                <div class="tech-text" style="margin-bottom: 4px;">ТРЕБОВАНИЯ ДЛЯ ИСПОЛЬЗОВАНИЯ (NEED)</div>
+                <input type="text" id="b-need" class="cloud-input" placeholder="Например: Сила 15 (Оставьте пустым, если нет)">
 
-                <div class="tech-text translatable" style="margin-bottom: 4px;" data-ru="СКАЕЙЛИНГ / ХАРАКТЕРИСТИКИ (STATS)" data-en="SCALING STATS">СКАЕЙЛИНГ / ХАРАКТЕРИСТИКИ (STATS)</div>
+                <div class="tech-text" style="margin-bottom: 4px;">СКАЕЙЛИНГ / ХАРАКТЕРИСТИКИ (STATS)</div>
                 <div class="builder-checkbox-group">
                     <label class="builder-checkbox-label"><input type="checkbox" class="b-stat-check" value="Str"> STR</label>
                     <label class="builder-checkbox-label"><input type="checkbox" class="b-stat-check" value="Dex"> DEX</label>
@@ -286,56 +279,31 @@
                     <label class="builder-checkbox-label"><input type="checkbox" class="b-stat-check" value="None"> None</label>
                 </div>
 
-                <div class="tech-text translatable" style="margin-bottom: 4px; margin-top: 10px;" data-ru="ОПИСАНИЕ (DESCRIPTION)" data-en="DESCRIPTION">ОПИСАНИЕ (DESCRIPTION)</div>
-                <textarea id="b-desc" class="cloud-input translatable" data-ru="Характеристики оружия, урон, пассивные эффекты брони..." data-en="Weapon stats, damage, passive armor effects..." placeholder="Характеристики оружия, урон, пассивные эффекты брони..."></textarea>
+                <div class="tech-text" style="margin-bottom: 4px; margin-top: 10px;">ОПИСАНИЕ (DESCRIPTION)</div>
+                <textarea id="b-desc" class="cloud-input" placeholder="Характеристики оружия, урон, пассивные эффекты брони..."></textarea>
 
-                <button class="btn-small-bld translatable" style="width: 100%; padding: 12px; margin-top: 16px; font-size: 1rem; border-color: var(--accent-primary); color: var(--accent-primary);" onclick="window.exportBuilderJson()" data-ru="<i class='fa-solid fa-file-export'></i> ЭКСПОРТИРОВАТЬ В JSON" data-en="<i class='fa-solid fa-file-export'></i> EXPORT TO JSON"><i class="fa-solid fa-file-export"></i> ЭКСПОРТИРОВАТЬ В JSON</button>
+                <button class="btn-small-bld" style="width: 100%; padding: 12px; margin-top: 16px; font-size: 1rem; border-color: var(--accent-primary); color: var(--accent-primary);" onclick="window.exportBuilderJson()"><i class="fa-solid fa-file-export"></i> ЭКСПОРТИРОВАТЬ В JSON</button>
             </div>
         </div>
     </div>
 
     <script>
-        let currentLang = localStorage.getItem('pmd_lang') || 'ru';
-
-        function applyLanguage() {
-            document.querySelectorAll('.translatable').forEach(el => {
-                if(el.hasAttribute(`data-${currentLang}`)) {
-                    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
-                        el.setAttribute('placeholder', el.getAttribute(`data-${currentLang}`));
-                    } else if (el.tagName === 'OPTION') {
-                        el.innerText = el.getAttribute(`data-${currentLang}`);
-                    } else {
-                        el.innerHTML = el.getAttribute(`data-${currentLang}`);
-                    }
-                }
-            });
-            const langBtn = document.getElementById('lang-display');
-            if(langBtn) langBtn.innerText = currentLang === 'ru' ? 'EN' : 'RU';
-        }
-
-        window.toggleLanguage = () => {
-            currentLang = currentLang === 'ru' ? 'en' : 'ru';
-            localStorage.setItem('pmd_lang', currentLang);
-            applyLanguage();
-            renderFilters();
-            loadEquipment();
-        };
-
+        // Словари фильтров
         const itemTypeDict = {
-            "Weapon": { name: { ru: "Оружие", en: "Weapon" }, color: "#C7243A" },
-            "Armor": { name: { ru: "Броня", en: "Armor" }, color: "#3498DB" },
-            "Mod": { name: { ru: "Модификатор", en: "Modification" }, color: "#F1C40F" },
-            "EGO": { name: { ru: "Э.Г.О. Экипировка", en: "E.G.O. Equipment" }, color: "#D94285" } 
+            "Weapon": { name: "Оружие", color: "#C7243A" },
+            "Armor": { name: "Броня", color: "#3498DB" },
+            "Mod": { name: "Модификатор", color: "#F1C40F" },
+            "EGO": { name: "Э.Г.О. Экипировка", color: "#D94285" } // Виртуальный тип
         };
 
         const statDict = {
-            "Str": { name: { ru: "Сила (STR)", en: "Strength (STR)" }, color: "#C7243A" },
-            "Dex": { name: { ru: "Ловкость (DEX)", en: "Dexterity (DEX)" }, color: "#45B3CB" },
-            "Con": { name: { ru: "Телосложение (CON)", en: "Constitution (CON)" }, color: "#F1C40F" },
-            "Int": { name: { ru: "Интеллект (INT)", en: "Intelligence (INT)" }, color: "#1E3A8A" },
-            "Wis": { name: { ru: "Мудрость (WIS)", en: "Wisdom (WIS)" }, color: "#9B59B6" },
-            "Cha": { name: { ru: "Харизма (CHA)", en: "Charisma (CHA)" }, color: "#E67E22" },
-            "None": { name: { ru: "Нет скейлинга", en: "No Scaling" }, color: "#696969" }
+            "Str": { name: "Сила (STR)", color: "#C7243A" },
+            "Dex": { name: "Ловкость (DEX)", color: "#45B3CB" },
+            "Con": { name: "Телосложение (CON)", color: "#F1C40F" },
+            "Int": { name: "Интеллект (INT)", color: "#1E3A8A" },
+            "Wis": { name: "Мудрость (WIS)", color: "#9B59B6" },
+            "Cha": { name: "Харизма (CHA)", color: "#E67E22" },
+            "None": { name: "Нет скейлинга", color: "#696969" }
         };
 
         const rarityDict = {
@@ -350,6 +318,7 @@
         let selectedStats = new Set();
         let selectedRarities = new Set();
 
+        // Переключение Вкладок
         window.switchTab = (tab) => {
             document.getElementById('tab-db-btn').classList.remove('active');
             document.getElementById('tab-lore-btn').classList.remove('active');
@@ -368,29 +337,29 @@
         };
 
         function renderFilters() {
+            // Тип предмета
             const typeContainer = document.getElementById('item-type-filters');
-            const allTypesText = currentLang === 'en' ? 'ALL TYPES' : 'ВСЕ ТИПЫ';
-            let typeHtml = `<button class="filter-btn ${selectedItemTypes.size === 0 ? 'active' : ''}" onclick="window.clearFilters('itemtype')">${allTypesText}</button>`;
+            let typeHtml = `<button class="filter-btn ${selectedItemTypes.size === 0 ? 'active' : ''}" onclick="window.clearFilters('itemtype')">ВСЕ ТИПЫ</button>`;
             for (const [key, data] of Object.entries(itemTypeDict)) {
                 const isActive = selectedItemTypes.has(key) ? 'active' : '';
                 const style = isActive ? `border-color: ${data.color}; color: ${data.color}; background: color-mix(in srgb, ${data.color} 15%, transparent);` : '';
-                typeHtml += `<button class="filter-btn ${isActive}" style="${style}" onclick="window.toggleFilter('itemtype', '${key}')">${data.name[currentLang]}</button>`;
+                typeHtml += `<button class="filter-btn ${isActive}" style="${style}" onclick="window.toggleFilter('itemtype', '${key}')">${data.name}</button>`;
             }
             typeContainer.innerHTML = typeHtml;
 
+            // Характеристики (С цветными бейджами)
             const statContainer = document.getElementById('stat-filters');
-            const anyStatText = currentLang === 'en' ? 'ANY' : 'ЛЮБАЯ';
-            let statHtml = `<button class="filter-btn ${selectedStats.size === 0 ? 'active' : ''}" onclick="window.clearFilters('stat')">${anyStatText}</button>`;
+            let statHtml = `<button class="filter-btn ${selectedStats.size === 0 ? 'active' : ''}" onclick="window.clearFilters('stat')">ЛЮБАЯ</button>`;
             for (const [key, data] of Object.entries(statDict)) {
                 const isActive = selectedStats.has(key) ? 'active' : '';
                 const style = isActive ? `border-color: ${data.color}; color: ${data.color}; background: color-mix(in srgb, ${data.color} 15%, transparent);` : '';
-                statHtml += `<button class="filter-btn ${isActive}" style="${style}" onclick="window.toggleFilter('stat', '${key}')">${data.name[currentLang]}</button>`;
+                statHtml += `<button class="filter-btn ${isActive}" style="${style}" onclick="window.toggleFilter('stat', '${key}')">${data.name}</button>`;
             }
             statContainer.innerHTML = statHtml;
 
+            // Редкость
             const rarityContainer = document.getElementById('rarity-filters');
-            const anyRarityText = currentLang === 'en' ? 'ANY' : 'ЛЮБАЯ';
-            let rarityHtml = `<button class="filter-btn ${selectedRarities.size === 0 ? 'active' : ''}" onclick="window.clearFilters('rarity')">${anyRarityText}</button>`;
+            let rarityHtml = `<button class="filter-btn ${selectedRarities.size === 0 ? 'active' : ''}" onclick="window.clearFilters('rarity')">ЛЮБАЯ</button>`;
             for (const [key, data] of Object.entries(rarityDict)) {
                 const isActive = selectedRarities.has(key) ? 'active' : '';
                 const style = isActive ? `border-color: ${data.color}; color: ${data.color}; background: color-mix(in srgb, ${data.color} 15%, transparent);` : '';
@@ -438,6 +407,7 @@
                 
                 const matchesName = nameData.includes(query) || descData.includes(query);
                 
+                // Проверка типа (Обязательное совпадение ВСЕХ выбранных типов, с учетом флага EGO)
                 let matchesType = true;
                 if (selectedItemTypes.size > 0) {
                     matchesType = [...selectedItemTypes].every(t => {
@@ -446,7 +416,10 @@
                     });
                 }
 
+                // Перекрёстная проверка характеристик (Смежное: должны быть ВСЕ выбранные)
                 const matchesStat = selectedStats.size === 0 || [...selectedStats].every(s => statsArr.includes(s));
+                
+                // Проверка редкости (ИЛИ)
                 const matchesRarity = selectedRarities.size === 0 || selectedRarities.has(rarity);
                 
                 if (matchesName && matchesType && matchesStat && matchesRarity) {
@@ -483,11 +456,8 @@
             const need = card.getAttribute('data-need');
             const desc = card.getAttribute('data-desc');
             
-            const lvlText = currentLang === 'en' ? 'Lvl.' : 'Ур.';
-            const reqText = currentLang === 'en' ? 'Prerequisites:' : 'Требования:';
-
-            let textToCopy = `[${lvlText} ${lvl} | ${rarity}] ${name}\n`;
-            if (need && need !== 'null') textToCopy += `${reqText} ${need}\n`;
+            let textToCopy = `[Ур. ${lvl} | ${rarity}] ${name}\n`;
+            if (need && need !== 'null') textToCopy += `Требования: ${need}\n`;
             textToCopy += `${desc}`;
             
             navigator.clipboard.writeText(textToCopy).then(() => {
@@ -498,9 +468,10 @@
                     msg.style.opacity = '0';
                     msg.style.height = '0';
                 }, 2000);
-            }).catch(err => console.error('Error:', err));
+            }).catch(err => console.error('Ошибка:', err));
         };
 
+        // Конструктор
         window.toggleBuilderModal = () => {
             document.getElementById('builderModal').classList.toggle('active');
         };
@@ -509,13 +480,13 @@
         };
 
         window.exportBuilderJson = () => {
-            const name = document.getElementById('b-name').value || "New Item";
+            const name = document.getElementById('b-name').value || "Новый Предмет";
             const level = parseInt(document.getElementById('b-level').value) || 1;
             const itemType = document.getElementById('b-itemtype').value;
             const rarity = document.getElementById('b-rarity').value;
             const isEGO = document.getElementById('b-isego').checked;
             const need = document.getElementById('b-need').value.trim();
-            const desc = document.getElementById('b-desc').value || "No description";
+            const desc = document.getElementById('b-desc').value || "Нет описания";
             
             const statsArr = Array.from(document.querySelectorAll('.b-stat-check:checked')).map(c => c.value);
 
@@ -541,15 +512,14 @@
 
         async function loadEquipment() {
             const container = document.getElementById('compendium');
-            const fileSuffix = currentLang === 'en' ? '_en' : '';
-            const errorText = currentLang === 'en' ? 'Database connection error. Make sure equipment_en.json exists in Wiki_data folder.' : 'Ошибка связи с базой данных. Убедитесь, что файл equipment.json существует в папке Wiki_data.';
             
             try {
-                const response = await fetch(`Wiki_data/equipment${fileSuffix}.json`);
-                if (!response.ok) throw new Error();
+                const response = await fetch('equipment.json');
+                if (!response.ok) throw new Error('Файл equipment.json не найден');
                 
                 const data = await response.json();
                 
+                // Сортировка по уровню, затем по имени
                 data.sort((a, b) => {
                     if (a.Level !== b.Level) return a.Level - b.Level;
                     return a.Name.localeCompare(b.Name);
@@ -557,40 +527,39 @@
 
                 container.innerHTML = '';
                 
-                const lvlPrefix = currentLang === 'en' ? 'LEVEL' : 'УРОВЕНЬ';
-                const reqPrefix = currentLang === 'en' ? 'Prerequisites:' : 'Требования:';
-                const copyText = currentLang === 'en' ? 'COPIED TO CLIPBOARD!' : 'СКОПИРОВАНО В БУФЕР!';
-                const copyBtnText = currentLang === 'en' ? 'COPY' : 'КОПИРОВАТЬ';
-
                 data.forEach(item => {
-                    const safeName = item.Name ? item.Name.replace(/"/g, '&quot;') : 'Untitled';
+                    const safeName = item.Name ? item.Name.replace(/"/g, '&quot;') : 'Без названия';
                     const safeDesc = item.Desc ? item.Desc.replace(/"/g, '&quot;') : '';
                     const safeNeed = item.Need ? item.Need.replace(/"/g, '&quot;') : 'null';
                     
                     let statString = (item.Stats && Array.isArray(item.Stats)) ? item.Stats.join(',') : 'None';
                     
                     let badgesHtml = '';
+                    // Тип предмета
                     const tConf = itemTypeDict[item.ItemType];
-                    if (tConf) badgesHtml += `<div class="type-badge" style="color: ${tConf.color}; border-color: ${tConf.color};">${tConf.name[currentLang]}</div>`;
+                    if (tConf) badgesHtml += `<div class="type-badge" style="color: ${tConf.color}; border-color: ${tConf.color};">${tConf.name}</div>`;
                     
-                    if (item.IsEGO) badgesHtml += `<div class="type-badge" style="color: #D94285; border-color: #D94285;">${itemTypeDict["EGO"].name[currentLang]}</div>`;
+                    // Э.Г.О. тег
+                    if (item.IsEGO) badgesHtml += `<div class="type-badge" style="color: #D94285; border-color: #D94285;">Э.Г.О.</div>`;
                     
+                    // Статы с цветами
                     if (item.Stats && Array.isArray(item.Stats)) {
                         item.Stats.forEach(s => {
                             const sConfig = statDict[s];
                             if (sConfig && s !== 'None') {
-                                badgesHtml += `<div class="type-badge" style="color: ${sConfig.color}; border-color: ${sConfig.color};">${sConfig.name[currentLang]}</div>`;
+                                badgesHtml += `<div class="type-badge" style="color: ${sConfig.color}; border-color: ${sConfig.color};">${sConfig.name}</div>`;
                             } else if (s === 'None') {
-                                badgesHtml += `<div class="type-badge" style="color: var(--text-dim); border-color: var(--text-dim);">${sConfig.name[currentLang]}</div>`;
+                                badgesHtml += `<div class="type-badge" style="color: var(--text-dim); border-color: var(--text-dim);">Нет скейлинга</div>`;
                             }
                         });
                     }
 
+                    // Требования и иконка Aggro
                     let aggroIconHtml = '';
                     let reqTextHtml = '';
                     if (item.Need && item.Need !== 'null') {
-                        aggroIconHtml = `<img src="../Asset/Aggro.png" class="array-icon" title="${reqPrefix} ${safeNeed}" alt="Aggro" onerror="this.style.display='none'">`;
-                        reqTextHtml = `<div class="req-text">${reqPrefix} ${item.Need}</div>`;
+                        aggroIconHtml = `<img src="Aggro.png" class="array-icon" title="Требования: ${safeNeed}" alt="Aggro" onerror="this.style.display='none'">`;
+                        reqTextHtml = `<div class="req-text">Требования: ${item.Need}</div>`;
                     }
 
                     const rConf = rarityDict[item.Rarity] || { color: "var(--text-main)" };
@@ -604,7 +573,7 @@
                                     <i class="fa-solid fa-chevron-down expand-icon"></i>
                                     <div class="class-title-wrapper">
                                         <div style="display:flex; flex-direction:column; width:75%;">
-                                            <div class="level-badge">${lvlPrefix} ${item.Level}</div>
+                                            <div class="level-badge">УРОВЕНЬ ${item.Level}</div>
                                             <div class="class-title">${item.Name}</div>
                                         </div>
                                         <div class="array-icon-wrapper">
@@ -618,8 +587,8 @@
                                 <div class="talents-wrapper">
                                     ${reqTextHtml}
                                     <div class="item-desc">${item.Desc}</div>
-                                    <button class="btn-copy-status" onclick="window.copyItem(this)"><i class="fa-regular fa-copy"></i> ${copyBtnText}</button>
-                                    <div class="copy-msg-global">${copyText}</div>
+                                    <button class="btn-copy-status" onclick="window.copyItem(this)"><i class="fa-regular fa-copy"></i> КОПИРОВАТЬ</button>
+                                    <div class="copy-msg-global">СКОПИРОВАНО В БУФЕР!</div>
                                 </div>
 
                             </div>
@@ -630,15 +599,15 @@
                 });
 
             } catch (error) {
-                container.innerHTML = `<div class="loading-text" style="color: var(--color-red);">${errorText}</div>`;
+                console.error("Ошибка загрузки снаряжения:", error);
+                container.innerHTML = `<div class="loading-text" style="color: var(--color-red);">Ошибка связи с базой данных.<br><span style="font-size: 0.8rem; color: var(--text-dim);">Убедитесь, что файл equipment.json существует.</span></div>`;
             }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            applyLanguage();
             renderFilters();
             loadEquipment();
-            window.switchTab('db');
+            window.switchTab('db'); // По умолчанию открываем БД
         });
     </script>
 </body>
