@@ -188,7 +188,9 @@
                     <option value="10">9 Ранг</option>
                 </select>
 
-                <div class="tech-text" style="color: var(--color-yellow); margin-bottom: 4px;">ИКОНКА МЕТКИ</div>
+                <div class="tech-text" style="color: var(--color-yellow); margin-bottom: 4px;">ИКОНКА МЕТКИ (ПРЯМАЯ ССЫЛКА ИЛИ ПРЕСЕТ)</div>
+                <input type="text" id="q-icon-url" class="cloud-input" placeholder="https://imgur.com/image.png (или выберите ниже)" oninput="window.clearIconSelection()">
+                
                 <div class="icon-selector-grid" id="q-icon-grid">
                     <img src="Burn.png" class="q-icon-option" onclick="window.selectQuestIcon('Burn.png', this)">
                     <img src="Bleed.png" class="q-icon-option" onclick="window.selectQuestIcon('Bleed.png', this)">
@@ -199,9 +201,8 @@
                     <img src="Charge.png" class="q-icon-option" onclick="window.selectQuestIcon('Charge.png', this)">
                     <img src="Other.png" class="q-icon-option" onclick="window.selectQuestIcon('Other.png', this)">
                     <img src="phis.png" class="q-icon-option" onclick="window.selectQuestIcon('phis.png', this)">
-                    <div class="q-icon-option selected" style="display:flex; justify-content:center; align-items:center; color:var(--text-dim); font-family:Oswald; font-size:0.7rem; width: auto; padding: 0 10px;" onclick="window.selectQuestIcon('', this)">БЕЗ ИКОНКИ</div>
+                    <div class="q-icon-option selected" id="q-icon-none" style="display:flex; justify-content:center; align-items:center; color:var(--text-dim); font-family:Oswald; font-size:0.7rem; width: auto; padding: 0 10px;" onclick="window.selectQuestIcon('', this)">БЕЗ ИКОНКИ</div>
                 </div>
-                <input type="hidden" id="q-icon-url" value="">
 
                 <div class="tech-text" style="color: var(--color-yellow); margin-bottom: 4px;">ОПИСАНИЕ И НАГРАДА</div>
                 <textarea id="q-desc" class="cloud-input" placeholder="Подробности задания..." style="min-height: 100px;"></textarea>
@@ -876,6 +877,10 @@
             document.querySelectorAll('.q-icon-option').forEach(img => img.classList.remove('selected'));
             el.classList.add('selected');
             document.getElementById('q-icon-url').value = iconName;
+        };
+
+        window.clearIconSelection = () => {
+            document.querySelectorAll('.q-icon-option').forEach(img => img.classList.remove('selected'));
         };
 
         window.saveCustomQuest = async (closeModal = true) => {
