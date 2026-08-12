@@ -15,6 +15,7 @@
             --color-cyan: #45B3CB; --color-red: #C7243A; 
             --color-indigo: #40E0D0; --color-yellow: #F1C40F;
             --color-magenta: #D94285; /* Цвет Э.Г.О. */
+            --color-office: #8FCC2A; /* Цвет Офиса (Gluttony) */
             --text-main: #E0D8C8; --text-dim: #696969;
             --border-width: 1px; --chamfer: 20px;
         }
@@ -36,15 +37,16 @@
         .terminal-header h1 { font-size: 3rem; color: var(--color-cyan); letter-spacing: 4px; margin-bottom: 8px; text-shadow: 0 0 10px rgba(69, 179, 203, 0.3); }
         .terminal-header p { color: var(--accent-primary); letter-spacing: 2px; }
 
-        /* Разделение на колонки */
-        .hub-container { display: grid; grid-template-columns: 1fr 1.5fr; gap: 40px; width: 100%; max-width: 1200px; align-items: stretch; }
+        /* Разделение на 3 колонки */
+        .hub-container { display: grid; grid-template-columns: 1fr 1fr 1.5fr; gap: 30px; width: 100%; max-width: 1400px; align-items: stretch; }
         
-        .column-header { font-family: 'Oswald', sans-serif; font-size: 1.5rem; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid; letter-spacing: 1px; display: flex; align-items: center; gap: 10px; }
+        .column-header { font-family: 'Oswald', sans-serif; font-size: 1.3rem; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid; letter-spacing: 1px; display: flex; align-items: center; gap: 10px; }
         .col-tmb .column-header { color: var(--accent-primary); border-color: var(--accent-primary); }
+        .col-uni .column-header { color: var(--color-office); border-color: var(--color-office); }
         .col-pmd .column-header { color: var(--color-cyan); border-color: var(--color-cyan); }
 
         /* Сетки колонок */
-        .tmb-grid { display: grid; grid-template-columns: 1fr; gap: 20px; height: calc(100% - 63px); }
+        .tmb-grid, .uni-grid { display: grid; grid-template-columns: 1fr; gap: 20px; height: calc(100% - 63px); }
         .pmd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; height: calc(100% - 63px); }
         .card-full-width { grid-column: 1 / -1; }
 
@@ -53,27 +55,36 @@
         .system-card:hover:not(.disabled) { transform: translateY(-5px); }
 
         .panel-outer { padding: var(--border-width); position: relative; display: flex; flex-direction: column; height: 100%; transition: 0.3s; }
-        .panel-inner { background-color: var(--bg-panel); padding: 30px; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; transition: background-color 0.3s; }
+        .panel-inner { background-color: var(--bg-panel); padding: 30px 20px; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; transition: background-color 0.3s; }
         .cut-tl { clip-path: polygon(var(--chamfer) 0, 100% 0, 100% 100%, 0 100%, 0 var(--chamfer)); }
 
         .hazard-tape { height: 10px; width: 100%; border-bottom: 1px solid; }
 
-        /* TMB Styling (Обычная карточка) */
+        /* TMB Styling (Оранжевая карточка) */
         .card-tmb .panel-outer { background-color: var(--accent-primary); }
         .card-tmb .hazard-tape { background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--accent-primary) 10px, var(--accent-primary) 20px); border-color: var(--accent-primary); }
-        .card-tmb i { color: var(--accent-primary); font-size: 3rem; margin-bottom: 20px; transition: 0.3s; }
+        .card-tmb i { color: var(--accent-primary); font-size: 2.5rem; margin-bottom: 15px; transition: 0.3s; }
         .card-tmb:hover:not(.disabled) .panel-outer { box-shadow: 0 0 20px rgba(217, 119, 47, 0.4); }
         .card-tmb:hover:not(.disabled) .panel-inner { background-color: #0a0500; }
-        .card-tmb .system-title { font-size: 1.6rem; margin-bottom: 8px; color: var(--text-main); }
-        .card-tmb .status-badge { border-color: var(--accent-primary); color: var(--accent-primary); background: rgba(217, 119, 47, 0.1); }
+        .card-tmb .system-title { font-size: 1.4rem; margin-bottom: 8px; color: var(--text-main); line-height: 1.2; }
+        .card-tmb .status-badge { border-color: var(--accent-primary); color: var(--accent-primary); background: rgba(217, 119, 47, 0.1); margin-top: auto; }
 
-        /* TMB Заблокированная карточка */
+        /* Заблокированная карточка */
         .system-card.disabled { cursor: not-allowed; opacity: 0.6; }
         .disabled .panel-outer { background-color: #333; }
         .disabled .hazard-tape { background: repeating-linear-gradient(45deg, #000 0px, #000 10px, #333 10px, #333 20px); border-color: #333; }
         .disabled i { color: #555; }
         .disabled .system-title { color: #777; }
         .disabled .status-badge { border-color: #555; color: #555; background: rgba(0,0,0,0.5); }
+
+        /* UNI Styling (Офис - Салатовая карточка) */
+        .card-office .panel-outer { background-color: var(--color-office); }
+        .card-office .hazard-tape { background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--color-office) 10px, var(--color-office) 20px); border-color: var(--color-office); }
+        .card-office i { color: var(--color-office); font-size: 2.5rem; margin-bottom: 15px; transition: 0.3s; }
+        .card-office:hover .panel-outer { box-shadow: 0 0 15px rgba(143, 204, 42, 0.4); }
+        .card-office:hover .panel-inner { background-color: #050a00; }
+        .card-office .system-title { font-size: 1.4rem; margin-bottom: 6px; color: var(--text-main); line-height: 1.2; }
+        .card-office .status-badge { border-color: var(--color-office); color: var(--color-office); background: rgba(143, 204, 42, 0.1); margin-top: auto; }
 
         /* PMD Styling (Синие карточки) */
         .card-pmd .panel-outer { background-color: var(--color-cyan); }
@@ -102,10 +113,12 @@
 
         .footer-text { margin-top: 50px; text-align: center; width: 100%; color: #333; font-size: 0.7rem; font-family: 'Inter', sans-serif; letter-spacing: 2px; }
 
-        @media (max-width: 900px) {
-            .hub-container { grid-template-columns: 1fr; }
+        @media (max-width: 1000px) {
+            .hub-container { grid-template-columns: 1fr 1fr; }
+            .col-pmd { grid-column: 1 / -1; }
         }
         @media (max-width: 600px) {
+            .hub-container { grid-template-columns: 1fr; }
             .pmd-grid { grid-template-columns: 1fr; }
         }
     </style>
@@ -122,7 +135,7 @@
         
         <!-- ЛЕВАЯ КОЛОНКА: TMB (Тёмный мир) -->
         <div class="col-tmb">
-            <div class="column-header"><i class="fa-solid fa-moon"></i> TMB СИСТЕМА (ТЁМНЫЙ МИР)</div>
+            <div class="column-header"><i class="fa-solid fa-moon"></i> СИСТЕМА (ТЁМНЫЙ МИР)</div>
             
             <div class="tmb-grid">
                 <!-- Активный Лист Персонажа TMB -->
@@ -132,8 +145,8 @@
                         <div class="panel-inner cut-tl" style="border-top: none;">
                             <i class="fa-solid fa-address-card"></i>
                             <div class="system-title oswald">ДОСЬЕ АГЕНТА</div>
-                            <div class="lore-text" style="margin-bottom: 16px; font-size: 0.9rem;">Терминал доступа к личному делу. Отслеживание здоровья, рассудка и инвентаря.</div>
-                            <div class="status-badge" style="margin-top: auto;">ИНИЦИАЛИЗАЦИЯ ИНТЕРФЕЙСА</div>
+                            <div class="lore-text" style="margin-bottom: 16px;">Терминал доступа к личному делу. Отслеживание здоровья, рассудка и инвентаря.</div>
+                            <div class="status-badge">ИНИЦИАЛИЗАЦИЯ ИНТЕРФЕЙСА</div>
                         </div>
                     </div>
                 </a>
@@ -145,8 +158,28 @@
                         <div class="panel-inner cut-tl" style="border-top: none;">
                             <i class="fa-solid fa-book-skull"></i>
                             <div class="system-title oswald">БАЗА ЗНАНИЙ (ВИКИ)</div>
-                            <div class="lore-text" style="margin-bottom: 16px; font-size: 0.9rem;">Архив правил, механик и лора, адаптированный под систему Тёмного Мира.</div>
-                            <div class="status-badge" style="margin-top: auto;">ДАННЫЕ ЗАСЕКРЕЧЕНЫ</div>
+                            <div class="lore-text" style="margin-bottom: 16px;">Архив правил, механик и лора, адаптированный под систему Тёмного Мира.</div>
+                            <div class="status-badge">ДАННЫЕ ЗАСЕКРЕЧЕНЫ</div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- ЦЕНТРАЛЬНАЯ КОЛОНКА: УНИВЕРСАЛЬНЫЕ СИСТЕМЫ -->
+        <div class="col-uni">
+            <div class="column-header"><i class="fa-solid fa-globe"></i> УНИВЕРСАЛЬНЫЕ СИСТЕМЫ</div>
+            
+            <div class="uni-grid">
+                <!-- Управление Офисом -->
+                <a href="office.html" class="system-card card-office">
+                    <div class="panel-outer cut-tl">
+                        <div class="hazard-tape"></div>
+                        <div class="panel-inner cut-tl" style="border-top: none;">
+                            <i class="fa-solid fa-building"></i>
+                            <div class="system-title oswald">УПРАВЛЕНИЕ ОФИСОМ</div>
+                            <div class="lore-text" style="margin-bottom: 16px;">Глобальная корпоративная база. Менеджмент агентов, контрактов, репутации и новостей.</div>
+                            <div class="status-badge">СИНХРОНИЗАЦИЯ ДОСТУПНА</div>
                         </div>
                     </div>
                 </a>
@@ -155,7 +188,7 @@
 
         <!-- ПРАВАЯ КОЛОНКА: PMD (D&D 5E) -->
         <div class="col-pmd">
-            <div class="column-header"><i class="fa-solid fa-dice-d20"></i> PMD СИСТЕМА (D&D 5E)</div>
+            <div class="column-header"><i class="fa-solid fa-dice-d20"></i> СИСТЕМА (D&D 5E)</div>
             
             <div class="pmd-grid">
                 
@@ -203,7 +236,7 @@
 
     </div>
 
-    <div class="footer-text">PROJECT MOON TTRPG FRAMEWORK // BUILD 1.4</div>
+    <div class="footer-text">PROJECT MOON TTRPG FRAMEWORK // BUILD 1.5</div>
 
 </body>
 </html>
