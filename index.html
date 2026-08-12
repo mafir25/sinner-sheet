@@ -10,8 +10,11 @@
     
     <style>
         :root {
-            --bg-main: #070707; --bg-panel: #000000; --accent-primary: #D9772F; --accent-muted: #8B5A2B;
-            --color-cyan: #45B3CB; --color-red: #C7243A; --color-indigo: #40E0D0; --color-yellow: #F1C40F;
+            --bg-main: #070707; --bg-panel: #000000; 
+            --accent-primary: #D9772F; --accent-muted: #8B5A2B;
+            --color-cyan: #45B3CB; --color-red: #C7243A; 
+            --color-indigo: #40E0D0; --color-yellow: #F1C40F;
+            --color-magenta: #D94285; /* Цвет Э.Г.О. */
             --text-main: #E0D8C8; --text-dim: #696969;
             --border-width: 1px; --chamfer: 20px;
         }
@@ -40,38 +43,60 @@
         .col-tmb .column-header { color: var(--accent-primary); border-color: var(--accent-primary); }
         .col-pmd .column-header { color: var(--color-cyan); border-color: var(--color-cyan); }
 
-        /* Сетка PMD кнопок */
-        .pmd-grid { display: grid; grid-template-columns: 1fr; gap: 20px; height: calc(100% - 63px); }
+        /* Сетки колонок */
+        .tmb-grid { display: grid; grid-template-columns: 1fr; gap: 20px; height: calc(100% - 63px); }
+        .pmd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; height: calc(100% - 63px); }
+        .card-full-width { grid-column: 1 / -1; }
 
         /* Карточки-кнопки */
         .system-card { text-decoration: none; color: inherit; display: block; transition: transform 0.2s ease; height: 100%; }
-        .system-card:hover { transform: translateY(-5px); }
+        .system-card:hover:not(.disabled) { transform: translateY(-5px); }
 
         .panel-outer { padding: var(--border-width); position: relative; display: flex; flex-direction: column; height: 100%; transition: 0.3s; }
-        .panel-inner { background-color: var(--bg-panel); padding: 30px; height: 100%; display: flex; flex-direction: column; align-items: center; text-align: center; transition: background-color 0.3s; }
+        .panel-inner { background-color: var(--bg-panel); padding: 30px; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; transition: background-color 0.3s; }
         .cut-tl { clip-path: polygon(var(--chamfer) 0, 100% 0, 100% 100%, 0 100%, 0 var(--chamfer)); }
 
         .hazard-tape { height: 10px; width: 100%; border-bottom: 1px solid; }
 
-        /* TMB Styling (Большая карточка) */
+        /* TMB Styling (Обычная карточка) */
         .card-tmb .panel-outer { background-color: var(--accent-primary); }
         .card-tmb .hazard-tape { background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--accent-primary) 10px, var(--accent-primary) 20px); border-color: var(--accent-primary); }
-        .card-tmb i { color: var(--accent-primary); font-size: 4rem; margin-bottom: 20px; transition: 0.3s; }
-        .card-tmb:hover .panel-outer { box-shadow: 0 0 20px rgba(217, 119, 47, 0.4); }
-        .card-tmb:hover .panel-inner { background-color: #0a0500; }
-        .card-tmb .system-title { font-size: 2rem; margin-bottom: 8px; color: var(--text-main); }
+        .card-tmb i { color: var(--accent-primary); font-size: 3rem; margin-bottom: 20px; transition: 0.3s; }
+        .card-tmb:hover:not(.disabled) .panel-outer { box-shadow: 0 0 20px rgba(217, 119, 47, 0.4); }
+        .card-tmb:hover:not(.disabled) .panel-inner { background-color: #0a0500; }
+        .card-tmb .system-title { font-size: 1.6rem; margin-bottom: 8px; color: var(--text-main); }
         .card-tmb .status-badge { border-color: var(--accent-primary); color: var(--accent-primary); background: rgba(217, 119, 47, 0.1); }
 
-        /* PMD Styling (Маленькие карточки) */
+        /* TMB Заблокированная карточка */
+        .system-card.disabled { cursor: not-allowed; opacity: 0.6; }
+        .disabled .panel-outer { background-color: #333; }
+        .disabled .hazard-tape { background: repeating-linear-gradient(45deg, #000 0px, #000 10px, #333 10px, #333 20px); border-color: #333; }
+        .disabled i { color: #555; }
+        .disabled .system-title { color: #777; }
+        .disabled .status-badge { border-color: #555; color: #555; background: rgba(0,0,0,0.5); }
+
+        /* PMD Styling (Синие карточки) */
         .card-pmd .panel-outer { background-color: var(--color-cyan); }
         .card-pmd .hazard-tape { background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--color-cyan) 10px, var(--color-cyan) 20px); border-color: var(--color-cyan); }
         .card-pmd i { color: var(--color-cyan); font-size: 2.5rem; margin-bottom: 15px; transition: 0.3s; }
         .card-pmd:hover .panel-outer { box-shadow: 0 0 15px rgba(69, 179, 203, 0.4); }
         .card-pmd:hover .panel-inner { background-color: #00050a; }
         
-        .card-pmd .panel-inner { padding: 30px 15px; justify-content: center; }
-        .card-pmd .system-title { font-size: 1.5rem; margin-bottom: 6px; color: var(--text-main); }
+        /* PMD Styling (Маджента - Э.Г.О.) */
+        .card-ego .panel-outer { background-color: var(--color-magenta); }
+        .card-ego .hazard-tape { background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--color-magenta) 10px, var(--color-magenta) 20px); border-color: var(--color-magenta); }
+        .card-ego i { color: var(--color-magenta); font-size: 2.5rem; margin-bottom: 15px; transition: 0.3s; }
+        .card-ego:hover .panel-outer { box-shadow: 0 0 15px rgba(217, 66, 133, 0.4); }
+        .card-ego:hover .panel-inner { background-color: #0a0005; }
+        
+        .card-pmd .panel-inner, .card-ego .panel-inner { padding: 20px 15px; justify-content: flex-start; }
+        .card-pmd .system-title, .card-ego .system-title { font-size: 1.3rem; margin-bottom: 6px; color: var(--text-main); line-height: 1.2;}
         .card-pmd .status-badge { border-color: var(--color-cyan); color: var(--color-cyan); background: rgba(69, 179, 203, 0.1); margin-top: auto; }
+        .card-ego .status-badge { border-color: var(--color-magenta); color: var(--color-magenta); background: rgba(217, 66, 133, 0.1); margin-top: auto; }
+
+        /* Большая кнопка PMD (Навигация) */
+        .card-full-width .panel-inner { padding: 30px 15px; justify-content: center; }
+        .card-full-width .system-title { font-size: 1.5rem; }
 
         .status-badge { display: inline-block; padding: 4px 12px; font-family: 'Oswald', sans-serif; font-size: 0.75rem; border: 1px solid; border-radius: 2px; letter-spacing: 1px; }
 
@@ -79,6 +104,9 @@
 
         @media (max-width: 900px) {
             .hub-container { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 600px) {
+            .pmd-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -96,17 +124,33 @@
         <div class="col-tmb">
             <div class="column-header"><i class="fa-solid fa-moon"></i> TMB СИСТЕМА (ТЁМНЫЙ МИР)</div>
             
-            <a href="sheet.html" class="system-card card-tmb">
-                <div class="panel-outer cut-tl">
-                    <div class="hazard-tape"></div>
-                    <div class="panel-inner cut-tl" style="border-top: none;">
-                        <i class="fa-solid fa-address-card"></i>
-                        <div class="system-title oswald">ДОСЬЕ АГЕНТА</div>
-                        <div class="lore-text" style="margin-bottom: 24px; font-size: 1rem;">Терминал доступа к личному делу персонажа. Отслеживание показателей здоровья, рассудка, экипировки и боевых протоколов в сеттинге Тёмного Мира.</div>
-                        <div class="status-badge">ИНИЦИАЛИЗАЦИЯ ИНТЕРФЕЙСА</div>
+            <div class="tmb-grid">
+                <!-- Активный Лист Персонажа TMB -->
+                <a href="sheet.html" class="system-card card-tmb">
+                    <div class="panel-outer cut-tl">
+                        <div class="hazard-tape"></div>
+                        <div class="panel-inner cut-tl" style="border-top: none;">
+                            <i class="fa-solid fa-address-card"></i>
+                            <div class="system-title oswald">ДОСЬЕ АГЕНТА</div>
+                            <div class="lore-text" style="margin-bottom: 16px; font-size: 0.9rem;">Терминал доступа к личному делу. Отслеживание здоровья, рассудка и инвентаря.</div>
+                            <div class="status-badge" style="margin-top: auto;">ИНИЦИАЛИЗАЦИЯ ИНТЕРФЕЙСА</div>
+                        </div>
                     </div>
-                </div>
-            </a>
+                </a>
+
+                <!-- Заглушка для Вики TMB -->
+                <a href="#" class="system-card disabled card-tmb">
+                    <div class="panel-outer cut-tl">
+                        <div class="hazard-tape"></div>
+                        <div class="panel-inner cut-tl" style="border-top: none;">
+                            <i class="fa-solid fa-book-skull"></i>
+                            <div class="system-title oswald">БАЗА ЗНАНИЙ (ВИКИ)</div>
+                            <div class="lore-text" style="margin-bottom: 16px; font-size: 0.9rem;">Архив правил, механик и лора, адаптированный под систему Тёмного Мира.</div>
+                            <div class="status-badge" style="margin-top: auto;">ДАННЫЕ ЗАСЕКРЕЧЕНЫ</div>
+                        </div>
+                    </div>
+                </a>
+            </div>
         </div>
 
         <!-- ПРАВАЯ КОЛОНКА: PMD (D&D 5E) -->
@@ -115,21 +159,34 @@
             
             <div class="pmd-grid">
                 
-                <!-- Конструктор -->
+                <!-- Конструктор Персонажа -->
                 <a href="builder.html" class="system-card card-pmd">
                     <div class="panel-outer cut-tl">
                         <div class="hazard-tape"></div>
                         <div class="panel-inner cut-tl" style="border-top: none;">
                             <i class="fa-solid fa-user-gear"></i>
-                            <div class="system-title oswald">КОНСТРУКТОР</div>
-                            <div class="lore-text" style="margin-bottom: 16px;">Система сборки персонажа. Выбор расы, архетипа и генерация итогового досье.</div>
+                            <div class="system-title oswald">КОНСТРУКТОР ПЕРСОНАЖА</div>
+                            <div class="lore-text" style="margin-bottom: 16px;">Система сборки агента. Выбор расы, архетипа и черт.</div>
                             <div class="status-badge">СОЗДАТЬ АГЕНТА</div>
                         </div>
                     </div>
                 </a>
 
-                <!-- Вики / Навигация -->
-                <a href="navigation.html" class="system-card card-pmd">
+                <!-- Конструктор Э.Г.О. -->
+                <a href="egobuilder.html" class="system-card card-ego">
+                    <div class="panel-outer cut-tl">
+                        <div class="hazard-tape"></div>
+                        <div class="panel-inner cut-tl" style="border-top: none;">
+                            <i class="fa-solid fa-gem"></i>
+                            <div class="system-title oswald">КОНСТРУКТОР Э.Г.О.</div>
+                            <div class="lore-text" style="margin-bottom: 16px;">Генерация Э.Г.О. атак и оборудования с подсчетом очков.</div>
+                            <div class="status-badge">МАНИФЕСТАЦИЯ</div>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Вики / Навигация (На всю ширину) -->
+                <a href="navigation.html" class="system-card card-pmd card-full-width">
                     <div class="panel-outer cut-tl">
                         <div class="hazard-tape"></div>
                         <div class="panel-inner cut-tl" style="border-top: none;">
@@ -146,7 +203,7 @@
 
     </div>
 
-    <div class="footer-text">PROJECT MOON TTRPG FRAMEWORK // BUILD 1.3</div>
+    <div class="footer-text">PROJECT MOON TTRPG FRAMEWORK // BUILD 1.4</div>
 
 </body>
 </html>
