@@ -1,0 +1,44 @@
+[
+  {
+    "Name": "Мешок с кровью (Bloodbag)",
+    "Category": ["City"],
+    "Meta": "Средняя нежить, хаотично-злое",
+    "ArmorClass": "13 + ЛОВ (Защита без брони)",
+    "HitPoints": "? (X + PBd8 + ?)",
+    "Speed": "25 футов, 35 футов на 6-м уровне призывателя, 45 футов на 17-м уровне",
+    "Stats": {
+      "STR": "7+X+PB (+4)",
+      "DEX": "5+X+PB (+3)",
+      "CON": "6+X+PB (+3)",
+      "INT": "3 (-1)",
+      "WIS": "6 (+1)",
+      "CHA": "5 (+2)"
+    },
+    "SavingThrows": "Телосложение",
+    "Skills": "",
+    "Senses": "Темное зрение 60 футов, Пассивное восприятие 8",
+    "Languages": "С трудом понимает языки, которые знал при жизни",
+    "Challenge": "? (? XP)",
+    "Traits": [
+      {
+        "name": "Limited Potential",
+        "desc": "A Bloodbag has a minimum cap of 14 STR, DEX and CON... (и так далее)"
+      },
+      {
+        "name": "Thirst For Blood",
+        "desc": "When attacking a bleeding enemy, heal for an amount equal to the summoner’s Charisma Modifier..."
+      }
+    ],
+    "Actions": [
+      {
+        "name": "Multiattack",
+        "desc": "This creature may make 2 attacks..."
+      },
+      {
+        "name": "Claw",
+        "desc": "Melee Weapon Attack: +? to hit, 1d8+? slashing damage, 1 Bleed."
+      }
+    ],
+    "Lore": "Summons: Some abilities use X as a placeholder. X is the summoner’s charisma modifier...\nHumans directly bitten by Bloodfiends are..."
+  }
+]
