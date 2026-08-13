@@ -178,6 +178,12 @@
                     </select>
                 </div>
 
+                <!-- НОВОЕ ПОЛЕ: Описание персонажа -->
+                <div class="form-group">
+                    <label>ОПИСАНИЕ / ИСТОРИЯ</label>
+                    <textarea id="char-desc" class="cloud-input" placeholder="Краткая информация о персонаже (выводится в Офисе)..." style="min-height: 80px; resize: vertical;"></textarea>
+                </div>
+
                 <div class="form-group">
                     <label>ЧЕРТЫ (FEATS)</label>
                     <input type="text" id="feat-search" class="cloud-input search-feats" placeholder="Поиск черты..." onkeyup="window.filterFeatChecklist()">
@@ -219,9 +225,8 @@
     <script>
         window.dbClasses = [];
         window.dbFeats = [];
-        window.selectedFeats = new Set(); // Хранит индексы выбранных черт
+        window.selectedFeats = new Set(); 
 
-        // Базовые данные Фиксера
         const fixerBaseTraits = [
             { name: "Хиты (Hit Points)", desc: "Кость хитов: 1d10 за уровень.\nХиты на 1-м уровне: 10 + мод. ТЕЛ.\nНа следующих: 1d10 (или 6) + мод. ТЕЛ." },
             { name: "Владения (Proficiencies)", desc: "Броня: Легкая, Средняя, Щиты.\nОружие: Простое, Боевое, Огнестрельное.\nСпасброски: Мудрость, Ловкость или Телосложение И Интеллект, Сила или Харизма.\nНавыки: Выберите 3 (Атлетика, Акробатика, Расследование, Выживание, Скрытность, Убеждение, Проницательность, Медицина)." },
@@ -240,7 +245,6 @@
             { name: "Существо Света", desc: "На 20-м уровне: Аномальный стат и его макс. увеличены на 2. Форму нельзя изменить против воли." }
         ];
 
-        // Данные Рас
         const raceData = {
             "human": {
                 name: "Человек (Human)",
@@ -277,7 +281,6 @@
             }
         };
 
-        // Инициализация баз данных
         async function loadDatabases() {
             try {
                 const resClass = await fetch('classes.json');
@@ -295,9 +298,7 @@
             }
         }
 
-        // Отрисовка левой панели
         function renderDropdowns() {
-            // Классы
             const classSelect = document.getElementById('char-class');
             const currentClass = classSelect.value;
             let classHtml = '<option value="">-- Базовый Фиксер (Без Архетипа) --</option>';
@@ -307,7 +308,6 @@
             classSelect.innerHTML = classHtml;
             classSelect.value = currentClass;
 
-            // Черты (Редизайн)
             const featsContainer = document.getElementById('feats-checklist');
             let featsHtml = '';
             window.dbFeats.forEach((feat, i) => {
@@ -324,7 +324,6 @@
             featsContainer.innerHTML = featsHtml;
         }
 
-        // Логика выбора черты
         window.toggleFeat = (el, index) => {
             if (window.selectedFeats.has(index)) {
                 window.selectedFeats.delete(index);
@@ -336,7 +335,6 @@
             window.updateOutput();
         };
 
-        // Загрузка кастомных файлов (Класс)
         window.loadCustomClass = (e) => {
             const file = e.target.files[0];
             if (!file) return;
@@ -360,7 +358,6 @@
             reader.readAsText(file);
         };
 
-        // Загрузка кастомных файлов (Черта)
         window.loadCustomFeat = (e) => {
             const file = e.target.files[0];
             if (!file) return;
@@ -384,7 +381,6 @@
             reader.readAsText(file);
         };
 
-        // Поиск по чертам
         window.filterFeatChecklist = () => {
             const query = document.getElementById('feat-search').value.toLowerCase();
             const items = document.querySelectorAll('.feat-item');
@@ -398,7 +394,6 @@
             });
         };
 
-        // Функция копирования отдельного блока
         window.copyTrait = (el) => {
             const name = el.querySelector('.trait-name').innerText;
             let req = el.querySelector('.trait-req');
@@ -419,7 +414,6 @@
             });
         };
 
-        // Генератор HTML блока
         function createOutputBlock(title, desc, req = null, color = 'var(--color-yellow)', subtitle = null) {
             let reqHtml = req && req !== 'null' ? `<div class="trait-req">ТРЕБОВАНИЯ: ${req}</div>` : '';
             let subHtml = subtitle ? `<div class="tech-text" style="margin-bottom:4px;">${subtitle}</div>` : '';
@@ -434,13 +428,12 @@
             `;
         }
 
-        // Обновление правой панели и проверка кастомности для пресета
         window.updateOutput = () => {
             const name = document.getElementById('char-name').value || "БЕЗ ИМЕНИ";
             const raceKey = document.getElementById('char-race').value;
             const classIndex = document.getElementById('char-class').value;
             
-            let isCustomContent = false; // Флаг блокировки экспорта
+            let isCustomContent = false; 
 
             document.getElementById('out-name').textContent = name;
             let metaString = (raceKey ? raceData[raceKey].name : "Раса не выбрана") + " | Фиксер";
@@ -455,7 +448,6 @@
 
             let outputHtml = '';
 
-            // 1. РАСА
             if (raceKey) {
                 outputHtml += `<div class="block-title" style="color: var(--color-red); border-color: var(--color-red);">Особенности Расы: ${raceData[raceKey].name}</div>`;
                 raceData[raceKey].traits.forEach(t => {
@@ -463,13 +455,11 @@
                 });
             }
 
-            // 2. БАЗОВЫЙ КЛАСС (FIXER)
             outputHtml += `<div class="block-title" style="color: var(--color-cyan); border-color: var(--color-cyan);">Базовый Класс: Фиксер</div>`;
             fixerBaseTraits.forEach(t => {
                 outputHtml += createOutputBlock(t.name, t.desc, null, 'var(--color-cyan)');
             });
 
-            // 3. АРХЕТИП
             if (archetype && archetype.Talents) {
                 outputHtml += `<div class="block-title" style="color: var(--accent-primary); border-color: var(--accent-primary);">Архетип: ${archetype.Name}</div>`;
                 archetype.Talents.forEach(t => {
@@ -478,7 +468,6 @@
                 });
             }
 
-            // 4. ЧЕРТЫ
             if (window.selectedFeats.size > 0) {
                 outputHtml += `<div class="block-title" style="color: var(--color-yellow); border-color: var(--color-yellow);">Выбранные Черты</div>`;
                 window.selectedFeats.forEach(i => {
@@ -497,7 +486,6 @@
 
             document.getElementById('out-content').innerHTML = outputHtml;
 
-            // Логика блокировки кнопки экспорта
             const exportBtn = document.getElementById('export-preset-btn');
             if (isCustomContent) {
                 exportBtn.disabled = true;
@@ -508,7 +496,6 @@
             }
         };
 
-        // Копирование всего досье
         window.copyCharacter = () => {
             const outContent = document.getElementById('output-area');
             const textToCopy = outContent.innerText; 
@@ -520,11 +507,11 @@
             });
         };
 
-        // Экспорт пресета
         window.exportPreset = () => {
             const name = document.getElementById('char-name').value;
             const raceKey = document.getElementById('char-race').value;
             const classIndex = document.getElementById('char-class').value;
+            const desc = document.getElementById('char-desc').value; // Чтение описания
             let className = classIndex !== "" ? window.dbClasses[classIndex].Name : "";
             
             let featNames = [];
@@ -536,6 +523,7 @@
                 characterName: name,
                 race: raceKey,
                 className: className,
+                desc: desc, // Запись описания
                 feats: featNames
             };
 
@@ -548,7 +536,6 @@
             dl.remove();
         };
 
-        // Загрузка пресета
         window.loadPreset = (e) => {
             const file = e.target.files[0];
             if (!file) return;
@@ -559,6 +546,7 @@
                     
                     document.getElementById('char-name').value = preset.characterName || "";
                     document.getElementById('char-race').value = preset.race || "";
+                    document.getElementById('char-desc').value = preset.desc || ""; // Загрузка описания
                     
                     if (preset.className) {
                         const cIndex = window.dbClasses.findIndex(c => c.Name === preset.className);
