@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Досье Агента / Sinner Roster (Cloud Edition)</title>
+    <title>Досье Агента / Sinner Roster (TMB Edition)</title>
     
     <link id="dynamic-favicon" rel="icon" type="image/jpeg" href="phis.jpg">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Merriweather:ital,wght@0,300;1,300;1,700&family=Oswald:wght@400;500;700&display=swap" rel="stylesheet">
@@ -11,10 +11,15 @@
     
     <style>
         :root {
-            --bg-main: #070707; --bg-panel: #000000; --accent-primary: #D9772F; --accent-muted: #8B5A2B;
-            --color-cyan: #45B3CB; --color-red: #C7243A; --color-indigo: #40E0D0; --color-yellow: #F1C40F;
-            --color-orange: #E67E22; --color-lightblue: #ADD8E6; --text-main: #E0D8C8; --text-dim: #696969;
-            --border-width: 1px; --chamfer: 14px;
+            /* Однотонная TMB Палитра */
+            --bg-main: #070707; 
+            --bg-panel: #000000; 
+            --accent-primary: #D9772F; 
+            --accent-muted: #8B5A2B;
+            --text-main: #E0D8C8; 
+            --text-dim: #696969;
+            --border-width: 1px; 
+            --chamfer: 14px;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -26,7 +31,7 @@
         }
 
         h1, h2, h3, h4, .oswald { font-family: 'Oswald', sans-serif; text-transform: uppercase; }
-        .lore-text { font-family: 'Merriweather', serif; font-style: italic; color: var(--accent-muted); font-size: 0.85rem; }
+        .lore-text { font-family: 'Merriweather', serif; font-style: italic; color: var(--text-dim); font-size: 0.85rem; }
         .tech-text { font-family: 'Inter', sans-serif; color: var(--accent-primary); font-size: 0.8rem; }
         
         [contenteditable="true"] { outline: none; border-bottom: 1px dashed transparent; transition: border-color 0.2s; min-width: 20px; display: inline-block; }
@@ -42,15 +47,17 @@
         .panel-outer { background-color: var(--accent-primary); padding: var(--border-width); position: relative; display: flex; flex-direction: column; }
         .panel-inner { background-color: var(--bg-panel); padding: 16px; height: 100%; display: flex; flex-direction: column; }
         .cut-tl { clip-path: polygon(var(--chamfer) 0, 100% 0, 100% 100%, 0 100%, 0 var(--chamfer)); }
+        
         .panel-title { color: var(--accent-primary); font-size: 1.2rem; margin-bottom: 12px; letter-spacing: 1px; border-bottom: 1px solid var(--accent-muted); padding-bottom: 4px; display: flex; justify-content: space-between; align-items: center; }
 
-        .btn-small { background: transparent; border: 1px solid var(--text-dim); color: var(--text-dim); cursor: pointer; padding: 2px 6px; font-size: 0.7rem; text-transform: uppercase; transition: 0.2s; }
+        .btn-small { background: transparent; border: 1px solid var(--text-dim); color: var(--text-dim); cursor: pointer; padding: 4px 8px; font-size: 0.75rem; text-transform: uppercase; transition: 0.2s; font-family: 'Oswald', sans-serif; display: flex; align-items: center; gap: 6px; }
         .btn-small:hover { color: var(--accent-primary); border-color: var(--accent-primary); }
-        .btn-trash { position: absolute; top: -10px; right: -10px; background: var(--bg-panel); color: var(--color-red); border: 1px solid var(--color-red); width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0; transition: opacity 0.2s; z-index: 5; }
+        .btn-trash { position: absolute; top: -10px; right: -10px; background: var(--bg-panel); color: var(--text-dim); border: 1px solid var(--text-dim); width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0; transition: opacity 0.2s; z-index: 5; }
+        .btn-trash:hover { color: var(--accent-primary); border-color: var(--accent-primary); }
 
         .img-upload { background-color: #111; border: 1px solid var(--text-dim); cursor: pointer; position: relative; background-size: cover; background-position: center; display: flex; justify-content: center; align-items: center; transition: border-color 0.2s; }
         .img-upload:hover { border-color: var(--accent-primary); }
-        .img-upload::after { content: "\f044"; font-family: 'FontAwesome'; position: absolute; opacity: 0; color: var(--accent-primary); font-size: 1.5rem; transition: opacity 0.2s; background: rgba(0,0,0,0.6); padding: 8px; border-radius: 50%; }
+        .img-upload::after { content: "\f0c1"; font-family: 'FontAwesome'; position: absolute; opacity: 0; color: var(--accent-primary); font-size: 1.5rem; transition: opacity 0.2s; background: rgba(0,0,0,0.6); padding: 8px; border-radius: 50%; }
         .img-upload:hover::after { opacity: 1; }
         .img-upload.has-image::after { opacity: 0; }
         .img-upload.has-image:hover::after { opacity: 1; }
@@ -63,55 +70,43 @@
         .info-label { color: var(--text-dim); text-transform: uppercase; font-size: 0.7rem; margin-right: 8px; min-width: 90px; }
         
         .scale-header { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; margin-bottom: 4px; }
-        .health-grid, .sanity-grid, .energy-grid { display: flex; flex-wrap: wrap; gap: 4px; }
+        .health-grid, .sanity-grid, .sin-grid { display: flex; flex-wrap: wrap; gap: 4px; }
         
-        .health-box, .sanity-box, .energy-box { 
+        /* Однотонные боксы шкал */
+        .health-box, .sanity-box, .sin-box { 
             width: 18px; height: 18px; cursor: pointer; background-color: transparent; 
+            border: 1px solid var(--text-dim); color: var(--text-main);
             position: relative; display: flex; justify-content: center; align-items: center;
             font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 700; user-select: none;
             transition: transform 0.2s ease-out, opacity 0.2s ease-out, width 0.2s ease-out, margin 0.2s ease-out, border-width 0.2s ease-out;
         }
         
-        .scale-anim-hidden {
-            transform: translateX(-15px);
-            opacity: 0;
-            width: 0 !important;
-            margin-right: -4px !important;
-            border-width: 0 !important;
-            overflow: hidden;
-        }
+        .scale-anim-hidden { transform: translateX(-15px); opacity: 0; width: 0 !important; margin-right: -4px !important; border-width: 0 !important; overflow: hidden; }
 
-        .health-box { border: 1px solid var(--color-red); color: var(--color-red); }
-        .health-box.normal { background-color: var(--color-red); }
+        .health-box.normal, .sanity-box.normal, .sin-box.normal { background-color: var(--text-main); color: var(--bg-panel); }
+        
         .health-box.slash::after { content: "/"; }
         .health-box.hash::after { content: "#"; }
         .health-box.cross::after { content: "X"; }
 
-        .sanity-box { border: 1px solid var(--color-cyan); color: var(--color-cyan); }
-        .sanity-box.normal { background-color: var(--color-cyan); }
         .sanity-box.slash::after { content: "/"; }
         .sanity-box.cross::after { content: "X"; }
 
-        .energy-box { border: 1px solid var(--res-color, #9B59B6); color: var(--res-color, #9B59B6); }
-        .energy-box.normal { background-color: var(--res-color, #9B59B6); }
-
         .defense-grid { display: flex; gap: 6px; margin-bottom: 16px; width: 100%; }
-        .defense-box { 
-            flex: 1; 
-            height: 22px; cursor: pointer; background-color: transparent; 
-            border: 2px solid var(--color-indigo); transition: background-color 0.1s;
-        }
-        .defense-box.normal { background-color: var(--color-indigo); }
+        .defense-box { flex: 1; height: 22px; cursor: pointer; background-color: transparent; border: 2px solid var(--text-dim); transition: background-color 0.1s; }
+        .defense-box.normal { background-color: var(--text-main); }
 
-        .hazard-tape { height: 14px; background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--accent-primary) 10px, var(--accent-primary) 20px); border-bottom: 1px solid var(--accent-primary); }
+        .hazard-tape { height: 14px; background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--accent-muted) 10px, var(--accent-muted) 20px); border-bottom: 1px solid var(--accent-primary); }
         .combat-skills-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 16px; }
-        .combat-skill { border: 1px solid #222; padding: 12px; position: relative; display: flex; flex-direction: column; gap: 8px; }
-        .combat-skill:hover { border-color: var(--accent-muted); }
+        .combat-skill { border: 1px solid #222; padding: 12px; position: relative; display: flex; flex-direction: column; gap: 8px; transition: 0.2s; }
+        .combat-skill:hover { border-color: var(--accent-primary); }
         .combat-skill:hover .btn-trash { opacity: 1; }
         .skill-icon { width: 100%; aspect-ratio: 16/9; }
 
         .resist-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px solid #111; padding-bottom: 4px;}
-        .trait-card { border-left: 2px solid var(--accent-muted); padding-left: 8px; margin-top: 16px; position: relative; }
+        
+        .trait-card { border-left: 2px solid var(--text-dim); padding-left: 8px; margin-top: 16px; position: relative; transition: 0.2s;}
+        .trait-card:hover { border-color: var(--accent-primary); }
         .trait-card:hover .btn-trash { opacity: 1; }
         .trait-header { display: flex; justify-content: space-between; align-items:baseline; border-bottom: 1px solid #222; margin-bottom: 4px;}
 
@@ -122,25 +117,23 @@
         .stat-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
 
         .dots-container { display: flex; gap: 4px; }
-        .dot { width: 6px; height: 6px; border: 1px solid var(--accent-primary); cursor: pointer; transition: background 0.1s; }
+        .dot { width: 6px; height: 6px; border: 1px solid var(--text-dim); cursor: pointer; transition: background 0.1s; }
         .dot.filled { background-color: var(--text-main); border-color: var(--text-main); }
-        .dot.hovered { background-color: var(--accent-muted); }
+        .dot.hovered { background-color: var(--accent-primary); border-color: var(--accent-primary); }
 
         .skills-list { column-count: 3; column-gap: 24px; margin-top: 12px; }
         .skill-item { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; break-inside: avoid; position: relative; }
         .skill-name { flex: 1 1 45%; font-size: 0.85rem; line-height: 1.1; }
         .skill-spec { flex: 1 1 30%; border: 1px solid var(--text-dim); padding: 2px 4px; font-size: 0.75rem; color: var(--text-dim); text-align: center; }
         .skill-spec:empty::before { content: attr(data-placeholder); color: var(--text-dim); opacity: 0.5; }
-        .btn-remove-skill { position: absolute; left: -16px; color: var(--color-red); cursor: pointer; opacity: 0; font-size: 0.8rem; }
-        .skill-item:hover .btn-remove-skill { opacity: 1; }
+        .btn-remove-skill { position: absolute; left: -16px; color: var(--text-dim); cursor: pointer; opacity: 0; font-size: 0.8rem; transition: 0.2s;}
+        .skill-item:hover .btn-remove-skill { opacity: 1; color: var(--accent-primary); }
 
         /* --- Меню и Навигация --- */
-        .top-nav-btn { position: absolute; top: 10px; padding: 6px 12px; font-size: 0.8rem; font-family: 'Oswald', sans-serif; z-index: 100; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; }
-        
-        .btn-sync { left: 20px; border-color: var(--color-cyan); color: var(--color-cyan); }
-        .btn-sync:hover { background-color: var(--color-cyan); color: #000; }
-        
-        .btn-grimoire { right: 20px; border-color: var(--accent-primary); color: var(--accent-primary); }
+        .top-nav-btn { position: absolute; top: 10px; padding: 6px 12px; font-size: 0.8rem; font-family: 'Oswald', sans-serif; z-index: 100; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; border-color: var(--accent-primary); color: var(--accent-primary); }
+        .btn-sync { left: 20px; }
+        .btn-sync:hover { background-color: var(--accent-primary); color: #000; }
+        .btn-grimoire { right: 20px; }
         .btn-grimoire:hover { background-color: var(--accent-primary); color: #000; }
         
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(4px); }
@@ -148,37 +141,67 @@
         .modal-box { width: 450px; max-width: 90%; position: relative; max-height: 90vh; overflow-y: auto; }
         
         .cloud-input { width: 100%; background: #111; border: 1px solid #333; color: var(--text-main); padding: 10px; margin-bottom: 12px; outline: none; font-family: 'Inter'; }
-        .cloud-input:focus { border-color: var(--color-cyan); }
+        .cloud-input:focus { border-color: var(--accent-primary); }
         
         .modal-btn { width: 100%; padding: 12px; font-size: 1rem; cursor: pointer; border: 1px solid; background: transparent; text-transform: uppercase; font-family: 'Oswald', sans-serif; transition: 0.2s; margin-bottom: 8px;}
         
-        .btn-save { border-color: var(--accent-primary); color: var(--accent-primary); }
-        .btn-save:hover { background: var(--accent-primary); color: #000; }
-        .btn-load { border-color: var(--color-cyan); color: var(--color-cyan); }
-        .btn-load:hover { background: var(--color-cyan); color: #000; }
+        .btn-save, .btn-load { border-color: var(--accent-primary); color: var(--accent-primary); }
+        .btn-save:hover, .btn-load:hover { background: var(--accent-primary); color: #000; }
         .btn-logout { border-color: var(--text-dim); color: var(--text-dim); }
         .btn-logout:hover { background: var(--text-dim); color: #000; }
-        .btn-close-modal { background: transparent; border: none; color: var(--color-red); font-size: 1.5rem; cursor: pointer; transition: 0.2s; }
-        .btn-close-modal:hover { color: #ff0044; }
+        .btn-close-modal { background: transparent; border: none; color: var(--accent-primary); font-size: 1.5rem; cursor: pointer; transition: 0.2s; }
+        .btn-close-modal:hover { color: #fff; }
 
         .catalog-list { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; max-height: 250px; overflow-y: auto; text-align: left; }
         .catalog-item { background: #111; border: 1px solid #222; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; }
-        .catalog-item:hover { border-color: var(--color-cyan); }
+        .catalog-item:hover { border-color: var(--accent-primary); }
+
+        /* --- ИНФО САЙДБАР --- */
+        .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 2400; opacity: 0; pointer-events: none; transition: 0.3s; backdrop-filter: blur(3px); }
+        .sidebar-overlay.active { opacity: 1; pointer-events: all; }
+        
+        .info-sidebar { position: fixed; top: 0; right: -650px; width: 650px; max-width: 90vw; height: 100vh; background: var(--bg-main); border-left: 2px solid var(--accent-primary); z-index: 2500; transition: right 0.3s ease; overflow-y: auto; padding: 60px 20px 40px 30px; box-shadow: -10px 0 30px rgba(0,0,0,0.8); }
+        .info-sidebar.active { right: 0; }
+        .info-sidebar::-webkit-scrollbar { width: 6px; }
+        .info-sidebar::-webkit-scrollbar-thumb { background: var(--accent-primary); }
+
+        .sidebar-title { font-size: 2rem; color: var(--text-main); border-bottom: 2px solid var(--accent-primary); padding-bottom: 8px; margin-bottom: 24px; }
+        
+        /* Стили карточек информации (По аналогии со Statuses) */
+        .card-header-clickable { cursor: pointer; position: relative; padding-right: 24px; user-select: none; }
+        .card-header-clickable:hover .class-title { color: #fff; }
+        .expand-icon { position: absolute; right: 0; top: 50%; transform: translateY(-50%); color: var(--text-dim); transition: transform 0.3s ease; }
+        .panel-outer.expanded .expand-icon { transform: translateY(-50%) rotate(180deg); color: var(--accent-primary); }
+        .class-title-wrapper { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; padding-bottom: 8px; }
+        .class-title { font-size: 1.3rem; color: var(--accent-primary); transition: color 0.2s; font-family: 'Oswald'; text-transform: uppercase;}
+        .talents-wrapper { max-height: 0; opacity: 0; overflow: hidden; transition: max-height 0.4s ease, margin-top 0.4s ease, opacity 0.3s ease; position: relative; }
+        .panel-outer.expanded .talents-wrapper { max-height: 3000px; opacity: 1; margin-top: 8px; }
+        .status-main-desc { font-size: 0.95rem; color: var(--text-main); line-height: 1.6; white-space: pre-wrap; padding-top: 12px; margin-bottom: 16px; border-bottom: 1px dashed #333; padding-bottom: 16px; }
+        
+        .side-effect-block { margin-bottom: 12px; border-left: 2px solid var(--text-dim); padding: 8px 10px; cursor: pointer; position: relative; background: rgba(255,255,255,0.02); transition: 0.2s;}
+        .side-effect-block:hover { border-color: var(--accent-primary); background: rgba(255,255,255,0.05); }
+        .se-header { display: flex; justify-content: space-between; align-items: center; }
+        .se-name { font-family: 'Oswald', sans-serif; color: var(--text-main); font-size: 1.1rem; }
+        .se-collapse-icon { color: var(--text-dim); font-size: 0.8rem; transition: transform 0.3s; margin-right: 8px; }
+        .side-effect-block.collapsed .se-collapse-icon { transform: rotate(-90deg); }
+        .se-desc-wrapper { display: grid; grid-template-rows: 1fr; transition: grid-template-rows 0.3s ease; margin-top: 6px; }
+        .side-effect-block.collapsed .se-desc-wrapper { grid-template-rows: 0fr; margin-top: 0; }
+        .se-desc { overflow: hidden; font-size: 0.9rem; color: var(--text-main); line-height: 1.5; white-space: pre-wrap; }
     </style>
 </head>
 <body>
 
 <button class="btn-small top-nav-btn btn-sync" onclick="window.toggleSaveMenu()"><i class="fa-solid fa-cloud"></i> СЕТЬ СИНХРОНИЗАЦИИ</button>
-<a href="index.html" class="btn-small top-nav-btn btn-grimoire"><i class="fa-solid fa-book"></i> НАЗАД</a>
+<a href="index.html" class="btn-small top-nav-btn btn-grimoire"><i class="fa-solid fa-house"></i> ХАБ</a>
 
 <input type="file" id="import-json-input" accept=".json" style="display: none;" onchange="window.importFromJson(event)">
 
 <!-- Модальное окно Cloud -->
 <div class="modal-overlay" id="saveModal" onclick="window.closeModalOnBg(event)">
     <div class="panel-outer cut-tl modal-box">
-        <div class="hazard-tape" style="background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--color-cyan) 10px, var(--color-cyan) 20px); border-bottom-color: var(--color-cyan);"></div>
+        <div class="hazard-tape" style="background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--accent-primary) 10px, var(--accent-primary) 20px); border-bottom-color: var(--accent-primary);"></div>
         <div class="panel-inner cut-tl" style="border-top: none;">
-            <div class="panel-title" style="display: flex; justify-content: space-between; align-items: center; color: var(--color-cyan); border-color: var(--color-cyan);">
+            <div class="panel-title" style="display: flex; justify-content: space-between; align-items: center; color: var(--accent-primary); border-color: var(--accent-primary);">
                 <span>ТЕРМИНАЛ MEPHISTOPHELES</span>
                 <button class="btn-close-modal" onclick="window.toggleSaveMenu()"><i class="fa-solid fa-xmark"></i></button>
             </div>
@@ -192,14 +215,14 @@
             </div>
 
             <div id="cloud-section" style="display: none; text-align: center;">
-                <div class="tech-text" style="color: var(--color-cyan); margin-bottom: 12px;">Статус: ПОДКЛЮЧЕНО<br><span id="user-display" style="color: var(--text-main);"></span></div>
+                <div class="tech-text" style="color: var(--accent-primary); margin-bottom: 12px;">Статус: ПОДКЛЮЧЕНО<br><span id="user-display" style="color: var(--text-main);"></span></div>
                 
                 <button class="modal-btn btn-save" id="btn-save-cloud" onclick="window.saveToCloud()"><i class="fa-solid fa-cloud-arrow-up"></i> Сохранить текущий лист</button>
                 <button class="modal-btn btn-load" id="btn-load-cloud" onclick="window.loadFromCloud()"><i class="fa-solid fa-cloud-arrow-down"></i> Загрузить мой профиль</button>
                 
                 <div id="dm-catalog-section" style="display: none;">
                     <div class="panel-title" style="margin-top: 15px; font-size: 1rem; color: var(--accent-primary); border-color: var(--accent-muted);">Панель ДМа: Каталог агентов</div>
-                    <button class="modal-btn btn-small" style="margin-bottom: 8px; padding: 8px;" onclick="window.loadCatalog()"><i class="fa-solid fa-address-book"></i> Обновить список каталога</button>
+                    <button class="modal-btn btn-small" style="margin-bottom: 8px; padding: 8px; justify-content:center; width:100%;" onclick="window.loadCatalog()"><i class="fa-solid fa-address-book"></i> Обновить список каталога</button>
                     <div class="catalog-list" id="catalog-container">
                         <div class="tech-text" style="text-align: center; color: var(--text-dim);">Нажмите кнопку обновления для просмотра базы.</div>
                     </div>
@@ -210,81 +233,82 @@
             
             <hr style="border: 0; border-top: 1px solid #222; margin: 15px 0;">
             <div style="display: flex; gap: 8px;">
-                <button class="modal-btn btn-small" style="color: var(--color-yellow); border-color: var(--color-yellow); padding: 8px; font-size: 0.8rem; flex: 1;" onclick="window.exportToJson()"><i class="fa-solid fa-file-export"></i> Экспорт</button>
-                <button class="modal-btn btn-small" style="color: var(--color-yellow); border-color: var(--color-yellow); padding: 8px; font-size: 0.8rem; flex: 1;" onclick="document.getElementById('import-json-input').click()"><i class="fa-solid fa-file-import"></i> Импорт</button>
+                <button class="modal-btn btn-small" style="color: var(--text-dim); border-color: var(--text-dim); padding: 8px; font-size: 0.8rem; flex: 1; justify-content:center;" onclick="window.exportToJson()"><i class="fa-solid fa-file-export"></i> Экспорт</button>
+                <button class="modal-btn btn-small" style="color: var(--text-dim); border-color: var(--text-dim); padding: 8px; font-size: 0.8rem; flex: 1; justify-content:center;" onclick="document.getElementById('import-json-input').click()"><i class="fa-solid fa-file-import"></i> Импорт</button>
             </div>
         </div>
     </div>
 </div>
 
-<input type="file" id="global-image-input" accept="image/*" style="display: none;">
+<!-- ИНФО САЙДБАР -->
+<div class="sidebar-overlay" id="info-overlay" onclick="window.closeInfo()"></div>
+<div class="info-sidebar" id="info-sidebar">
+    <button class="btn-close-modal" onclick="window.closeInfo()" style="position:absolute; top:20px; right:20px;"><i class="fa-solid fa-xmark"></i></button>
+    <div class="sidebar-title oswald" id="info-title">ИНФОРМАЦИЯ</div>
+    <div id="info-content">
+        <!-- Данные JSON -->
+    </div>
+</div>
 
 <div class="main-grid" id="main-character-sheet">
     <div class="panel-outer cut-tl block-1">
         <div class="panel-inner cut-tl">
-            <div class="panel-title">ДОСЬЕ АГЕНТА</div>
+            <div class="panel-title">
+                ДОСЬЕ АГЕНТА 
+                <button class="btn-small" onclick="window.openInfo('HPSPSIN.json')"><i class="fa-solid fa-info"></i> ИНФО</button>
+            </div>
+            
             <div class="img-upload portrait-area" id="main-portrait" onclick="window.triggerImageUpload(this)"></div>
-            <div class="info-row"><span class="info-label">ПОЗЫВНОЙ:</span> <span contenteditable="true" id="agent-name" class="oswald" style="font-size: 1.2rem; color: var(--accent-primary)">ГРЕШНИК #13</span></div>
+            
+            <div class="info-row"><span class="info-label">ПОЗЫВНОЙ:</span> <span contenteditable="true" id="agent-name" class="oswald" style="font-size: 1.2rem; color: var(--text-main)">ГРЕШНИК #13</span></div>
             <div class="info-row"><span class="info-label">МЕСТОИМЕНИЯ:</span> <span contenteditable="true">Он / Его</span></div>
             <div class="info-row">
                 <span class="info-label">СТИХИЯ:</span> 
-                <select id="affinity-select" onchange="window.updateSelectColor(this)" style="color: var(--color-cyan);">
-                    <option value="envy" data-color="#9B59B6" style="color: #9B59B6;">Зависть</option>
-                    <option value="pride" data-color="#1E3A8A" style="color: #1E3A8A;">Гордыня</option>
-                    <option value="gloom" data-color="#45B3CB" style="color: #45B3CB;" selected>Уныние</option>
-                    <option value="gluttony" data-color="#40E0D0" style="color: #40E0D0;">Обжорство</option>
-                    <option value="sloth" data-color="#F1C40F" style="color: #F1C40F;">Лень</option>
-                    <option value="lust" data-color="#E67E22" style="color: #E67E22;">Похоть</option>
-                    <option value="wrath" data-color="#C7243A" style="color: #C7243A;">Гнев</option>
+                <select id="affinity-select">
+                    <option value="envy">Зависть</option>
+                    <option value="pride">Гордыня</option>
+                    <option value="gloom" selected>Уныние</option>
+                    <option value="gluttony">Обжорство</option>
+                    <option value="sloth">Лень</option>
+                    <option value="lust">Похоть</option>
+                    <option value="wrath">Гнев</option>
                 </select>
             </div>
             
-            <div class="scale-header oswald"><span style="color: var(--color-red)">СИСТЕМА HP</span><div><button class="btn-small" onclick="window.adjustScale('health', -1)">-</button><button class="btn-small" onclick="window.adjustScale('health', 1)">+</button></div></div>
+            <div class="scale-header oswald"><span style="color: var(--text-main)">СИСТЕМА HP</span><div><button class="btn-small" onclick="window.adjustScale('health', -1)">-</button><button class="btn-small" onclick="window.adjustScale('health', 1)">+</button></div></div>
             <div class="health-grid" id="health-grid"></div>
             
-            <div class="scale-header oswald"><span style="color: var(--color-cyan)">РАССУДОК (SP)</span><div><button class="btn-small" onclick="window.adjustScale('sanity', -1)">-</button><button class="btn-small" onclick="window.adjustScale('sanity', 1)">+</button></div></div>
+            <div class="scale-header oswald"><span style="color: var(--text-main)">РАССУДОК (SP)</span><div><button class="btn-small" onclick="window.adjustScale('sanity', -1)">-</button><button class="btn-small" onclick="window.adjustScale('sanity', 1)">+</button></div></div>
             <div class="sanity-grid" id="sanity-grid"></div>
 
-            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 24px; margin-bottom: 8px; border-bottom: 1px solid #222; padding-bottom: 4px;">
-                <span class="oswald" style="color: var(--text-dim); font-size: 0.9rem;">ОСОБЫЕ РЕСУРСЫ</span>
-                <button class="btn-small" style="border-color: var(--color-cyan); color: var(--color-cyan);" onclick="window.addCustomResource()">+ ДОБАВИТЬ</button>
-            </div>
-            
-            <div id="custom-resources-container">
-                <div class="custom-resource-block" style="--res-color: #9B59B6; margin-bottom: 12px;">
-                    <div class="scale-header oswald" style="margin-top: 0;">
-                        <span style="color: var(--res-color)" contenteditable="true">ОСОБЫЙ РЕСУРС</span>
-                        <div>
-                            <button class="btn-small" title="Изменить цвет (HEX)" onclick="window.changeResourceColor(this)"><i class="fa-solid fa-eye-dropper"></i></button>
-                            <button class="btn-small" onclick="window.adjustCustomScale(this, -1)">-</button>
-                            <button class="btn-small" onclick="window.adjustCustomScale(this, 1)">+</button>
-                        </div>
-                    </div>
-                    <div class="energy-grid">
-                        <div class="energy-box normal"></div>
-                        <div class="energy-box normal"></div>
-                        <div class="energy-box normal"></div>
-                        <div class="energy-box normal"></div>
-                        <div class="energy-box normal"></div>
-                    </div>
-                </div>
-            </div>
+            <div class="scale-header oswald"><span style="color: var(--text-main)">ЗАРЯДЫ ГРЕХА</span><div><button class="btn-small" onclick="window.adjustScale('sin', -1)">-</button><button class="btn-small" onclick="window.adjustScale('sin', 1)">+</button></div></div>
+            <div class="sin-grid" id="sin-grid"></div>
+
         </div>
     </div>
     
     <div class="panel-outer cut-tl block-2" style="padding-top: 0;">
         <div class="hazard-tape"></div>
         <div class="panel-inner cut-tl" style="border-top: none;">
-            <div class="panel-title">БОЕВЫЕ ПРОТОКОЛЫ<button class="btn-small" onclick="window.addCombatSkill()">+ ДОБАВИТЬ НАВЫК</button></div>
+            <div class="panel-title">
+                БОЕВЫЕ ПРОТОКОЛЫ
+                <div style="display:flex; gap:6px;">
+                    <button class="btn-small" onclick="window.addCombatSkill()">+ НАВЫК</button>
+                    <button class="btn-small" onclick="window.openInfo('Battle.json')"><i class="fa-solid fa-info"></i></button>
+                </div>
+            </div>
             <div class="combat-skills-container" id="combat-skills-container"></div>
         </div>
     </div>
     
     <div class="panel-outer cut-tl block-3">
         <div class="panel-inner cut-tl">
-            <div class="panel-title">ЗАЩИТА И Э.Г.О.</div>
+            <div class="panel-title">
+                ЗАЩИТА И Э.Г.О.
+                <button class="btn-small" onclick="window.openInfo('Egoandprotection.json')"><i class="fa-solid fa-info"></i> ИНФО</button>
+            </div>
             
-            <div class="scale-header oswald" style="margin-top: 0; margin-bottom: 8px;"><span style="color: var(--color-indigo)">ОЧКИ ЗАЩИТЫ</span></div>
+            <div class="scale-header oswald" style="margin-top: 0; margin-bottom: 8px;"><span style="color: var(--text-main)">ОЧКИ ЗАЩИТЫ</span></div>
             <div class="defense-grid" id="defense-grid">
                 <div class="defense-box normal"></div>
                 <div class="defense-box normal"></div>
@@ -301,14 +325,23 @@
     
     <div class="panel-outer cut-tl block-4">
         <div class="panel-inner cut-tl">
-            <div class="panel-title">АТРИБУТЫ</div>
+            <div class="panel-title">
+                АТРИБУТЫ
+                <button class="btn-small" onclick="window.openInfo('Atrebutes.json')"><i class="fa-solid fa-info"></i> ИНФО</button>
+            </div>
             <div id="attributes-container"></div>
         </div>
     </div>
     
     <div class="panel-outer cut-tl block-5">
         <div class="panel-inner cut-tl">
-            <div class="panel-title">НАВЫКИ И УМЕНИЯ<button class="btn-small" onclick="window.addTalentSkill()">+ ДОБАВИТЬ ЗАПИСЬ</button></div>
+            <div class="panel-title">
+                НАВЫКИ И УМЕНИЯ
+                <div style="display:flex; gap:6px;">
+                    <button class="btn-small" onclick="window.addTalentSkill()">+ ЗАПИСЬ</button>
+                    <button class="btn-small" onclick="window.openInfo('Featsandskills.json')"><i class="fa-solid fa-info"></i></button>
+                </div>
+            </div>
             <div class="skills-list" id="skills-list"></div>
         </div>
     </div>
@@ -317,31 +350,93 @@
 <script>
     window.healthMax = 10;
     window.sanityMax = 12;
-    let currentUploadTarget = null;
+    window.sinMax = 5;
     
     window.setRandomFavicon = () => {
         const favicons = ['phis.jpg', 'unde.jpg', 'vide.jpg', 'spra.jpg'];
         document.getElementById('dynamic-favicon').href = favicons[Math.floor(Math.random() * favicons.length)];
     }
 
-    const imgInput = document.getElementById('global-image-input');
-    imgInput.addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if (file && currentUploadTarget) {
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                currentUploadTarget.style.backgroundImage = `url(${event.target.result})`;
-                currentUploadTarget.classList.add('has-image');
-            };
-            reader.readAsDataURL(file);
+    // ИЗМЕНЕНИЕ 2: Загрузка картинок через URL
+    window.triggerImageUpload = (el) => { 
+        const url = prompt("Введите прямую ссылку на изображение (URL):", "");
+        if (url) {
+            el.style.backgroundImage = `url('${url}')`;
+            el.classList.add('has-image');
         }
-        this.value = ''; 
-    });
+    };
 
-    window.triggerImageUpload = (el) => { currentUploadTarget = el; imgInput.click(); };
-    window.updateSelectColor = (sel) => { sel.style.color = sel.options[sel.selectedIndex].dataset.color || sel.options[sel.selectedIndex].style.color; };
     window.toggleSaveMenu = () => document.getElementById('saveModal').classList.toggle('active');
     window.closeModalOnBg = (e) => { if (e.target.id === 'saveModal') window.toggleSaveMenu(); };
+
+    // ИЗМЕНЕНИЕ 4: Инфо-Сайдбар
+    window.openInfo = async (filename) => {
+        document.getElementById('info-sidebar').classList.add('active');
+        document.getElementById('info-overlay').classList.add('active');
+        const container = document.getElementById('info-content');
+        document.getElementById('info-title').innerText = "ЗАГРУЗКА...";
+        container.innerHTML = '<div class="tech-text">Получение данных из ' + filename + '...</div>';
+
+        try {
+            const res = await fetch(filename);
+            if (!res.ok) throw new Error("Файл не найден");
+            const data = await res.json();
+            
+            document.getElementById('info-title').innerText = "БАЗА ЗНАНИЙ";
+            let html = '';
+            
+            data.forEach(item => {
+                const safeName = item.Name ? item.Name.replace(/"/g, '&quot;') : 'Без названия';
+                const safeEffect = item.Effect ? item.Effect.replace(/"/g, '&quot;') : '';
+                
+                let sideEffectsHtml = '';
+                if (item.SideEffects && Array.isArray(item.SideEffects)) {
+                    item.SideEffects.forEach(se => {
+                        sideEffectsHtml += `
+                            <div class="side-effect-block collapsed" onclick="this.classList.toggle('collapsed')">
+                                <div class="se-header">
+                                    <div style="display:flex; align-items:center;">
+                                        <i class="fa-solid fa-chevron-down se-collapse-icon"></i>
+                                        <span class="se-name">${se.sideeffectname}</span>
+                                    </div>
+                                </div>
+                                <div class="se-desc-wrapper">
+                                    <div class="se-desc">${se.sideeffect}</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                
+                html += `
+                    <div class="panel-outer cut-tl" style="margin-bottom: 16px;">
+                        <div class="hazard-tape" style="height: 6px; background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--accent-muted) 10px, var(--accent-muted) 20px);"></div>
+                        <div class="panel-inner cut-tl" style="border-top: none;">
+                            <div class="card-header-clickable" onclick="this.closest('.panel-outer').classList.toggle('expanded')">
+                                <i class="fa-solid fa-chevron-down expand-icon"></i>
+                                <div class="class-title-wrapper">
+                                    <div class="class-title oswald">${safeName}</div>
+                                </div>
+                            </div>
+                            <div class="talents-wrapper">
+                                <div class="status-main-desc">${safeEffect}</div>
+                                ${sideEffectsHtml !== '' ? `<div class="talents-container">${sideEffectsHtml}</div>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        } catch(e) {
+            document.getElementById('info-title').innerText = "ОШИБКА СВЯЗИ";
+            container.innerHTML = '<div class="tech-text" style="color: var(--text-dim);">Не удалось загрузить <b>' + filename + '</b>. Убедитесь, что файл существует в директории.</div>';
+        }
+    };
+
+    window.closeInfo = () => {
+        document.getElementById('info-sidebar').classList.remove('active');
+        document.getElementById('info-overlay').classList.remove('active');
+    };
 
     window.exportToJson = () => {
         document.querySelectorAll('select').forEach(sel => {
@@ -352,7 +447,7 @@
         });
         const mainSheet = document.getElementById('main-character-sheet').innerHTML;
         const agentName = document.getElementById('agent-name').innerText.trim() || 'Sinner';
-        const saveObj = { html: mainSheet, healthMax: window.healthMax, sanityMax: window.sanityMax, agentName: agentName, timestamp: new Date().toISOString() };
+        const saveObj = { html: mainSheet, healthMax: window.healthMax, sanityMax: window.sanityMax, sinMax: window.sinMax, agentName: agentName, timestamp: new Date().toISOString() };
 
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(saveObj, null, 2));
         const downloadAnchorNode = document.createElement('a');
@@ -374,6 +469,7 @@
                     document.getElementById('main-character-sheet').innerHTML = data.html;
                     window.healthMax = data.healthMax || 10;
                     window.sanityMax = data.sanityMax || 12;
+                    window.sinMax = data.sinMax || 5;
                     window.toggleSaveMenu();
                     alert("Профиль успешно загружен из JSON!");
                 } else { alert("Неверный формат файла."); }
@@ -381,59 +477,6 @@
         };
         reader.readAsText(file);
         e.target.value = '';
-    };
-
-    window.addCustomResource = () => {
-        const colors = ['#C7243A', '#E67E22', '#F1C40F', '#40E0D0', '#45B3CB', '#1E3A8A', '#9B59B6'];
-        const randColor = colors[Math.floor(Math.random() * colors.length)];
-        
-        const html = `
-        <div class="custom-resource-block" style="--res-color: ${randColor}; margin-bottom: 12px;">
-            <div class="scale-header oswald" style="margin-top: 0;">
-                <span style="color: var(--res-color)" contenteditable="true">НОВЫЙ РЕСУРС</span>
-                <div>
-                    <button class="btn-small" title="Изменить цвет (HEX)" onclick="window.changeResourceColor(this)"><i class="fa-solid fa-eye-dropper"></i></button>
-                    <button class="btn-small" onclick="window.adjustCustomScale(this, -1)">-</button>
-                    <button class="btn-small" onclick="window.adjustCustomScale(this, 1)">+</button>
-                    <button class="btn-small" style="color: var(--color-red); border-color: var(--color-red);" onclick="this.closest('.custom-resource-block').remove()"><i class="fa-solid fa-trash"></i></button>
-                </div>
-            </div>
-            <div class="energy-grid">
-                <div class="energy-box normal"></div>
-                <div class="energy-box normal"></div>
-                <div class="energy-box normal"></div>
-            </div>
-        </div>`;
-        document.getElementById('custom-resources-container').insertAdjacentHTML('beforeend', html);
-    };
-
-    window.changeResourceColor = (btn) => {
-        const block = btn.closest('.custom-resource-block');
-        const currentHex = block.style.getPropertyValue('--res-color').trim();
-        const newHex = prompt("Введите HEX код цвета (Например: #C7243A):", currentHex || "#9B59B6");
-        
-        if (newHex !== null) {
-            if (/^#([0-9A-Fa-f]{3}){1,2}$/.test(newHex.trim())) {
-                block.style.setProperty('--res-color', newHex.trim());
-            } else {
-                alert("Ошибка! Неверный формат HEX кода. Используйте формат #RRGGBB");
-            }
-        }
-    };
-
-    window.adjustCustomScale = (btn, a) => {
-        const grid = btn.closest('.custom-resource-block').querySelector('.energy-grid');
-        if (a > 0) {
-            const el = document.createElement('div');
-            el.className = 'energy-box normal scale-anim-hidden';
-            grid.appendChild(el);
-            void el.offsetWidth;
-            el.classList.remove('scale-anim-hidden');
-        } else if (a < 0 && grid.children.length > 1) {
-            const lastEl = grid.lastElementChild;
-            lastEl.classList.add('scale-anim-hidden');
-            setTimeout(() => lastEl.remove(), 200);
-        }
     };
 
     window.renderHealth = () => {
@@ -446,11 +489,17 @@
         for (let i=0; i<window.sanityMax; i++) g.insertAdjacentHTML('beforeend', `<div class="sanity-box normal"></div>`);
     };
 
+    // ИЗМЕНЕНИЕ 3: Заряды Греха
+    window.renderSin = () => {
+        const g = document.getElementById('sin-grid'); g.innerHTML = '';
+        for (let i=0; i<window.sinMax; i++) g.insertAdjacentHTML('beforeend', `<div class="sin-box normal"></div>`);
+    };
+
     window.adjustScale = (t, a) => {
-        if (t === 'energy') return; 
         let gridId, boxClass, maxVar;
         if (t === 'health') { gridId = 'health-grid'; boxClass = 'health-box'; maxVar = 'healthMax'; }
         else if (t === 'sanity') { gridId = 'sanity-grid'; boxClass = 'sanity-box'; maxVar = 'sanityMax'; }
+        else if (t === 'sin') { gridId = 'sin-grid'; boxClass = 'sin-box'; maxVar = 'sinMax'; }
 
         const g = document.getElementById(gridId);
         if (a > 0) {
@@ -496,7 +545,7 @@
             if (states[nextIndex] !== 'empty') b.classList.add(states[nextIndex]);
         }
 
-        if (e.target.classList.contains('energy-box')) { e.target.classList.toggle('normal'); }
+        if (e.target.classList.contains('sin-box')) { e.target.classList.toggle('normal'); }
         if (e.target.classList.contains('defense-box')) { e.target.classList.toggle('normal'); }
         
         if(e.target.classList.contains('dot')) {
@@ -530,21 +579,21 @@
                 <div class="img-upload skill-icon" onclick="window.triggerImageUpload(this)"></div>
                 <div contenteditable="true" class="oswald" style="font-size:1.1rem; color: var(--text-main)">НОВЫЙ НАВЫК</div>
                 <div contenteditable="true" class="lore-text">"Художественное описание."</div>
-                <div contenteditable="true" class="tech-text">Описание эффекта.</div>
+                <div contenteditable="true" class="tech-text" style="color: var(--text-main)">Описание эффекта.</div>
             </div>`);
     };
 
     window.renderResistances = () => {
         const dt = [
-            {n:'Красный',c:'var(--color-red)'}, {n:'Белый',c:'#FFFFFF'}, {n:'Чёрный',c:'#9B59B6'}, {n:'Бледный',c:'#ADD8E6'},
-            {n:'Проникающий',c:'var(--accent-primary)'}, {n:'Режущий',c:'var(--accent-primary)'}, {n:'Дробящий',c:'var(--accent-primary)'}
+            {n:'Красный'}, {n:'Белый'}, {n:'Чёрный'}, {n:'Бледный'},
+            {n:'Проникающий'}, {n:'Режущий'}, {n:'Дробящий'}
         ];
         const st = [{n:'Смертельно',v:'fatal'},{n:'Уязвимость',v:'weak'},{n:'Стойкость',v:'endured'},{n:'Неэффективно',v:'ineffective'}];
         let h = '';
         for(let i=0; i<4; i++) {
             h += `<div class="resist-row">
-                <select onchange="window.updateSelectColor(this)" style="color: ${dt[i%dt.length].c};">
-                    ${dt.map((d, x) => `<option value="${d.n}" data-color="${d.c}" style="color:${d.c}" ${x === i ? 'selected':''}>${d.n}</option>`).join('')}
+                <select>
+                    ${dt.map((d, x) => `<option value="${d.n}" ${x === i ? 'selected':''}>${d.n}</option>`).join('')}
                 </select>
                 <select class="status-select status-${st[i%st.length].v}" onchange="this.className = 'status-select status-' + this.value">
                     ${st.map(s => `<option value="${s.v}" ${s.v === st[i%st.length].v ? 'selected':''}>${s.n}</option>`).join('')}
@@ -558,7 +607,7 @@
         c.insertAdjacentHTML('beforeend', `
             <div class="trait-card">
                 <button class="btn-trash" style="top: 0; right: 0;" onclick="this.parentElement.remove()"><i class="fa-solid fa-trash"></i></button>
-                <div class="trait-header"><span contenteditable="true" class="oswald" style="color: var(--accent-primary)">${title}</span><span contenteditable="true" class="tech-text" style="color: var(--text-dim)">Условие: Событие</span></div>
+                <div class="trait-header"><span contenteditable="true" class="oswald" style="color: var(--text-main)">${title}</span><span contenteditable="true" class="tech-text" style="color: var(--text-dim)">Условие: Событие</span></div>
                 <div contenteditable="true" style="font-size: 0.8rem; margin-top:4px;">${desc}</div>
             </div>`);
     };
@@ -587,6 +636,7 @@
     window.setRandomFavicon();
     window.renderHealth();
     window.renderSanity();
+    window.renderSin();
     window.renderResistances();
     for(let i=0; i<4; i++) window.addTrait(`АНОМАЛИЯ ${i+1}`);
     window.renderAttributes();
@@ -604,7 +654,6 @@
         apiKey: "AIzaSyDaFNBCW76UsBnziHoGveo7TcC11uAdmqs",
         authDomain: "projectmoonchar.firebaseapp.com",
         projectId: "projectmoonchar",
-        storageBucket: "projectmoonchar.firebasestorage.app",
         messagingSenderId: "516028417887",
         appId: "1:516028417887:web:4c0404f653b09ecffb58ea",
         measurementId: "G-BCWRQYNH5J"
@@ -612,7 +661,7 @@
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    const db = getFirestore(app);
+    const db = getFirestore(app, "default"); // ИЗМЕНЕНИЕ 1: Именованная БД
 
     const allowedDMs = ["tvoi-email@gmail.com", "pochta-druga@gmail.com"]; 
 
@@ -678,6 +727,7 @@
                 html: mainSheet,
                 healthMax: window.healthMax,
                 sanityMax: window.sanityMax,
+                sinMax: window.sinMax,
                 agentName: agentName,
                 ownerEmail: currentUser.email,
                 timestamp: new Date().toISOString()
@@ -707,6 +757,7 @@
                 document.getElementById('main-character-sheet').innerHTML = data.html;
                 window.healthMax = data.healthMax || 10;
                 window.sanityMax = data.sanityMax || 12;
+                window.sinMax = data.sinMax || 5;
                 window.toggleSaveMenu();
             } else {
                 alert("Профиль не найден.");
@@ -740,7 +791,7 @@
                             <div class="oswald" style="color: var(--text-main); font-size: 0.9rem;">${name}</div>
                             <div class="tech-text" style="font-size: 0.65rem;">Игрок: ${owner}</div>
                         </div>
-                        <button class="btn-small" style="border-color: var(--color-cyan); color: var(--color-cyan);" onclick="window.loadSpecificSinner('${uid}')">Открыть</button>
+                        <button class="btn-small" style="border-color: var(--accent-primary); color: var(--accent-primary);" onclick="window.loadSpecificSinner('${uid}')">Открыть</button>
                     </div>
                 `;
             });
