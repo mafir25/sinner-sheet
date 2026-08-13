@@ -178,10 +178,11 @@
                     </select>
                 </div>
 
-                <!-- НОВОЕ ПОЛЕ: Описание персонажа -->
+                <!-- ПОЛЕ: Описание персонажа -->
                 <div class="form-group">
                     <label>ОПИСАНИЕ / ИСТОРИЯ</label>
-                    <textarea id="char-desc" class="cloud-input" placeholder="Краткая информация о персонаже (выводится в Офисе)..." style="min-height: 80px; resize: vertical;"></textarea>
+                    <!-- ДОБАВЛЕН oninput ДЛЯ МГНОВЕННОГО ОБНОВЛЕНИЯ -->
+                    <textarea id="char-desc" class="cloud-input" placeholder="Краткая информация о персонаже (выводится в Офисе)..." oninput="window.updateOutput()" style="min-height: 80px; resize: vertical;"></textarea>
                 </div>
 
                 <div class="form-group">
@@ -432,6 +433,7 @@
             const name = document.getElementById('char-name').value || "БЕЗ ИМЕНИ";
             const raceKey = document.getElementById('char-race').value;
             const classIndex = document.getElementById('char-class').value;
+            const descText = document.getElementById('char-desc').value.trim(); // Чтение описания
             
             let isCustomContent = false; 
 
@@ -447,6 +449,12 @@
             document.getElementById('out-meta').textContent = metaString;
 
             let outputHtml = '';
+
+            // ОТРИСОВКА ОПИСАНИЯ
+            if (descText) {
+                outputHtml += `<div class="block-title" style="color: var(--text-dim); border-color: #333;">БАЗОВАЯ ИНФОРМАЦИЯ</div>`;
+                outputHtml += createOutputBlock("Биография и Описание", descText, null, 'var(--text-dim)');
+            }
 
             if (raceKey) {
                 outputHtml += `<div class="block-title" style="color: var(--color-red); border-color: var(--color-red);">Особенности Расы: ${raceData[raceKey].name}</div>`;
@@ -511,7 +519,7 @@
             const name = document.getElementById('char-name').value;
             const raceKey = document.getElementById('char-race').value;
             const classIndex = document.getElementById('char-class').value;
-            const desc = document.getElementById('char-desc').value; // Чтение описания
+            const desc = document.getElementById('char-desc').value; 
             let className = classIndex !== "" ? window.dbClasses[classIndex].Name : "";
             
             let featNames = [];
@@ -523,7 +531,7 @@
                 characterName: name,
                 race: raceKey,
                 className: className,
-                desc: desc, // Запись описания
+                desc: desc, 
                 feats: featNames
             };
 
@@ -546,7 +554,7 @@
                     
                     document.getElementById('char-name').value = preset.characterName || "";
                     document.getElementById('char-race').value = preset.race || "";
-                    document.getElementById('char-desc').value = preset.desc || ""; // Загрузка описания
+                    document.getElementById('char-desc').value = preset.desc || ""; 
                     
                     if (preset.className) {
                         const cIndex = window.dbClasses.findIndex(c => c.Name === preset.className);
