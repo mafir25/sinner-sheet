@@ -11,7 +11,7 @@
     <style>
         :root {
             --bg-main: #070707; --bg-panel: #000000; 
-            --accent-primary: #45B3CB; /* Меняется динамически */
+            --accent-primary: #45B3CB; 
             --color-red: #C7243A; --color-cyan: #45B3CB; --color-yellow: #F1C40F;
             --text-main: #E0D8C8; --text-dim: #696969;
             --border-width: 1px; --chamfer: 14px;
@@ -27,6 +27,7 @@
 
         h1, h2, h3, h4, .oswald { font-family: 'Oswald', sans-serif; text-transform: uppercase; }
         .tech-text { font-family: 'Inter', sans-serif; color: var(--text-dim); font-size: 0.8rem; }
+        .lore-text { font-family: 'Merriweather', serif; font-style: italic; color: var(--text-dim); font-size: 0.85rem; line-height: 1.5; white-space: pre-wrap;}
 
         /* Навигация */
         .top-nav-btn { position: fixed; top: 10px; left: 20px; padding: 6px 12px; font-size: 0.8rem; border: 1px solid var(--accent-primary); color: var(--accent-primary); font-family: 'Oswald'; z-index: 100; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; cursor: pointer; text-transform: uppercase; transition: 0.2s; }
@@ -50,7 +51,21 @@
         .action-btn { flex: 1; min-width: 200px; padding: 10px; font-size: 0.9rem; font-family: 'Oswald'; cursor: pointer; border: 1px solid var(--accent-primary); color: var(--accent-primary); background: transparent; text-transform: uppercase; transition: 0.2s; text-align: center;}
         .action-btn:hover { background: var(--accent-primary); color: #000; }
 
-        /* Сетка */
+        /* ФИЛЬТРЫ И ПОИСК */
+        .filters-section { width: 100%; max-width: 1200px; margin-bottom: 24px; display: flex; flex-direction: column; gap: 12px; }
+        .search-wrapper { background-color: #222; padding: var(--border-width); transition: background-color 0.2s; }
+        .search-wrapper:focus-within { background-color: var(--accent-primary); }
+        .search-inner { background: rgba(0,0,0,0.7); padding: 0; display: flex; align-items: center; flex-direction: row; }
+        .search-icon { padding-left: 14px; font-size: 0.9rem; color: var(--text-dim); }
+        .search-input { width: 100%; background: transparent; border: none; color: var(--text-main); padding: 8px 14px 8px 10px; font-family: 'Inter', sans-serif; font-size: 0.95rem; outline: none; }
+        
+        .filter-group-title { font-family: 'Oswald', sans-serif; color: var(--accent-primary); font-size: 0.9rem; border-bottom: 1px dashed #333; padding-bottom: 4px; margin-bottom: 4px; margin-top: 8px; }
+        .type-filters { display: flex; flex-wrap: wrap; gap: 8px; }
+        .filter-btn { display: flex; align-items: center; gap: 6px; font-family: 'Oswald', sans-serif; font-size: 0.85rem; text-transform: uppercase; border: 1px solid var(--text-dim); color: var(--text-dim); background: rgba(0,0,0,0.5); padding: 4px 10px; cursor: pointer; transition: 0.2s; border-radius: 2px; }
+        .filter-btn:hover { border-color: var(--text-main); color: var(--text-main); }
+        .filter-btn.active { border-color: var(--accent-primary); color: var(--accent-primary); background: rgba(255, 255, 255, 0.1); }
+
+        /* Сетка Карточек */
         .compendium-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; width: 100%; max-width: 1200px; align-items: start; }
         .compendium-card.expanded { grid-column: 1 / -1; }
 
@@ -62,10 +77,16 @@
         .card-header-clickable { cursor: pointer; position: relative; padding-right: 24px; user-select: none; }
         .expand-icon { position: absolute; right: 0; top: 10px; color: var(--text-dim); transition: transform 0.3s ease; }
         .panel-outer.expanded .expand-icon { transform: rotate(180deg); color: var(--accent-primary); }
-        .class-title { font-size: 1.4rem; color: var(--accent-primary); font-family: 'Oswald'; text-transform: uppercase; margin-bottom: 4px;}
+        
+        .class-title-wrapper { border-bottom: 1px solid #222; padding-bottom: 8px; margin-bottom: 8px;}
+        .class-title { font-size: 1.4rem; color: var(--accent-primary); font-family: 'Oswald'; text-transform: uppercase;}
+        
+        .types-container { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px;}
+        .type-badge { display: flex; align-items: center; gap: 4px; font-family: 'Oswald', sans-serif; font-size: 0.75rem; text-transform: uppercase; border: 1px solid; padding: 2px 6px; border-radius: 2px; background: rgba(0,0,0,0.5); }
 
-        .talents-wrapper { max-height: 0; opacity: 0; overflow: hidden; transition: 0.4s ease; position: relative; }
-        .panel-outer.expanded .talents-wrapper { max-height: 3000px; opacity: 1; margin-top: 12px; border-top: 1px dashed #333; padding-top: 12px; }
+        /* Внутренности карточки (Форматирование) */
+        .talents-wrapper { max-height: 0; opacity: 0; overflow: hidden; transition: max-height 0.4s ease, opacity 0.3s ease; position: relative; }
+        .panel-outer.expanded .talents-wrapper { max-height: 5000px; opacity: 1; margin-top: 12px; border-top: 1px dashed #333; padding-top: 12px; }
 
         .card-content-desc { font-size: 0.9rem; color: var(--text-main); white-space: pre-wrap; line-height: 1.5; }
         .creator-tag { font-size: 0.7rem; color: var(--text-dim); text-align: right; margin-top: 10px; font-style: italic;}
@@ -78,10 +99,20 @@
         .ctrl-del { border-color: var(--color-red); color: var(--color-red); }
         .ctrl-del:hover { background: var(--color-red); color: #fff; }
 
+        /* Специфичное форматирование блоков внутри карточек */
+        .se-block { border-left: 2px solid var(--text-dim); padding-left: 10px; margin-bottom: 8px; margin-top: 8px; background: rgba(255,255,255,0.02); padding: 8px;}
+        .se-block b { color: var(--color-yellow); font-family: 'Oswald'; font-size: 1rem; }
+        .talent-block { border-left: 2px solid var(--accent-primary); padding-left: 10px; margin-bottom: 12px; background: rgba(255,255,255,0.02); padding: 8px;}
+        .talent-block b { color: var(--accent-primary); font-family: 'Oswald'; font-size: 1.1rem; }
+        .stat-grid { display: flex; justify-content: space-between; text-align: center; margin: 12px 0; padding: 12px 0; border-top: 2px solid var(--accent-primary); border-bottom: 2px solid var(--accent-primary); }
+        .stat-col { display: flex; flex-direction: column; width: 16%; }
+        .stat-name { font-family: 'Oswald', sans-serif; color: var(--accent-primary); font-size: 1rem; }
+        .stat-val { font-size: 0.9rem; font-weight: bold; }
+
         /* Модалки */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: flex-start; z-index: 2000; backdrop-filter: blur(4px); padding-top: 50px; overflow-y: auto; }
         .modal-overlay.active { display: flex; }
-        .modal-box { width: 700px; max-width: 95%; position: relative; margin-bottom: 50px; }
+        .modal-box { width: 800px; max-width: 95%; position: relative; margin-bottom: 50px; }
         
         .cloud-input, .cloud-select { width: 100%; background: #111; border: 1px solid #333; color: var(--text-main); padding: 10px; margin-bottom: 12px; outline: none; font-family: 'Inter'; font-size: 0.95rem; }
         .cloud-input:focus, .cloud-select:focus { border-color: var(--accent-primary); }
@@ -93,11 +124,14 @@
         .builder-checkbox-group { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
         .builder-checkbox-label { display: flex; align-items: center; gap: 4px; font-size: 0.85rem; cursor: pointer; color: var(--text-dim); }
         .builder-checkbox-label input { accent-color: var(--accent-primary); }
+        .builder-checkbox-label:hover { color: var(--text-main); }
 
         .b-row { display: flex; gap: 10px; }
-        .b-row .cloud-input { flex: 1; }
+        .b-row .cloud-input, .b-row .cloud-select { flex: 1; }
 
         .b-se-entry { border: 1px solid #333; padding: 12px; margin-bottom: 12px; position: relative; background: rgba(255,255,255,0.02); border-left: 3px solid var(--accent-primary); }
+        .btn-small-bld { background: transparent; border: 1px solid var(--text-dim); color: var(--text-dim); cursor: pointer; padding: 6px 12px; font-size: 0.8rem; text-transform: uppercase; transition: 0.2s; font-family: 'Oswald'; }
+        .btn-small-bld:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
 
     </style>
 </head>
@@ -132,13 +166,19 @@
         </label>
     </div>
 
+    <!-- Блок Фильтров -->
+    <div class="filters-section" id="filters-container">
+        <!-- Генерируется динамически -->
+    </div>
+
+    <!-- Сетка Карточек -->
     <div class="compendium-grid" id="compendium">
         <div class="tech-text" style="grid-column: 1/-1; text-align: center;">ЗАГРУЗКА БАЗЫ ДАННЫХ...</div>
     </div>
 
     <!-- МОДАЛЬНОЕ ОКНО АВТОРИЗАЦИИ -->
     <div class="modal-overlay" id="authModal" onclick="window.closeModalOnBg(event, 'authModal')">
-        <div class="panel-outer cut-tl modal-box" style="width: 400px;">
+        <div class="panel-outer cut-tl modal-box" style="width: 400px; background-color: var(--accent-primary);">
             <div class="panel-inner cut-tl">
                 <button class="btn-close-modal" onclick="window.toggleAuthModal()"><i class="fa-solid fa-xmark"></i></button>
                 <div class="class-title" style="margin-bottom: 20px;">АВТОРИЗАЦИЯ</div>
@@ -152,10 +192,10 @@
 
     <!-- МОДАЛЬНОЕ ОКНО КОНСТРУКТОРА -->
     <div class="modal-overlay" id="builderModal" onclick="window.closeModalOnBg(event, 'builderModal')">
-        <div class="panel-outer cut-tl modal-box">
+        <div class="panel-outer cut-tl modal-box" style="background-color: var(--accent-primary);">
             <div class="panel-inner cut-tl" style="padding-top: 40px;">
                 <button class="btn-close-modal" onclick="window.closeBuilder()"><i class="fa-solid fa-xmark"></i></button>
-                <div class="class-title" id="builder-title" style="margin-bottom: 20px;">КОНСТРУКТОР</div>
+                <div class="class-title" id="builder-title" style="margin-bottom: 20px; border-bottom: 1px solid var(--accent-primary); padding-bottom: 8px;">КОНСТРУКТОР</div>
                 
                 <!-- Контейнер для динамических полей -->
                 <div id="dynamic-form-fields"></div>
@@ -182,18 +222,51 @@
         const auth = getAuth(app);
         const db = getFirestore(app, "default");
 
-        // СПИСОК АДМИНИСТРАТОРОВ (Могут удалять чужие посты)
         const adminEmails = ["tvoi-email@gmail.com", "pochta-druga@gmail.com"];
 
         let currentUser = null;
         let currentMode = 'status';
-        let currentEditId = null; // ID редактируемого документа
-        let dbCache = []; // Все документы коллекции
+        let currentEditId = null; 
+        let dbCache = []; 
 
         const modeTitles = {
             'status': 'СТАТУСЫ', 'class': 'АРХЕТИПЫ', 'feat': 'ЧЕРТЫ', 
             'gift': 'Э.Г.О. ГИФТЫ', 'equip': 'СНАРЯЖЕНИЕ', 'bestiary': 'БЕСТИАРИЙ'
         };
+
+        // --- ДИКТИОНАРИИ И ФИЛЬТРЫ ---
+        const dictTypes = {
+            "Burn": { name: "Огонь", color: "#C7243A" }, "Bleed": { name: "Кровотечение", color: "#E67E22" },
+            "Tremor": { name: "Тремор", color: "#F1C40F" }, "Rupture": { name: "Разрыв", color: "#40E0D0" },
+            "Sinking": { name: "Утопание", color: "#45B3CB" }, "Poise": { name: "Уверенность", color: "#1E3A8A" },
+            "Charge": { name: "Заряд", color: "#9B59B6" }, "Other": { name: "Иное/Другое", color: "#27AE60" }, 
+            "None": { name: "Пустой/Физ.", color: "#696969" }
+        };
+        const dictStats = {
+            "Str": { name: "STR", color: "#C7243A" }, "Dex": { name: "DEX", color: "#45B3CB" },
+            "Con": { name: "CON", color: "#F1C40F" }, "Int": { name: "INT", color: "#1E3A8A" },
+            "Wis": { name: "WIS", color: "#9B59B6" }, "Cha": { name: "CHA", color: "#E67E22" }
+        };
+        const dictFeatBases = {
+            "Background": { name: "Предыстория", color: "#696969" }, "Body": { name: "Тело", color: "#E67E22" }, 
+            "Mind": { name: "Разум", color: "#1E3A8A" }, "Martial Arts": { name: "Боевые искусства", color: "#45B3CB" }, 
+            "Affiliation": { name: "Принадлежность", color: "#F1C40F" }, "Weapon": { name: "Оружие", color: "#C7243A" }, 
+            "Status": { name: "Статус", color: "#8FCC2A" }, "Sin": { name: "Грех", color: "#45B3CB" }, 
+            "Shin and Mang": { name: "Шин и Манг", color: "#D94285" }, "E.G.O Feats": { name: "Черты Э.Г.О.", color: "#27AE60" } 
+        };
+        const dictRarity = {
+            "Common": { name: "Common", color: "#B0B0B0" }, "Uncommon": { name: "Uncommon", color: "#2ECC71" },
+            "Rare": { name: "Rare", color: "#3498DB" }, "Very Rare": { name: "Very Rare", color: "#9B59B6" },
+            "Legendary": { name: "Legendary", color: "#F1C40F" }
+        };
+        const dictBestiaryCats = {
+            "ZAYIN": { name: "ZAYIN", color: "#27AE60" }, "TETH": { name: "TETH", color: "#45B3CB" },
+            "HE": { name: "HE", color: "#F1C40F" }, "WAW": { name: "WAW", color: "#9B59B6" },
+            "ALEPH": { name: "ALEPH", color: "#C7243A" }, "City": { name: "Город", color: "#696969" },
+            "Distortions": { name: "Искажения", color: "#E0D8C8" }
+        };
+
+        let selectedFilters = { types: new Set(), stats: new Set(), bases: new Set(), rarities: new Set(), levels: new Set(), cats: new Set() };
 
         // --- АВТОРИЗАЦИЯ ---
         onAuthStateChanged(auth, (user) => {
@@ -210,7 +283,7 @@
                 btn.innerHTML = '<i class="fa-solid fa-user"></i> ВХОД';
                 btn.onclick = window.toggleAuthModal;
             }
-            renderGrid(); // Перерисовка кнопок редактирования
+            renderGrid(); 
         });
 
         window.toggleAuthModal = () => document.getElementById('authModal').classList.toggle('active');
@@ -239,7 +312,101 @@
             btn.classList.add('active');
             
             document.getElementById('page-title').innerText = `ПОЛЬЗОВАТЕЛЬСКАЯ БАЗА: ${modeTitles[mode]}`;
+            
+            selectedFilters = { types: new Set(), stats: new Set(), bases: new Set(), rarities: new Set(), levels: new Set(), cats: new Set() };
+            renderFilters();
             renderGrid();
+        };
+
+        // --- ФИЛЬТРЫ ---
+        function renderFilters() {
+            const container = document.getElementById('filters-container');
+            let html = `
+                <div class="search-wrapper cut-tl">
+                    <div class="search-inner cut-tl">
+                        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                        <input type="text" id="search-input" class="search-input" placeholder="Поиск по названию или описанию..." onkeyup="window.filterItems()">
+                    </div>
+                </div>
+            `;
+
+            const makeGroup = (title, dict, filterKey) => {
+                let groupHtml = `<div class="filter-group-title">${title}</div><div class="type-filters">`;
+                groupHtml += `<button class="filter-btn ${selectedFilters[filterKey].size === 0 ? 'active' : ''}" onclick="window.clearFilter('${filterKey}')">ВСЕ</button>`;
+                for (const [key, data] of Object.entries(dict)) {
+                    const isActive = selectedFilters[filterKey].has(key) ? 'active' : '';
+                    const style = isActive ? `border-color: ${data.color}; color: ${data.color};` : '';
+                    groupHtml += `<button class="filter-btn ${isActive}" style="${style}" onclick="window.toggleFilter('${filterKey}', '${key}')">${data.name}</button>`;
+                }
+                groupHtml += `</div>`;
+                return groupHtml;
+            };
+
+            if (currentMode === 'class') {
+                html += makeGroup('ТИПЫ ЭФФЕКТОВ', dictTypes, 'types');
+                html += makeGroup('ХАРАКТЕРИСТИКИ', dictStats, 'stats');
+            } else if (currentMode === 'feat') {
+                html += makeGroup('БАЗОВЫЕ КАТЕГОРИИ', dictFeatBases, 'bases');
+            } else if (currentMode === 'gift') {
+                html += makeGroup('ТИПЫ ЭФФЕКТОВ', dictTypes, 'types');
+                let lvlHtml = `<div class="filter-group-title">УРОВЕНЬ</div><div class="type-filters"><button class="filter-btn ${selectedFilters.levels.size === 0 ? 'active' : ''}" onclick="window.clearFilter('levels')">ВСЕ</button>`;
+                [1,2,3,4,5].forEach(l => {
+                    const isActive = selectedFilters.levels.has(l.toString()) ? 'active' : '';
+                    lvlHtml += `<button class="filter-btn ${isActive}" onclick="window.toggleFilter('levels', '${l}')">Ур. ${l}</button>`;
+                });
+                html += lvlHtml + `</div>`;
+            } else if (currentMode === 'equip') {
+                html += makeGroup('ТИПЫ ЭФФЕКТОВ (ДЛЯ ОРУЖИЯ)', dictTypes, 'types');
+                html += makeGroup('СКАЕЙЛИНГ', dictStats, 'stats');
+                html += makeGroup('РЕДКОСТЬ', dictRarity, 'rarities');
+            } else if (currentMode === 'bestiary') {
+                html += makeGroup('УРОВЕНЬ УГРОЗЫ', dictBestiaryCats, 'cats');
+            }
+
+            container.innerHTML = html;
+        }
+
+        window.toggleFilter = (filterKey, val) => {
+            if (selectedFilters[filterKey].has(val)) selectedFilters[filterKey].delete(val);
+            else selectedFilters[filterKey].add(val);
+            renderFilters();
+            window.filterItems();
+        };
+
+        window.clearFilter = (filterKey) => {
+            selectedFilters[filterKey].clear();
+            renderFilters();
+            window.filterItems();
+        };
+
+        window.filterItems = () => {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            document.querySelectorAll('.compendium-card').forEach(card => {
+                const name = (card.getAttribute('data-name') || '').toLowerCase();
+                const desc = (card.getAttribute('data-desc') || '').toLowerCase();
+                
+                const cTypes = (card.getAttribute('data-types') || '').split(',');
+                const cStats = (card.getAttribute('data-stats') || '').split(',');
+                const cBases = (card.getAttribute('data-bases') || '').split(',');
+                const cRarity = card.getAttribute('data-rarity') || '';
+                const cLevel = card.getAttribute('data-level') || '';
+                const cCats = (card.getAttribute('data-cats') || '').split(',');
+
+                const matchQ = name.includes(query) || desc.includes(query);
+                
+                const matchType = selectedFilters.types.size === 0 || cTypes.some(t => selectedFilters.types.has(t));
+                const matchStat = selectedFilters.stats.size === 0 || [...selectedFilters.stats].every(s => cStats.includes(s));
+                const matchBase = selectedFilters.bases.size === 0 || cBases.some(b => selectedFilters.bases.has(b));
+                const matchRarity = selectedFilters.rarities.size === 0 || selectedFilters.rarities.has(cRarity);
+                const matchLevel = selectedFilters.levels.size === 0 || selectedFilters.levels.has(cLevel);
+                const matchCat = selectedFilters.cats.size === 0 || cCats.some(c => selectedFilters.cats.has(c));
+
+                if (matchQ && matchType && matchStat && matchBase && matchRarity && matchLevel && matchCat) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
         };
 
         // --- ЗАГРУЗКА БАЗЫ ИЗ FIRESTORE ---
@@ -250,10 +417,21 @@
                 querySnapshot.forEach((docSnap) => {
                     dbCache.push({ id: docSnap.id, ...docSnap.data() });
                 });
+                renderFilters();
                 renderGrid();
             } catch (e) {
                 document.getElementById('compendium').innerHTML = '<div class="tech-text" style="color: var(--color-red); grid-column:1/-1; text-align:center;">ОШИБКА ДОСТУПА К БАЗЕ</div>';
             }
+        }
+
+        function createBadges(arr, dict) {
+            if (!arr || !Array.isArray(arr)) return '';
+            let html = '';
+            arr.forEach(val => {
+                const conf = dict[val] || {name: val, color: 'var(--text-dim)'};
+                html += `<div class="type-badge" style="color: ${conf.color}; border-color: ${conf.color};">${conf.name}</div>`;
+            });
+            return html;
         }
 
         // --- ГЕНЕРАЦИЯ КАРТОЧЕК ---
@@ -281,45 +459,86 @@
                     `;
                 }
 
-                // Форматирование вывода в зависимости от режима
                 const d = item.data;
                 let descHtml = '';
-                
+                let badgesHtml = '';
+                let metaString = '';
+
+                // Дата-атрибуты для фильтрации
+                let dTypes = (d.Type || []).join(',');
+                let dStats = (d.Stats || []).join(',');
+                let dBases = (d.Base || []).join(',');
+                let dRarity = d.Rarity || '';
+                let dLevel = d.Level || '';
+                let dCats = (d.Category || []).join(',');
+                let fullDesc = '';
+
                 if (currentMode === 'status') {
+                    fullDesc = d.Effect || '';
                     descHtml = `<div><b>Эффект:</b><br>${d.Effect}</div>`;
                     if (d.SideEffects && d.SideEffects.length > 0) {
-                        descHtml += `<br><b>Сайд-эффекты:</b><br>` + d.SideEffects.map(se => `- <i>${se.sideeffectname}</i>: ${se.sideeffect}`).join('<br>');
+                        descHtml += d.SideEffects.map(se => `<div class="se-block"><b>${se.sideeffectname}</b><br>${se.sideeffect}</div>`).join('');
+                        fullDesc += ' ' + d.SideEffects.map(se => se.sideeffectname + ' ' + se.sideeffect).join(' ');
                     }
                 } 
                 else if (currentMode === 'class') {
-                    descHtml = `<div><b>Типы:</b> ${d.Type?.join(', ')} | <b>Статы:</b> ${d.Stats?.join(', ')}</div><br>`;
-                    if (d.Talents) descHtml += d.Talents.map(t => `<b>[Ур. ${t.level}] ${t.name}:</b> ${t.desc}`).join('<br><br>');
+                    badgesHtml += createBadges(d.Type, dictTypes) + createBadges(d.Stats, dictStats);
+                    if (d.Talents) {
+                        descHtml += d.Talents.map(t => `<div class="talent-block" style="border-left-color:${t.Color||'var(--accent-primary)'}"><b>[Ур. ${t.level}] ${t.name}</b><br>${t.desc}</div>`).join('');
+                        fullDesc = d.Talents.map(t => t.name + ' ' + t.desc).join(' ');
+                    }
                 }
                 else if (currentMode === 'feat') {
-                    descHtml = (d.Need ? `<div><b>Требования:</b> ${d.Need}</div>` : '') + `<div><b>Категории:</b> ${d.Base?.join(', ')}</div><br><div>${d.desc}</div>`;
+                    badgesHtml += createBadges(d.Base, dictFeatBases);
+                    if(d.Need) descHtml += `<div class="tech-text" style="color:var(--color-red); margin-bottom:8px;">ТРЕБОВАНИЯ: ${d.Need}</div>`;
+                    descHtml += `<div>${d.desc}</div>`;
+                    fullDesc = d.desc || '';
                 }
                 else if (currentMode === 'gift') {
-                    descHtml = `<div><b>Уровень:</b> ${d.Level} | <b>Типы:</b> ${d.Type?.join(', ')}</div><br><div>${d.Description}</div>`;
+                    metaString = `УРОВЕНЬ ${d.Level}`;
+                    badgesHtml += createBadges(d.Type, dictTypes);
+                    descHtml = `<div>${d.Description}</div>`;
+                    fullDesc = d.Description || '';
                 }
                 else if (currentMode === 'equip') {
-                    descHtml = `<div><b>Уровень:</b> ${d.Level} | <b>Редкость:</b> ${d.Rarity} | <b>Тип:</b> ${d.ItemType}</div>
-                                <div><b>Скейлинг:</b> ${d.Stats?.join(', ')}</div>` + 
-                                (d.Need ? `<div><b>Требования:</b> ${d.Need}</div>` : '') + `<br><div>${d.Desc}</div>`;
+                    metaString = `УР. ${d.Level} | ${d.Rarity} | ${d.ItemType}`;
+                    if(d.IsEGO) badgesHtml += `<div class="type-badge" style="color:#D94285; border-color:#D94285;">Э.Г.О.</div>`;
+                    badgesHtml += createBadges(d.Type, dictTypes) + createBadges(d.Stats, dictStats);
+                    if(d.Need) descHtml += `<div class="tech-text" style="color:var(--color-red); margin-bottom:8px;">ТРЕБОВАНИЯ: ${d.Need}</div>`;
+                    descHtml += `<div>${d.Desc}</div>`;
+                    fullDesc = d.Desc || '';
                 }
                 else if (currentMode === 'bestiary') {
-                    descHtml = `<div><b>Категории:</b> ${d.Category?.join(', ')} | <b>Мета:</b> ${d.Meta}</div>
-                                <div><b>КД:</b> ${d.ArmorClass} | <b>ХП:</b> ${d.HitPoints} | <b>Скорость:</b> ${d.Speed}</div>
-                                <div><b>Статы:</b> STR ${d.Stats?.STR}, DEX ${d.Stats?.DEX}, CON ${d.Stats?.CON}, INT ${d.Stats?.INT}, WIS ${d.Stats?.WIS}, CHA ${d.Stats?.CHA}</div>
-                                <br><div>${d.Lore}</div>`;
+                    metaString = d.Meta || '';
+                    badgesHtml += createBadges(d.Category, dictBestiaryCats);
+                    descHtml = `<div style="margin-bottom:10px;"><b>КД:</b> ${d.ArmorClass} | <b>ХП:</b> ${d.HitPoints} | <b>Скорость:</b> ${d.Speed}</div>`;
+                    descHtml += `<div class="stat-grid">
+                        <div class="stat-col"><span class="stat-name">STR</span><span class="stat-val">${d.Stats?.STR}</span></div>
+                        <div class="stat-col"><span class="stat-name">DEX</span><span class="stat-val">${d.Stats?.DEX}</span></div>
+                        <div class="stat-col"><span class="stat-name">CON</span><span class="stat-val">${d.Stats?.CON}</span></div>
+                        <div class="stat-col"><span class="stat-name">INT</span><span class="stat-val">${d.Stats?.INT}</span></div>
+                        <div class="stat-col"><span class="stat-name">WIS</span><span class="stat-val">${d.Stats?.WIS}</span></div>
+                        <div class="stat-col"><span class="stat-name">CHA</span><span class="stat-val">${d.Stats?.CHA}</span></div>
+                    </div>`;
+                    
+                    if (d.Traits) descHtml += `<div class="tech-text" style="color:var(--color-yellow); margin-top:10px;">ОСОБЕННОСТИ</div>` + d.Traits.map(t => `<div style="margin-bottom:6px;"><b>${t.name}.</b> ${t.desc}</div>`).join('');
+                    if (d.Actions) descHtml += `<div class="tech-text" style="color:var(--color-red); margin-top:10px;">ДЕЙСТВИЯ</div>` + d.Actions.map(a => `<div style="margin-bottom:6px;"><b>${a.name}.</b> ${a.desc}</div>`).join('');
+                    if (d.Lore) descHtml += `<div class="lore-text" style="margin-top:10px; border-top:1px dashed #333; padding-top:10px;">${d.Lore}</div>`;
+                    
+                    fullDesc = (d.Traits?d.Traits.map(t=>t.desc).join(' '):'') + ' ' + (d.Actions?d.Actions.map(a=>a.desc).join(' '):'') + ' ' + (d.Lore||'');
                 }
 
                 html += `
-                    <div class="panel-outer cut-tl compendium-card">
+                    <div class="panel-outer cut-tl compendium-card" data-name="${d.Name||d.characterName||''}" data-desc="${fullDesc}" data-types="${dTypes}" data-stats="${dStats}" data-bases="${dBases}" data-rarity="${dRarity}" data-level="${dLevel}" data-cats="${dCats}">
                         <div class="hazard-tape"></div>
                         <div class="panel-inner cut-tl" style="border-top: none;">
                             <div class="card-header-clickable" onclick="this.closest('.panel-outer').classList.toggle('expanded')">
                                 <i class="fa-solid fa-chevron-down expand-icon"></i>
-                                <div class="class-title">${d.Name || d.characterName || 'Без названия'}</div>
+                                <div class="class-title-wrapper">
+                                    ${metaString ? `<div class="tech-text" style="margin-bottom:2px;">${metaString}</div>` : ''}
+                                    <div class="class-title">${d.Name || d.characterName || 'Без названия'}</div>
+                                </div>
+                                ${badgesHtml ? `<div class="types-container">${badgesHtml}</div>` : ''}
                             </div>
                             <div class="talents-wrapper">
                                 <div class="card-content-desc">${descHtml}</div>
@@ -343,7 +562,7 @@
             } catch(e) { alert("Ошибка удаления."); }
         };
 
-        // --- КОНСТРУКТОР ---
+        // --- ДИНАМИЧЕСКИЙ КОНСТРУКТОР ---
         window.openBuilder = () => {
             if (!currentUser) return alert("Для создания контента необходимо авторизоваться.");
             currentEditId = null;
@@ -363,33 +582,129 @@
             document.getElementById('builderModal').classList.add('active');
         };
 
-        // Генерация полей в зависимости от режима (упрощенная версия для сохранения пространства)
+        function getChecks(dict, groupClass, selectedArr = []) {
+            let h = `<div class="builder-checkbox-group">`;
+            for (const [key, data] of Object.entries(dict)) {
+                const checked = selectedArr.includes(key) ? 'checked' : '';
+                h += `<label class="builder-checkbox-label"><input type="checkbox" class="${groupClass}" value="${key}" ${checked}> ${data.name}</label>`;
+            }
+            h += `</div>`;
+            return h;
+        }
+
         function renderBuilderForm(data = {}) {
             const container = document.getElementById('dynamic-form-fields');
-            let html = `<input type="text" id="bf-name" class="cloud-input" placeholder="Название (Name)" value="${data.Name || ''}">`;
+            let html = `<div class="tech-text" style="margin-bottom:4px;">НАЗВАНИЕ (NAME)</div><input type="text" id="bf-name" class="cloud-input" placeholder="Название..." value="${data.Name || ''}">`;
 
             if (currentMode === 'status') {
-                html += `<textarea id="bf-effect" class="cloud-input" placeholder="Основной эффект">${data.Effect || ''}</textarea>`;
-                html += `<textarea id="bf-side" class="cloud-input" placeholder="Сайд эффекты (Формат JSON: [{'sideeffectname':'Имя','sideeffect':'Текст'}])">${data.SideEffects ? JSON.stringify(data.SideEffects) : ''}</textarea>`;
+                html += `<div class="tech-text" style="margin-bottom:4px;">ЭФФЕКТ (EFFECT)</div><textarea id="bf-effect" class="cloud-input" placeholder="Основной эффект">${data.Effect || ''}</textarea>`;
+                html += `<div style="display:flex; justify-content:space-between; align-items:flex-end; border-bottom:1px solid #333; padding-bottom:8px; margin-bottom:12px;">
+                            <div class="tech-text" style="color:var(--color-yellow);">САЙД-ЭФФЕКТЫ</div>
+                            <button class="btn-small-bld" onclick="window.addBItem('bf-side-container', 'sideeffect')">+ ДОБАВИТЬ</button>
+                         </div><div id="bf-side-container"></div>`;
             } 
-            else if (currentMode === 'feat') {
-                html += `<input type="text" id="bf-need" class="cloud-input" placeholder="Требования" value="${data.Need || ''}">`;
-                html += `<input type="text" id="bf-base" class="cloud-input" placeholder="Категории (через запятую)" value="${data.Base ? data.Base.join(',') : ''}">`;
-                html += `<textarea id="bf-desc" class="cloud-input" placeholder="Описание">${data.desc || ''}</textarea>`;
+            else if (currentMode === 'class') {
+                html += `<div class="tech-text" style="margin-bottom:4px;">ТИПЫ УРОНА/СТАТУСА</div>` + getChecks(dictTypes, 'b-type-check', data.Type);
+                html += `<div class="tech-text" style="margin-bottom:4px;">ХАРАКТЕРИСТИКИ</div>` + getChecks(dictStats, 'b-stat-check', data.Stats);
+                html += `<div style="display:flex; justify-content:space-between; align-items:flex-end; border-bottom:1px solid #333; padding-bottom:8px; margin-bottom:12px;">
+                            <div class="tech-text" style="color:var(--color-yellow);">ТАЛАНТЫ</div>
+                            <button class="btn-small-bld" onclick="window.addBItem('bf-talent-container', 'talent')">+ ДОБАВИТЬ</button>
+                         </div><div id="bf-talent-container"></div>`;
             }
-            else {
-                // Универсальное JSON поле для сложных структур (Классы, Бестиарий, Эквип, Гифты)
-                // Для упрощения UI в едином файле используется прямой ввод JSON свойств
-                html += `<div class="tech-text" style="margin-bottom:8px;">Остальные параметры (JSON формат)</div>`;
-                
-                let restData = { ...data };
-                delete restData.Name;
-                
-                html += `<textarea id="bf-json" class="cloud-input" style="min-height: 300px; font-family: monospace;">${Object.keys(restData).length > 0 ? JSON.stringify(restData, null, 2) : '{\n  \n}'}</textarea>`;
+            else if (currentMode === 'feat') {
+                html += `<div class="tech-text" style="margin-bottom:4px;">ТРЕБОВАНИЯ</div><input type="text" id="bf-need" class="cloud-input" placeholder="Например: Сила 15" value="${data.Need || ''}">`;
+                html += `<div class="tech-text" style="margin-bottom:4px;">КАТЕГОРИИ</div>` + getChecks(dictFeatBases, 'b-base-check', data.Base);
+                html += `<div class="tech-text" style="margin-bottom:4px;">ОПИСАНИЕ</div><textarea id="bf-desc" class="cloud-input" placeholder="Описание черты...">${data.desc || ''}</textarea>`;
+            }
+            else if (currentMode === 'gift') {
+                html += `<div class="tech-text" style="margin-bottom:4px;">УРОВЕНЬ</div><select id="bf-level" class="cloud-select">`;
+                [1,2,3,4,5].forEach(l => html += `<option value="${l}" ${data.Level == l ? 'selected' : ''}>Уровень ${l}</option>`);
+                html += `</select>`;
+                html += `<div class="tech-text" style="margin-bottom:4px;">ТИПЫ УРОНА/СТАТУСА</div>` + getChecks(dictTypes, 'b-type-check', data.Type);
+                html += `<div class="tech-text" style="margin-bottom:4px;">ОПИСАНИЕ</div><textarea id="bf-desc" class="cloud-input" placeholder="Описание гифта...">${data.Description || ''}</textarea>`;
+            }
+            else if (currentMode === 'equip') {
+                html += `<div class="b-row">
+                            <div style="flex:1;"><div class="tech-text" style="margin-bottom:4px;">УРОВЕНЬ</div><input type="number" id="bf-level" class="cloud-input" value="${data.Level || 1}" min="1"></div>
+                            <div style="flex:1;"><div class="tech-text" style="margin-bottom:4px;">ТИП ПРЕДМЕТА</div><select id="bf-itemtype" class="cloud-select">
+                                <option value="Weapon" ${data.ItemType=='Weapon'?'selected':''}>Оружие</option>
+                                <option value="Armor" ${data.ItemType=='Armor'?'selected':''}>Броня</option>
+                                <option value="Mod" ${data.ItemType=='Mod'?'selected':''}>Мод/Аугмент</option>
+                            </select></div>
+                            <div style="flex:1;"><div class="tech-text" style="margin-bottom:4px;">РЕДКОСТЬ</div><select id="bf-rarity" class="cloud-select">
+                                ${Object.keys(dictRarity).map(k => `<option value="${k}" ${data.Rarity==k?'selected':''}>${k}</option>`).join('')}
+                            </select></div>
+                         </div>`;
+                html += `<div class="builder-checkbox-group"><label class="builder-checkbox-label"><input type="checkbox" id="bf-isego" ${data.IsEGO?'checked':''}> Является Э.Г.О. экипировкой</label></div>`;
+                html += `<div class="tech-text" style="margin-bottom:4px;">ТРЕБОВАНИЯ</div><input type="text" id="bf-need" class="cloud-input" placeholder="Например: Сила 15" value="${data.Need || ''}">`;
+                html += `<div class="tech-text" style="margin-bottom:4px;">ТИПЫ УРОНА (ДЛЯ ОРУЖИЯ)</div>` + getChecks(dictTypes, 'b-type-check', data.Type);
+                html += `<div class="tech-text" style="margin-bottom:4px;">СКАЕЙЛИНГ</div>` + getChecks(dictStats, 'b-stat-check', data.Stats);
+                html += `<div class="tech-text" style="margin-bottom:4px;">ОПИСАНИЕ</div><textarea id="bf-desc" class="cloud-input">${data.Desc || ''}</textarea>`;
+            }
+            else if (currentMode === 'bestiary') {
+                html += `<div class="tech-text" style="margin-bottom:4px;">МЕТА (Например: Средняя нежить, хаотично-злая)</div><input type="text" id="bf-meta" class="cloud-input" value="${data.Meta || ''}">`;
+                html += `<div class="tech-text" style="margin-bottom:4px;">УРОВЕНЬ УГРОЗЫ</div>` + getChecks(dictBestiaryCats, 'b-cat-check', data.Category);
+                html += `<div class="b-row">
+                            <div style="flex:1;"><div class="tech-text">КД (AC)</div><input type="text" id="bf-ac" class="cloud-input" value="${data.ArmorClass || ''}"></div>
+                            <div style="flex:1;"><div class="tech-text">ХП (HP)</div><input type="text" id="bf-hp" class="cloud-input" value="${data.HitPoints || ''}"></div>
+                            <div style="flex:1;"><div class="tech-text">СКОРОСТЬ</div><input type="text" id="bf-speed" class="cloud-input" value="${data.Speed || ''}"></div>
+                         </div>`;
+                const st = data.Stats || {};
+                html += `<div class="b-row">
+                            <div style="flex:1;"><div class="tech-text">STR</div><input type="text" id="bf-str" class="cloud-input" value="${st.STR || '10 (+0)'}"></div>
+                            <div style="flex:1;"><div class="tech-text">DEX</div><input type="text" id="bf-dex" class="cloud-input" value="${st.DEX || '10 (+0)'}"></div>
+                            <div style="flex:1;"><div class="tech-text">CON</div><input type="text" id="bf-con" class="cloud-input" value="${st.CON || '10 (+0)'}"></div>
+                            <div style="flex:1;"><div class="tech-text">INT</div><input type="text" id="bf-int" class="cloud-input" value="${st.INT || '10 (+0)'}"></div>
+                            <div style="flex:1;"><div class="tech-text">WIS</div><input type="text" id="bf-wis" class="cloud-input" value="${st.WIS || '10 (+0)'}"></div>
+                            <div style="flex:1;"><div class="tech-text">CHA</div><input type="text" id="bf-cha" class="cloud-input" value="${st.CHA || '10 (+0)'}"></div>
+                         </div>`;
+                html += `<div style="display:flex; justify-content:space-between; align-items:flex-end; border-bottom:1px solid #333; padding-bottom:8px; margin-bottom:12px; margin-top:12px;">
+                            <div class="tech-text" style="color:var(--color-yellow);">ОСОБЕННОСТИ (TRAITS)</div>
+                            <button class="btn-small-bld" onclick="window.addBItem('bf-traits-container', 'trait')">+ ДОБАВИТЬ</button>
+                         </div><div id="bf-traits-container"></div>`;
+                html += `<div style="display:flex; justify-content:space-between; align-items:flex-end; border-bottom:1px solid #333; padding-bottom:8px; margin-bottom:12px; margin-top:12px;">
+                            <div class="tech-text" style="color:var(--color-red);">ДЕЙСТВИЯ (ACTIONS)</div>
+                            <button class="btn-small-bld" onclick="window.addBItem('bf-actions-container', 'action')">+ ДОБАВИТЬ</button>
+                         </div><div id="bf-actions-container"></div>`;
+                html += `<div class="tech-text" style="margin-bottom:4px; margin-top:12px;">ЛОР И ОПИСАНИЕ</div><textarea id="bf-lore" class="cloud-input">${data.Lore || ''}</textarea>`;
             }
 
             container.innerHTML = html;
+
+            // Заполнение динамических списков при редактировании
+            if (currentMode === 'status' && data.SideEffects) {
+                data.SideEffects.forEach(se => window.addBItem('bf-side-container', 'sideeffect', se.sideeffectname, se.sideeffect));
+            }
+            if (currentMode === 'class' && data.Talents) {
+                data.Talents.forEach(t => window.addBItem('bf-talent-container', 'talent', t.name, t.desc, t.level, t.Color||t.color));
+            }
+            if (currentMode === 'bestiary') {
+                if (data.Traits) data.Traits.forEach(t => window.addBItem('bf-traits-container', 'trait', t.name, t.desc));
+                if (data.Actions) data.Actions.forEach(a => window.addBItem('bf-actions-container', 'action', a.name, a.desc));
+            }
         }
+
+        // Универсальное добавление элементов списка
+        window.addBItem = (containerId, type, v1='', v2='', v3='1', v4='') => {
+            const container = document.getElementById(containerId);
+            let html = '';
+            if (type === 'sideeffect') {
+                html = `<div class="b-se-entry"><button class="btn-small-bld" style="position:absolute; right:12px; top:12px; border-color:var(--color-red); color:var(--color-red);" onclick="this.parentElement.remove()"><i class="fa-solid fa-trash"></i></button>
+                        <input type="text" class="cloud-input ci-1" style="width:calc(100% - 40px);" placeholder="Название" value="${v1}">
+                        <textarea class="cloud-input ci-2" placeholder="Описание" style="min-height:50px; margin-bottom:0;">${v2}</textarea></div>`;
+            } else if (type === 'talent') {
+                html = `<div class="b-se-entry"><button class="btn-small-bld" style="position:absolute; right:12px; top:12px; border-color:var(--color-red); color:var(--color-red);" onclick="this.parentElement.remove()"><i class="fa-solid fa-trash"></i></button>
+                        <div class="b-row" style="width:calc(100% - 40px);"><input type="text" class="cloud-input ci-1" style="flex:2;" placeholder="Название" value="${v1}">
+                        <input type="number" class="cloud-input ci-3" style="flex:1;" placeholder="Ур." value="${v3}">
+                        <input type="text" class="cloud-input ci-4" style="flex:1;" placeholder="HEX Цвет" value="${v4}"></div>
+                        <textarea class="cloud-input ci-2" placeholder="Описание" style="min-height:50px; margin-bottom:0;">${v2}</textarea></div>`;
+            } else if (type === 'trait' || type === 'action') {
+                html = `<div class="b-se-entry"><button class="btn-small-bld" style="position:absolute; right:12px; top:12px; border-color:var(--color-red); color:var(--color-red);" onclick="this.parentElement.remove()"><i class="fa-solid fa-trash"></i></button>
+                        <input type="text" class="cloud-input ci-1" style="width:calc(100% - 40px);" placeholder="Название" value="${v1}">
+                        <textarea class="cloud-input ci-2" placeholder="Описание" style="min-height:50px; margin-bottom:0;">${v2}</textarea></div>`;
+            }
+            container.insertAdjacentHTML('beforeend', html);
+        };
 
         window.saveEntry = async () => {
             const name = document.getElementById('bf-name').value.trim();
@@ -397,25 +712,63 @@
 
             let saveData = { Name: name };
 
-            try {
-                if (currentMode === 'status') {
-                    saveData.Effect = document.getElementById('bf-effect').value;
-                    const seVal = document.getElementById('bf-side').value;
-                    saveData.SideEffects = seVal ? JSON.parse(seVal) : [];
-                } 
-                else if (currentMode === 'feat') {
-                    saveData.Need = document.getElementById('bf-need').value || null;
-                    const baseVal = document.getElementById('bf-base').value;
-                    saveData.Base = baseVal ? baseVal.split(',').map(s=>s.trim()) : [];
-                    saveData.desc = document.getElementById('bf-desc').value;
-                }
-                else {
-                    const jsonStr = document.getElementById('bf-json').value;
-                    const parsed = JSON.parse(jsonStr);
-                    saveData = { ...saveData, ...parsed };
-                }
-            } catch(e) {
-                return alert("Ошибка формата JSON в дополнительных полях.");
+            if (currentMode === 'status') {
+                saveData.Effect = document.getElementById('bf-effect').value;
+                saveData.SideEffects = [];
+                document.querySelectorAll('#bf-side-container .b-se-entry').forEach(el => {
+                    saveData.SideEffects.push({ sideeffectname: el.querySelector('.ci-1').value, sideeffect: el.querySelector('.ci-2').value });
+                });
+            } 
+            else if (currentMode === 'class') {
+                saveData.Type = Array.from(document.querySelectorAll('.b-type-check:checked')).map(c=>c.value);
+                saveData.Stats = Array.from(document.querySelectorAll('.b-stat-check:checked')).map(c=>c.value);
+                saveData.Talents = [];
+                document.querySelectorAll('#bf-talent-container .b-se-entry').forEach(el => {
+                    saveData.Talents.push({ name: el.querySelector('.ci-1').value, desc: el.querySelector('.ci-2').value, level: parseInt(el.querySelector('.ci-3').value)||1, Color: el.querySelector('.ci-4').value });
+                });
+            }
+            else if (currentMode === 'feat') {
+                const nv = document.getElementById('bf-need').value.trim();
+                saveData.Need = nv !== "" ? nv : null;
+                saveData.Base = Array.from(document.querySelectorAll('.b-base-check:checked')).map(c=>c.value);
+                saveData.desc = document.getElementById('bf-desc').value;
+            }
+            else if (currentMode === 'gift') {
+                saveData.Level = parseInt(document.getElementById('bf-level').value) || 1;
+                saveData.Type = Array.from(document.querySelectorAll('.b-type-check:checked')).map(c=>c.value);
+                saveData.Description = document.getElementById('bf-desc').value;
+            }
+            else if (currentMode === 'equip') {
+                saveData.Level = parseInt(document.getElementById('bf-level').value) || 1;
+                saveData.ItemType = document.getElementById('bf-itemtype').value;
+                saveData.Rarity = document.getElementById('bf-rarity').value;
+                saveData.IsEGO = document.getElementById('bf-isego').checked;
+                const nv = document.getElementById('bf-need').value.trim();
+                saveData.Need = nv !== "" ? nv : null;
+                saveData.Type = Array.from(document.querySelectorAll('.b-type-check:checked')).map(c=>c.value);
+                saveData.Stats = Array.from(document.querySelectorAll('.b-stat-check:checked')).map(c=>c.value);
+                saveData.Desc = document.getElementById('bf-desc').value;
+            }
+            else if (currentMode === 'bestiary') {
+                saveData.Meta = document.getElementById('bf-meta').value;
+                saveData.Category = Array.from(document.querySelectorAll('.b-cat-check:checked')).map(c=>c.value);
+                saveData.ArmorClass = document.getElementById('bf-ac').value;
+                saveData.HitPoints = document.getElementById('bf-hp').value;
+                saveData.Speed = document.getElementById('bf-speed').value;
+                saveData.Stats = {
+                    STR: document.getElementById('bf-str').value, DEX: document.getElementById('bf-dex').value,
+                    CON: document.getElementById('bf-con').value, INT: document.getElementById('bf-int').value,
+                    WIS: document.getElementById('bf-wis').value, CHA: document.getElementById('bf-cha').value
+                };
+                saveData.Traits = [];
+                document.querySelectorAll('#bf-traits-container .b-se-entry').forEach(el => {
+                    saveData.Traits.push({ name: el.querySelector('.ci-1').value, desc: el.querySelector('.ci-2').value });
+                });
+                saveData.Actions = [];
+                document.querySelectorAll('#bf-actions-container .b-se-entry').forEach(el => {
+                    saveData.Actions.push({ name: el.querySelector('.ci-1').value, desc: el.querySelector('.ci-2').value });
+                });
+                saveData.Lore = document.getElementById('bf-lore').value;
             }
 
             const payload = {
@@ -434,7 +787,7 @@
                 }
                 window.closeBuilder();
                 loadDatabase();
-            } catch(e) { alert("Ошибка сохранения в базу данных."); }
+            } catch(e) { alert("Ошибка сохранения в базу данных. Проверьте правила Firestore."); }
         };
 
         // --- ЗАГРУЗКА JSON ФАЙЛОВ ---
