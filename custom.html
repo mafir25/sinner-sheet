@@ -79,35 +79,42 @@
         .panel-outer.expanded .expand-icon { transform: rotate(180deg); color: var(--accent-primary); }
         
         .class-title-wrapper { border-bottom: 1px solid #222; padding-bottom: 8px; margin-bottom: 8px;}
-        .class-title { font-size: 1.4rem; color: var(--accent-primary); font-family: 'Oswald'; text-transform: uppercase;}
+        .class-title { font-size: 1.4rem; color: var(--accent-primary); font-family: 'Oswald'; text-transform: uppercase; margin-bottom: 4px;}
         
         .types-container { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px;}
         .type-badge { display: flex; align-items: center; gap: 4px; font-family: 'Oswald', sans-serif; font-size: 0.75rem; text-transform: uppercase; border: 1px solid; padding: 2px 6px; border-radius: 2px; background: rgba(0,0,0,0.5); }
 
-        /* Внутренности карточки (Форматирование) */
+        /* Внутренности карточки */
         .talents-wrapper { max-height: 0; opacity: 0; overflow: hidden; transition: max-height 0.4s ease, opacity 0.3s ease; position: relative; }
         .panel-outer.expanded .talents-wrapper { max-height: 5000px; opacity: 1; margin-top: 12px; border-top: 1px dashed #333; padding-top: 12px; }
 
         .card-content-desc { font-size: 0.9rem; color: var(--text-main); white-space: pre-wrap; line-height: 1.5; }
         .creator-tag { font-size: 0.7rem; color: var(--text-dim); text-align: right; margin-top: 10px; font-style: italic;}
 
-        /* Управление карточкой (Редакт/Удалить) */
-        .card-controls { display: flex; gap: 8px; margin-top: 12px; border-top: 1px solid #222; padding-top: 12px; }
+        /* Сворачиваемые под-блоки (Сайд-эффекты, Таланты, Действия) */
+        .side-effect-block { margin-bottom: 12px; border-left: 2px solid var(--text-dim); padding: 8px 10px; cursor: pointer; position: relative; transition: 0.2s; background: rgba(255,255,255,0.02); }
+        .side-effect-block:hover { border-color: var(--accent-primary); background: rgba(255,255,255,0.05); }
+        .se-header { display: flex; justify-content: space-between; align-items: center; }
+        .se-name { font-family: 'Oswald', sans-serif; font-size: 1.1rem; color: var(--accent-primary); transition: 0.2s; }
+        .se-collapse-icon { color: var(--text-dim); font-size: 0.8rem; transition: transform 0.3s; margin-right: 8px; }
+        .side-effect-block.collapsed .se-collapse-icon { transform: rotate(-90deg); }
+        .se-desc-wrapper { display: grid; grid-template-rows: 1fr; transition: grid-template-rows 0.3s ease; margin-top: 6px; }
+        .side-effect-block.collapsed .se-desc-wrapper { grid-template-rows: 0fr; margin-top: 0; }
+        .se-desc { overflow: hidden; font-size: 0.9rem; color: var(--text-main); line-height: 1.5; white-space: pre-wrap; }
+
+        /* Управление карточкой (Редакт/Удалить/Копировать) */
+        .card-controls { display: flex; gap: 8px; margin-top: 12px; border-top: 1px solid #222; padding-top: 12px; flex-wrap: wrap; }
         .ctrl-btn { flex: 1; background: transparent; border: 1px solid; padding: 6px; font-size: 0.75rem; font-family: 'Oswald'; cursor: pointer; text-transform: uppercase; transition: 0.2s;}
         .ctrl-edit { border-color: var(--color-yellow); color: var(--color-yellow); }
         .ctrl-edit:hover { background: var(--color-yellow); color: #000; }
         .ctrl-del { border-color: var(--color-red); color: var(--color-red); }
         .ctrl-del:hover { background: var(--color-red); color: #fff; }
+        .ctrl-copy { border-color: var(--color-cyan); color: var(--color-cyan); }
+        .ctrl-copy:hover { background: var(--color-cyan); color: #000; }
+        .ctrl-dl { border-color: var(--text-main); color: var(--text-main); }
+        .ctrl-dl:hover { background: var(--text-main); color: #000; }
 
-        /* Специфичное форматирование блоков внутри карточек */
-        .se-block { border-left: 2px solid var(--text-dim); padding-left: 10px; margin-bottom: 8px; margin-top: 8px; background: rgba(255,255,255,0.02); padding: 8px;}
-        .se-block b { color: var(--color-yellow); font-family: 'Oswald'; font-size: 1rem; }
-        .talent-block { border-left: 2px solid var(--accent-primary); padding-left: 10px; margin-bottom: 12px; background: rgba(255,255,255,0.02); padding: 8px;}
-        .talent-block b { color: var(--accent-primary); font-family: 'Oswald'; font-size: 1.1rem; }
-        .stat-grid { display: flex; justify-content: space-between; text-align: center; margin: 12px 0; padding: 12px 0; border-top: 2px solid var(--accent-primary); border-bottom: 2px solid var(--accent-primary); }
-        .stat-col { display: flex; flex-direction: column; width: 16%; }
-        .stat-name { font-family: 'Oswald', sans-serif; color: var(--accent-primary); font-size: 1rem; }
-        .stat-val { font-size: 0.9rem; font-weight: bold; }
+        .copy-msg-global { text-align: center; color: var(--accent-primary); font-size: 0.8rem; opacity: 0; transition: opacity 0.2s; font-family: 'Oswald', sans-serif; height: 0; margin-top: 4px; }
 
         /* Модалки */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: flex-start; z-index: 2000; backdrop-filter: blur(4px); padding-top: 50px; overflow-y: auto; }
@@ -124,7 +131,6 @@
         .builder-checkbox-group { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
         .builder-checkbox-label { display: flex; align-items: center; gap: 4px; font-size: 0.85rem; cursor: pointer; color: var(--text-dim); }
         .builder-checkbox-label input { accent-color: var(--accent-primary); }
-        .builder-checkbox-label:hover { color: var(--text-main); }
 
         .b-row { display: flex; gap: 10px; }
         .b-row .cloud-input, .b-row .cloud-select { flex: 1; }
@@ -137,7 +143,7 @@
 </head>
 <body>
 
-    <a href="navigation.html" class="top-nav-btn"><i class="fa-solid fa-house"></i> ХАБ</a>
+    <a href="index.html" class="top-nav-btn"><i class="fa-solid fa-house"></i> ХАБ</a>
 
     <div class="auth-bar">
         <span id="user-info" class="tech-text"></span>
@@ -167,25 +173,36 @@
     </div>
 
     <!-- Блок Фильтров -->
-    <div class="filters-section" id="filters-container">
-        <!-- Генерируется динамически -->
-    </div>
+    <div class="filters-section" id="filters-container"></div>
 
     <!-- Сетка Карточек -->
     <div class="compendium-grid" id="compendium">
         <div class="tech-text" style="grid-column: 1/-1; text-align: center;">ЗАГРУЗКА БАЗЫ ДАННЫХ...</div>
     </div>
 
-    <!-- МОДАЛЬНОЕ ОКНО АВТОРИЗАЦИИ -->
+    <!-- МОДАЛЬНОЕ ОКНО АВТОРИЗАЦИИ И ПРОФИЛЯ -->
     <div class="modal-overlay" id="authModal" onclick="window.closeModalOnBg(event, 'authModal')">
         <div class="panel-outer cut-tl modal-box" style="width: 400px; background-color: var(--accent-primary);">
             <div class="panel-inner cut-tl">
                 <button class="btn-close-modal" onclick="window.toggleAuthModal()"><i class="fa-solid fa-xmark"></i></button>
-                <div class="class-title" style="margin-bottom: 20px;">АВТОРИЗАЦИЯ</div>
-                <input type="email" id="auth-email" class="cloud-input" placeholder="Email">
-                <input type="password" id="auth-pass" class="cloud-input" placeholder="Пароль">
-                <button class="action-btn" style="width: 100%; margin-bottom: 8px;" onclick="window.login()"><i class="fa-solid fa-right-to-bracket"></i> ВОЙТИ</button>
-                <button class="action-btn" style="width: 100%; border-color: var(--text-dim); color: var(--text-dim);" onclick="window.register()"><i class="fa-solid fa-user-plus"></i> РЕГИСТРАЦИЯ</button>
+                <div class="class-title" style="margin-bottom: 20px;">ПАНЕЛЬ ДОСТУПА</div>
+                
+                <!-- Неавторизованный вид -->
+                <div id="auth-unlogged">
+                    <input type="email" id="auth-email" class="cloud-input" placeholder="Email">
+                    <input type="password" id="auth-pass" class="cloud-input" placeholder="Пароль">
+                    <button class="action-btn" style="width: 100%; margin-bottom: 8px;" onclick="window.login()"><i class="fa-solid fa-right-to-bracket"></i> ВОЙТИ</button>
+                    <button class="action-btn" style="width: 100%; border-color: var(--text-dim); color: var(--text-dim);" onclick="window.register()"><i class="fa-solid fa-user-plus"></i> РЕГИСТРАЦИЯ</button>
+                </div>
+
+                <!-- Авторизованный вид (Профиль) -->
+                <div id="auth-logged" style="display: none;">
+                    <div class="tech-text" style="margin-bottom: 4px;">ВАШ НИКНЕЙМ (ОТОБРАЖАЕТСЯ КАК АВТОР)</div>
+                    <input type="text" id="auth-nickname" class="cloud-input" placeholder="Введите никнейм...">
+                    <button class="action-btn" style="width: 100%; margin-bottom: 16px; border-color: var(--color-yellow); color: var(--color-yellow);" onclick="window.updateNickname()"><i class="fa-solid fa-floppy-disk"></i> СОХРАНИТЬ НИКНЕЙМ</button>
+                    <button class="action-btn" style="width: 100%; border-color: var(--text-dim); color: var(--text-dim);" onclick="window.logoutUser()"><i class="fa-solid fa-power-off"></i> ВЫЙТИ ИЗ АККАУНТА</button>
+                </div>
+
             </div>
         </div>
     </div>
@@ -197,7 +214,6 @@
                 <button class="btn-close-modal" onclick="window.closeBuilder()"><i class="fa-solid fa-xmark"></i></button>
                 <div class="class-title" id="builder-title" style="margin-bottom: 20px; border-bottom: 1px solid var(--accent-primary); padding-bottom: 8px;">КОНСТРУКТОР</div>
                 
-                <!-- Контейнер для динамических полей -->
                 <div id="dynamic-form-fields"></div>
 
                 <button class="action-btn" style="width: 100%; margin-top: 20px;" onclick="window.saveEntry()"><i class="fa-solid fa-cloud-arrow-up"></i> СОХРАНИТЬ В БАЗУ</button>
@@ -208,7 +224,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDocs, collection, deleteDoc } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDocs, collection, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDaFNBCW76UsBnziHoGveo7TcC11uAdmqs",
@@ -268,20 +284,26 @@
 
         let selectedFilters = { types: new Set(), stats: new Set(), bases: new Set(), rarities: new Set(), levels: new Set(), cats: new Set() };
 
-        // --- АВТОРИЗАЦИЯ ---
+        // --- АВТОРИЗАЦИЯ И НИКНЕЙМ ---
         onAuthStateChanged(auth, (user) => {
             const info = document.getElementById('user-info');
-            const btn = document.getElementById('btn-auth');
+            const unlogged = document.getElementById('auth-unlogged');
+            const logged = document.getElementById('auth-logged');
+            
             if (user) {
                 currentUser = user;
-                info.innerText = user.email;
-                btn.innerHTML = '<i class="fa-solid fa-power-off"></i> ВЫХОД';
-                btn.onclick = () => signOut(auth);
+                const savedNick = window.localStorage.getItem('custom_nickname') || user.email.split('@')[0];
+                info.innerText = savedNick;
+                
+                unlogged.style.display = 'none';
+                logged.style.display = 'block';
+                document.getElementById('auth-nickname').value = savedNick;
             } else {
                 currentUser = null;
                 info.innerText = '';
-                btn.innerHTML = '<i class="fa-solid fa-user"></i> ВХОД';
-                btn.onclick = window.toggleAuthModal;
+                
+                unlogged.style.display = 'block';
+                logged.style.display = 'none';
             }
             renderGrid(); 
         });
@@ -300,6 +322,41 @@
             const p = document.getElementById('auth-pass').value;
             try { await createUserWithEmailAndPassword(auth, e, p); window.toggleAuthModal(); } 
             catch (error) { alert("Ошибка регистрации: " + error.message); }
+        };
+        window.logoutUser = () => {
+            signOut(auth);
+            window.toggleAuthModal();
+        };
+
+        // Массовое обновление Никнейма
+        window.updateNickname = async () => {
+            if (!currentUser) return;
+            const newName = document.getElementById('auth-nickname').value.trim();
+            if (!newName) return alert('Никнейм не может быть пустым');
+            
+            window.localStorage.setItem('custom_nickname', newName);
+            document.getElementById('user-info').innerText = newName;
+
+            try {
+                const q = query(collection(db, "custom_content"), where("creatorEmail", "==", currentUser.email));
+                const querySnapshot = await getDocs(q);
+                
+                const updatePromises = [];
+                querySnapshot.forEach((docSnap) => {
+                    updatePromises.push(setDoc(doc(db, "custom_content", docSnap.id), { creator: newName }, { merge: true }));
+                });
+                
+                if (updatePromises.length > 0) {
+                    await Promise.all(updatePromises);
+                    alert(`Никнейм успешно обновлен для ${updatePromises.length} записей!`);
+                    loadDatabase();
+                } else {
+                    alert('Никнейм сохранен. У вас пока нет опубликованных записей.');
+                }
+            } catch(e) {
+                console.error(e);
+                alert('Произошла ошибка при обновлении базы данных.');
+            }
         };
 
         // --- ИНТЕРФЕЙС И РЕЖИМЫ ---
@@ -434,6 +491,66 @@
             return html;
         }
 
+        // Вспомогательная функция сворачивания подблока
+        window.toggleSubBlock = (el) => {
+            el.closest('.side-effect-block').classList.toggle('collapsed');
+        };
+
+        // Функция копирования (Текстовый генератор)
+        window.copyEntry = (id, btn) => {
+            const item = dbCache.find(i => i.id === id);
+            if (!item) return;
+            const d = item.data;
+            
+            let textToCopy = `=== ${d.Name || d.characterName || 'Без названия'} ===\n`;
+            
+            if (currentMode === 'status') {
+                textToCopy += `${d.Effect}\n`;
+                if(d.SideEffects) d.SideEffects.forEach(se => textToCopy += `\n* ${se.sideeffectname}:\n${se.sideeffect}\n`);
+            } else if (currentMode === 'class') {
+                textToCopy += `Типы: ${(d.Type||[]).join(', ')} | Статы: ${(d.Stats||[]).join(', ')}\n\n`;
+                if (d.Talents) d.Talents.forEach(t => textToCopy += `[Ур. ${t.level}] ${t.name}\n${t.desc}\n\n`);
+            } else if (currentMode === 'feat') {
+                if(d.Need) textToCopy += `Требования: ${d.Need}\n`;
+                textToCopy += `Категории: ${(d.Base||[]).join(', ')}\n\n${d.desc}\n`;
+            } else if (currentMode === 'gift') {
+                textToCopy += `[Ур. ${d.Level}] Типы: ${(d.Type||[]).join(', ')}\n\n${d.Description}\n`;
+            } else if (currentMode === 'equip') {
+                textToCopy += `[Ур. ${d.Level} | ${d.Rarity}] ${d.ItemType}\n`;
+                if(d.Need) textToCopy += `Требования: ${d.Need}\n`;
+                textToCopy += `Скейлинг: ${(d.Stats||[]).join(', ')}\n\n${d.Desc}\n`;
+            } else if (currentMode === 'bestiary') {
+                textToCopy += `${d.Meta || ''}\nКД: ${d.ArmorClass} | ХП: ${d.HitPoints} | Скорость: ${d.Speed}\n`;
+                textToCopy += `STR ${d.Stats?.STR}, DEX ${d.Stats?.DEX}, CON ${d.Stats?.CON}, INT ${d.Stats?.INT}, WIS ${d.Stats?.WIS}, CHA ${d.Stats?.CHA}\n\n`;
+                if (d.Traits) d.Traits.forEach(t => textToCopy += `${t.name}. ${t.desc}\n`);
+                if (d.Actions) {
+                    textToCopy += `\nДЕЙСТВИЯ:\n`;
+                    d.Actions.forEach(a => textToCopy += `${a.name}. ${a.desc}\n`);
+                }
+                if (d.Lore) textToCopy += `\nЛОР:\n${d.Lore}\n`;
+            }
+            
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                const msg = btn.closest('.talents-wrapper').querySelector('.copy-msg-global');
+                msg.style.opacity = '1';
+                msg.style.height = 'auto';
+                setTimeout(() => { msg.style.opacity = '0'; msg.style.height = '0'; }, 2000);
+            });
+        };
+
+        // Функция скачивания JSON
+        window.downloadCustomJson = (id) => {
+            const item = dbCache.find(i => i.id === id);
+            if (!item) return;
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify([item.data], null, 2));
+            const dl = document.createElement('a');
+            dl.setAttribute("href", dataStr);
+            dl.setAttribute("download", (item.data.Name || item.data.characterName || "Custom_Item") + ".json");
+            document.body.appendChild(dl);
+            dl.click();
+            dl.remove();
+        };
+
         // --- ГЕНЕРАЦИЯ КАРТОЧЕК ---
         function renderGrid() {
             const container = document.getElementById('compendium');
@@ -446,24 +563,25 @@
 
             let html = '';
             items.forEach(item => {
-                const isOwner = currentUser && currentUser.email === item.creator;
-                const isAdmin = currentUser && adminEmails.includes(currentUser.email);
+                const isOwnerOrAdmin = currentUser && (item.creatorEmail === currentUser.email || adminEmails.includes(currentUser.email));
                 
-                let controlsHtml = '';
-                if (isOwner || isAdmin) {
-                    controlsHtml = `
-                        <div class="card-controls">
-                            <button class="ctrl-btn ctrl-edit" onclick="window.editEntry('${item.id}')"><i class="fa-solid fa-pen"></i> Редакт.</button>
-                            <button class="ctrl-btn ctrl-del" onclick="window.deleteEntry('${item.id}')"><i class="fa-solid fa-trash"></i> Удалить</button>
-                        </div>
-                    `;
-                }
+                let controlsHtml = `
+                    <div class="card-controls">
+                        <button class="ctrl-btn ctrl-copy" onclick="window.copyEntry('${item.id}', this)"><i class="fa-regular fa-copy"></i> ТЕКСТ</button>
+                        <button class="ctrl-btn ctrl-dl" onclick="window.downloadCustomJson('${item.id}')"><i class="fa-solid fa-download"></i> JSON</button>
+                        ${isOwnerOrAdmin ? `
+                            <button class="ctrl-btn ctrl-edit" onclick="window.editEntry('${item.id}')"><i class="fa-solid fa-pen"></i></button>
+                            <button class="ctrl-btn ctrl-del" onclick="window.deleteEntry('${item.id}')"><i class="fa-solid fa-trash"></i></button>
+                        ` : ''}
+                    </div>
+                    <div class="copy-msg-global">СКОПИРОВАНО В БУФЕР!</div>
+                `;
 
                 const d = item.data;
                 let descHtml = '';
                 let badgesHtml = '';
                 let metaString = '';
-
+                
                 // Дата-атрибуты для фильтрации
                 let dTypes = (d.Type || []).join(',');
                 let dStats = (d.Stats || []).join(',');
@@ -473,31 +591,57 @@
                 let dCats = (d.Category || []).join(',');
                 let fullDesc = '';
 
+                // Отрисовка со сворачиваемыми блоками
                 if (currentMode === 'status') {
                     fullDesc = d.Effect || '';
-                    descHtml = `<div><b>Эффект:</b><br>${d.Effect}</div>`;
+                    descHtml = `<div class="card-content-desc" style="margin-bottom:12px;"><b>Эффект:</b><br>${d.Effect}</div>`;
                     if (d.SideEffects && d.SideEffects.length > 0) {
-                        descHtml += d.SideEffects.map(se => `<div class="se-block"><b>${se.sideeffectname}</b><br>${se.sideeffect}</div>`).join('');
-                        fullDesc += ' ' + d.SideEffects.map(se => se.sideeffectname + ' ' + se.sideeffect).join(' ');
+                        d.SideEffects.forEach(se => {
+                            descHtml += `
+                                <div class="side-effect-block collapsed" onclick="window.toggleSubBlock(this)" style="border-left-color:var(--color-yellow);">
+                                    <div class="se-header">
+                                        <div style="display:flex; align-items:center;">
+                                            <i class="fa-solid fa-chevron-down se-collapse-icon"></i>
+                                            <span class="se-name" style="color:var(--color-yellow);">${se.sideeffectname}</span>
+                                        </div>
+                                    </div>
+                                    <div class="se-desc-wrapper"><div class="se-desc">${se.sideeffect}</div></div>
+                                </div>`;
+                            fullDesc += ' ' + se.sideeffectname + ' ' + se.sideeffect;
+                        });
                     }
                 } 
                 else if (currentMode === 'class') {
                     badgesHtml += createBadges(d.Type, dictTypes) + createBadges(d.Stats, dictStats);
+                    descHtml = `<div class="card-content-desc" style="margin-bottom:12px;"><b>Типы:</b> ${d.Type?.join(', ')} | <b>Статы:</b> ${d.Stats?.join(', ')}</div>`;
                     if (d.Talents) {
-                        descHtml += d.Talents.map(t => `<div class="talent-block" style="border-left-color:${t.Color||'var(--accent-primary)'}"><b>[Ур. ${t.level}] ${t.name}</b><br>${t.desc}</div>`).join('');
-                        fullDesc = d.Talents.map(t => t.name + ' ' + t.desc).join(' ');
+                        d.Talents.forEach(t => {
+                            const c = t.Color || t.color || 'var(--accent-primary)';
+                            descHtml += `
+                                <div class="side-effect-block collapsed" onclick="window.toggleSubBlock(this)" style="border-left-color:${c};">
+                                    <div class="se-header">
+                                        <div style="display:flex; align-items:baseline; gap:8px;">
+                                            <i class="fa-solid fa-chevron-down se-collapse-icon"></i>
+                                            <span class="se-name" style="color:${c};">${t.name}</span>
+                                            <span class="tech-text" style="color:var(--text-dim); font-size:0.75rem;">Ур. ${t.level}</span>
+                                        </div>
+                                    </div>
+                                    <div class="se-desc-wrapper"><div class="se-desc">${t.desc}</div></div>
+                                </div>`;
+                            fullDesc += ' ' + t.name + ' ' + t.desc;
+                        });
                     }
                 }
                 else if (currentMode === 'feat') {
                     badgesHtml += createBadges(d.Base, dictFeatBases);
                     if(d.Need) descHtml += `<div class="tech-text" style="color:var(--color-red); margin-bottom:8px;">ТРЕБОВАНИЯ: ${d.Need}</div>`;
-                    descHtml += `<div>${d.desc}</div>`;
+                    descHtml += `<div class="card-content-desc">${d.desc}</div>`;
                     fullDesc = d.desc || '';
                 }
                 else if (currentMode === 'gift') {
                     metaString = `УРОВЕНЬ ${d.Level}`;
                     badgesHtml += createBadges(d.Type, dictTypes);
-                    descHtml = `<div>${d.Description}</div>`;
+                    descHtml = `<div class="card-content-desc">${d.Description}</div>`;
                     fullDesc = d.Description || '';
                 }
                 else if (currentMode === 'equip') {
@@ -505,13 +649,13 @@
                     if(d.IsEGO) badgesHtml += `<div class="type-badge" style="color:#D94285; border-color:#D94285;">Э.Г.О.</div>`;
                     badgesHtml += createBadges(d.Type, dictTypes) + createBadges(d.Stats, dictStats);
                     if(d.Need) descHtml += `<div class="tech-text" style="color:var(--color-red); margin-bottom:8px;">ТРЕБОВАНИЯ: ${d.Need}</div>`;
-                    descHtml += `<div>${d.Desc}</div>`;
+                    descHtml += `<div class="card-content-desc">${d.Desc}</div>`;
                     fullDesc = d.Desc || '';
                 }
                 else if (currentMode === 'bestiary') {
                     metaString = d.Meta || '';
                     badgesHtml += createBadges(d.Category, dictBestiaryCats);
-                    descHtml = `<div style="margin-bottom:10px;"><b>КД:</b> ${d.ArmorClass} | <b>ХП:</b> ${d.HitPoints} | <b>Скорость:</b> ${d.Speed}</div>`;
+                    descHtml = `<div class="card-content-desc" style="margin-bottom:10px;"><b>КД:</b> ${d.ArmorClass} | <b>ХП:</b> ${d.HitPoints} | <b>Скорость:</b> ${d.Speed}</div>`;
                     descHtml += `<div class="stat-grid">
                         <div class="stat-col"><span class="stat-name">STR</span><span class="stat-val">${d.Stats?.STR}</span></div>
                         <div class="stat-col"><span class="stat-name">DEX</span><span class="stat-val">${d.Stats?.DEX}</span></div>
@@ -521,11 +665,42 @@
                         <div class="stat-col"><span class="stat-name">CHA</span><span class="stat-val">${d.Stats?.CHA}</span></div>
                     </div>`;
                     
-                    if (d.Traits) descHtml += `<div class="tech-text" style="color:var(--color-yellow); margin-top:10px;">ОСОБЕННОСТИ</div>` + d.Traits.map(t => `<div style="margin-bottom:6px;"><b>${t.name}.</b> ${t.desc}</div>`).join('');
-                    if (d.Actions) descHtml += `<div class="tech-text" style="color:var(--color-red); margin-top:10px;">ДЕЙСТВИЯ</div>` + d.Actions.map(a => `<div style="margin-bottom:6px;"><b>${a.name}.</b> ${a.desc}</div>`).join('');
-                    if (d.Lore) descHtml += `<div class="lore-text" style="margin-top:10px; border-top:1px dashed #333; padding-top:10px;">${d.Lore}</div>`;
-                    
-                    fullDesc = (d.Traits?d.Traits.map(t=>t.desc).join(' '):'') + ' ' + (d.Actions?d.Actions.map(a=>a.desc).join(' '):'') + ' ' + (d.Lore||'');
+                    if (d.Traits && d.Traits.length > 0) {
+                        descHtml += `<div class="tech-text" style="color:var(--color-yellow); margin-top:10px; margin-bottom:6px;">ОСОБЕННОСТИ</div>`;
+                        d.Traits.forEach(t => {
+                            descHtml += `
+                                <div class="side-effect-block collapsed" onclick="window.toggleSubBlock(this)" style="border-left-color:var(--color-yellow);">
+                                    <div class="se-header">
+                                        <div style="display:flex; align-items:center;">
+                                            <i class="fa-solid fa-chevron-down se-collapse-icon"></i>
+                                            <span class="se-name" style="color:var(--color-yellow);">${t.name}</span>
+                                        </div>
+                                    </div>
+                                    <div class="se-desc-wrapper"><div class="se-desc">${t.desc}</div></div>
+                                </div>`;
+                            fullDesc += ' ' + t.name + ' ' + t.desc;
+                        });
+                    }
+                    if (d.Actions && d.Actions.length > 0) {
+                        descHtml += `<div class="tech-text" style="color:var(--color-red); margin-top:10px; margin-bottom:6px;">ДЕЙСТВИЯ</div>`;
+                        d.Actions.forEach(a => {
+                            descHtml += `
+                                <div class="side-effect-block collapsed" onclick="window.toggleSubBlock(this)" style="border-left-color:var(--color-red);">
+                                    <div class="se-header">
+                                        <div style="display:flex; align-items:center;">
+                                            <i class="fa-solid fa-chevron-down se-collapse-icon"></i>
+                                            <span class="se-name" style="color:var(--color-red);">${a.name}</span>
+                                        </div>
+                                    </div>
+                                    <div class="se-desc-wrapper"><div class="se-desc">${a.desc}</div></div>
+                                </div>`;
+                            fullDesc += ' ' + a.name + ' ' + a.desc;
+                        });
+                    }
+                    if (d.Lore) {
+                        descHtml += `<div class="lore-text" style="margin-top:10px; border-top:1px dashed #333; padding-top:10px;">${d.Lore}</div>`;
+                        fullDesc += ' ' + d.Lore;
+                    }
                 }
 
                 html += `
@@ -541,7 +716,7 @@
                                 ${badgesHtml ? `<div class="types-container">${badgesHtml}</div>` : ''}
                             </div>
                             <div class="talents-wrapper">
-                                <div class="card-content-desc">${descHtml}</div>
+                                <div style="margin-bottom:16px;">${descHtml}</div>
                                 <div class="creator-tag">Автор: ${item.creator}</div>
                                 ${controlsHtml}
                             </div>
@@ -551,16 +726,6 @@
             });
             container.innerHTML = html;
         }
-
-        // --- УДАЛЕНИЕ ---
-        window.deleteEntry = async (id) => {
-            if (!confirm("Удалить эту запись навсегда?")) return;
-            try {
-                await deleteDoc(doc(db, "custom_content", id));
-                dbCache = dbCache.filter(i => i.id !== id);
-                renderGrid();
-            } catch(e) { alert("Ошибка удаления."); }
-        };
 
         // --- ДИНАМИЧЕСКИЙ КОНСТРУКТОР ---
         window.openBuilder = () => {
@@ -671,7 +836,6 @@
 
             container.innerHTML = html;
 
-            // Заполнение динамических списков при редактировании
             if (currentMode === 'status' && data.SideEffects) {
                 data.SideEffects.forEach(se => window.addBItem('bf-side-container', 'sideeffect', se.sideeffectname, se.sideeffect));
             }
@@ -684,7 +848,6 @@
             }
         }
 
-        // Универсальное добавление элементов списка
         window.addBItem = (containerId, type, v1='', v2='', v3='1', v4='') => {
             const container = document.getElementById(containerId);
             let html = '';
@@ -771,9 +934,12 @@
                 saveData.Lore = document.getElementById('bf-lore').value;
             }
 
+            const nick = window.localStorage.getItem('custom_nickname') || currentUser.email.split('@')[0];
+
             const payload = {
                 type: currentMode,
-                creator: currentUser.email,
+                creatorEmail: currentUser.email,
+                creator: nick,
                 data: saveData,
                 updatedAt: new Date().toISOString()
             };
@@ -787,7 +953,7 @@
                 }
                 window.closeBuilder();
                 loadDatabase();
-            } catch(e) { alert("Ошибка сохранения в базу данных. Проверьте правила Firestore."); }
+            } catch(e) { alert("Ошибка сохранения в базу данных."); }
         };
 
         // --- ЗАГРУЗКА JSON ФАЙЛОВ ---
@@ -804,11 +970,14 @@
                     const dataArray = JSON.parse(event.target.result);
                     if (!Array.isArray(dataArray)) throw new Error("Файл должен содержать массив [ {...} ]");
                     
+                    const nick = window.localStorage.getItem('custom_nickname') || currentUser.email.split('@')[0];
+
                     for (let item of dataArray) {
                         const newId = currentMode + '_' + Date.now() + Math.floor(Math.random()*1000);
                         const payload = {
                             type: currentMode,
-                            creator: currentUser.email,
+                            creatorEmail: currentUser.email,
+                            creator: nick,
                             data: item,
                             updatedAt: new Date().toISOString()
                         };
