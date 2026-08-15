@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>База Пользователей / Custom Compendium</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Merriweather:ital,wght@0,300;1,300;1,700&family=Oswald:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-main: #070707; --bg-panel: #000000; 
+            --accent-primary: #45B3CB; /* Меняется динамически */
+            --color-red: #C7243A; --color-cyan: #45B3CB; --color-yellow: #F1C40F;
+            --text-main: #E0D8C8; --text-dim: #696969;
+            --border-width: 1px; --chamfer: 14px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background-color: var(--bg-main); color: var(--text-main); font-family: 'Inter', sans-serif;
+            min-height: 100vh; padding: 80px 20px 40px 20px; display: flex; flex-direction: column; align-items: center;
+            background-image: linear-gradient(rgba(7,7,7,0.8), rgba(7,7,7,0.8)), repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.02) 2px, rgba(255,255,255,0.02) 4px);
+        }
+
+        h1, h2, h3, h4, .oswald { font-family: 'Oswald', sans-serif; text-transform: uppercase; }
+        .tech-text { font-family: 'Inter', sans-serif; color: var(--text-dim); font-size: 0.8rem; }
+
+        /* Навигация */
+        .top-nav-btn { position: fixed; top: 10px; left: 20px; padding: 6px 12px; font-size: 0.8rem; border: 1px solid var(--accent-primary); color: var(--accent-primary); font-family: 'Oswald'; z-index: 100; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; cursor: pointer; text-transform: uppercase; transition: 0.2s; }
+        .top-nav-btn:hover { background-color: var(--accent-primary); color: #000; }
+
+        .auth-bar { position: fixed; top: 10px; right: 20px; z-index: 100; display: flex; gap: 8px; align-items: center;}
+        .auth-btn { padding: 6px 12px; font-size: 0.8rem; border: 1px solid var(--text-dim); color: var(--text-dim); font-family: 'Oswald'; background: var(--bg-main); cursor: pointer; text-transform: uppercase; transition: 0.2s; }
+        .auth-btn:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
+
+        /* Режимы */
+        .mode-switcher { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 24px; width: 100%; max-width: 1200px;}
+        .mode-btn { padding: 8px 16px; border: 1px solid #333; background: rgba(0,0,0,0.5); color: var(--text-dim); font-family: 'Oswald'; font-size: 1rem; cursor: pointer; transition: 0.2s; text-transform: uppercase;}
+        .mode-btn:hover { border-color: var(--text-main); color: var(--text-main); }
+        .mode-btn.active { border-color: var(--accent-primary); color: var(--bg-main); background-color: var(--accent-primary); }
+
+        /* Заголовок страницы */
+        .header-bar { width: 100%; max-width: 1200px; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--accent-primary); padding-bottom: 10px; }
+        .header-title { color: var(--accent-primary); font-size: 2rem; letter-spacing: 2px; text-align: center; }
+
+        .action-bar { width: 100%; max-width: 1200px; display: flex; justify-content: space-between; margin-bottom: 20px; gap: 10px; flex-wrap: wrap;}
+        .action-btn { flex: 1; min-width: 200px; padding: 10px; font-size: 0.9rem; font-family: 'Oswald'; cursor: pointer; border: 1px solid var(--accent-primary); color: var(--accent-primary); background: transparent; text-transform: uppercase; transition: 0.2s; text-align: center;}
+        .action-btn:hover { background: var(--accent-primary); color: #000; }
+
+        /* Сетка */
+        .compendium-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; width: 100%; max-width: 1200px; align-items: start; }
+        .compendium-card.expanded { grid-column: 1 / -1; }
+
+        .panel-outer { background-color: var(--accent-primary); padding: var(--border-width); position: relative; display: flex; flex-direction: column; }
+        .panel-inner { background-color: var(--bg-panel); padding: 16px 20px; height: 100%; display: flex; flex-direction: column; }
+        .cut-tl { clip-path: polygon(var(--chamfer) 0, 100% 0, 100% 100%, 0 100%, 0 var(--chamfer)); }
+        .hazard-tape { height: 6px; background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--accent-primary) 10px, transparent 20px); border-bottom: 1px solid var(--accent-primary); }
+
+        .card-header-clickable { cursor: pointer; position: relative; padding-right: 24px; user-select: none; }
+        .expand-icon { position: absolute; right: 0; top: 10px; color: var(--text-dim); transition: transform 0.3s ease; }
+        .panel-outer.expanded .expand-icon { transform: rotate(180deg); color: var(--accent-primary); }
+        .class-title { font-size: 1.4rem; color: var(--accent-primary); font-family: 'Oswald'; text-transform: uppercase; margin-bottom: 4px;}
+
+        .talents-wrapper { max-height: 0; opacity: 0; overflow: hidden; transition: 0.4s ease; position: relative; }
+        .panel-outer.expanded .talents-wrapper { max-height: 3000px; opacity: 1; margin-top: 12px; border-top: 1px dashed #333; padding-top: 12px; }
+
+        .card-content-desc { font-size: 0.9rem; color: var(--text-main); white-space: pre-wrap; line-height: 1.5; }
+        .creator-tag { font-size: 0.7rem; color: var(--text-dim); text-align: right; margin-top: 10px; font-style: italic;}
+
+        /* Управление карточкой (Редакт/Удалить) */
+        .card-controls { display: flex; gap: 8px; margin-top: 12px; border-top: 1px solid #222; padding-top: 12px; }
+        .ctrl-btn { flex: 1; background: transparent; border: 1px solid; padding: 6px; font-size: 0.75rem; font-family: 'Oswald'; cursor: pointer; text-transform: uppercase; transition: 0.2s;}
+        .ctrl-edit { border-color: var(--color-yellow); color: var(--color-yellow); }
+        .ctrl-edit:hover { background: var(--color-yellow); color: #000; }
+        .ctrl-del { border-color: var(--color-red); color: var(--color-red); }
+        .ctrl-del:hover { background: var(--color-red); color: #fff; }
+
+        /* Модалки */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: flex-start; z-index: 2000; backdrop-filter: blur(4px); padding-top: 50px; overflow-y: auto; }
+        .modal-overlay.active { display: flex; }
+        .modal-box { width: 700px; max-width: 95%; position: relative; margin-bottom: 50px; }
+        
+        .cloud-input, .cloud-select { width: 100%; background: #111; border: 1px solid #333; color: var(--text-main); padding: 10px; margin-bottom: 12px; outline: none; font-family: 'Inter'; font-size: 0.95rem; }
+        .cloud-input:focus, .cloud-select:focus { border-color: var(--accent-primary); }
+        textarea.cloud-input { resize: vertical; min-height: 80px; }
+
+        .btn-close-modal { background: transparent; border: none; color: var(--color-red); font-size: 1.5rem; cursor: pointer; transition: 0.2s; position: absolute; right: 16px; top: 16px; z-index: 10;}
+        .btn-close-modal:hover { color: #ff0044; }
+
+        .builder-checkbox-group { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+        .builder-checkbox-label { display: flex; align-items: center; gap: 4px; font-size: 0.85rem; cursor: pointer; color: var(--text-dim); }
+        .builder-checkbox-label input { accent-color: var(--accent-primary); }
+
+        .b-row { display: flex; gap: 10px; }
+        .b-row .cloud-input { flex: 1; }
+
+        .b-se-entry { border: 1px solid #333; padding: 12px; margin-bottom: 12px; position: relative; background: rgba(255,255,255,0.02); border-left: 3px solid var(--accent-primary); }
+
+    </style>
+</head>
+<body>
+
+    <a href="index.html" class="top-nav-btn"><i class="fa-solid fa-house"></i> ХАБ</a>
+
+    <div class="auth-bar">
+        <span id="user-info" class="tech-text"></span>
+        <button class="auth-btn" id="btn-auth" onclick="window.toggleAuthModal()"><i class="fa-solid fa-user"></i> ВХОД</button>
+    </div>
+
+    <!-- Режимы -->
+    <div class="mode-switcher">
+        <button class="mode-btn active" data-mode="status" data-color="#45B3CB" onclick="window.switchMode('status', this)">СТАТУСЫ</button>
+        <button class="mode-btn" data-mode="class" data-color="#1E3A8A" onclick="window.switchMode('class', this)">АРХЕТИПЫ</button>
+        <button class="mode-btn" data-mode="feat" data-color="#C7243A" onclick="window.switchMode('feat', this)">ЧЕРТЫ</button>
+        <button class="mode-btn" data-mode="gift" data-color="#E67E22" onclick="window.switchMode('gift', this)">Э.Г.О. ГИФТЫ</button>
+        <button class="mode-btn" data-mode="equip" data-color="#9B59B6" onclick="window.switchMode('equip', this)">СНАРЯЖЕНИЕ</button>
+        <button class="mode-btn" data-mode="bestiary" data-color="#8FCC2A" onclick="window.switchMode('bestiary', this)">БЕСТИАРИЙ</button>
+    </div>
+
+    <div class="header-bar">
+        <div class="header-title oswald" id="page-title">ПОЛЬЗОВАТЕЛЬСКАЯ БАЗА: СТАТУСЫ</div>
+    </div>
+
+    <div class="action-bar">
+        <button class="action-btn" onclick="window.openBuilder()"><i class="fa-solid fa-plus"></i> СОЗДАТЬ ЗАПИСЬ</button>
+        <label class="action-btn" style="cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <i class="fa-solid fa-file-import"></i> ЗАГРУЗИТЬ JSON
+            <input type="file" id="json-upload" accept=".json" style="display: none;" onchange="window.uploadJson(event)">
+        </label>
+    </div>
+
+    <div class="compendium-grid" id="compendium">
+        <div class="tech-text" style="grid-column: 1/-1; text-align: center;">ЗАГРУЗКА БАЗЫ ДАННЫХ...</div>
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО АВТОРИЗАЦИИ -->
+    <div class="modal-overlay" id="authModal" onclick="window.closeModalOnBg(event, 'authModal')">
+        <div class="panel-outer cut-tl modal-box" style="width: 400px;">
+            <div class="panel-inner cut-tl">
+                <button class="btn-close-modal" onclick="window.toggleAuthModal()"><i class="fa-solid fa-xmark"></i></button>
+                <div class="class-title" style="margin-bottom: 20px;">АВТОРИЗАЦИЯ</div>
+                <input type="email" id="auth-email" class="cloud-input" placeholder="Email">
+                <input type="password" id="auth-pass" class="cloud-input" placeholder="Пароль">
+                <button class="action-btn" style="width: 100%; margin-bottom: 8px;" onclick="window.login()"><i class="fa-solid fa-right-to-bracket"></i> ВОЙТИ</button>
+                <button class="action-btn" style="width: 100%; border-color: var(--text-dim); color: var(--text-dim);" onclick="window.register()"><i class="fa-solid fa-user-plus"></i> РЕГИСТРАЦИЯ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО КОНСТРУКТОРА -->
+    <div class="modal-overlay" id="builderModal" onclick="window.closeModalOnBg(event, 'builderModal')">
+        <div class="panel-outer cut-tl modal-box">
+            <div class="panel-inner cut-tl" style="padding-top: 40px;">
+                <button class="btn-close-modal" onclick="window.closeBuilder()"><i class="fa-solid fa-xmark"></i></button>
+                <div class="class-title" id="builder-title" style="margin-bottom: 20px;">КОНСТРУКТОР</div>
+                
+                <!-- Контейнер для динамических полей -->
+                <div id="dynamic-form-fields"></div>
+
+                <button class="action-btn" style="width: 100%; margin-top: 20px;" onclick="window.saveEntry()"><i class="fa-solid fa-cloud-arrow-up"></i> СОХРАНИТЬ В БАЗУ</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDocs, collection, deleteDoc } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDaFNBCW76UsBnziHoGveo7TcC11uAdmqs",
+            authDomain: "projectmoonchar.firebaseapp.com",
+            projectId: "projectmoonchar",
+            messagingSenderId: "516028417887",
+            appId: "1:516028417887:web:4c0404f653b09ecffb58ea"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app, "default");
+
+        // СПИСОК АДМИНИСТРАТОРОВ (Могут удалять чужие посты)
+        const adminEmails = ["tvoi-email@gmail.com", "pochta-druga@gmail.com"];
+
+        let currentUser = null;
+        let currentMode = 'status';
+        let currentEditId = null; // ID редактируемого документа
+        let dbCache = []; // Все документы коллекции
+
+        const modeTitles = {
+            'status': 'СТАТУСЫ', 'class': 'АРХЕТИПЫ', 'feat': 'ЧЕРТЫ', 
+            'gift': 'Э.Г.О. ГИФТЫ', 'equip': 'СНАРЯЖЕНИЕ', 'bestiary': 'БЕСТИАРИЙ'
+        };
+
+        // --- АВТОРИЗАЦИЯ ---
+        onAuthStateChanged(auth, (user) => {
+            const info = document.getElementById('user-info');
+            const btn = document.getElementById('btn-auth');
+            if (user) {
+                currentUser = user;
+                info.innerText = user.email;
+                btn.innerHTML = '<i class="fa-solid fa-power-off"></i> ВЫХОД';
+                btn.onclick = () => signOut(auth);
+            } else {
+                currentUser = null;
+                info.innerText = '';
+                btn.innerHTML = '<i class="fa-solid fa-user"></i> ВХОД';
+                btn.onclick = window.toggleAuthModal;
+            }
+            renderGrid(); // Перерисовка кнопок редактирования
+        });
+
+        window.toggleAuthModal = () => document.getElementById('authModal').classList.toggle('active');
+        window.closeModalOnBg = (e, id) => { if (e.target.id === id) document.getElementById(id).classList.remove('active'); };
+
+        window.login = async () => {
+            const e = document.getElementById('auth-email').value;
+            const p = document.getElementById('auth-pass').value;
+            try { await signInWithEmailAndPassword(auth, e, p); window.toggleAuthModal(); } 
+            catch (error) { alert("Ошибка входа: " + error.message); }
+        };
+        window.register = async () => {
+            const e = document.getElementById('auth-email').value;
+            const p = document.getElementById('auth-pass').value;
+            try { await createUserWithEmailAndPassword(auth, e, p); window.toggleAuthModal(); } 
+            catch (error) { alert("Ошибка регистрации: " + error.message); }
+        };
+
+        // --- ИНТЕРФЕЙС И РЕЖИМЫ ---
+        window.switchMode = (mode, btn) => {
+            currentMode = mode;
+            const color = btn.getAttribute('data-color');
+            document.documentElement.style.setProperty('--accent-primary', color);
+            
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            document.getElementById('page-title').innerText = `ПОЛЬЗОВАТЕЛЬСКАЯ БАЗА: ${modeTitles[mode]}`;
+            renderGrid();
+        };
+
+        // --- ЗАГРУЗКА БАЗЫ ИЗ FIRESTORE ---
+        async function loadDatabase() {
+            try {
+                const querySnapshot = await getDocs(collection(db, "custom_content"));
+                dbCache = [];
+                querySnapshot.forEach((docSnap) => {
+                    dbCache.push({ id: docSnap.id, ...docSnap.data() });
+                });
+                renderGrid();
+            } catch (e) {
+                document.getElementById('compendium').innerHTML = '<div class="tech-text" style="color: var(--color-red); grid-column:1/-1; text-align:center;">ОШИБКА ДОСТУПА К БАЗЕ</div>';
+            }
+        }
+
+        // --- ГЕНЕРАЦИЯ КАРТОЧЕК ---
+        function renderGrid() {
+            const container = document.getElementById('compendium');
+            const items = dbCache.filter(i => i.type === currentMode);
+            
+            if (items.length === 0) {
+                container.innerHTML = '<div class="tech-text" style="grid-column: 1/-1; text-align: center;">НЕТ ПОЛЬЗОВАТЕЛЬСКИХ ЗАПИСЕЙ В ЭТОЙ КАТЕГОРИИ</div>';
+                return;
+            }
+
+            let html = '';
+            items.forEach(item => {
+                const isOwner = currentUser && currentUser.email === item.creator;
+                const isAdmin = currentUser && adminEmails.includes(currentUser.email);
+                
+                let controlsHtml = '';
+                if (isOwner || isAdmin) {
+                    controlsHtml = `
+                        <div class="card-controls">
+                            <button class="ctrl-btn ctrl-edit" onclick="window.editEntry('${item.id}')"><i class="fa-solid fa-pen"></i> Редакт.</button>
+                            <button class="ctrl-btn ctrl-del" onclick="window.deleteEntry('${item.id}')"><i class="fa-solid fa-trash"></i> Удалить</button>
+                        </div>
+                    `;
+                }
+
+                // Форматирование вывода в зависимости от режима
+                const d = item.data;
+                let descHtml = '';
+                
+                if (currentMode === 'status') {
+                    descHtml = `<div><b>Эффект:</b><br>${d.Effect}</div>`;
+                    if (d.SideEffects && d.SideEffects.length > 0) {
+                        descHtml += `<br><b>Сайд-эффекты:</b><br>` + d.SideEffects.map(se => `- <i>${se.sideeffectname}</i>: ${se.sideeffect}`).join('<br>');
+                    }
+                } 
+                else if (currentMode === 'class') {
+                    descHtml = `<div><b>Типы:</b> ${d.Type?.join(', ')} | <b>Статы:</b> ${d.Stats?.join(', ')}</div><br>`;
+                    if (d.Talents) descHtml += d.Talents.map(t => `<b>[Ур. ${t.level}] ${t.name}:</b> ${t.desc}`).join('<br><br>');
+                }
+                else if (currentMode === 'feat') {
+                    descHtml = (d.Need ? `<div><b>Требования:</b> ${d.Need}</div>` : '') + `<div><b>Категории:</b> ${d.Base?.join(', ')}</div><br><div>${d.desc}</div>`;
+                }
+                else if (currentMode === 'gift') {
+                    descHtml = `<div><b>Уровень:</b> ${d.Level} | <b>Типы:</b> ${d.Type?.join(', ')}</div><br><div>${d.Description}</div>`;
+                }
+                else if (currentMode === 'equip') {
+                    descHtml = `<div><b>Уровень:</b> ${d.Level} | <b>Редкость:</b> ${d.Rarity} | <b>Тип:</b> ${d.ItemType}</div>
+                                <div><b>Скейлинг:</b> ${d.Stats?.join(', ')}</div>` + 
+                                (d.Need ? `<div><b>Требования:</b> ${d.Need}</div>` : '') + `<br><div>${d.Desc}</div>`;
+                }
+                else if (currentMode === 'bestiary') {
+                    descHtml = `<div><b>Категории:</b> ${d.Category?.join(', ')} | <b>Мета:</b> ${d.Meta}</div>
+                                <div><b>КД:</b> ${d.ArmorClass} | <b>ХП:</b> ${d.HitPoints} | <b>Скорость:</b> ${d.Speed}</div>
+                                <div><b>Статы:</b> STR ${d.Stats?.STR}, DEX ${d.Stats?.DEX}, CON ${d.Stats?.CON}, INT ${d.Stats?.INT}, WIS ${d.Stats?.WIS}, CHA ${d.Stats?.CHA}</div>
+                                <br><div>${d.Lore}</div>`;
+                }
+
+                html += `
+                    <div class="panel-outer cut-tl compendium-card">
+                        <div class="hazard-tape"></div>
+                        <div class="panel-inner cut-tl" style="border-top: none;">
+                            <div class="card-header-clickable" onclick="this.closest('.panel-outer').classList.toggle('expanded')">
+                                <i class="fa-solid fa-chevron-down expand-icon"></i>
+                                <div class="class-title">${d.Name || d.characterName || 'Без названия'}</div>
+                            </div>
+                            <div class="talents-wrapper">
+                                <div class="card-content-desc">${descHtml}</div>
+                                <div class="creator-tag">Автор: ${item.creator}</div>
+                                ${controlsHtml}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        // --- УДАЛЕНИЕ ---
+        window.deleteEntry = async (id) => {
+            if (!confirm("Удалить эту запись навсегда?")) return;
+            try {
+                await deleteDoc(doc(db, "custom_content", id));
+                dbCache = dbCache.filter(i => i.id !== id);
+                renderGrid();
+            } catch(e) { alert("Ошибка удаления."); }
+        };
+
+        // --- КОНСТРУКТОР ---
+        window.openBuilder = () => {
+            if (!currentUser) return alert("Для создания контента необходимо авторизоваться.");
+            currentEditId = null;
+            document.getElementById('builder-title').innerText = `СОЗДАТЬ: ${modeTitles[currentMode]}`;
+            renderBuilderForm();
+            document.getElementById('builderModal').classList.add('active');
+        };
+
+        window.closeBuilder = () => document.getElementById('builderModal').classList.remove('active');
+
+        window.editEntry = (id) => {
+            const item = dbCache.find(i => i.id === id);
+            if (!item) return;
+            currentEditId = id;
+            document.getElementById('builder-title').innerText = `РЕДАКТИРОВАНИЕ`;
+            renderBuilderForm(item.data);
+            document.getElementById('builderModal').classList.add('active');
+        };
+
+        // Генерация полей в зависимости от режима (упрощенная версия для сохранения пространства)
+        function renderBuilderForm(data = {}) {
+            const container = document.getElementById('dynamic-form-fields');
+            let html = `<input type="text" id="bf-name" class="cloud-input" placeholder="Название (Name)" value="${data.Name || ''}">`;
+
+            if (currentMode === 'status') {
+                html += `<textarea id="bf-effect" class="cloud-input" placeholder="Основной эффект">${data.Effect || ''}</textarea>`;
+                html += `<textarea id="bf-side" class="cloud-input" placeholder="Сайд эффекты (Формат JSON: [{'sideeffectname':'Имя','sideeffect':'Текст'}])">${data.SideEffects ? JSON.stringify(data.SideEffects) : ''}</textarea>`;
+            } 
+            else if (currentMode === 'feat') {
+                html += `<input type="text" id="bf-need" class="cloud-input" placeholder="Требования" value="${data.Need || ''}">`;
+                html += `<input type="text" id="bf-base" class="cloud-input" placeholder="Категории (через запятую)" value="${data.Base ? data.Base.join(',') : ''}">`;
+                html += `<textarea id="bf-desc" class="cloud-input" placeholder="Описание">${data.desc || ''}</textarea>`;
+            }
+            else {
+                // Универсальное JSON поле для сложных структур (Классы, Бестиарий, Эквип, Гифты)
+                // Для упрощения UI в едином файле используется прямой ввод JSON свойств
+                html += `<div class="tech-text" style="margin-bottom:8px;">Остальные параметры (JSON формат)</div>`;
+                
+                let restData = { ...data };
+                delete restData.Name;
+                
+                html += `<textarea id="bf-json" class="cloud-input" style="min-height: 300px; font-family: monospace;">${Object.keys(restData).length > 0 ? JSON.stringify(restData, null, 2) : '{\n  \n}'}</textarea>`;
+            }
+
+            container.innerHTML = html;
+        }
+
+        window.saveEntry = async () => {
+            const name = document.getElementById('bf-name').value.trim();
+            if (!name) return alert("Имя обязательно!");
+
+            let saveData = { Name: name };
+
+            try {
+                if (currentMode === 'status') {
+                    saveData.Effect = document.getElementById('bf-effect').value;
+                    const seVal = document.getElementById('bf-side').value;
+                    saveData.SideEffects = seVal ? JSON.parse(seVal) : [];
+                } 
+                else if (currentMode === 'feat') {
+                    saveData.Need = document.getElementById('bf-need').value || null;
+                    const baseVal = document.getElementById('bf-base').value;
+                    saveData.Base = baseVal ? baseVal.split(',').map(s=>s.trim()) : [];
+                    saveData.desc = document.getElementById('bf-desc').value;
+                }
+                else {
+                    const jsonStr = document.getElementById('bf-json').value;
+                    const parsed = JSON.parse(jsonStr);
+                    saveData = { ...saveData, ...parsed };
+                }
+            } catch(e) {
+                return alert("Ошибка формата JSON в дополнительных полях.");
+            }
+
+            const payload = {
+                type: currentMode,
+                creator: currentUser.email,
+                data: saveData,
+                updatedAt: new Date().toISOString()
+            };
+
+            try {
+                if (currentEditId) {
+                    await setDoc(doc(db, "custom_content", currentEditId), payload, { merge: true });
+                } else {
+                    const newId = currentMode + '_' + Date.now();
+                    await setDoc(doc(db, "custom_content", newId), payload);
+                }
+                window.closeBuilder();
+                loadDatabase();
+            } catch(e) { alert("Ошибка сохранения в базу данных."); }
+        };
+
+        // --- ЗАГРУЗКА JSON ФАЙЛОВ ---
+        window.uploadJson = (e) => {
+            if (!currentUser) {
+                e.target.value = '';
+                return alert("Авторизуйтесь для загрузки файлов.");
+            }
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                try {
+                    const dataArray = JSON.parse(event.target.result);
+                    if (!Array.isArray(dataArray)) throw new Error("Файл должен содержать массив [ {...} ]");
+                    
+                    for (let item of dataArray) {
+                        const newId = currentMode + '_' + Date.now() + Math.floor(Math.random()*1000);
+                        const payload = {
+                            type: currentMode,
+                            creator: currentUser.email,
+                            data: item,
+                            updatedAt: new Date().toISOString()
+                        };
+                        await setDoc(doc(db, "custom_content", newId), payload);
+                    }
+                    alert("Успешно загружено и синхронизировано!");
+                    loadDatabase();
+                } catch (err) {
+                    alert("Ошибка формата файла.");
+                }
+            };
+            reader.readAsText(file);
+            e.target.value = '';
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.documentElement.style.setProperty('--accent-primary', '#45B3CB');
+            loadDatabase();
+        });
+    </script>
+</body>
+</html>
