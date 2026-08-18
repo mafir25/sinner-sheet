@@ -84,17 +84,17 @@
         .types-container { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px;}
         .type-badge { display: flex; align-items: center; gap: 4px; font-family: 'Oswald', sans-serif; font-size: 0.75rem; text-transform: uppercase; border: 1px solid; padding: 2px 6px; border-radius: 2px; background: rgba(0,0,0,0.5); }
 
-        /* Внутренности карточки */
+        /* Внутренности карточки (Форматирование) */
         .talents-wrapper { max-height: 0; opacity: 0; overflow: hidden; transition: max-height 0.4s ease, opacity 0.3s ease; position: relative; }
         .panel-outer.expanded .talents-wrapper { max-height: 5000px; opacity: 1; margin-top: 12px; border-top: 1px dashed #333; padding-top: 12px; }
 
         .card-content-desc { font-size: 0.9rem; color: var(--text-main); white-space: pre-wrap; line-height: 1.5; }
         .creator-tag { font-size: 0.7rem; color: var(--text-dim); text-align: right; margin-top: 10px; font-style: italic;}
 
-        /* Сворачиваемые под-блоки (Сайд-эффекты, Таланты, Действия) */
+        /* Сворачиваемые под-блоки */
         .side-effect-block { margin-bottom: 12px; border-left: 2px solid var(--text-dim); padding: 8px 10px; cursor: pointer; position: relative; transition: 0.2s; background: rgba(255,255,255,0.02); }
         .side-effect-block:hover { border-color: var(--accent-primary); background: rgba(255,255,255,0.05); }
-        .se-header { display: flex; justify-content: space-between; align-items: center; }
+        .se-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 2px; }
         .se-name { font-family: 'Oswald', sans-serif; font-size: 1.1rem; color: var(--accent-primary); transition: 0.2s; }
         .se-collapse-icon { color: var(--text-dim); font-size: 0.8rem; transition: transform 0.3s; margin-right: 8px; }
         .side-effect-block.collapsed .se-collapse-icon { transform: rotate(-90deg); }
@@ -115,6 +115,12 @@
         .ctrl-dl:hover { background: var(--text-main); color: #000; }
 
         .copy-msg-global { text-align: center; color: var(--accent-primary); font-size: 0.8rem; opacity: 0; transition: opacity 0.2s; font-family: 'Oswald', sans-serif; height: 0; margin-top: 4px; }
+
+        /* Стат-блок бестиария */
+        .stat-grid { display: flex; justify-content: space-between; text-align: center; margin: 12px 0; padding: 12px 0; border-top: 2px solid var(--accent-primary); border-bottom: 2px solid var(--accent-primary); }
+        .stat-col { display: flex; flex-direction: column; width: 16%; }
+        .stat-name { font-family: 'Oswald', sans-serif; color: var(--accent-primary); font-size: 1rem; }
+        .stat-val { font-size: 0.9rem; font-weight: bold; }
 
         /* Модалки */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: flex-start; z-index: 2000; backdrop-filter: blur(4px); padding-top: 50px; overflow-y: auto; }
@@ -214,6 +220,7 @@
                 <button class="btn-close-modal" onclick="window.closeBuilder()"><i class="fa-solid fa-xmark"></i></button>
                 <div class="class-title" id="builder-title" style="margin-bottom: 20px; border-bottom: 1px solid var(--accent-primary); padding-bottom: 8px;">КОНСТРУКТОР</div>
                 
+                <!-- Контейнер для динамических полей -->
                 <div id="dynamic-form-fields"></div>
 
                 <button class="action-btn" style="width: 100%; margin-top: 20px;" onclick="window.saveEntry()"><i class="fa-solid fa-cloud-arrow-up"></i> СОХРАНИТЬ В БАЗУ</button>
@@ -328,7 +335,6 @@
             window.toggleAuthModal();
         };
 
-        // Массовое обновление Никнейма
         window.updateNickname = async () => {
             if (!currentUser) return;
             const newName = document.getElementById('auth-nickname').value.trim();
@@ -382,7 +388,6 @@
                 <div class="search-wrapper cut-tl">
                     <div class="search-inner cut-tl">
                         <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                        <!-- Смена type на search и трюк с readonly -->
                         <input type="search" id="search-input" class="search-input" placeholder="Поиск по названию или описанию..." onkeyup="window.filterItems()" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly');">
                     </div>
                 </div>
@@ -492,17 +497,16 @@
             return html;
         }
 
-        // Вспомогательная функция сворачивания подблока (Только при клике на заголовок)
+        // Вспомогательные функции взаимодействия с карточками
         window.toggleSubBlock = (e, el) => {
-            e.stopPropagation(); // Блокируем срабатывание копирования
+            e.stopPropagation();
             el.closest('.side-effect-block').classList.toggle('collapsed');
         };
 
-        // Копирование отдельного подблока (При клике на текст)
         window.copySubBlockText = (el) => {
             const titleEl = el.querySelector('.se-name');
             const descEl = el.querySelector('.se-desc');
-            const levelEl = el.querySelector('.tech-text'); // для уровней у талантов
+            const levelEl = el.querySelector('.tech-text'); 
             
             let textToCopy = titleEl ? titleEl.innerText : '';
             if (levelEl) textToCopy += ` [${levelEl.innerText}]`;
@@ -524,7 +528,6 @@
             });
         };
 
-        // Функция копирования (Текстовый генератор)
         window.copyEntry = (id, btn) => {
             const item = dbCache.find(i => i.id === id);
             if (!item) return;
@@ -560,13 +563,13 @@
             
             navigator.clipboard.writeText(textToCopy).then(() => {
                 const msg = btn.closest('.talents-wrapper').querySelector('.copy-msg-global');
+                msg.innerText = 'СКОПИРОВАНО В БУФЕР!';
                 msg.style.opacity = '1';
                 msg.style.height = 'auto';
                 setTimeout(() => { msg.style.opacity = '0'; msg.style.height = '0'; }, 2000);
             });
         };
 
-        // Функция скачивания JSON
         window.downloadCustomJson = (id) => {
             const item = dbCache.find(i => i.id === id);
             if (!item) return;
@@ -610,7 +613,6 @@
                 let badgesHtml = '';
                 let metaString = '';
                 
-                // Дата-атрибуты для фильтрации
                 let dTypes = (d.Type || []).join(',');
                 let dStats = (d.Stats || []).join(',');
                 let dBases = (d.Base || []).join(',');
@@ -730,44 +732,6 @@
                         fullDesc += ' ' + d.Lore;
                     }
                 }
-                    
-                    if (d.Traits && d.Traits.length > 0) {
-                        descHtml += `<div class="tech-text" style="color:var(--color-yellow); margin-top:10px; margin-bottom:6px;">ОСОБЕННОСТИ</div>`;
-                        d.Traits.forEach(t => {
-                            descHtml += `
-                                <div class="side-effect-block collapsed" onclick="window.toggleSubBlock(this)" style="border-left-color:var(--color-yellow);">
-                                    <div class="se-header">
-                                        <div style="display:flex; align-items:center;">
-                                            <i class="fa-solid fa-chevron-down se-collapse-icon"></i>
-                                            <span class="se-name" style="color:var(--color-yellow);">${t.name}</span>
-                                        </div>
-                                    </div>
-                                    <div class="se-desc-wrapper"><div class="se-desc">${t.desc}</div></div>
-                                </div>`;
-                            fullDesc += ' ' + t.name + ' ' + t.desc;
-                        });
-                    }
-                    if (d.Actions && d.Actions.length > 0) {
-                        descHtml += `<div class="tech-text" style="color:var(--color-red); margin-top:10px; margin-bottom:6px;">ДЕЙСТВИЯ</div>`;
-                        d.Actions.forEach(a => {
-                            descHtml += `
-                                <div class="side-effect-block collapsed" onclick="window.toggleSubBlock(this)" style="border-left-color:var(--color-red);">
-                                    <div class="se-header">
-                                        <div style="display:flex; align-items:center;">
-                                            <i class="fa-solid fa-chevron-down se-collapse-icon"></i>
-                                            <span class="se-name" style="color:var(--color-red);">${a.name}</span>
-                                        </div>
-                                    </div>
-                                    <div class="se-desc-wrapper"><div class="se-desc">${a.desc}</div></div>
-                                </div>`;
-                            fullDesc += ' ' + a.name + ' ' + a.desc;
-                        });
-                    }
-                    if (d.Lore) {
-                        descHtml += `<div class="lore-text" style="margin-top:10px; border-top:1px dashed #333; padding-top:10px;">${d.Lore}</div>`;
-                        fullDesc += ' ' + d.Lore;
-                    }
-                }
 
                 html += `
                     <div class="panel-outer cut-tl compendium-card" data-name="${d.Name||d.characterName||''}" data-desc="${fullDesc}" data-types="${dTypes}" data-stats="${dStats}" data-bases="${dBases}" data-rarity="${dRarity}" data-level="${dLevel}" data-cats="${dCats}">
@@ -792,6 +756,16 @@
             });
             container.innerHTML = html;
         }
+
+        // --- УДАЛЕНИЕ ---
+        window.deleteEntry = async (id) => {
+            if (!confirm("Удалить эту запись навсегда?")) return;
+            try {
+                await deleteDoc(doc(db, "custom_content", id));
+                dbCache = dbCache.filter(i => i.id !== id);
+                renderGrid();
+            } catch(e) { alert("Ошибка удаления."); }
+        };
 
         // --- ДИНАМИЧЕСКИЙ КОНСТРУКТОР ---
         window.openBuilder = () => {
