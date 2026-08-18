@@ -492,9 +492,36 @@
             return html;
         }
 
-        // Вспомогательная функция сворачивания подблока
-        window.toggleSubBlock = (el) => {
+        // Вспомогательная функция сворачивания подблока (Только при клике на заголовок)
+        window.toggleSubBlock = (e, el) => {
+            e.stopPropagation(); // Блокируем срабатывание копирования
             el.closest('.side-effect-block').classList.toggle('collapsed');
+        };
+
+        // Копирование отдельного подблока (При клике на текст)
+        window.copySubBlockText = (el) => {
+            const titleEl = el.querySelector('.se-name');
+            const descEl = el.querySelector('.se-desc');
+            const levelEl = el.querySelector('.tech-text'); // для уровней у талантов
+            
+            let textToCopy = titleEl ? titleEl.innerText : '';
+            if (levelEl) textToCopy += ` [${levelEl.innerText}]`;
+            textToCopy += '\n' + (descEl ? descEl.innerText : '');
+            
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                const msg = el.closest('.talents-wrapper').querySelector('.copy-msg-global');
+                if (msg) {
+                    const oldText = msg.innerText;
+                    msg.innerText = 'ПОДБЛОК СКОПИРОВАН В БУФЕР!';
+                    msg.style.opacity = '1';
+                    msg.style.height = 'auto';
+                    setTimeout(() => { 
+                        msg.style.opacity = '0'; 
+                        msg.style.height = '0'; 
+                        setTimeout(() => msg.innerText = oldText, 200);
+                    }, 2000);
+                }
+            });
         };
 
         // Функция копирования (Текстовый генератор)
@@ -592,15 +619,15 @@
                 let dCats = (d.Category || []).join(',');
                 let fullDesc = '';
 
-                // Отрисовка со сворачиваемыми блоками
+                // Отрисовка со сворачиваемыми блоками (Разделен клик по заголовку и по тексту)
                 if (currentMode === 'status') {
                     fullDesc = d.Effect || '';
                     descHtml = `<div class="card-content-desc" style="margin-bottom:12px;"><b>Эффект:</b><br>${d.Effect}</div>`;
                     if (d.SideEffects && d.SideEffects.length > 0) {
                         d.SideEffects.forEach(se => {
                             descHtml += `
-                                <div class="side-effect-block collapsed" onclick="window.toggleSubBlock(this)" style="border-left-color:var(--color-yellow);">
-                                    <div class="se-header">
+                                <div class="side-effect-block collapsed" onclick="window.copySubBlockText(this)" style="border-left-color:var(--color-yellow);">
+                                    <div class="se-header" onclick="window.toggleSubBlock(event, this)">
                                         <div style="display:flex; align-items:center;">
                                             <i class="fa-solid fa-chevron-down se-collapse-icon"></i>
                                             <span class="se-name" style="color:var(--color-yellow);">${se.sideeffectname}</span>
@@ -619,8 +646,8 @@
                         d.Talents.forEach(t => {
                             const c = t.Color || t.color || 'var(--accent-primary)';
                             descHtml += `
-                                <div class="side-effect-block collapsed" onclick="window.toggleSubBlock(this)" style="border-left-color:${c};">
-                                    <div class="se-header">
+                                <div class="side-effect-block collapsed" onclick="window.copySubBlockText(this)" style="border-left-color:${c};">
+                                    <div class="se-header" onclick="window.toggleSubBlock(event, this)">
                                         <div style="display:flex; align-items:baseline; gap:8px;">
                                             <i class="fa-solid fa-chevron-down se-collapse-icon"></i>
                                             <span class="se-name" style="color:${c};">${t.name}</span>
@@ -665,6 +692,44 @@
                         <div class="stat-col"><span class="stat-name">WIS</span><span class="stat-val">${d.Stats?.WIS}</span></div>
                         <div class="stat-col"><span class="stat-name">CHA</span><span class="stat-val">${d.Stats?.CHA}</span></div>
                     </div>`;
+                    
+                    if (d.Traits && d.Traits.length > 0) {
+                        descHtml += `<div class="tech-text" style="color:var(--color-yellow); margin-top:10px; margin-bottom:6px;">ОСОБЕННОСТИ</div>`;
+                        d.Traits.forEach(t => {
+                            descHtml += `
+                                <div class="side-effect-block collapsed" onclick="window.copySubBlockText(this)" style="border-left-color:var(--color-yellow);">
+                                    <div class="se-header" onclick="window.toggleSubBlock(event, this)">
+                                        <div style="display:flex; align-items:center;">
+                                            <i class="fa-solid fa-chevron-down se-collapse-icon"></i>
+                                            <span class="se-name" style="color:var(--color-yellow);">${t.name}</span>
+                                        </div>
+                                    </div>
+                                    <div class="se-desc-wrapper"><div class="se-desc">${t.desc}</div></div>
+                                </div>`;
+                            fullDesc += ' ' + t.name + ' ' + t.desc;
+                        });
+                    }
+                    if (d.Actions && d.Actions.length > 0) {
+                        descHtml += `<div class="tech-text" style="color:var(--color-red); margin-top:10px; margin-bottom:6px;">ДЕЙСТВИЯ</div>`;
+                        d.Actions.forEach(a => {
+                            descHtml += `
+                                <div class="side-effect-block collapsed" onclick="window.copySubBlockText(this)" style="border-left-color:var(--color-red);">
+                                    <div class="se-header" onclick="window.toggleSubBlock(event, this)">
+                                        <div style="display:flex; align-items:center;">
+                                            <i class="fa-solid fa-chevron-down se-collapse-icon"></i>
+                                            <span class="se-name" style="color:var(--color-red);">${a.name}</span>
+                                        </div>
+                                    </div>
+                                    <div class="se-desc-wrapper"><div class="se-desc">${a.desc}</div></div>
+                                </div>`;
+                            fullDesc += ' ' + a.name + ' ' + a.desc;
+                        });
+                    }
+                    if (d.Lore) {
+                        descHtml += `<div class="lore-text" style="margin-top:10px; border-top:1px dashed #333; padding-top:10px;">${d.Lore}</div>`;
+                        fullDesc += ' ' + d.Lore;
+                    }
+                }
                     
                     if (d.Traits && d.Traits.length > 0) {
                         descHtml += `<div class="tech-text" style="color:var(--color-yellow); margin-top:10px; margin-bottom:6px;">ОСОБЕННОСТИ</div>`;
