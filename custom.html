@@ -382,7 +382,8 @@
                 <div class="search-wrapper cut-tl">
                     <div class="search-inner cut-tl">
                         <i class="fa-solid fa-magnifying-glass search-icon"></i>
-                        <input type="text" id="search-input" class="search-input" placeholder="Поиск по названию или описанию..." onkeyup="window.filterItems()" autocomplete="off" name="search_dummy">
+                        <!-- Смена type на search и трюк с readonly -->
+                        <input type="search" id="search-input" class="search-input" placeholder="Поиск по названию или описанию..." onkeyup="window.filterItems()" autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly');">
                     </div>
                 </div>
             `;
