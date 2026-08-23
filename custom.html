@@ -1040,17 +1040,22 @@
                 saveData.Lore = document.getElementById('bf-lore').value;
             }
 
-            const nick = window.localStorage.getItem('custom_nickname') || currentUser.email.split('@')[0];
             const isPrivate = document.getElementById('bf-isprivate').checked;
 
+            // Формируем базовый пакет для сохранения (без смены автора)
             const payload = {
                 type: currentMode,
-                creatorEmail: currentUser.email,
-                creator: nick,
                 data: saveData,
                 isPrivate: isPrivate,
                 updatedAt: new Date().toISOString()
             };
+
+            // Записываем авторство ТОЛЬКО если это абсолютно новая карточка
+            if (!currentEditId) {
+                const nick = window.localStorage.getItem('custom_nickname') || currentUser.email.split('@')[0];
+                payload.creatorEmail = currentUser.email;
+                payload.creator = nick;
+            }
 
             try {
                 if (currentEditId) {
