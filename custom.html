@@ -84,7 +84,7 @@
         .types-container { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px;}
         .type-badge { display: flex; align-items: center; gap: 4px; font-family: 'Oswald', sans-serif; font-size: 0.75rem; text-transform: uppercase; border: 1px solid; padding: 2px 6px; border-radius: 2px; background: rgba(0,0,0,0.5); }
 
-        /* Внутренности карточки (Форматирование) */
+        /* Внутренности карточки */
         .talents-wrapper { max-height: 0; opacity: 0; overflow: hidden; transition: max-height 0.4s ease, opacity 0.3s ease; position: relative; }
         .panel-outer.expanded .talents-wrapper { max-height: 5000px; opacity: 1; margin-top: 12px; border-top: 1px dashed #333; padding-top: 12px; }
 
@@ -102,7 +102,7 @@
         .side-effect-block.collapsed .se-desc-wrapper { grid-template-rows: 0fr; margin-top: 0; }
         .se-desc { overflow: hidden; font-size: 0.9rem; color: var(--text-main); line-height: 1.5; white-space: pre-wrap; }
 
-        /* Управление карточкой (Редакт/Удалить/Копировать) */
+        /* Управление карточкой (Редакт/Удалить/Копировать/Приват) */
         .card-controls { display: flex; gap: 8px; margin-top: 12px; border-top: 1px solid #222; padding-top: 12px; flex-wrap: wrap; }
         .ctrl-btn { flex: 1; background: transparent; border: 1px solid; padding: 6px; font-size: 0.75rem; font-family: 'Oswald'; cursor: pointer; text-transform: uppercase; transition: 0.2s;}
         .ctrl-edit { border-color: var(--color-yellow); color: var(--color-yellow); }
@@ -113,6 +113,8 @@
         .ctrl-copy:hover { background: var(--color-cyan); color: #000; }
         .ctrl-dl { border-color: var(--text-main); color: var(--text-main); }
         .ctrl-dl:hover { background: var(--text-main); color: #000; }
+        .ctrl-priv { border-color: #555; color: #555; }
+        .ctrl-priv:hover { border-color: var(--color-red); color: var(--color-red); }
 
         .copy-msg-global { text-align: center; color: var(--accent-primary); font-size: 0.8rem; opacity: 0; transition: opacity 0.2s; font-family: 'Oswald', sans-serif; height: 0; margin-top: 4px; }
 
@@ -137,6 +139,7 @@
         .builder-checkbox-group { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
         .builder-checkbox-label { display: flex; align-items: center; gap: 4px; font-size: 0.85rem; cursor: pointer; color: var(--text-dim); }
         .builder-checkbox-label input { accent-color: var(--accent-primary); }
+        .builder-checkbox-label:hover { color: var(--text-main); }
 
         .b-row { display: flex; gap: 10px; }
         .b-row .cloud-input, .b-row .cloud-select { flex: 1; }
@@ -214,7 +217,8 @@
     </div>
 
     <!-- МОДАЛЬНОЕ ОКНО КОНСТРУКТОРА -->
-    <div class="modal-overlay" id="builderModal" onclick="window.closeModalOnBg(event, 'builderModal')">
+    <!-- Убрано закрытие по клику на фон для безопасности введенного текста -->
+    <div class="modal-overlay" id="builderModal">
         <div class="panel-outer cut-tl modal-box" style="background-color: var(--accent-primary);">
             <div class="panel-inner cut-tl" style="padding-top: 40px;">
                 <button class="btn-close-modal" onclick="window.closeBuilder()"><i class="fa-solid fa-xmark"></i></button>
@@ -245,6 +249,7 @@
         const auth = getAuth(app);
         const db = getFirestore(app, "default");
 
+        // СПИСОК АДМИНИСТРАТОРОВ
         const adminEmails = ["nikkitamatveev2009@gmail.com", "pavlovichpavel03@gmail.com"];
 
         let currentUser = null;
@@ -563,7 +568,7 @@
             
             navigator.clipboard.writeText(textToCopy).then(() => {
                 const msg = btn.closest('.talents-wrapper').querySelector('.copy-msg-global');
-                msg.innerText = 'СКОПИРОВАНО В БУФЕР!';
+                msg.innerText = 'ВЕСЬ ЭЛЕМЕНТ СКОПИРОВАН В БУФЕР!';
                 msg.style.opacity = '1';
                 msg.style.height = 'auto';
                 setTimeout(() => { msg.style.opacity = '0'; msg.style.height = '0'; }, 2000);
@@ -582,6 +587,21 @@
             dl.remove();
         };
 
+        // --- УПРАВЛЕНИЕ ПРИВАТНОСТЬЮ ---
+        window.togglePrivacy = async (id) => {
+            const item = dbCache.find(i => i.id === id);
+            if (!item) return;
+            
+            const newStatus = !item.isPrivate;
+            try {
+                await setDoc(doc(db, "custom_content", id), { isPrivate: newStatus }, { merge: true });
+                item.isPrivate = newStatus;
+                renderGrid();
+            } catch(e) {
+                alert("Ошибка обновления статуса приватности.");
+            }
+        };
+
         // --- ГЕНЕРАЦИЯ КАРТОЧЕК ---
         function renderGrid() {
             const container = document.getElementById('compendium');
@@ -596,11 +616,15 @@
             items.forEach(item => {
                 const isOwnerOrAdmin = currentUser && (item.creatorEmail === currentUser.email || adminEmails.includes(currentUser.email));
                 
+                // Скрытие приватных карточек для обычных пользователей
+                if (item.isPrivate && !isOwnerOrAdmin) return;
+                
                 let controlsHtml = `
                     <div class="card-controls">
                         <button class="ctrl-btn ctrl-copy" onclick="window.copyEntry('${item.id}', this)"><i class="fa-regular fa-copy"></i> ТЕКСТ</button>
                         <button class="ctrl-btn ctrl-dl" onclick="window.downloadCustomJson('${item.id}')"><i class="fa-solid fa-download"></i> JSON</button>
                         ${isOwnerOrAdmin ? `
+                            <button class="ctrl-btn ctrl-priv" title="Скрыть/Показать" onclick="window.togglePrivacy('${item.id}')"><i class="fa-solid ${item.isPrivate ? 'fa-eye' : 'fa-eye-slash'}"></i></button>
                             <button class="ctrl-btn ctrl-edit" onclick="window.editEntry('${item.id}')"><i class="fa-solid fa-pen"></i></button>
                             <button class="ctrl-btn ctrl-del" onclick="window.deleteEntry('${item.id}')"><i class="fa-solid fa-trash"></i></button>
                         ` : ''}
@@ -613,6 +637,10 @@
                 let badgesHtml = '';
                 let metaString = '';
                 
+                if (item.isPrivate) {
+                    badgesHtml += `<div class="type-badge" style="color:var(--color-red); border-color:var(--color-red);"><i class="fa-solid fa-lock"></i> ПРИВАТНО</div>`;
+                }
+
                 let dTypes = (d.Type || []).join(',');
                 let dStats = (d.Stats || []).join(',');
                 let dBases = (d.Base || []).join(',');
@@ -621,7 +649,7 @@
                 let dCats = (d.Category || []).join(',');
                 let fullDesc = '';
 
-                // Отрисовка со сворачиваемыми блоками (Разделен клик по заголовку и по тексту)
+                // Отрисовка со сворачиваемыми блоками
                 if (currentMode === 'status') {
                     fullDesc = d.Effect || '';
                     descHtml = `<div class="card-content-desc" style="margin-bottom:12px;"><b>Эффект:</b><br>${d.Effect}</div>`;
@@ -754,6 +782,8 @@
                     </div>
                 `;
             });
+            
+            if (html === '') html = '<div class="tech-text" style="grid-column: 1/-1; text-align: center;">ПОДХОДЯЩИЕ ЗАПИСИ НЕ НАЙДЕНЫ</div>';
             container.innerHTML = html;
         }
 
@@ -772,7 +802,7 @@
             if (!currentUser) return alert("Для создания контента необходимо авторизоваться.");
             currentEditId = null;
             document.getElementById('builder-title').innerText = `СОЗДАТЬ: ${modeTitles[currentMode]}`;
-            renderBuilderForm();
+            renderBuilderForm({}, false);
             document.getElementById('builderModal').classList.add('active');
         };
 
@@ -783,7 +813,7 @@
             if (!item) return;
             currentEditId = id;
             document.getElementById('builder-title').innerText = `РЕДАКТИРОВАНИЕ`;
-            renderBuilderForm(item.data);
+            renderBuilderForm(item.data, item.isPrivate);
             document.getElementById('builderModal').classList.add('active');
         };
 
@@ -797,7 +827,7 @@
             return h;
         }
 
-        function renderBuilderForm(data = {}) {
+        function renderBuilderForm(data = {}, isPrivate = false) {
             const container = document.getElementById('dynamic-form-fields');
             let html = `<div class="tech-text" style="margin-bottom:4px;">НАЗВАНИЕ (NAME)</div><input type="text" id="bf-name" class="cloud-input" placeholder="Название..." value="${data.Name || ''}">`;
 
@@ -873,6 +903,16 @@
                          </div><div id="bf-actions-container"></div>`;
                 html += `<div class="tech-text" style="margin-bottom:4px; margin-top:12px;">ЛОР И ОПИСАНИЕ</div><textarea id="bf-lore" class="cloud-input">${data.Lore || ''}</textarea>`;
             }
+
+            // Галочка приватности (Видна только создателю и админам)
+            html += `
+                <div class="builder-checkbox-group" style="margin-top: 16px; border-top: 1px dashed #333; padding-top: 12px;">
+                    <label class="builder-checkbox-label" style="color: var(--color-red);">
+                        <input type="checkbox" id="bf-isprivate" ${isPrivate ? 'checked' : ''}> 
+                        <i class="fa-solid fa-eye-slash"></i> СДЕЛАТЬ ЗАПИСЬ ПРИВАТНОЙ (Только для вас и Администрации)
+                    </label>
+                </div>
+            `;
 
             container.innerHTML = html;
 
@@ -975,12 +1015,14 @@
             }
 
             const nick = window.localStorage.getItem('custom_nickname') || currentUser.email.split('@')[0];
+            const isPrivate = document.getElementById('bf-isprivate').checked;
 
             const payload = {
                 type: currentMode,
                 creatorEmail: currentUser.email,
                 creator: nick,
                 data: saveData,
+                isPrivate: isPrivate,
                 updatedAt: new Date().toISOString()
             };
 
@@ -993,7 +1035,7 @@
                 }
                 window.closeBuilder();
                 loadDatabase();
-            } catch(e) { alert("Ошибка сохранения в базу данных."); }
+            } catch(e) { alert("Ошибка сохранения в базу данных. Проверьте права доступа к Firestore."); }
         };
 
         // --- ЗАГРУЗКА JSON ФАЙЛОВ ---
@@ -1019,6 +1061,7 @@
                             creatorEmail: currentUser.email,
                             creator: nick,
                             data: item,
+                            isPrivate: false, // Загружаемые из JSON по умолчанию публичны
                             updatedAt: new Date().toISOString()
                         };
                         await setDoc(doc(db, "custom_content", newId), payload);
