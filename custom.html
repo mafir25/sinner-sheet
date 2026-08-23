@@ -8,6 +8,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Merriweather:ital,wght@0,300;1,300;1,700&family=Oswald:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- Подключение Markdown парсера -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
     <style>
         :root {
             --bg-main: #070707; --bg-panel: #000000; 
@@ -102,7 +105,22 @@
         .side-effect-block.collapsed .se-desc-wrapper { grid-template-rows: 0fr; margin-top: 0; }
         .se-desc { overflow: hidden; font-size: 0.9rem; color: var(--text-main); line-height: 1.5; white-space: pre-wrap; }
 
-        /* Управление карточкой (Редакт/Удалить/Копировать/Приват) */
+        /* СТИЛИ ДЛЯ MARKDOWN КОНТЕНТА */
+        .md-content { white-space: normal; line-height: 1.5; }
+        .md-content p { margin-bottom: 8px; margin-top: 0; }
+        .md-content p:last-child { margin-bottom: 0; }
+        .md-content strong, .md-content b { color: var(--accent-primary); font-family: 'Oswald', sans-serif; letter-spacing: 0.5px; font-weight: normal; }
+        .md-content em, .md-content i { color: var(--text-dim); }
+        .md-content ul, .md-content ol { margin-left: 20px; margin-bottom: 8px; margin-top: 0; }
+        .md-content li { margin-bottom: 4px; }
+        .md-content table { width: 100%; border-collapse: collapse; margin-top: 8px; margin-bottom: 8px; font-size: 0.85rem; }
+        .md-content th, .md-content td { border: 1px solid #333; padding: 6px 10px; text-align: left; }
+        .md-content th { background: rgba(255,255,255,0.05); color: var(--accent-primary); font-family: 'Oswald', sans-serif; text-transform: uppercase; }
+        .md-content tr:nth-child(even) { background: rgba(255,255,255,0.02); }
+        .md-content blockquote { border-left: 3px solid var(--accent-primary); padding-left: 10px; margin-left: 0; color: var(--text-dim); font-style: italic; }
+        .md-content code { background: rgba(255,255,255,0.1); padding: 2px 4px; border-radius: 3px; font-family: monospace; color: var(--color-yellow); }
+
+        /* Управление карточкой */
         .card-controls { display: flex; gap: 8px; margin-top: 12px; border-top: 1px solid #222; padding-top: 12px; flex-wrap: wrap; }
         .ctrl-btn { flex: 1; background: transparent; border: 1px solid; padding: 6px; font-size: 0.75rem; font-family: 'Oswald'; cursor: pointer; text-transform: uppercase; transition: 0.2s;}
         .ctrl-edit { border-color: var(--color-yellow); color: var(--color-yellow); }
@@ -139,7 +157,6 @@
         .builder-checkbox-group { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
         .builder-checkbox-label { display: flex; align-items: center; gap: 4px; font-size: 0.85rem; cursor: pointer; color: var(--text-dim); }
         .builder-checkbox-label input { accent-color: var(--accent-primary); }
-        .builder-checkbox-label:hover { color: var(--text-main); }
 
         .b-row { display: flex; gap: 10px; }
         .b-row .cloud-input, .b-row .cloud-select { flex: 1; }
@@ -196,7 +213,6 @@
                 <button class="btn-close-modal" onclick="window.toggleAuthModal()"><i class="fa-solid fa-xmark"></i></button>
                 <div class="class-title" style="margin-bottom: 20px;">ПАНЕЛЬ ДОСТУПА</div>
                 
-                <!-- Неавторизованный вид -->
                 <div id="auth-unlogged">
                     <input type="email" id="auth-email" class="cloud-input" placeholder="Email">
                     <input type="password" id="auth-pass" class="cloud-input" placeholder="Пароль">
@@ -204,7 +220,6 @@
                     <button class="action-btn" style="width: 100%; border-color: var(--text-dim); color: var(--text-dim);" onclick="window.register()"><i class="fa-solid fa-user-plus"></i> РЕГИСТРАЦИЯ</button>
                 </div>
 
-                <!-- Авторизованный вид (Профиль) -->
                 <div id="auth-logged" style="display: none;">
                     <div class="tech-text" style="margin-bottom: 4px;">ВАШ НИКНЕЙМ (ОТОБРАЖАЕТСЯ КАК АВТОР)</div>
                     <input type="text" id="auth-nickname" class="cloud-input" placeholder="Введите никнейм...">
@@ -217,14 +232,16 @@
     </div>
 
     <!-- МОДАЛЬНОЕ ОКНО КОНСТРУКТОРА -->
-    <!-- Убрано закрытие по клику на фон для безопасности введенного текста -->
     <div class="modal-overlay" id="builderModal">
         <div class="panel-outer cut-tl modal-box" style="background-color: var(--accent-primary);">
             <div class="panel-inner cut-tl" style="padding-top: 40px;">
                 <button class="btn-close-modal" onclick="window.closeBuilder()"><i class="fa-solid fa-xmark"></i></button>
                 <div class="class-title" id="builder-title" style="margin-bottom: 20px; border-bottom: 1px solid var(--accent-primary); padding-bottom: 8px;">КОНСТРУКТОР</div>
                 
-                <!-- Контейнер для динамических полей -->
+                <div class="tech-text" style="color: var(--color-yellow); margin-bottom: 16px;">
+                    <i class="fa-solid fa-circle-info"></i> Текстовые поля (Описания) поддерживают Markdown форматирование (Таблицы, **Жирный**, *Курсив*).
+                </div>
+
                 <div id="dynamic-form-fields"></div>
 
                 <button class="action-btn" style="width: 100%; margin-top: 20px;" onclick="window.saveEntry()"><i class="fa-solid fa-cloud-arrow-up"></i> СОХРАНИТЬ В БАЗУ</button>
@@ -236,6 +253,12 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
         import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDocs, collection, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+
+        // Настройка Markdown
+        marked.setOptions({
+            breaks: true,
+            gfm: true
+        });
 
         const firebaseConfig = {
             apiKey: "AIzaSyDaFNBCW76UsBnziHoGveo7TcC11uAdmqs",
@@ -249,7 +272,6 @@
         const auth = getAuth(app);
         const db = getFirestore(app, "default");
 
-        // СПИСОК АДМИНИСТРАТОРОВ
         const adminEmails = ["nikkitamatveev2009@gmail.com", "pavlovichpavel03@gmail.com"];
 
         let currentUser = null;
@@ -502,6 +524,11 @@
             return html;
         }
 
+        function parseMD(str) {
+            if (!str) return '';
+            return marked.parse(str);
+        }
+
         // Вспомогательные функции взаимодействия с карточками
         window.toggleSubBlock = (e, el) => {
             e.stopPropagation();
@@ -616,7 +643,6 @@
             items.forEach(item => {
                 const isOwnerOrAdmin = currentUser && (item.creatorEmail === currentUser.email || adminEmails.includes(currentUser.email));
                 
-                // Скрытие приватных карточек для обычных пользователей
                 if (item.isPrivate && !isOwnerOrAdmin) return;
                 
                 let controlsHtml = `
@@ -649,10 +675,10 @@
                 let dCats = (d.Category || []).join(',');
                 let fullDesc = '';
 
-                // Отрисовка со сворачиваемыми блоками
+                // Отрисовка с парсингом Markdown
                 if (currentMode === 'status') {
                     fullDesc = d.Effect || '';
-                    descHtml = `<div class="card-content-desc" style="margin-bottom:12px;"><b>Эффект:</b><br>${d.Effect}</div>`;
+                    descHtml = `<div class="md-content" style="margin-bottom:12px;"><b>Эффект:</b><br>${parseMD(d.Effect)}</div>`;
                     if (d.SideEffects && d.SideEffects.length > 0) {
                         d.SideEffects.forEach(se => {
                             descHtml += `
@@ -663,7 +689,7 @@
                                             <span class="se-name" style="color:var(--color-yellow);">${se.sideeffectname}</span>
                                         </div>
                                     </div>
-                                    <div class="se-desc-wrapper"><div class="se-desc">${se.sideeffect}</div></div>
+                                    <div class="se-desc-wrapper"><div class="se-desc md-content">${parseMD(se.sideeffect)}</div></div>
                                 </div>`;
                             fullDesc += ' ' + se.sideeffectname + ' ' + se.sideeffect;
                         });
@@ -684,7 +710,7 @@
                                             <span class="tech-text" style="color:var(--text-dim); font-size:0.75rem;">Ур. ${t.level}</span>
                                         </div>
                                     </div>
-                                    <div class="se-desc-wrapper"><div class="se-desc">${t.desc}</div></div>
+                                    <div class="se-desc-wrapper"><div class="se-desc md-content">${parseMD(t.desc)}</div></div>
                                 </div>`;
                             fullDesc += ' ' + t.name + ' ' + t.desc;
                         });
@@ -693,13 +719,13 @@
                 else if (currentMode === 'feat') {
                     badgesHtml += createBadges(d.Base, dictFeatBases);
                     if(d.Need) descHtml += `<div class="tech-text" style="color:var(--color-red); margin-bottom:8px;">ТРЕБОВАНИЯ: ${d.Need}</div>`;
-                    descHtml += `<div class="card-content-desc">${d.desc}</div>`;
+                    descHtml += `<div class="md-content">${parseMD(d.desc)}</div>`;
                     fullDesc = d.desc || '';
                 }
                 else if (currentMode === 'gift') {
                     metaString = `УРОВЕНЬ ${d.Level}`;
                     badgesHtml += createBadges(d.Type, dictTypes);
-                    descHtml = `<div class="card-content-desc">${d.Description}</div>`;
+                    descHtml = `<div class="md-content">${parseMD(d.Description)}</div>`;
                     fullDesc = d.Description || '';
                 }
                 else if (currentMode === 'equip') {
@@ -707,7 +733,7 @@
                     if(d.IsEGO) badgesHtml += `<div class="type-badge" style="color:#D94285; border-color:#D94285;">Э.Г.О.</div>`;
                     badgesHtml += createBadges(d.Type, dictTypes) + createBadges(d.Stats, dictStats);
                     if(d.Need) descHtml += `<div class="tech-text" style="color:var(--color-red); margin-bottom:8px;">ТРЕБОВАНИЯ: ${d.Need}</div>`;
-                    descHtml += `<div class="card-content-desc">${d.Desc}</div>`;
+                    descHtml += `<div class="md-content">${parseMD(d.Desc)}</div>`;
                     fullDesc = d.Desc || '';
                 }
                 else if (currentMode === 'bestiary') {
@@ -734,7 +760,7 @@
                                             <span class="se-name" style="color:var(--color-yellow);">${t.name}</span>
                                         </div>
                                     </div>
-                                    <div class="se-desc-wrapper"><div class="se-desc">${t.desc}</div></div>
+                                    <div class="se-desc-wrapper"><div class="se-desc md-content">${parseMD(t.desc)}</div></div>
                                 </div>`;
                             fullDesc += ' ' + t.name + ' ' + t.desc;
                         });
@@ -750,13 +776,13 @@
                                             <span class="se-name" style="color:var(--color-red);">${a.name}</span>
                                         </div>
                                     </div>
-                                    <div class="se-desc-wrapper"><div class="se-desc">${a.desc}</div></div>
+                                    <div class="se-desc-wrapper"><div class="se-desc md-content">${parseMD(a.desc)}</div></div>
                                 </div>`;
                             fullDesc += ' ' + a.name + ' ' + a.desc;
                         });
                     }
                     if (d.Lore) {
-                        descHtml += `<div class="lore-text" style="margin-top:10px; border-top:1px dashed #333; padding-top:10px;">${d.Lore}</div>`;
+                        descHtml += `<div class="md-content" style="margin-top:10px; border-top:1px dashed #333; padding-top:10px;">${parseMD(d.Lore)}</div>`;
                         fullDesc += ' ' + d.Lore;
                     }
                 }
@@ -832,7 +858,7 @@
             let html = `<div class="tech-text" style="margin-bottom:4px;">НАЗВАНИЕ (NAME)</div><input type="text" id="bf-name" class="cloud-input" placeholder="Название..." value="${data.Name || ''}">`;
 
             if (currentMode === 'status') {
-                html += `<div class="tech-text" style="margin-bottom:4px;">ЭФФЕКТ (EFFECT)</div><textarea id="bf-effect" class="cloud-input" placeholder="Основной эффект">${data.Effect || ''}</textarea>`;
+                html += `<div class="tech-text" style="margin-bottom:4px;">ЭФФЕКТ (EFFECT)</div><textarea id="bf-effect" class="cloud-input" placeholder="Основной эффект (Поддерживает Markdown)">${data.Effect || ''}</textarea>`;
                 html += `<div style="display:flex; justify-content:space-between; align-items:flex-end; border-bottom:1px solid #333; padding-bottom:8px; margin-bottom:12px;">
                             <div class="tech-text" style="color:var(--color-yellow);">САЙД-ЭФФЕКТЫ</div>
                             <button class="btn-small-bld" onclick="window.addBItem('bf-side-container', 'sideeffect')">+ ДОБАВИТЬ</button>
@@ -849,14 +875,14 @@
             else if (currentMode === 'feat') {
                 html += `<div class="tech-text" style="margin-bottom:4px;">ТРЕБОВАНИЯ</div><input type="text" id="bf-need" class="cloud-input" placeholder="Например: Сила 15" value="${data.Need || ''}">`;
                 html += `<div class="tech-text" style="margin-bottom:4px;">КАТЕГОРИИ</div>` + getChecks(dictFeatBases, 'b-base-check', data.Base);
-                html += `<div class="tech-text" style="margin-bottom:4px;">ОПИСАНИЕ</div><textarea id="bf-desc" class="cloud-input" placeholder="Описание черты...">${data.desc || ''}</textarea>`;
+                html += `<div class="tech-text" style="margin-bottom:4px;">ОПИСАНИЕ</div><textarea id="bf-desc" class="cloud-input" placeholder="Описание черты (Поддерживает Markdown)...">${data.desc || ''}</textarea>`;
             }
             else if (currentMode === 'gift') {
                 html += `<div class="tech-text" style="margin-bottom:4px;">УРОВЕНЬ</div><select id="bf-level" class="cloud-select">`;
                 [1,2,3,4,5].forEach(l => html += `<option value="${l}" ${data.Level == l ? 'selected' : ''}>Уровень ${l}</option>`);
                 html += `</select>`;
                 html += `<div class="tech-text" style="margin-bottom:4px;">ТИПЫ УРОНА/СТАТУСА</div>` + getChecks(dictTypes, 'b-type-check', data.Type);
-                html += `<div class="tech-text" style="margin-bottom:4px;">ОПИСАНИЕ</div><textarea id="bf-desc" class="cloud-input" placeholder="Описание гифта...">${data.Description || ''}</textarea>`;
+                html += `<div class="tech-text" style="margin-bottom:4px;">ОПИСАНИЕ</div><textarea id="bf-desc" class="cloud-input" placeholder="Описание гифта (Поддерживает Markdown)...">${data.Description || ''}</textarea>`;
             }
             else if (currentMode === 'equip') {
                 html += `<div class="b-row">
@@ -874,7 +900,7 @@
                 html += `<div class="tech-text" style="margin-bottom:4px;">ТРЕБОВАНИЯ</div><input type="text" id="bf-need" class="cloud-input" placeholder="Например: Сила 15" value="${data.Need || ''}">`;
                 html += `<div class="tech-text" style="margin-bottom:4px;">ТИПЫ УРОНА (ДЛЯ ОРУЖИЯ)</div>` + getChecks(dictTypes, 'b-type-check', data.Type);
                 html += `<div class="tech-text" style="margin-bottom:4px;">СКАЕЙЛИНГ</div>` + getChecks(dictStats, 'b-stat-check', data.Stats);
-                html += `<div class="tech-text" style="margin-bottom:4px;">ОПИСАНИЕ</div><textarea id="bf-desc" class="cloud-input">${data.Desc || ''}</textarea>`;
+                html += `<div class="tech-text" style="margin-bottom:4px;">ОПИСАНИЕ</div><textarea id="bf-desc" class="cloud-input" placeholder="(Поддерживает Markdown)">${data.Desc || ''}</textarea>`;
             }
             else if (currentMode === 'bestiary') {
                 html += `<div class="tech-text" style="margin-bottom:4px;">МЕТА (Например: Средняя нежить, хаотично-злая)</div><input type="text" id="bf-meta" class="cloud-input" value="${data.Meta || ''}">`;
@@ -901,10 +927,10 @@
                             <div class="tech-text" style="color:var(--color-red);">ДЕЙСТВИЯ (ACTIONS)</div>
                             <button class="btn-small-bld" onclick="window.addBItem('bf-actions-container', 'action')">+ ДОБАВИТЬ</button>
                          </div><div id="bf-actions-container"></div>`;
-                html += `<div class="tech-text" style="margin-bottom:4px; margin-top:12px;">ЛОР И ОПИСАНИЕ</div><textarea id="bf-lore" class="cloud-input">${data.Lore || ''}</textarea>`;
+                html += `<div class="tech-text" style="margin-bottom:4px; margin-top:12px;">ЛОР И ОПИСАНИЕ</div><textarea id="bf-lore" class="cloud-input" placeholder="(Поддерживает Markdown)">${data.Lore || ''}</textarea>`;
             }
 
-            // Галочка приватности (Видна только создателю и админам)
+            // Галочка приватности
             html += `
                 <div class="builder-checkbox-group" style="margin-top: 16px; border-top: 1px dashed #333; padding-top: 12px;">
                     <label class="builder-checkbox-label" style="color: var(--color-red);">
@@ -934,17 +960,17 @@
             if (type === 'sideeffect') {
                 html = `<div class="b-se-entry"><button class="btn-small-bld" style="position:absolute; right:12px; top:12px; border-color:var(--color-red); color:var(--color-red);" onclick="this.parentElement.remove()"><i class="fa-solid fa-trash"></i></button>
                         <input type="text" class="cloud-input ci-1" style="width:calc(100% - 40px);" placeholder="Название" value="${v1}">
-                        <textarea class="cloud-input ci-2" placeholder="Описание" style="min-height:50px; margin-bottom:0;">${v2}</textarea></div>`;
+                        <textarea class="cloud-input ci-2" placeholder="Описание (Поддерживает Markdown)" style="min-height:50px; margin-bottom:0;">${v2}</textarea></div>`;
             } else if (type === 'talent') {
                 html = `<div class="b-se-entry"><button class="btn-small-bld" style="position:absolute; right:12px; top:12px; border-color:var(--color-red); color:var(--color-red);" onclick="this.parentElement.remove()"><i class="fa-solid fa-trash"></i></button>
                         <div class="b-row" style="width:calc(100% - 40px);"><input type="text" class="cloud-input ci-1" style="flex:2;" placeholder="Название" value="${v1}">
                         <input type="number" class="cloud-input ci-3" style="flex:1;" placeholder="Ур." value="${v3}">
                         <input type="text" class="cloud-input ci-4" style="flex:1;" placeholder="HEX Цвет" value="${v4}"></div>
-                        <textarea class="cloud-input ci-2" placeholder="Описание" style="min-height:50px; margin-bottom:0;">${v2}</textarea></div>`;
+                        <textarea class="cloud-input ci-2" placeholder="Описание (Поддерживает Markdown)" style="min-height:50px; margin-bottom:0;">${v2}</textarea></div>`;
             } else if (type === 'trait' || type === 'action') {
                 html = `<div class="b-se-entry"><button class="btn-small-bld" style="position:absolute; right:12px; top:12px; border-color:var(--color-red); color:var(--color-red);" onclick="this.parentElement.remove()"><i class="fa-solid fa-trash"></i></button>
                         <input type="text" class="cloud-input ci-1" style="width:calc(100% - 40px);" placeholder="Название" value="${v1}">
-                        <textarea class="cloud-input ci-2" placeholder="Описание" style="min-height:50px; margin-bottom:0;">${v2}</textarea></div>`;
+                        <textarea class="cloud-input ci-2" placeholder="Описание (Поддерживает Markdown)" style="min-height:50px; margin-bottom:0;">${v2}</textarea></div>`;
             }
             container.insertAdjacentHTML('beforeend', html);
         };
@@ -1061,7 +1087,7 @@
                             creatorEmail: currentUser.email,
                             creator: nick,
                             data: item,
-                            isPrivate: false, // Загружаемые из JSON по умолчанию публичны
+                            isPrivate: false, 
                             updatedAt: new Date().toISOString()
                         };
                         await setDoc(doc(db, "custom_content", newId), payload);
