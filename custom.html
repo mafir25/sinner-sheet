@@ -514,8 +514,17 @@
             }
         }
 
+        // Вспомогательная функция безопасного объединения (защита от краша из-за старых форматов JSON)
+        function safeJoin(val, sep = ', ') {
+            if (!val) return '';
+            return Array.isArray(val) ? val.join(sep) : String(val);
+        }
+
         function createBadges(arr, dict) {
-            if (!arr || !Array.isArray(arr)) return '';
+            if (!arr) return '';
+            if (typeof arr === 'string') arr = [arr]; // Если это строка, оборачиваем в массив
+            if (!Array.isArray(arr)) return '';
+            
             let html = '';
             arr.forEach(val => {
                 const conf = dict[val] || {name: val, color: 'var(--text-dim)'};
@@ -571,17 +580,17 @@
                 textToCopy += `${d.Effect}\n`;
                 if(d.SideEffects) d.SideEffects.forEach(se => textToCopy += `\n* ${se.sideeffectname}:\n${se.sideeffect}\n`);
             } else if (currentMode === 'class') {
-                textToCopy += `Типы: ${(d.Type||[]).join(', ')} | Статы: ${(d.Stats||[]).join(', ')}\n\n`;
+                textToCopy += `Типы: ${safeJoin(d.Type)} | Статы: ${safeJoin(d.Stats)}\n\n`;
                 if (d.Talents) d.Talents.forEach(t => textToCopy += `[Ур. ${t.level}] ${t.name}\n${t.desc}\n\n`);
             } else if (currentMode === 'feat') {
                 if(d.Need) textToCopy += `Требования: ${d.Need}\n`;
-                textToCopy += `Категории: ${(d.Base||[]).join(', ')}\n\n${d.desc}\n`;
+                textToCopy += `Категории: ${safeJoin(d.Base)}\n\n${d.desc}\n`;
             } else if (currentMode === 'gift') {
-                textToCopy += `[Ур. ${d.Level}] Типы: ${(d.Type||[]).join(', ')}\n\n${d.Description}\n`;
+                textToCopy += `[Ур. ${d.Level}] Типы: ${safeJoin(d.Type)}\n\n${d.Description}\n`;
             } else if (currentMode === 'equip') {
                 textToCopy += `[Ур. ${d.Level} | ${d.Rarity}] ${d.ItemType}\n`;
                 if(d.Need) textToCopy += `Требования: ${d.Need}\n`;
-                textToCopy += `Скейлинг: ${(d.Stats||[]).join(', ')}\n\n${d.Desc}\n`;
+                textToCopy += `Скейлинг: ${safeJoin(d.Stats)}\n\n${d.Desc}\n`;
             } else if (currentMode === 'bestiary') {
                 textToCopy += `${d.Meta || ''}\nКД: ${d.ArmorClass} | ХП: ${d.HitPoints} | Скорость: ${d.Speed}\n`;
                 textToCopy += `STR ${d.Stats?.STR}, DEX ${d.Stats?.DEX}, CON ${d.Stats?.CON}, INT ${d.Stats?.INT}, WIS ${d.Stats?.WIS}, CHA ${d.Stats?.CHA}\n\n`;
@@ -638,6 +647,180 @@
                 container.innerHTML = '<div class="tech-text" style="grid-column: 1/-1; text-align: center;">НЕТ ПОЛЬЗОВАТЕЛЬСКИХ ЗАПИСЕЙ В ЭТОЙ КАТЕГОРИИ</div>';
                 return;
             }
+
+            let html = '';
+            items.forEach(item => {
+                const isOwnerOrAdmin = currentUser && (item.creatorEmail === currentUser.email || adminEmails.includes(currentUser.email));
+                
+                if (item.isPrivate && !isOwnerOrAdmin) return;
+                
+                let controlsHtml = `
+                    <div class="card-controls">
+                        <button class="ctrl-btn ctrl-copy" onclick="window.copyEntry('${item.id}', this)"><i class="fa-regular fa-copy"></i> ТЕКСТ</button>
+                        <button class="ctrl-btn ctrl-dl" onclick="window.downloadCustomJson('${item.id}')"><i class="fa-solid fa-download"></i> JSON</button>
+                        ${isOwnerOrAdmin ? `
+                            <button class="ctrl-btn ctrl-priv" title="Скрыть/Показать" onclick="window.togglePrivacy('${item.id}')"><i class="fa-solid ${item.isPrivate ? 'fa-eye' : 'fa-eye-slash'}"></i></button>
+                            <button class="ctrl-btn ctrl-edit" onclick="window.editEntry('${item.id}')"><i class="fa-solid fa-pen"></i></button>
+                            <button class="ctrl-btn ctrl-del" onclick="window.deleteEntry('${item.id}')"><i class="fa-solid fa-trash"></i></button>
+                        ` : ''}
+                    </div>
+                    <div class="copy-msg-global">СКОПИРОВАНО В БУФЕР!</div>
+                `;
+
+                const d = item.data;
+                let descHtml = '';
+                let badgesHtml = '';
+                let metaString = '';
+                
+                if (item.isPrivate) {
+                    badgesHtml += `<div class="type-badge" style="color:var(--color-red); border-color:var(--color-red);"><i class="fa-solid fa-lock"></i> ПРИВАТНО</div>`;
+                }
+
+                let dTypes = safeJoin(d.Type, ',');
+                let dStats = safeJoin(d.Stats, ',');
+                let dBases = safeJoin(d.Base, ',');
+                let dRarity = d.Rarity || '';
+                let dLevel = d.Level || '';
+                let dCats = safeJoin(d.Category, ',');
+                let fullDesc = '';
+
+                // Отрисовка с парсингом Markdown
+                if (currentMode === 'status') {
+                    fullDesc = d.Effect || '';
+                    descHtml = `<div class="md-content" style="margin-bottom:12px;"><b>Эффект:</b><br>${parseMD(d.Effect)}</div>`;
+                    if (d.SideEffects && d.SideEffects.length > 0) {
+                        d.SideEffects.forEach(se => {
+                            descHtml += `
+                                <div class="side-effect-block collapsed" onclick="window.copySubBlockText(this)" style="border-left-color:var(--color-yellow);">
+                                    <div class="se-header" onclick="window.toggleSubBlock(event, this)">
+                                        <div style="display:flex; align-items:center;">
+                                            <i class="fa-solid fa-chevron-down se-collapse-icon"></i>
+                                            <span class="se-name" style="color:var(--color-yellow);">${se.sideeffectname}</span>
+                                        </div>
+                                    </div>
+                                    <div class="se-desc-wrapper"><div class="se-desc md-content">${parseMD(se.sideeffect)}</div></div>
+                                </div>`;
+                            fullDesc += ' ' + se.sideeffectname + ' ' + se.sideeffect;
+                        });
+                    }
+                } 
+                else if (currentMode === 'class') {
+                    badgesHtml += createBadges(d.Type, dictTypes) + createBadges(d.Stats, dictStats);
+                    descHtml = `<div class="card-content-desc" style="margin-bottom:12px;"><b>Типы:</b> ${safeJoin(d.Type)} | <b>Статы:</b> ${safeJoin(d.Stats)}</div>`;
+                    if (d.Talents) {
+                        d.Talents.forEach(t => {
+                            const c = t.Color || t.color || 'var(--accent-primary)';
+                            descHtml += `
+                                <div class="side-effect-block collapsed" onclick="window.copySubBlockText(this)" style="border-left-color:${c};">
+                                    <div class="se-header" onclick="window.toggleSubBlock(event, this)">
+                                        <div style="display:flex; align-items:baseline; gap:8px;">
+                                            <i class="fa-solid fa-chevron-down se-collapse-icon"></i>
+                                            <span class="se-name" style="color:${c};">${t.name}</span>
+                                            <span class="tech-text" style="color:var(--text-dim); font-size:0.75rem;">Ур. ${t.level}</span>
+                                        </div>
+                                    </div>
+                                    <div class="se-desc-wrapper"><div class="se-desc md-content">${parseMD(t.desc)}</div></div>
+                                </div>`;
+                            fullDesc += ' ' + t.name + ' ' + t.desc;
+                        });
+                    }
+                }
+                else if (currentMode === 'feat') {
+                    badgesHtml += createBadges(d.Base, dictFeatBases);
+                    if(d.Need) descHtml += `<div class="tech-text" style="color:var(--color-red); margin-bottom:8px;">ТРЕБОВАНИЯ: ${d.Need}</div>`;
+                    descHtml += `<div class="md-content">${parseMD(d.desc)}</div>`;
+                    fullDesc = d.desc || '';
+                }
+                else if (currentMode === 'gift') {
+                    metaString = `УРОВЕНЬ ${d.Level}`;
+                    badgesHtml += createBadges(d.Type, dictTypes);
+                    descHtml = `<div class="md-content">${parseMD(d.Description)}</div>`;
+                    fullDesc = d.Description || '';
+                }
+                else if (currentMode === 'equip') {
+                    metaString = `УР. ${d.Level} | ${d.Rarity} | ${d.ItemType}`;
+                    if(d.IsEGO) badgesHtml += `<div class="type-badge" style="color:#D94285; border-color:#D94285;">Э.Г.О.</div>`;
+                    badgesHtml += createBadges(d.Type, dictTypes) + createBadges(d.Stats, dictStats);
+                    if(d.Need) descHtml += `<div class="tech-text" style="color:var(--color-red); margin-bottom:8px;">ТРЕБОВАНИЯ: ${d.Need}</div>`;
+                    descHtml += `<div class="md-content">${parseMD(d.Desc)}</div>`;
+                    fullDesc = d.Desc || '';
+                }
+                else if (currentMode === 'bestiary') {
+                    metaString = d.Meta || '';
+                    badgesHtml += createBadges(d.Category, dictBestiaryCats);
+                    descHtml = `<div class="card-content-desc" style="margin-bottom:10px;"><b>КД:</b> ${d.ArmorClass} | <b>ХП:</b> ${d.HitPoints} | <b>Скорость:</b> ${d.Speed}</div>`;
+                    descHtml += `<div class="stat-grid">
+                        <div class="stat-col"><span class="stat-name">STR</span><span class="stat-val">${d.Stats?.STR}</span></div>
+                        <div class="stat-col"><span class="stat-name">DEX</span><span class="stat-val">${d.Stats?.DEX}</span></div>
+                        <div class="stat-col"><span class="stat-name">CON</span><span class="stat-val">${d.Stats?.CON}</span></div>
+                        <div class="stat-col"><span class="stat-name">INT</span><span class="stat-val">${d.Stats?.INT}</span></div>
+                        <div class="stat-col"><span class="stat-name">WIS</span><span class="stat-val">${d.Stats?.WIS}</span></div>
+                        <div class="stat-col"><span class="stat-name">CHA</span><span class="stat-val">${d.Stats?.CHA}</span></div>
+                    </div>`;
+                    
+                    if (d.Traits && d.Traits.length > 0) {
+                        descHtml += `<div class="tech-text" style="color:var(--color-yellow); margin-top:10px; margin-bottom:6px;">ОСОБЕННОСТИ</div>`;
+                        d.Traits.forEach(t => {
+                            descHtml += `
+                                <div class="side-effect-block collapsed" onclick="window.copySubBlockText(this)" style="border-left-color:var(--color-yellow);">
+                                    <div class="se-header" onclick="window.toggleSubBlock(event, this)">
+                                        <div style="display:flex; align-items:center;">
+                                            <i class="fa-solid fa-chevron-down se-collapse-icon"></i>
+                                            <span class="se-name" style="color:var(--color-yellow);">${t.name}</span>
+                                        </div>
+                                    </div>
+                                    <div class="se-desc-wrapper"><div class="se-desc md-content">${parseMD(t.desc)}</div></div>
+                                </div>`;
+                            fullDesc += ' ' + t.name + ' ' + t.desc;
+                        });
+                    }
+                    if (d.Actions && d.Actions.length > 0) {
+                        descHtml += `<div class="tech-text" style="color:var(--color-red); margin-top:10px; margin-bottom:6px;">ДЕЙСТВИЯ</div>`;
+                        d.Actions.forEach(a => {
+                            descHtml += `
+                                <div class="side-effect-block collapsed" onclick="window.copySubBlockText(this)" style="border-left-color:var(--color-red);">
+                                    <div class="se-header" onclick="window.toggleSubBlock(event, this)">
+                                        <div style="display:flex; align-items:center;">
+                                            <i class="fa-solid fa-chevron-down se-collapse-icon"></i>
+                                            <span class="se-name" style="color:var(--color-red);">${a.name}</span>
+                                        </div>
+                                    </div>
+                                    <div class="se-desc-wrapper"><div class="se-desc md-content">${parseMD(a.desc)}</div></div>
+                                </div>`;
+                            fullDesc += ' ' + a.name + ' ' + a.desc;
+                        });
+                    }
+                    if (d.Lore) {
+                        descHtml += `<div class="md-content" style="margin-top:10px; border-top:1px dashed #333; padding-top:10px;">${parseMD(d.Lore)}</div>`;
+                        fullDesc += ' ' + d.Lore;
+                    }
+                }
+
+                html += `
+                    <div class="panel-outer cut-tl compendium-card" data-name="${d.Name||d.characterName||''}" data-desc="${fullDesc}" data-types="${dTypes}" data-stats="${dStats}" data-bases="${dBases}" data-rarity="${dRarity}" data-level="${dLevel}" data-cats="${dCats}">
+                        <div class="hazard-tape"></div>
+                        <div class="panel-inner cut-tl" style="border-top: none;">
+                            <div class="card-header-clickable" onclick="this.closest('.panel-outer').classList.toggle('expanded')">
+                                <i class="fa-solid fa-chevron-down expand-icon"></i>
+                                <div class="class-title-wrapper">
+                                    ${metaString ? `<div class="tech-text" style="margin-bottom:2px;">${metaString}</div>` : ''}
+                                    <div class="class-title">${d.Name || d.characterName || 'Без названия'}</div>
+                                </div>
+                                ${badgesHtml ? `<div class="types-container">${badgesHtml}</div>` : ''}
+                            </div>
+                            <div class="talents-wrapper">
+                                <div style="margin-bottom:16px;">${descHtml}</div>
+                                <div class="creator-tag">Автор: ${item.creator}</div>
+                                ${controlsHtml}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            if (html === '') html = '<div class="tech-text" style="grid-column: 1/-1; text-align: center;">ПОДХОДЯЩИЕ ЗАПИСИ НЕ НАЙДЕНЫ</div>';
+            container.innerHTML = html;
+        }
 
             let html = '';
             items.forEach(item => {
