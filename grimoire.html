@@ -11,7 +11,7 @@
     <style>
         :root {
             --bg-main: #070707; --bg-panel: #000000; 
-            --accent-primary: #1E3A8A; /* Pride / Гордыня (Темно-синий) */
+            --accent-primary: #1E3A8A; 
             --accent-muted: #112252; 
             --color-cyan: #45B3CB; --color-red: #C7243A; --color-indigo: #40E0D0; --color-yellow: #F1C40F;
             --color-orange: #E67E22; --text-main: #E0D8C8; --text-dim: #696969;
@@ -37,15 +37,20 @@
         
         /* Правая панель управления */
         .right-controls { position: fixed; top: 10px; right: 20px; z-index: 1000; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
-        .side-nav-btn { padding: 6px 12px; font-size: 0.8rem; font-family: 'Oswald', sans-serif; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; cursor: pointer; text-transform: uppercase; transition: 0.2s; border-radius: 2px; }
+        .side-nav-btn { width: 100%; padding: 6px 12px; font-size: 0.8rem; font-family: 'Oswald', sans-serif; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; text-transform: uppercase; transition: 0.2s; border-radius: 2px; }
         
+        /* Переключатель систем */
+        .system-select { background-color: rgba(0,0,0,0.8); color: var(--text-main); border: 1px solid var(--text-dim); padding: 6px 10px; font-family: 'Oswald', sans-serif; font-size: 0.85rem; text-transform: uppercase; outline: none; cursor: pointer; transition: 0.2s; width: 100%; }
+        .system-select:hover, .system-select:focus { border-color: var(--accent-primary); color: var(--accent-primary); }
+        .system-select option { background-color: var(--bg-main); color: var(--text-main); }
+
         .class-base-btn { border: 1px solid var(--color-yellow); color: var(--color-yellow); }
         .class-base-btn:hover { background-color: var(--color-yellow); color: #000; }
 
         .create-class-btn { border: 1px solid var(--accent-primary); color: var(--accent-primary); }
         .create-class-btn:hover { background-color: var(--accent-primary); color: #fff; }
 
-        .mode-toggle-wrapper { display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.8); padding: 4px 10px; border: 1px solid #333; border-radius: 2px; }
+        .mode-toggle-wrapper { display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.8); padding: 4px 10px; border: 1px solid #333; border-radius: 2px; width: 100%; justify-content: center; }
         .mode-toggle-wrapper input[type="checkbox"] { cursor: pointer; accent-color: var(--accent-primary); width: 14px; height: 14px; }
         .mode-toggle-label { font-size: 0.75rem; font-family: 'Oswald', sans-serif; text-transform: uppercase; color: var(--text-dim); cursor: pointer; user-select: none; }
 
@@ -110,10 +115,10 @@
 
         .talent-desc-wrapper { display: grid; grid-template-rows: 1fr; transition: grid-template-rows 0.3s ease; margin-top: 4px; }
         .talent-block.collapsed .talent-desc-wrapper { grid-template-rows: 0fr; margin-top: 0; }
-        .talent-desc { overflow: hidden; font-size: 0.85rem; color: var(--text-main); line-height: 1.4; white-space: pre-wrap; }
+        .talent-desc { overflow: hidden; font-size: 0.85rem; color: var(--text-main); line-height: 1.5; }
 
         .copy-msg { text-align: right; color: var(--accent-primary); font-size: 0.7rem; margin-top: 4px; opacity: 0; transition: opacity 0.2s; font-family: 'Oswald', sans-serif; position: absolute; bottom: 4px; right: 10px; }
-        .loading-text { text-align: center; color: var(--text-dim); font-family: 'Oswald', sans-serif; font-size: 1.2rem; width: 100%; grid-column: 1 / -1; }
+        .loading-text { text-align: center; color: var(--text-dim); font-family: 'Oswald', sans-serif; font-size: 1.2rem; width: 100%; grid-column: 1 / -1; margin: 20px 0; }
 
         /* Сайдбар */
         .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 900; opacity: 0; pointer-events: none; transition: 0.3s; backdrop-filter: blur(3px); }
@@ -127,6 +132,14 @@
         .sidebar-title { font-size: 2rem; color: var(--text-main); border-bottom: 2px solid var(--accent-primary); padding-bottom: 8px; margin-bottom: 16px; }
         .sidebar-h2 { font-size: 1.3rem; color: var(--accent-primary); border-bottom: 1px solid #333; margin-top: 24px; margin-bottom: 12px; padding-bottom: 4px; font-family: 'Oswald', sans-serif; text-transform: uppercase; }
         .sidebar-text { font-size: 0.9rem; color: var(--text-main); line-height: 1.5; margin-bottom: 12px; white-space: pre-wrap; }
+
+        /* Стили для Markdown Таблиц */
+        .md-table { width: 100%; border-collapse: collapse; margin: 12px 0; font-family: 'Inter', sans-serif; font-size: 0.85rem; background: rgba(0,0,0,0.3); }
+        .md-table th, .md-table td { border: 1px solid #222; padding: 8px 12px; text-align: left; vertical-align: top; }
+        .md-table th { background: rgba(30, 58, 138, 0.3); color: var(--text-main); font-family: 'Oswald', sans-serif; text-transform: uppercase; letter-spacing: 0.5px; border-color: var(--accent-muted); }
+        .md-table tr:nth-child(even) { background: rgba(255,255,255,0.02); }
+        strong { color: #fff; font-weight: 600; }
+        em { color: var(--text-dim); }
         
         /* Модалка */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: flex-start; z-index: 2000; backdrop-filter: blur(4px); padding-top: 50px; overflow-y: auto; }
@@ -156,7 +169,12 @@
     <a href="navigation.html" class="top-nav-btn"><i class="fa-solid fa-arrow-left"></i> НАЗАД (НАВИГАЦИЯ)</a>
     
     <div class="right-controls">
-        <button class="side-nav-btn class-base-btn" onclick="window.toggleSidebar()"><i class="fa-solid fa-book-open"></i> БАЗА ФИКСЕРА</button>
+        <select id="system-selector" class="system-select" onchange="window.switchSystem(this.value)">
+            <option value="fixer">Система: Фиксер</option>
+            <option value="bloodfiend">Система: Изверг Крови</option>
+        </select>
+        
+        <button id="btn-base-sidebar" class="side-nav-btn class-base-btn" onclick="window.toggleSidebar()"><i class="fa-solid fa-book-open"></i> БАЗА ФИКСЕРА</button>
         
         <div class="mode-toggle-wrapper">
             <input type="checkbox" id="mode-checkbox" onchange="window.toggleMode()">
@@ -214,128 +232,13 @@
 
     <div class="sidebar-overlay" id="sidebar-overlay" onclick="window.toggleSidebar()"></div>
 
-    <!-- Сайдбар Фиксера -->
+    <!-- Сайдбар Фиксера / Основы -->
     <div class="class-sidebar" id="class-sidebar">
-        <div class="sidebar-title oswald">ФИКСЕР (ОСНОВНОЙ КЛАСС)</div>
-        <div class="sidebar-text lore-text">Фиксеры — это аморальные наемники, готовые выполнить практически любую работу. Крупные корпорации и Офисы нанимают фиксеров, чтобы те делали за них грязную работу и помогали продвигаться по служебной лестнице.</div>
+        <div class="sidebar-title oswald" id="sidebar-main-title">ОСНОВНОЙ КЛАСС</div>
         <div class="sidebar-h2">Классовые характеристики</div>
         
-        <div class="talent-block" data-name="Хиты" data-level="1" data-desc="Кость хитов: 1d10 за уровень Фиксера
-Хиты на 1-м уровне: 10 + модификатор Телосложения
-Хиты на следующих уровнях: 1d10 (или 6) + модификатор Телосложения за каждый уровень Фиксера после 1-го" onclick="window.copyTalent(this)">
-            <div class="talent-header" onclick="window.toggleTalent(event, this)">
-                <div class="talent-header-left"><i class="fa-solid fa-chevron-down collapse-icon-talent"></i><span class="talent-name">Хиты</span></div><div class="talent-level tech-text">Уровень: 1</div>
-            </div>
-            <div class="talent-desc-wrapper"><div class="talent-desc">Кость хитов: 1d10 за уровень Фиксера
-Хиты на 1-м уровне: 10 + модификатор Телосложения
-Хиты на следующих уровнях: 1d10 (или 6) + модификатор Телосложения за каждый уровень Фиксера после 1-го</div></div>
-            <div class="copy-msg">Скопировано!</div>
-        </div>
-
-        <div class="talent-block collapsed" data-name="Владения" data-level="1" data-desc="Броня: Легкая броня, Средняя броня, Щиты
-Оружие: Простое и Боевое оружие, Огнестрельное оружие
-Инструменты: Один вид музыкального инструмента и один вид ремесленных инструментов или игровой набор
-Спасброски: Мудрость, Ловкость или Телосложение И Интеллект, Сила или Харизма
-Навыки: Выберите три из: Атлетика, Акробатика, Расследование, Выживание, Скрытность, Убеждение, Проницательность и Медицина" onclick="window.copyTalent(this)">
-            <div class="talent-header" onclick="window.toggleTalent(event, this)">
-                <div class="talent-header-left"><i class="fa-solid fa-chevron-down collapse-icon-talent"></i><span class="talent-name">Владения</span></div><div class="talent-level tech-text">Уровень: 1</div>
-            </div>
-            <div class="talent-desc-wrapper"><div class="talent-desc">Броня: Легкая броня, Средняя броня, Щиты
-Оружие: Простое и Боевое оружие, Огнестрельное оружие
-Инструменты: Один вид музыкального инструмента и один вид ремесленных инструментов или игровой набор
-Спасброски: Мудрость, Ловкость или Телосложение И Интеллект, Сила или Харизма
-Навыки: Выберите три из: Атлетика, Акробатика, Расследование, Выживание, Скрытность, Убеждение, Проницательность и Медицина</div></div>
-            <div class="copy-msg">Скопировано!</div>
-        </div>
-
-        <div class="talent-block collapsed" data-name="Стартовое снаряжение" data-level="1" data-desc="• Кожаная броня и щит
-• (а) 1 боевое оружие или (б) 2 простых оружия
-• (а) набор метательного оружия (20 ножей или 10 копий/топориков) или (б) длинный лук с колчаном на 30 стрел
-• 1 музыкальный инструмент и выбранные вами ремесленные инструменты или игровой набор
-Если вы используете стартовое золото, у вас есть 4d4 x 10 зм." onclick="window.copyTalent(this)">
-            <div class="talent-header" onclick="window.toggleTalent(event, this)">
-                <div class="talent-header-left"><i class="fa-solid fa-chevron-down collapse-icon-talent"></i><span class="talent-name">Стартовое снаряжение</span></div><div class="talent-level tech-text">Уровень: 1</div>
-            </div>
-            <div class="talent-desc-wrapper"><div class="talent-desc">• Кожаная броня и щит
-• (а) 1 боевое оружие или (б) 2 простых оружия
-• (а) набор метательного оружия (20 ножей или 10 копий/топориков) или (б) длинный лук с колчаном на 30 стрел
-• 1 музыкальный инструмент и выбранные вами ремесленные инструменты или игровой набор
-Если вы используете стартовое золото, у вас есть 4d4 x 10 зм.</div></div>
-            <div class="copy-msg">Скопировано!</div>
-        </div>
-
-        <div class="talent-block collapsed" data-name="Ранг Фиксера" data-level="1" data-desc="По мере выполнения контрактов ваш ранг повышается. Ассоциация Хана следит за рейтингами.
-9 Ранг: –
-8 Ранг: 1 контракт
-7 Ранг: 3 контракта (1 боевой)
-6 Ранг: 6 контрактов (3 боевых)
-5 Ранг: 10 контрактов (6 боевых)
-4 Ранг: 12 контрактов (10 боевых)
-3 Ранг: 15 контрактов (13 боевых, убить 1 существо выше вашего уровня/ОП)
-2 Ранг: 20 контрактов (20 боевых, убить 2 существ выше вашего уровня)
-1 Ранг: 25 контрактов (25 боевых, убить 3 существ выше вашего уровня)
-Цветной Фиксер: Уничтожить офис из пяти фиксеров 1-го ранга, успешно совершить рейд на корпорацию или убить Цветного/Искажение ранга WAW/ALEPH." onclick="window.copyTalent(this)">
-            <div class="talent-header" onclick="window.toggleTalent(event, this)">
-                <div class="talent-header-left"><i class="fa-solid fa-chevron-down collapse-icon-talent"></i><span class="talent-name">Ранг Фиксера</span></div><div class="talent-level tech-text">Уровень: 1</div>
-            </div>
-            <div class="talent-desc-wrapper"><div class="talent-desc">По мере выполнения контрактов ваш ранг повышается. Ассоциация Хана следит за рейтингами.
-9 Ранг: –
-8 Ранг: 1 контракт
-7 Ранг: 3 контракта (1 боевой)
-6 Ранг: 6 контрактов (3 боевых)
-5 Ранг: 10 контрактов (6 боевых)
-4 Ранг: 12 контрактов (10 боевых)
-3 Ранг: 15 контрактов (13 боевых, убить 1 существо выше вашего уровня/ОП)
-2 Ранг: 20 контрактов (20 боевых, убить 2 существ выше вашего уровня)
-1 Ранг: 25 контрактов (25 боевых, убить 3 существ выше вашего уровня)
-Цветной Фиксер: Уничтожить офис из пяти фиксеров 1-го ранга, успешно совершить рейд на корпорацию или убить Цветного/Искажение ранга WAW/ALEPH.</div></div>
-            <div class="copy-msg">Скопировано!</div>
-        </div>
-
-        <div class="talent-block collapsed" data-name="Сложность способностей" data-level="1" data-desc="Некоторые ваши способности требуют спасброска:
-Модификатор Способности Фиксера = модификатор СИЛ или ЛОВ
-СЛ Фиксера = 8 + Бонус Мастерства + модификатор СИЛ или ЛОВ
-Модификатор Атаки Фиксера = Бонус Мастерства + модификатор СИЛ или ЛОВ" onclick="window.copyTalent(this)">
-            <div class="talent-header" onclick="window.toggleTalent(event, this)">
-                <div class="talent-header-left"><i class="fa-solid fa-chevron-down collapse-icon-talent"></i><span class="talent-name">Сложность способностей</span></div><div class="talent-level tech-text">Уровень: 1</div>
-            </div>
-            <div class="talent-desc-wrapper"><div class="talent-desc">Некоторые ваши способности требуют спасброска:
-Модификатор Способности Фиксера = модификатор СИЛ или ЛОВ
-СЛ Фиксера = 8 + Бонус Мастерства + модификатор СИЛ или ЛОВ
-Модификатор Атаки Фиксера = Бонус Мастерства + модификатор СИЛ или ЛОВ</div></div>
-            <div class="copy-msg">Скопировано!</div>
-        </div>
-
-        <div class="talent-block collapsed" data-name="Боевой стиль" data-level="2" data-desc="Выберите один из стилей:
-• Меткий стрелок: +2 к попаданию дальнобойными атаками.
-• Слепой бой: Невидимость врага не дает помеху к атаке, если он не спрятан.
-• Ближний бой (Дальний): +2 к урону дальнобойным. Нет помехи в 5 футах.
-• Мощный лук: Можно использовать Силу вместо Ловкости для луков.
-• Парное оружие: Атака второй рукой является частью основного действия Атаки.
-• Вездеходный атлет: Скорость плавания и лазания равна обычной. +1 к КД.
-• Дуэлянт: Владея оружием в одной руке (другая пуста), +2 к урону.
-• Бой двуручным оружием: Переброс 1 и 2 на костях урона.
-• Перехват: Реакцией уменьшить урон по союзнику в 5 футах на 1d10+ПБ.
-• Защита: Реакцией наложить помеху на атаку по союзнику в 5 футах.
-• Иайдзюцу: Первая атака в раунде из ножен с преимуществом.
-• Оружейный скандалист: При атаке пистолетом - безоружный удар бонусным (и наоборот)." onclick="window.copyTalent(this)">
-            <div class="talent-header" onclick="window.toggleTalent(event, this)">
-                <div class="talent-header-left"><i class="fa-solid fa-chevron-down collapse-icon-talent"></i><span class="talent-name">Боевой стиль</span></div><div class="talent-level tech-text">Уровень: 2</div>
-            </div>
-            <div class="talent-desc-wrapper"><div class="talent-desc">Выберите один из стилей:
-• Меткий стрелок: +2 к попаданию дальнобойными атаками.
-• Слепой бой: Невидимость врага не дает помеху к атаке, если он не спрятан.
-• Ближний бой (Дальний): +2 к урону дальнобойным. Нет помехи в 5 футах.
-• Мощный лук: Можно использовать Силу вместо Ловкости для луков.
-• Парное оружие: Атака второй рукой является частью основного действия Атаки.
-• Вездеходный атлет: Скорость плавания и лазания равна обычной. +1 к КД.
-• Дуэлянт: Владея оружием в одной руке (другая пуста), +2 к урону.
-• Бой двуручным оружием: Переброс 1 и 2 на костях урона.
-• Перехват: Реакцией уменьшить урон по союзнику в 5 футах на 1d10+ПБ.
-• Защита: Реакцией наложить помеху на атаку по союзнику в 5 футах.
-• Иайдзюцу: Первая атака в раунде из ножен с преимуществом.
-• Оружейный скандалист: При атаке пистолетом - безоружный удар бонусным (и наоборот).</div></div>
-            <div class="copy-msg">Скопировано!</div>
+        <div id="base-talents-container">
+            <div class="loading-text">Загрузка базы данных...</div>
         </div>
 
         <div id="selected-archetype-container" style="margin-top: 30px; border-top: 1px solid #333; padding-top: 10px;">
@@ -365,7 +268,203 @@
     <script>
         window.classesDB = [];
         window.currentMode = 'types'; 
+        window.currentSystem = 'fixer';
 
+        // --- Парсер Markdown (Жирный, Курсив, Таблицы) ---
+        window.parseMarkdown = (text) => {
+            if (!text) return "";
+            
+            // Форматирование текста
+            text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
+            
+            let lines = text.split('\n');
+            let html = '';
+            let inTable = false;
+            
+            for (let i = 0; i < lines.length; i++) {
+                let line = lines[i].trim();
+                
+                // Проверка на строку таблицы
+                if (line.startsWith('|') && line.endsWith('|')) {
+                    if (!inTable) {
+                        html += '<div style="overflow-x:auto;"><table class="md-table">';
+                        inTable = true;
+                    }
+                    let cells = line.split('|').slice(1, -1).map(c => c.trim());
+                    
+                    // Пропускаем разделительную строку маркдауна (типа |---|---|)
+                    let isSeparator = cells.length > 0 && cells[0].includes('-') && cells[0].replace(/[\-\:\s]/g, '').length === 0;
+                    if (isSeparator) continue;
+                    
+                    // Если это первая строка таблицы - делаем её заголовком <th>
+                    let tag = html.endsWith('<table class="md-table">') ? 'th' : 'td';
+                    html += '<tr>' + cells.map(c => `<${tag}>${c}</${tag}>`).join('') + '</tr>';
+                } else {
+                    if (inTable) {
+                        html += '</table></div>';
+                        inTable = false;
+                    }
+                    html += line + '<br>';
+                }
+            }
+            if (inTable) {
+                html += '</table></div>';
+            }
+            return html.replace(/(<br>)+$/g, ''); // Удаляем лишние переносы в конце
+        };
+
+        // --- Управление системами (Основы + Классы) ---
+        window.switchSystem = (systemName) => {
+            window.currentSystem = systemName;
+            document.getElementById('system-selector').value = systemName;
+            
+            const btnBase = document.getElementById('btn-base-sidebar');
+            
+            if (systemName === 'fixer') {
+                btnBase.innerHTML = '<i class="fa-solid fa-book-open"></i> БАЗА ФИКСЕРА';
+                loadBase('fixer.json', 'ФИКСЕР (ОСНОВНОЙ КЛАСС)');
+                loadGrimoire('classes.json');
+            } else if (systemName === 'bloodfiend') {
+                btnBase.innerHTML = '<i class="fa-solid fa-book-open"></i> БАЗА ИЗВЕРГА КРОВИ';
+                loadBase('bloodfiend.json', 'ИЗВЕРГ КРОВИ (ОСНОВНОЙ КЛАСС)');
+                loadGrimoire('bloodarch.json');
+            }
+            
+            // Очищаем выбранный ранее архетип
+            document.getElementById('selected-archetype-container').innerHTML = `
+                <div class="sidebar-h2">Архетип не выбран</div>
+                <div class="sidebar-text" style="color: var(--text-dim);">Выберите архетип из базы данных, чтобы отобразить его навыки здесь.</div>
+            `;
+        };
+
+        // Загрузка файла Основы
+        async function loadBase(filename, title) {
+            const container = document.getElementById('base-talents-container');
+            const titleEl = document.getElementById('sidebar-main-title');
+            titleEl.textContent = title;
+            container.innerHTML = '<div class="loading-text" style="font-size:1rem;">Загрузка основы...</div>';
+            
+            try {
+                const response = await fetch(filename);
+                if (!response.ok) throw new Error();
+                const baseData = await response.json();
+                
+                // Парсинг (работает как с массивом [{}], так и с одиночным объектом {})
+                const cls = Array.isArray(baseData) ? baseData[0] : baseData;
+                let talentsHtml = '';
+                
+                if (cls && cls.Talents && Array.isArray(cls.Talents)) {
+                    cls.Talents.forEach(talent => {
+                        const tColor = talent.Color || talent.color || 'var(--accent-primary)';
+                        const safeName = talent.name.replace(/"/g, '&quot;');
+                        // Сохраняем переносы для функции копирования без поломки HTML атрибутов
+                        const safeDescAttr = talent.desc.replace(/"/g, '&quot;').replace(/\n/g, '&#10;');
+                        const parsedDesc = window.parseMarkdown(talent.desc);
+                        
+                        talentsHtml += `
+                            <div class="talent-block collapsed" data-name="${safeName}" data-level="${talent.level}" data-desc="${safeDescAttr}" onclick="window.copyTalent(this)" style="border-left-color: ${tColor};">
+                                <div class="talent-header" onclick="window.toggleTalent(event, this)">
+                                    <div class="talent-header-left"><i class="fa-solid fa-chevron-down collapse-icon-talent"></i><span class="talent-name" style="color: ${tColor};">${talent.name}</span></div>
+                                    <div class="talent-level tech-text">Уровень: ${talent.level}</div>
+                                </div>
+                                <div class="talent-desc-wrapper"><div class="talent-desc">${parsedDesc}</div></div>
+                                <div class="copy-msg">Скопировано!</div>
+                            </div>`;
+                    });
+                } else {
+                    talentsHtml = '<div class="sidebar-text">Нет данных о способностях основы.</div>';
+                }
+                container.innerHTML = talentsHtml;
+            } catch (error) {
+                container.innerHTML = `<div class="sidebar-text" style="color: var(--color-red);">Ошибка загрузки основы (${filename}). Убедитесь, что файл существует.</div>`;
+            }
+        }
+
+        // Загрузка классов (Гримуара)
+        async function loadGrimoire(filename) {
+            const container = document.getElementById('compendium');
+            container.innerHTML = '<div class="loading-text">Установка соединения с базой данных...</div>';
+            try {
+                const response = await fetch(filename);
+                if (!response.ok) throw new Error();
+                const classesData = await response.json();
+                classesData.sort((a, b) => a.No - b.No);
+                window.classesDB = classesData; 
+                container.innerHTML = '';
+                
+                classesData.forEach(cls => {
+                    let badgesHtml = '';
+                    let typesString = (cls.Type && Array.isArray(cls.Type)) ? cls.Type.join(' ') : '';
+                    let statsString = (cls.Stats && Array.isArray(cls.Stats)) ? cls.Stats.join(' ') : '';
+
+                    if (cls.Type && Array.isArray(cls.Type)) {
+                        cls.Type.forEach(typeKey => {
+                            const config = typeDictionary[typeKey];
+                            if (config) {
+                                badgesHtml += `<div class="type-badge badge-type" style="color: ${config.color}; border-color: ${config.color};"><img src="${config.icon}" class="type-icon" onerror="this.style.display='none'">${config.name}</div>`;
+                            } else {
+                                badgesHtml += `<div class="type-badge badge-type" style="color: var(--text-main); border-color: var(--text-dim);">${typeKey}</div>`;
+                            }
+                        });
+                    }
+
+                    if (cls.Stats && Array.isArray(cls.Stats)) {
+                        cls.Stats.forEach(statKey => {
+                            const config = statDictionary[statKey];
+                            if (config) {
+                                badgesHtml += `<div class="type-badge badge-stat" style="color: ${config.color}; border-color: ${config.color};">${config.name}</div>`;
+                            }
+                        });
+                    }
+
+                    let talentsHtml = '';
+                    if (cls.Talents && Array.isArray(cls.Talents)) {
+                        cls.Talents.forEach(talent => {
+                            const tColor = talent.Color || talent.color || 'var(--accent-primary)';
+                            const safeName = talent.name.replace(/"/g, '&quot;');
+                            const safeDescAttr = talent.desc.replace(/"/g, '&quot;').replace(/\n/g, '&#10;');
+                            const parsedDesc = window.parseMarkdown(talent.desc);
+                            
+                            talentsHtml += `
+                                <div class="talent-block collapsed" data-name="${safeName}" data-level="${talent.level}" data-desc="${safeDescAttr}" onclick="window.copyTalent(this)" style="border-left-color: ${tColor};">
+                                    <div class="talent-header" onclick="window.toggleTalent(event, this)">
+                                        <div class="talent-header-left"><i class="fa-solid fa-chevron-down collapse-icon-talent"></i><span class="talent-name" style="color: ${tColor};">${talent.name}</span></div>
+                                        <div class="talent-level tech-text">Уровень: ${talent.level}</div>
+                                    </div>
+                                    <div class="talent-desc-wrapper"><div class="talent-desc">${parsedDesc}</div></div>
+                                    <div class="copy-msg">Скопировано!</div>
+                                </div>`;
+                        });
+                    }
+
+                    const safeClsName = cls.Name.replace(/"/g, '&quot;');
+
+                    container.insertAdjacentHTML('beforeend', `
+                        <div class="panel-outer cut-tl compendium-card" data-name="${safeClsName}" data-types="${typesString}" data-stats="${statsString}">
+                            <div class="hazard-tape" style="height: 6px; background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--accent-muted) 10px, var(--accent-muted) 20px);"></div>
+                            <div class="panel-inner cut-tl" style="border-top: none;">
+                                <div class="class-title-wrapper">
+                                    <div class="class-title oswald">${cls.Name}</div>
+                                    <button class="select-archetype-btn" onclick="window.selectArchetype(event, ${cls.No}, this)"><i class="fa-regular fa-square"></i> ВЫБРАТЬ</button>
+                                </div>
+                                <div class="card-header-clickable" onclick="window.toggleCard(this)">
+                                    <i class="fa-solid fa-chevron-down expand-icon"></i>
+                                    <div class="types-container">${badgesHtml}</div>
+                                </div>
+                                <div class="talents-wrapper"><div class="talents-container">${talentsHtml}</div></div>
+                            </div>
+                        </div>`);
+                });
+                
+                // Переприменяем фильтры
+                window.filterClasses();
+            } catch (error) {
+                container.innerHTML = `<div class="loading-text" style="color: var(--color-red);">Ошибка связи с базой данных (${filename}).</div>`;
+            }
+        }
+
+        // --- Интерфейсные функции ---
         window.toggleSidebar = () => {
             document.getElementById('class-sidebar').classList.toggle('active');
             document.getElementById('sidebar-overlay').classList.toggle('active');
@@ -378,6 +477,7 @@
                 window.addBuilderTalent();
             }
         };
+        
         window.closeBuilderOnBg = (e) => {
             if (e.target.id === 'builderModal') window.toggleBuilderModal();
         };
@@ -392,7 +492,7 @@
                         <input type="number" class="cloud-input b-t-level" style="flex: 1; margin-bottom: 0;" placeholder="Уровень" value="1">
                         <input type="text" class="cloud-input b-t-color" style="flex: 1; margin-bottom: 0;" placeholder="HEX (напр. #FF0000)">
                     </div>
-                    <textarea class="cloud-input b-t-desc" placeholder="Полное описание способности..."></textarea>
+                    <textarea class="cloud-input b-t-desc" placeholder="Полное описание способности... Поддерживается Markdown (**жирный**, *курсив*, таблицы)"></textarea>
                 </div>
             `;
             container.insertAdjacentHTML('beforeend', html);
@@ -531,7 +631,8 @@
         };
 
         window.copyTalent = (el) => {
-            navigator.clipboard.writeText(`${el.getAttribute('data-name')}, ${el.getAttribute('data-level')} - уровень\n${el.getAttribute('data-desc')}`).then(() => {
+            const rawDesc = el.getAttribute('data-desc');
+            navigator.clipboard.writeText(`${el.getAttribute('data-name')}, ${el.getAttribute('data-level')} - уровень\n${rawDesc}`).then(() => {
                 const msg = el.querySelector('.copy-msg');
                 msg.style.opacity = '1';
                 setTimeout(() => msg.style.opacity = '0', 1500);
@@ -546,6 +647,7 @@
             });
             btn.classList.add('selected');
             btn.innerHTML = '<i class="fa-regular fa-square-check"></i> ВЫБРАНО';
+            
             const cls = window.classesDB.find(c => c.No === no);
             if (cls) renderSelectedArchetype(cls);
         };
@@ -553,18 +655,21 @@
         function renderSelectedArchetype(cls) {
             const container = document.getElementById('selected-archetype-container');
             let talentsHtml = '';
+            
             if (cls.Talents && Array.isArray(cls.Talents)) {
                 cls.Talents.forEach(talent => {
                     const tColor = talent.Color || talent.color || 'var(--accent-primary)';
                     const safeName = talent.name.replace(/"/g, '&quot;');
-                    const safeDesc = talent.desc.replace(/"/g, '&quot;');
+                    const safeDescAttr = talent.desc.replace(/"/g, '&quot;').replace(/\n/g, '&#10;');
+                    const parsedDesc = window.parseMarkdown(talent.desc);
+                    
                     talentsHtml += `
-                        <div class="talent-block collapsed" data-name="${safeName}" data-level="${talent.level}" data-desc="${safeDesc}" onclick="window.copyTalent(this)" style="border-left-color: ${tColor};">
+                        <div class="talent-block collapsed" data-name="${safeName}" data-level="${talent.level}" data-desc="${safeDescAttr}" onclick="window.copyTalent(this)" style="border-left-color: ${tColor};">
                             <div class="talent-header" onclick="window.toggleTalent(event, this)">
                                 <div class="talent-header-left"><i class="fa-solid fa-chevron-down collapse-icon-talent"></i><span class="talent-name" style="color: ${tColor};">${talent.name}</span></div>
                                 <div class="talent-level tech-text">Уровень: ${talent.level}</div>
                             </div>
-                            <div class="talent-desc-wrapper"><div class="talent-desc">${talent.desc}</div></div>
+                            <div class="talent-desc-wrapper"><div class="talent-desc">${parsedDesc}</div></div>
                             <div class="copy-msg">Скопировано!</div>
                         </div>`;
                 });
@@ -572,83 +677,10 @@
             container.innerHTML = `<div class="sidebar-h2" style="color: var(--accent-primary);">АРХЕТИП: ${cls.Name}</div>${talentsHtml}`;
         }
 
-        async function loadGrimoire() {
-            const container = document.getElementById('compendium');
-            try {
-                const response = await fetch('classes.json');
-                if (!response.ok) throw new Error();
-                const classesData = await response.json();
-                classesData.sort((a, b) => a.No - b.No);
-                window.classesDB = classesData; 
-                container.innerHTML = '';
-                
-                classesData.forEach(cls => {
-                    let badgesHtml = '';
-                    let typesString = (cls.Type && Array.isArray(cls.Type)) ? cls.Type.join(' ') : '';
-                    let statsString = (cls.Stats && Array.isArray(cls.Stats)) ? cls.Stats.join(' ') : '';
-
-                    if (cls.Type && Array.isArray(cls.Type)) {
-                        cls.Type.forEach(typeKey => {
-                            const config = typeDictionary[typeKey];
-                            if (config) {
-                                badgesHtml += `<div class="type-badge badge-type" style="color: ${config.color}; border-color: ${config.color};"><img src="${config.icon}" class="type-icon" onerror="this.style.display='none'">${config.name}</div>`;
-                            } else {
-                                badgesHtml += `<div class="type-badge badge-type" style="color: var(--text-main); border-color: var(--text-dim);">${typeKey}</div>`;
-                            }
-                        });
-                    }
-
-                    if (cls.Stats && Array.isArray(cls.Stats)) {
-                        cls.Stats.forEach(statKey => {
-                            const config = statDictionary[statKey];
-                            if (config) {
-                                badgesHtml += `<div class="type-badge badge-stat" style="color: ${config.color}; border-color: ${config.color};">${config.name}</div>`;
-                            }
-                        });
-                    }
-
-                    let talentsHtml = '';
-                    if (cls.Talents && Array.isArray(cls.Talents)) {
-                        cls.Talents.forEach(talent => {
-                            const tColor = talent.Color || talent.color || 'var(--accent-primary)';
-                            const safeName = talent.name.replace(/"/g, '&quot;');
-                            const safeDesc = talent.desc.replace(/"/g, '&quot;');
-                            talentsHtml += `
-                                <div class="talent-block collapsed" data-name="${safeName}" data-level="${talent.level}" data-desc="${safeDesc}" onclick="window.copyTalent(this)" style="border-left-color: ${tColor};">
-                                    <div class="talent-header" onclick="window.toggleTalent(event, this)">
-                                        <div class="talent-header-left"><i class="fa-solid fa-chevron-down collapse-icon-talent"></i><span class="talent-name" style="color: ${tColor};">${talent.name}</span></div>
-                                        <div class="talent-level tech-text">Уровень: ${talent.level}</div>
-                                    </div>
-                                    <div class="talent-desc-wrapper"><div class="talent-desc">${talent.desc}</div></div>
-                                    <div class="copy-msg">Скопировано!</div>
-                                </div>`;
-                        });
-                    }
-
-                    const safeClsName = cls.Name.replace(/"/g, '&quot;');
-
-                    container.insertAdjacentHTML('beforeend', `
-                        <div class="panel-outer cut-tl compendium-card" data-name="${safeClsName}" data-types="${typesString}" data-stats="${statsString}">
-                            <div class="hazard-tape" style="height: 6px; background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--accent-muted) 10px, var(--accent-muted) 20px);"></div>
-                            <div class="panel-inner cut-tl" style="border-top: none;">
-                                <div class="class-title-wrapper">
-                                    <div class="class-title oswald">${cls.Name}</div>
-                                    <button class="select-archetype-btn" onclick="window.selectArchetype(event, ${cls.No}, this)"><i class="fa-regular fa-square"></i> ВЫБРАТЬ</button>
-                                </div>
-                                <div class="card-header-clickable" onclick="window.toggleCard(this)">
-                                    <i class="fa-solid fa-chevron-down expand-icon"></i>
-                                    <div class="types-container">${badgesHtml}</div>
-                                </div>
-                                <div class="talents-wrapper"><div class="talents-container">${talentsHtml}</div></div>
-                            </div>
-                        </div>`);
-                });
-            } catch (error) {
-                container.innerHTML = `<div class="loading-text" style="color: var(--color-red);">Ошибка связи с базой данных. Убедитесь, что файл classes.json существует.</div>`;
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => { renderFilters(); loadGrimoire(); });
+        document.addEventListener('DOMContentLoaded', () => { 
+            renderFilters(); 
+            window.switchSystem('fixer'); // Грузим дефолтную систему при старте страницы
+        });
     </script>
 </body>
 </html>
