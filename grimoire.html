@@ -35,12 +35,12 @@
         .top-nav-btn { position: fixed; top: 10px; left: 20px; padding: 6px 12px; font-size: 0.8rem; border-color: var(--accent-primary); color: var(--accent-primary); font-family: 'Oswald', sans-serif; z-index: 100; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; border: 1px solid var(--accent-primary); cursor: pointer; text-transform: uppercase; transition: 0.2s; }
         .top-nav-btn:hover { background-color: var(--accent-primary); color: #fff; }
         
-        /* Правая панель управления */
-        .right-controls { position: fixed; top: 10px; right: 20px; z-index: 1000; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
-        .side-nav-btn { width: 100%; padding: 6px 12px; font-size: 0.8rem; font-family: 'Oswald', sans-serif; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer; text-transform: uppercase; transition: 0.2s; border-radius: 2px; }
+       /* Правая панель управления */
+        .right-controls { position: fixed; top: 10px; right: 20px; z-index: 1000; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+        .side-nav-btn { padding: 4px 8px; font-size: 0.75rem; font-family: 'Oswald', sans-serif; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 5px; cursor: pointer; text-transform: uppercase; transition: 0.2s; border-radius: 2px; }
         
         /* Переключатель систем */
-        .system-select { background-color: rgba(0,0,0,0.8); color: var(--text-main); border: 1px solid var(--text-dim); padding: 6px 10px; font-family: 'Oswald', sans-serif; font-size: 0.85rem; text-transform: uppercase; outline: none; cursor: pointer; transition: 0.2s; width: 100%; }
+        .system-select { background-color: rgba(0,0,0,0.8); color: var(--text-main); border: 1px solid var(--text-dim); padding: 4px 8px; font-family: 'Oswald', sans-serif; font-size: 0.75rem; text-transform: uppercase; outline: none; cursor: pointer; transition: 0.2s; }
         .system-select:hover, .system-select:focus { border-color: var(--accent-primary); color: var(--accent-primary); }
         .system-select option { background-color: var(--bg-main); color: var(--text-main); }
 
@@ -50,10 +50,10 @@
         .create-class-btn { border: 1px solid var(--accent-primary); color: var(--accent-primary); }
         .create-class-btn:hover { background-color: var(--accent-primary); color: #fff; }
 
-        .mode-toggle-wrapper { display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.8); padding: 4px 10px; border: 1px solid #333; border-radius: 2px; width: 100%; justify-content: center; }
-        .mode-toggle-wrapper input[type="checkbox"] { cursor: pointer; accent-color: var(--accent-primary); width: 14px; height: 14px; }
-        .mode-toggle-label { font-size: 0.75rem; font-family: 'Oswald', sans-serif; text-transform: uppercase; color: var(--text-dim); cursor: pointer; user-select: none; }
-
+        .mode-toggle-wrapper { display: flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.8); padding: 3px 8px; border: 1px solid #333; border-radius: 2px; justify-content: center; }
+        .mode-toggle-wrapper input[type="checkbox"] { cursor: pointer; accent-color: var(--accent-primary); width: 12px; height: 12px; }
+        .mode-toggle-label { font-size: 0.7rem; font-family: 'Oswald', sans-serif; text-transform: uppercase; color: var(--text-dim); cursor: pointer; user-select: none; }
+        
         /* Заголовок страницы */
         .header-bar { width: 100%; max-width: 1200px; display: flex; justify-content: center; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--accent-muted); padding-bottom: 10px; margin-top: 10px; gap: 20px;}
         .header-title { color: var(--accent-primary); font-size: 1.5rem; letter-spacing: 2px; text-align: center; text-shadow: 0 0 10px rgba(30, 58, 138, 0.5); }
