@@ -64,6 +64,7 @@
         .ctx-item { padding: 8px 16px; color: var(--text-main); font-family: 'Oswald'; font-size: 0.9rem; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 8px; }
         .ctx-item:hover { background: var(--accent-primary); color: #000; }
         .ctx-divider { height: 1px; background: #333; margin: 4px 0; }
+        .ctx-item.disabled { color: #555; pointer-events: none; }
 
         .gm-panel { position: absolute; bottom: 20px; right: 20px; width: 300px; background: rgba(0,0,0,0.85); border: 1px solid #333; z-index: 90; display: flex; flex-direction: column; backdrop-filter: blur(4px); pointer-events: auto; }
         .gm-panel-header { background: #222; padding: 6px 10px; font-family: 'Oswald'; font-size: 0.9rem; color: var(--accent-primary); cursor: pointer; display: flex; justify-content: space-between; }
@@ -83,7 +84,7 @@
         .builder-tabs { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 4px; }
         .b-tab { background: none; border: none; color: var(--text-dim); font-family: 'Oswald'; cursor: pointer; padding: 6px 12px; font-size: 1rem; }
         .b-tab.active { color: var(--accent-primary); border-bottom: 2px solid var(--accent-primary); }
-        .color-preview-block { width: 36px; height: 36px; padding: 0; border: none; cursor: pointer; }
+        .color-preview-block { width: 36px; height: 36px; padding: 0; border: none; cursor: pointer; background: transparent; }
 
         /* Панель Markdown */
         .md-toolbar { display: flex; gap: 6px; margin-bottom: 4px; align-items: center; border: 1px solid #333; padding: 4px; background: rgba(0,0,0,0.5); }
@@ -163,9 +164,14 @@
     <div class="modal-overlay" id="friendsModal">
         <div class="modal-box" style="width: 500px;">
             <button class="btn-base" style="position:absolute; right:15px; top:15px; border-color:var(--color-red); color:var(--color-red);" onclick="this.closest('.modal-overlay').classList.remove('active')"><i class="fa-solid fa-xmark"></i></button>
-            <h3 style="color:var(--accent-primary); margin-bottom: 16px;"><i class="fa-solid fa-users"></i> СПИСОК ДРУЗЕЙ</h3>
-            <div class="tech-text" style="margin-bottom:8px;">Введите Ники или Email тех, кому разрешен доступ к вашим "Ширмам для Друзей" (через запятую):</div>
-            <textarea id="friends-list" class="cloud-input" style="min-height: 100px; margin-bottom: 16px;" placeholder="player1, mage99@mail.com..."></textarea>
+            <h3 style="color:var(--accent-primary); margin-bottom: 16px;"><i class="fa-solid fa-users"></i> СПИСОК ДОСТУПОВ</h3>
+            
+            <div class="tech-text" style="margin-bottom:8px;">Зрители (через запятую):</div>
+            <textarea id="friends-list" class="cloud-input" style="min-height: 80px; margin-bottom: 16px;" placeholder="player1@mail.com, ..."></textarea>
+            
+            <div class="tech-text" style="margin-bottom:8px;">Администраторы (через запятую):</div>
+            <textarea id="admins-list" class="cloud-input" style="min-height: 80px; margin-bottom: 16px;" placeholder="gm2@mail.com, ..."></textarea>
+            
             <button class="action-btn" style="width:100%;" onclick="window.saveFriends()">СОХРАНИТЬ СПИСОК И ОБНОВИТЬ БАЗУ</button>
         </div>
     </div>
@@ -205,6 +211,7 @@
 
         let currentUser = null;
         let myFriends = [];
+        let myAdmins = [];
         let screensCache = [];
         let graphInstances = { 1: null, 2: null };
         let isSplit = false;
@@ -223,6 +230,11 @@
             if(savedFriends) {
                 document.getElementById('friends-list').value = savedFriends;
                 myFriends = savedFriends.split(',').map(s=>s.trim()).filter(s=>s);
+            }
+            const savedAdmins = window.localStorage.getItem('gm_admins');
+            if(savedAdmins) {
+                document.getElementById('admins-list').value = savedAdmins;
+                myAdmins = savedAdmins.split(',').map(s=>s.trim()).filter(s=>s);
             }
             initSelectionBox();
         });
@@ -249,9 +261,12 @@
         }
 
         window.saveFriends = () => {
-            const val = document.getElementById('friends-list').value;
-            window.localStorage.setItem('gm_friends', val);
-            myFriends = val.split(',').map(s=>s.trim()).filter(s=>s);
+            const fVal = document.getElementById('friends-list').value;
+            const aVal = document.getElementById('admins-list').value;
+            window.localStorage.setItem('gm_friends', fVal);
+            window.localStorage.setItem('gm_admins', aVal);
+            myFriends = fVal.split(',').map(s=>s.trim()).filter(s=>s);
+            myAdmins = aVal.split(',').map(s=>s.trim()).filter(s=>s);
             document.getElementById('friendsModal').classList.remove('active');
             window.fetchScreens();
         };
@@ -410,10 +425,26 @@
             } catch(e) {}
 
             try {
+                // Мои Ширмы
                 const myQ = query(collection(db, "custom_screens"), where("creatorEmail", "==", currentUser.email));
                 const mySnap = await getDocs(myQ);
                 mySnap.forEach(doc => screensCache.push({ id: doc.id, ...doc.data(), label: `[МОИ] ${doc.data().name}` }));
 
+                // Ширмы, где я админ
+                const adminQ = query(collection(db, "custom_screens"), where("adminUsers", "array-contains", currentUser.email));
+                const adminSnap = await getDocs(adminQ);
+                adminSnap.forEach(doc => {
+                    if(!screensCache.find(s => s.id === doc.id)) screensCache.push({ id: doc.id, ...doc.data(), label: `[АДМИН] ${doc.data().name}` });
+                });
+
+                // Ширмы, где я зритель
+                const friendQ = query(collection(db, "custom_screens"), where("allowedUsers", "array-contains", currentUser.email));
+                const friendSnap = await getDocs(friendQ);
+                friendSnap.forEach(doc => {
+                    if(!screensCache.find(s => s.id === doc.id)) screensCache.push({ id: doc.id, ...doc.data(), label: `[ДРУЗЬЯ] ${doc.data().name}` });
+                });
+
+                // Публичные
                 const pubQ = query(collection(db, "custom_screens"), where("accessLevel", "==", "public"));
                 const pubSnap = await getDocs(pubQ);
                 pubSnap.forEach(doc => {
@@ -438,13 +469,21 @@
             
             const newId = 'scr_' + Date.now();
             const payload = {
-                name: name, creatorEmail: currentUser.email, accessLevel: accStr, allowedUsers: myFriends,
+                name: name, creatorEmail: currentUser.email, accessLevel: accStr, 
+                allowedUsers: myFriends, adminUsers: myAdmins,
                 bgImage: "", graphData: { nodes: [], links: [] }
             };
             
             await setDoc(doc(db, "custom_screens", newId), payload);
             await window.fetchScreens();
         };
+
+        function hasAdminAccess(scr) {
+            if(scr.isLocal) return false;
+            if(scr.creatorEmail === currentUser.email) return true;
+            if(scr.adminUsers && scr.adminUsers.includes(currentUser.email)) return true;
+            return false;
+        }
 
         window.deleteScreen = async (panelId) => {
             const scrId = document.getElementById(`select-screen-${panelId}`).value;
@@ -479,7 +518,14 @@
             const scr = screensCache.find(s => s.id === screenId);
             if(!scr) return;
 
-            const gData = sortGraphData(JSON.parse(JSON.stringify(scr.graphData)));
+            const isAdmin = hasAdminAccess(scr);
+            const isViewer = !isAdmin;
+
+            let gData = sortGraphData(JSON.parse(JSON.stringify(scr.graphData)));
+
+            if (isViewer) {
+                gData.nodes = gData.nodes.filter(n => !n.isHidden);
+            }
 
             const Graph = ForceGraph()(container)
                 .graphData(gData)
@@ -511,7 +557,8 @@
                     const shape = node.shape || 'circle';
                     
                     let label = node.Name || '';
-                    let labelColor = 'var(--accent-primary)'; // ИЗМЕНЕНО НА ГОЛУБОЙ (~2)
+                    let labelColor = node.titleColor || node.borderColor || 'var(--accent-primary)'; 
+                    
                     const colorMatch = label.match(/^\{(#?[0-9A-Fa-f]{3,6})\}(.*)/);
                     if (colorMatch) {
                         labelColor = colorMatch[1];
@@ -524,7 +571,6 @@
                         ctx.fillStyle = 'rgba(0,0,0,0.85)';
                         ctx.fillRect(node.x - w/2, node.y - h/2, w, h);
                         
-                        // Изображение внутри группы (+3)
                         if (node.imgUrl) {
                             if (!node.__img) {
                                 const img = new Image(); img.src = node.imgUrl;
@@ -615,11 +661,14 @@
                 .onNodeDragEnd(node => {
                     node.__lastX = undefined;
                     node.__lastY = undefined;
-                    if(node.fx !== undefined) { node.fx = node.x; node.fy = node.y; }
+                    
+                    node.fx = node.x;
+                    node.fy = node.y;
+                    
                     if (node.shape === 'group') {
                         const nodes = graphInstances[panelId].graphData().nodes;
                         nodes.forEach(n => {
-                            if (n.groupId === node.id && n.fx !== undefined) { n.fx = n.x; n.fy = n.y; }
+                            if (n.groupId === node.id) { n.fx = n.x; n.fy = n.y; }
                         });
                     }
                 })
@@ -661,13 +710,12 @@
                 return pecs.map(p => `
                     <div style="border-left:2px solid var(--text-dim); margin-left:10px; padding-left:10px; margin-top:8px;">
                         <b style="color:var(--accent-primary);">${applyCustomTags(p.Name)}</b> <span class="tech-text">${(p.PName||[]).join(', ')}</span>
-                        <div class="md-content">${marked.parse(applyCustomTags(p.Desc||''))}</div>
+                        <div class="md-content">${applyCustomTags(marked.parse(p.Desc||''))}</div>
                         ${buildPec(p.Pec)}
                     </div>
                 `).join('');
             };
 
-            // Копирование картинки (+5)
             let imgHtml = '';
             if (node.imgUrl) {
                 imgHtml = `
@@ -682,7 +730,7 @@
                 <div class="tech-text" style="margin-bottom:12px;">${(node.PName||[]).join(', ')}</div>
                 ${imgHtml}
                 <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px;">${tags}</div>
-                <div class="md-content">${marked.parse(applyCustomTags(node.Desc||''))}</div>
+                <div class="md-content">${applyCustomTags(marked.parse(node.Desc||''))}</div>
                 <div style="margin-top:16px; border-top:1px dashed #333; padding-top:10px;">${buildPec(node.Pec)}</div>
             `;
             sb.classList.add('open');
@@ -693,12 +741,16 @@
             e.preventDefault();
             if (linkingState.active || !graphInstances[panelId]) return;
             
+            const scrId = document.getElementById(`select-screen-${panelId}`).value;
+            const scr = screensCache.find(s => s.id === scrId);
+            if(!scr || !hasAdminAccess(scr)) return; // Зритель не может взаимодействовать с холстом
+            
             const rect = document.getElementById(`graph-container-${panelId}`).getBoundingClientRect();
             const coords = graphInstances[panelId].screen2GraphCoords(e.clientX - rect.left, e.clientY - rect.top);
             ctxTarget = { type: 'canvas', panelId, x: coords.x, y: coords.y };
             
             if (selectionGraphRect && selectionGraphRect.pId === panelId) {
-                showSelectionMenu(e.pageX, e.pageY);
+                showSelectionMenu(e.pageX, e.pageY, true);
                 return;
             }
 
@@ -713,47 +765,63 @@
             e.preventDefault();
             if (linkingState.active) return; 
 
+            const scrId = document.getElementById(`select-screen-${panelId}`).value;
+            const scr = screensCache.find(s => s.id === scrId);
+            const admin = hasAdminAccess(scr);
+
             if (selectedNodes.has(node.id) && selectedNodes.size > 1) {
                 ctxTarget = { type: 'node', panelId, node: node, x: node.x, y: node.y };
-                showSelectionMenu(e.pageX, e.pageY);
+                showSelectionMenu(e.pageX, e.pageY, admin);
                 return;
             }
 
             ctxTarget = { type: 'node', panelId, node: node, x: node.x, y: node.y };
             
-            let html = `
-                <div class="ctx-item" onclick="window.cmdEditNode()"><i class="fa-solid fa-pen"></i> Редактировать</div>
-                <div class="ctx-item" onclick="window.cmdCopySingleNode()"><i class="fa-solid fa-copy"></i> Копировать</div>
-                <div class="ctx-divider"></div>
-                ${node.shape !== 'group' && node.shape !== 'bgImage' ? `<div class="ctx-item" onclick="window.cmdStartLink()"><i class="fa-solid fa-link"></i> Связать с...</div>` : ''}
-                <div class="ctx-item" onclick="window.cmdToggleAnchor()"><i class="fa-solid fa-anchor"></i> ${node.fx !== undefined ? 'Открепить якорь' : 'Закрепить позицию здесь'}</div>
-                <div class="ctx-item" onclick="window.cmdToggleFog()"><i class="fa-solid fa-eye-slash"></i> ${node.isHidden ? 'Сделать видимым' : 'Скрыть (Туман войны)'}</div>
-                <div class="ctx-divider"></div>
-                <div class="ctx-item" style="color:var(--color-red);" onclick="window.cmdDeleteNode()"><i class="fa-solid fa-trash"></i> Удалить</div>
-            `;
+            let html = ``;
+            if (admin) {
+                html += `
+                    <div class="ctx-item" onclick="window.cmdEditNode()"><i class="fa-solid fa-pen"></i> Редактировать</div>
+                    <div class="ctx-item" onclick="window.cmdCopySingleNode()"><i class="fa-solid fa-copy"></i> Копировать</div>
+                    <div class="ctx-divider"></div>
+                    ${node.shape !== 'group' && node.shape !== 'bgImage' ? `<div class="ctx-item" onclick="window.cmdStartLink()"><i class="fa-solid fa-link"></i> Связать с...</div>` : ''}
+                    <div class="ctx-item" onclick="window.cmdToggleAnchor()"><i class="fa-solid fa-anchor"></i> ${node.fx !== undefined ? 'Открепить якорь' : 'Закрепить позицию здесь'}</div>
+                    <div class="ctx-item" onclick="window.cmdToggleFog()"><i class="fa-solid fa-eye-slash"></i> ${node.isHidden ? 'Сделать видимым' : 'Скрыть (Туман войны)'}</div>
+                    <div class="ctx-divider"></div>
+                    <div class="ctx-item" style="color:var(--color-red);" onclick="window.cmdDeleteNode()"><i class="fa-solid fa-trash"></i> Удалить</div>
+                `;
+            } else {
+                html += `<div class="ctx-item" onclick="window.cmdCopySingleNode()"><i class="fa-solid fa-copy"></i> Копировать</div>`;
+            }
             showCtxMenu(e.pageX, e.pageY, html);
         };
 
-        function showSelectionMenu(x, y) {
+        function showSelectionMenu(x, y, admin) {
             let html = ``;
-            if (selectedNodes.size > 0) {
-                html += `<div class="ctx-item" onclick="window.cmdGroupSelection()"><i class="fa-solid fa-object-group"></i> Создать Группу</div>`;
-            }
-            html += `<div class="ctx-item" onclick="window.cmdCreateBgFromSelection()"><i class="fa-solid fa-image"></i> Создать Фон по рамке</div>`;
-            
-            if (selectedNodes.size > 0) {
-                html += `
-                    <div class="ctx-divider"></div>
-                    <div class="ctx-item" onclick="window.cmdCopySelection()"><i class="fa-solid fa-copy"></i> Копировать выделенное</div>
-                    <div class="ctx-item" onclick="window.cmdToggleFogSelection()"><i class="fa-solid fa-eye-slash"></i> Скрыть/Показать</div>
-                    <div class="ctx-divider"></div>
-                    <div class="ctx-item" style="color:var(--color-red);" onclick="window.cmdDeleteSelection()"><i class="fa-solid fa-trash"></i> Удалить выделенное</div>
-                `;
+            if (admin) {
+                if (selectedNodes.size > 0) {
+                    html += `<div class="ctx-item" onclick="window.cmdGroupSelection()"><i class="fa-solid fa-object-group"></i> Создать Группу</div>`;
+                }
+                html += `<div class="ctx-item" onclick="window.cmdCreateBgFromSelection()"><i class="fa-solid fa-image"></i> Создать Фон по рамке</div>`;
+                
+                if (selectedNodes.size > 0) {
+                    html += `
+                        <div class="ctx-divider"></div>
+                        <div class="ctx-item" onclick="window.cmdCopySelection()"><i class="fa-solid fa-copy"></i> Копировать выделенное</div>
+                        <div class="ctx-item" onclick="window.cmdToggleFogSelection()"><i class="fa-solid fa-eye-slash"></i> Скрыть/Показать</div>
+                        <div class="ctx-divider"></div>
+                        <div class="ctx-item" style="color:var(--color-red);" onclick="window.cmdDeleteSelection()"><i class="fa-solid fa-trash"></i> Удалить выделенное</div>
+                    `;
+                }
+            } else {
+                if (selectedNodes.size > 0) {
+                    html += `<div class="ctx-item" onclick="window.cmdCopySelection()"><i class="fa-solid fa-copy"></i> Копировать выделенное</div>`;
+                }
             }
             showCtxMenu(x, y, html);
         }
 
         function showCtxMenu(x, y, html) {
+            if (!html) return;
             const menu = document.getElementById('ctx-menu');
             menu.innerHTML = html; menu.style.left = `${x}px`; menu.style.top = `${y}px`; menu.style.display = 'flex';
         }
@@ -903,7 +971,6 @@
             linkingState.active = false;
         }
 
-        // --- ИСПРАВЛЕНИЕ (! 1): Обновляем существующий объект вместо его замены ---
         function pushNodeToGraph(panelId, newNode) {
             const pId = panelId || 1;
             if(!graphInstances[pId]) return alert("Сначала выберите Ширму для сохранения узла.");
@@ -911,7 +978,6 @@
             
             const existingNode = nodes.find(n => n.id === newNode.id);
             if(existingNode) {
-                // Очищаем старые свойства, сохраняя D3 переменные и связи
                 Object.keys(existingNode).forEach(k => { if(!['x','y','vx','vy','fx','fy','index'].includes(k)) delete existingNode[k]; });
                 Object.assign(existingNode, newNode);
             } else {
@@ -927,20 +993,23 @@
             let saved = false;
             for(let i=1; i<=2; i++) {
                 if(document.getElementById(`select-screen-${i}`).value && graphInstances[i]) {
-                    await saveGraphDataToDB(i);
-                    saved = true;
+                    const scrId = document.getElementById(`select-screen-${i}`).value;
+                    const scr = screensCache.find(s => s.id === scrId);
+                    if(scr && hasAdminAccess(scr) && !scr.isLocal) {
+                        await saveGraphDataToDB(i);
+                        saved = true;
+                    }
                 }
             }
             if(saved) alert("Ширма и заметки успешно сохранены в Базу!");
-            else alert("Заметки сохранены локально.");
+            else alert("Заметки сохранены локально (или у вас нет прав на сохранение Ширмы).");
         };
 
         async function saveGraphDataToDB(panelId) {
             const scrId = document.getElementById(`select-screen-${panelId}`).value;
             if(!scrId) return;
             const scr = screensCache.find(s => s.id === scrId);
-            if(scr.isLocal) return alert(`Ширма в Панели ${panelId} является базовым миром и не может быть изменена.`);
-
+            
             const { nodes, links } = graphInstances[panelId].graphData();
             
             const cleanNodes = nodes.map(n => {
@@ -966,7 +1035,6 @@
             }
         }
 
-        // --- РЕКУРСИВНЫЙ КОНСТРУКТОР УЗЛА + МАРКДАУН + ТАБЛИЦЫ ---
         window.closeBuilder = () => { document.getElementById('nodeBuilderModal').classList.remove('active'); };
         
         window.switchNodeEditor = (mode) => {
@@ -998,7 +1066,6 @@
             syncRootStateFromDOM();
         };
 
-        // Логика визуального Фабрикатора Таблиц (.+ 1)
         let tbRows = 2, tbCols = 2, tbTarget = '';
         window.openTableFabricator = (targetId) => {
             tbTarget = targetId;
@@ -1042,6 +1109,7 @@
         function syncRootStateFromDOM() {
             if(!document.getElementById('bn-name')) return;
             editingNodeData.Name = document.getElementById('bn-name').value;
+            editingNodeData.titleColor = document.getElementById('bn-titlecolor').value;
             editingNodeData.Desc = document.getElementById('bn-desc').value;
             editingNodeData.shape = document.getElementById('bn-shape').value;
             editingNodeData.borderColor = document.getElementById('bn-bordercolor').value;
@@ -1124,7 +1192,10 @@
                 <div class="b-row">
                     <div style="flex:2;">
                         <div class="tech-text" style="margin-bottom:4px;">ОСНОВНОЕ ИМЯ (NAME) <span style="color:var(--color-yellow); font-size:0.7rem;">{#HEX}Текст{} для цвета</span></div>
-                        <input type="text" id="bn-name" class="cloud-input" value="${editingNodeData.Name}">
+                        <div style="display:flex; gap:8px;">
+                            <input type="color" id="bn-titlecolor" value="${editingNodeData.titleColor || editingNodeData.borderColor || '#40E0D0'}" class="color-preview-block" title="Цвет заголовка">
+                            <input type="text" id="bn-name" class="cloud-input" value="${editingNodeData.Name}" style="flex:1;">
+                        </div>
                     </div>
                     <div style="flex:1;">
                         <div class="tech-text" style="margin-bottom:4px;">ФОРМА УЗЛА</div>
@@ -1138,7 +1209,7 @@
                     </div>
                     <div style="flex:1;">
                         <div class="tech-text" style="margin-bottom:4px;">ЦВЕТ ОБВОДКИ</div>
-                        <input type="color" id="bn-bordercolor" value="${editingNodeData.borderColor || '#40E0D0'}" style="width:100%; height:38px; cursor:pointer;">
+                        <input type="color" id="bn-bordercolor" value="${editingNodeData.borderColor || '#40E0D0'}" onchange="document.getElementById('bn-titlecolor').value = this.value" style="width:100%; height:38px; cursor:pointer;" title="Цвет обводки">
                     </div>
                 </div>
                 
