@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Лор-Ширма / Custom Compendium</title>
+    
+    <link href="[https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Oswald:wght@400;500;700&display=swap](https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Oswald:wght@400;500;700&display=swap)" rel="stylesheet">
+    <link rel="stylesheet" href="[https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css](https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css)">
+    
+    <script src="[https://cdn.jsdelivr.net/npm/marked/marked.min.js](https://cdn.jsdelivr.net/npm/marked/marked.min.js)"></script>
+    <script src="[https://unpkg.com/force-graph](https://unpkg.com/force-graph)"></script>
+
+    <style>
+        :root {
+            --bg-main: #070707; --bg-panel: #000000; 
+            --accent-primary: #40E0D0; 
+            --color-red: #C7243A; --color-yellow: #F1C40F;
+            --text-main: #E0D8C8; --text-dim: #696969;
+            --chamfer: 14px;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: var(--bg-main); color: var(--text-main); font-family: 'Inter', sans-serif;
+            height: 100vh; display: flex; flex-direction: column; overflow: hidden;
+            user-select: none;
+        }
+        h1, h2, h3, .oswald { font-family: 'Oswald', sans-serif; text-transform: uppercase; }
+        .tech-text { font-family: 'Inter', sans-serif; color: var(--text-dim); font-size: 0.8rem; }
+        .md-content { font-size: 0.9rem; line-height: 1.5; white-space: pre-wrap; }
+
+        .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background: rgba(0,0,0,0.8); border-bottom: 1px solid var(--accent-primary); z-index: 100; }
+        .btn-base { padding: 6px 12px; font-size: 0.8rem; font-family: 'Oswald'; cursor: pointer; text-transform: uppercase; transition: 0.2s; background: var(--bg-main); border: 1px solid var(--text-dim); color: var(--text-dim); text-decoration: none;}
+        .btn-base:hover, .btn-active { border-color: var(--accent-primary); color: var(--accent-primary); }
+        .action-btn { background: transparent; border: 1px dashed var(--accent-primary); color: var(--accent-primary); padding: 8px 16px; font-family: 'Oswald'; cursor: pointer; transition: 0.2s; }
+        .action-btn:hover { background: var(--accent-primary); color: #000; }
+
+        .workspace-area { display: flex; flex: 1; width: 100%; gap: 4px; padding: 4px; background: #111; position: relative; }
+        .graph-panel { flex: 1; position: relative; background: #000; border: 1px solid #333; display: flex; flex-direction: column; overflow: hidden; }
+        .graph-panel.hidden { display: none; }
+        
+        .graph-container { 
+            flex: 1; width: 100%; height: 100%; cursor: grab; 
+            background-color: #0c0c0c;
+            background-image: radial-gradient(circle, #333 1.5px, transparent 1.5px);
+            background-size: 24px 24px;
+            background-position: 0 0;
+            background-repeat: repeat;
+        }
+        .graph-container:active { cursor: grabbing; }
+
+        .selection-box { position: absolute; border: 1px dashed var(--accent-primary); background: rgba(64, 224, 208, 0.15); pointer-events: none; display: none; z-index: 40; }
+
+        .panel-header { position: absolute; top: 10px; left: 10px; right: 10px; display: flex; justify-content: space-between; z-index: 10; pointer-events: none; }
+        .panel-header > * { pointer-events: auto; }
+        .cloud-select, .cloud-input { background: rgba(0,0,0,0.8); border: 1px solid var(--accent-primary); color: var(--text-main); padding: 8px 12px; font-family: 'Inter'; outline: none; width: 100%; font-size: 0.95rem; }
+        .cloud-select:focus, .cloud-input:focus { border-color: var(--color-yellow); }
+
+        .node-sidebar { position: absolute; right: -450px; top: 0; width: 400px; height: 100%; background: rgba(7, 7, 7, 0.95); border-left: 2px solid var(--accent-primary); z-index: 50; padding: 20px; overflow-y: auto; transition: right 0.3s ease; backdrop-filter: blur(5px); pointer-events: auto;}
+        .node-sidebar.open { right: 0; }
+        .btn-close-sidebar { position: absolute; top: 10px; right: 10px; background: none; border: none; color: var(--color-red); cursor: pointer; font-size: 1.2rem; }
+
+        .ctx-menu { position: absolute; background: rgba(0,0,0,0.95); border: 1px solid var(--accent-primary); padding: 5px 0; z-index: 1000; display: none; flex-direction: column; min-width: 180px; box-shadow: 0 4px 12px rgba(0,0,0,0.8); pointer-events: auto;}
+        .ctx-item { padding: 8px 16px; color: var(--text-main); font-family: 'Oswald'; font-size: 0.9rem; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 8px; }
+        .ctx-item:hover { background: var(--accent-primary); color: #000; }
+        .ctx-divider { height: 1px; background: #333; margin: 4px 0; }
+
+        .gm-panel { position: absolute; bottom: 20px; right: 20px; width: 300px; background: rgba(0,0,0,0.85); border: 1px solid #333; z-index: 90; display: flex; flex-direction: column; backdrop-filter: blur(4px); pointer-events: auto; }
+        .gm-panel-header { background: #222; padding: 6px 10px; font-family: 'Oswald'; font-size: 0.9rem; color: var(--accent-primary); cursor: pointer; display: flex; justify-content: space-between; }
+        .gm-panel-content { padding: 10px; display: none; flex-direction: column; gap: 8px; }
+        .gm-panel.open .gm-panel-content { display: flex; }
+        .notes-area { width: 100%; min-height: 150px; background: transparent; border: 1px solid #444; color: var(--color-yellow); padding: 8px; font-family: monospace; resize: vertical; }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: flex-start; z-index: 2000; padding-top: 50px; overflow-y: auto; pointer-events: auto;}
+        .modal-overlay.active { display: flex; }
+        .modal-box { width: 900px; max-width: 95%; background: var(--bg-panel); border: 1px solid var(--accent-primary); position: relative; padding: 30px; margin-bottom: 50px;}
+        
+        .b-row { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 12px; }
+        .b-se-entry { border-left: 2px solid var(--accent-primary); padding-left: 12px; margin-bottom: 12px; margin-top: 8px; background: rgba(255,255,255,0.02); padding: 10px; }
+        .btn-small-bld { background: transparent; border: 1px solid var(--text-dim); color: var(--text-dim); cursor: pointer; padding: 6px 12px; font-size: 0.8rem; text-transform: uppercase; transition: 0.2s; font-family: 'Oswald'; }
+        .btn-small-bld:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
+
+        .builder-tabs { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 4px; }
+        .b-tab { background: none; border: none; color: var(--text-dim); font-family: 'Oswald'; cursor: pointer; padding: 6px 12px; font-size: 1rem; }
+        .b-tab.active { color: var(--accent-primary); border-bottom: 2px solid var(--accent-primary); }
+        .color-preview-block { width: 36px; height: 36px; padding: 0; border: none; cursor: pointer; }
+
+        /* Панель Markdown */
+        .md-toolbar { display: flex; gap: 6px; margin-bottom: 4px; align-items: center; border: 1px solid #333; padding: 4px; background: rgba(0,0,0,0.5); }
+        .md-tool-btn { background: transparent; border: none; color: var(--text-dim); cursor: pointer; font-size: 1rem; padding: 4px 8px; transition: 0.2s; }
+        .md-tool-btn:hover { color: var(--accent-primary); }
+        
+        /* Фабрикатор таблиц */
+        .table-fabricator { display: none; border: 1px dashed var(--accent-primary); padding: 10px; margin-bottom: 12px; background: rgba(0,0,0,0.7); }
+        .tf-cell { background: transparent; border: 1px solid #444; color: var(--text-main); padding: 6px; width: 100px; text-align: center; font-family: 'Inter'; outline: none;}
+        .tf-cell:focus { border-color: var(--accent-primary); }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <div style="display:flex; gap:10px;">
+            <a href="index.html" class="btn-base"><i class="fa-solid fa-house"></i> ХАБ</a>
+            <a href="custom.html" class="btn-base"><i class="fa-solid fa-database"></i> БАЗА (CUSTOM)</a>
+            <button class="action-btn" id="btn-split" onclick="window.toggleSplit()"><i class="fa-solid fa-columns"></i> СПЛИТ-СКРИН</button>
+        </div>
+        <div style="display:flex; gap:10px; align-items:center;">
+            <div class="tech-text" style="color:var(--color-yellow); margin-right: 10px;"><i class="fa-solid fa-circle-info"></i> Shift + ЛКМ для выделения</div>
+            <button class="btn-base" onclick="document.getElementById('friendsModal').classList.add('active')"><i class="fa-solid fa-users"></i> ДОСТУПЫ</button>
+            <span id="user-info" class="tech-text" style="margin: 0 10px;"></span>
+            <button class="btn-base" onclick="window.createNewScreen()"><i class="fa-solid fa-folder-plus"></i> НОВАЯ ШИРМА</button>
+        </div>
+    </div>
+
+    <div class="gm-panel" id="notes-panel">
+        <div class="gm-panel-header" onclick="this.parentElement.classList.toggle('open')">
+            <span><i class="fa-solid fa-book-journal-whills"></i> ЧЕРНОВИК И СОХРАНЕНИЕ</span><i class="fa-solid fa-chevron-down"></i>
+        </div>
+        <div class="gm-panel-content">
+            <button class="action-btn" style="width:100%; border-color:var(--color-yellow); color:var(--color-yellow);" onclick="window.manualSaveAll()">
+                <i class="fa-solid fa-cloud-arrow-up"></i> СОХРАНИТЬ ШИРМУ И ТЕКСТ
+            </button>
+            <textarea id="gm-notes" class="notes-area" placeholder="Быстрые заметки..."></textarea>
+        </div>
+    </div>
+
+    <div class="workspace-area" id="workspace">
+        <div id="selection-box" class="selection-box"></div>
+
+        <div class="graph-panel" id="panel-1">
+            <div class="panel-header">
+                <div style="display:flex; gap:8px;">
+                    <select id="select-screen-1" class="cloud-select" style="width: 250px;" onchange="window.loadGraph(1, this.value)"></select>
+                    <button class="btn-base" style="border-color:var(--color-red); color:var(--color-red); padding: 8px 12px;" onclick="window.deleteScreen(1)" title="Удалить текущую Ширму"><i class="fa-solid fa-trash"></i></button>
+                </div>
+                <input type="text" class="cloud-input" placeholder="Поиск узла..." onkeyup="window.searchGraph(1, this.value)" style="width:200px;">
+            </div>
+            <div id="graph-container-1" class="graph-container" oncontextmenu="window.handleCanvasCtx(event, 1)"></div>
+            <div id="sidebar-1" class="node-sidebar">
+                <button class="btn-close-sidebar" onclick="document.getElementById('sidebar-1').classList.remove('open')"><i class="fa-solid fa-xmark"></i></button>
+                <div id="content-1" style="margin-top:20px;"></div>
+            </div>
+        </div>
+
+        <div class="graph-panel hidden" id="panel-2">
+            <div class="panel-header">
+                <div style="display:flex; gap:8px;">
+                    <select id="select-screen-2" class="cloud-select" style="width: 250px;" onchange="window.loadGraph(2, this.value)"></select>
+                    <button class="btn-base" style="border-color:var(--color-red); color:var(--color-red); padding: 8px 12px;" onclick="window.deleteScreen(2)" title="Удалить текущую Ширму"><i class="fa-solid fa-trash"></i></button>
+                </div>
+                <input type="text" class="cloud-input" placeholder="Поиск узла..." onkeyup="window.searchGraph(2, this.value)" style="width:200px;">
+            </div>
+            <div id="graph-container-2" class="graph-container" oncontextmenu="window.handleCanvasCtx(event, 2)"></div>
+            <div id="sidebar-2" class="node-sidebar">
+                <button class="btn-close-sidebar" onclick="document.getElementById('sidebar-2').classList.remove('open')"><i class="fa-solid fa-xmark"></i></button>
+                <div id="content-2" style="margin-top:20px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="ctx-menu" class="ctx-menu"></div>
+
+    <div class="modal-overlay" id="friendsModal">
+        <div class="modal-box" style="width: 500px;">
+            <button class="btn-base" style="position:absolute; right:15px; top:15px; border-color:var(--color-red); color:var(--color-red);" onclick="this.closest('.modal-overlay').classList.remove('active')"><i class="fa-solid fa-xmark"></i></button>
+            <h3 style="color:var(--accent-primary); margin-bottom: 16px;"><i class="fa-solid fa-users"></i> СПИСОК ДРУЗЕЙ</h3>
+            <div class="tech-text" style="margin-bottom:8px;">Введите Ники или Email тех, кому разрешен доступ к вашим "Ширмам для Друзей" (через запятую):</div>
+            <textarea id="friends-list" class="cloud-input" style="min-height: 100px; margin-bottom: 16px;" placeholder="player1, mage99@mail.com..."></textarea>
+            <button class="action-btn" style="width:100%;" onclick="window.saveFriends()">СОХРАНИТЬ СПИСОК И ОБНОВИТЬ БАЗУ</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="nodeBuilderModal">
+        <div class="modal-box">
+            <button class="btn-base" style="position:absolute; right:15px; top:15px; border-color:var(--color-red); color:var(--color-red);" onclick="window.closeBuilder()"><i class="fa-solid fa-xmark"></i> ЗАКРЫТЬ</button>
+            <h3 style="color:var(--accent-primary); margin-bottom: 20px;">РЕДАКТОР УЗЛА (ЛОРА)</h3>
+            
+            <div class="builder-tabs">
+                <button class="b-tab active" id="tab-visual" onclick="window.switchNodeEditor('visual')">ВИЗУАЛЬНЫЙ РЕДАКТОР</button>
+                <button class="b-tab" id="tab-json" onclick="window.switchNodeEditor('json')">RAW JSON</button>
+            </div>
+
+            <div id="node-visual-area"></div>
+            <textarea id="json-editor-area" class="cloud-input" style="display:none; min-height:400px; font-family:monospace; color:var(--color-yellow);"></textarea>
+
+            <button class="action-btn" style="width:100%; margin-top:24px; padding: 12px; font-size: 1.1rem;" onclick="window.saveNode()"><i class="fa-solid fa-check"></i> ПРИМЕНИТЬ (СОХРАНИТСЯ ПРИ НАЖАТИИ "СОХРАНИТЬ ШИРМУ")</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "[https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js](https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js)";
+        import { getAuth, onAuthStateChanged } from "[https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js](https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js)";
+        import { getFirestore, doc, setDoc, getDocs, collection, query, where, deleteDoc } from "[https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js](https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js)";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDaFNBCW76UsBnziHoGveo7TcC11uAdmqs",
+            authDomain: "projectmoonchar.firebaseapp.com",
+            projectId: "projectmoonchar",
+            messagingSenderId: "516028417887",
+            appId: "1:516028417887:web:4c0404f653b09ecffb58ea"
+        };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app, "default");
+
+        let currentUser = null;
+        let myFriends = [];
+        let screensCache = [];
+        let graphInstances = { 1: null, 2: null };
+        let isSplit = false;
+        
+        let ctxTarget = { type: null, node: null, panelId: null, x: 0, y: 0 };
+        let clipboardNodes = []; 
+        let linkingState = { active: false, sourceNode: null, panelId: null };
+        let editingNodeData = {};
+        
+        let selectedNodes = new Set(); 
+        let selectionGraphRect = null; 
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('gm-notes').value = window.localStorage.getItem('gm_notes') || '';
+            const savedFriends = window.localStorage.getItem('gm_friends');
+            if(savedFriends) {
+                document.getElementById('friends-list').value = savedFriends;
+                myFriends = savedFriends.split(',').map(s=>s.trim()).filter(s=>s);
+            }
+            initSelectionBox();
+        });
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('user-info').innerText = window.localStorage.getItem('custom_nickname') || user.email;
+                window.fetchScreens();
+            } else {
+                alert("Доступ запрещен. Авторизуйтесь в ХАБе.");
+                window.location.href = 'custom.html';
+            }
+        });
+
+        // Функция обработки кастомных тегов (Цвет и Изображения)
+        function applyCustomTags(text) {
+            if (!text) return '';
+            let res = String(text);
+            res = res.replace(/\{(#?[0-9A-Fa-f]{3,6})\}/g, '<span style="color: $1;">');
+            res = res.replace(/\{\}/g, '</span>');
+            res = res.replace(/\{(https?:\/\/[^\}]+)\}/g, '<img src="$1" style="max-width:100%; border-radius:4px; margin-top:8px; display:block;">');
+            return res;
+        }
+
+        window.saveFriends = () => {
+            const val = document.getElementById('friends-list').value;
+            window.localStorage.setItem('gm_friends', val);
+            myFriends = val.split(',').map(s=>s.trim()).filter(s=>s);
+            document.getElementById('friendsModal').classList.remove('active');
+            window.fetchScreens();
+        };
+
+        window.toggleSplit = () => {
+            isSplit = !isSplit;
+            document.getElementById('panel-2').classList.toggle('hidden', !isSplit);
+            document.getElementById('btn-split').classList.toggle('btn-active', isSplit);
+            setTimeout(() => {
+                if(graphInstances[1]) graphInstances[1].width(document.getElementById('panel-1').clientWidth);
+                if(graphInstances[2] && isSplit) graphInstances[2].width(document.getElementById('panel-2').clientWidth);
+            }, 300);
+        };
+
+        window.addEventListener('keydown', e => {
+            if (e.key === 'Shift') {
+                if (graphInstances[1]) graphInstances[1].enableZoomPanInteraction(false);
+                if (graphInstances[2]) graphInstances[2].enableZoomPanInteraction(false);
+            }
+        });
+        window.addEventListener('keyup', e => {
+            if (e.key === 'Shift') {
+                if (graphInstances[1]) graphInstances[1].enableZoomPanInteraction(true);
+                if (graphInstances[2]) graphInstances[2].enableZoomPanInteraction(true);
+            }
+        });
+
+        window.forceGraphUpdate = (panelId) => {
+            if(!graphInstances[panelId]) return;
+            const { nodes, links } = graphInstances[panelId].graphData();
+            graphInstances[panelId].graphData(sortGraphData({ nodes, links }));
+        };
+
+        window.closeCtx = () => { 
+            const ctx = document.getElementById('ctx-menu');
+            if (ctx) ctx.style.display = 'none'; 
+        };
+        document.addEventListener('click', window.closeCtx);
+
+        window.clearSelection = () => {
+            selectedNodes.clear();
+            selectionGraphRect = null;
+            const sb = document.getElementById('selection-box');
+            if(sb) sb.style.display = 'none';
+            window.closeCtx();
+            if(graphInstances[1]) window.forceGraphUpdate(1);
+            if(graphInstances[2] && isSplit) window.forceGraphUpdate(2);
+        };
+
+        function initSelectionBox() {
+            const workspace = document.getElementById('workspace');
+            const selBox = document.getElementById('selection-box');
+            let isSelecting = false;
+            let startX, startY;
+
+            workspace.addEventListener('mousedown', (e) => {
+                if(e.shiftKey && e.button === 0) {
+                    isSelecting = true;
+                    window.clearSelection(); 
+                    const rect = workspace.getBoundingClientRect();
+                    startX = e.clientX - rect.left;
+                    startY = e.clientY - rect.top;
+                    selBox.style.left = startX + 'px';
+                    selBox.style.top = startY + 'px';
+                    selBox.style.width = '0px';
+                    selBox.style.height = '0px';
+                    selBox.style.display = 'block';
+                }
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if(!isSelecting) return
