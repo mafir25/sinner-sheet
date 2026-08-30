@@ -56,21 +56,21 @@
         .cloud-select, .cloud-input { background: rgba(0,0,0,0.8); border: 1px solid var(--accent-primary); color: var(--text-main); padding: 8px 12px; font-family: 'Inter'; outline: none; width: 100%; font-size: 0.95rem; }
         .cloud-select:focus, .cloud-input:focus { border-color: var(--color-yellow); }
 
-        /* ПЛАВАЮЩИЙ И ПЕРЕТАСКИВАЕМЫЙ САЙДБАР */
-        .node-sidebar { 
-            position: absolute; right: 20px; top: 20px; width: 400px; max-height: 90%; 
-            background: rgba(7, 7, 7, 0.95); border: 1px solid var(--accent-primary); 
-            z-index: 50; display: none; flex-direction: column; 
-            backdrop-filter: blur(5px); pointer-events: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.8);
-        }
-        .node-sidebar.open { display: flex; }
-        .sidebar-header {
-            background: rgba(0,0,0,0.8); padding: 8px 12px; cursor: move; border-bottom: 1px solid var(--accent-primary);
-            display: flex; justify-content: space-between; align-items: center; color: var(--accent-primary);
-            font-family: 'Oswald'; user-select: none;
-        }
-        .sidebar-content-area { padding: 20px; overflow-y: auto; flex: 1; }
-        .btn-close-sidebar { background: none; border: none; color: var(--color-red); cursor: pointer; font-size: 1.2rem; }
+        /* САЙДБАР (ВОЗВРАЩЕНО К СТАРОМУ ВИДУ + РАСШИРЕНИЕ) */
+        .node-sidebar { position: absolute; right: -5000px; top: 0; width: 400px; height: 100%; background: rgba(7, 7, 7, 0.95); border-left: 2px solid var(--accent-primary); z-index: 50; padding: 20px; overflow-y: auto; transition: right 0.3s ease; backdrop-filter: blur(5px); pointer-events: auto;}
+        .node-sidebar.open { right: 0; }
+        .btn-close-sidebar { position: absolute; top: 10px; right: 10px; background: none; border: none; color: var(--color-red); cursor: pointer; font-size: 1.2rem; z-index: 10;}
+
+        /* СВОРАЧИВАЕМЫЕ ПОДБЛОКИ (PEC) В САЙДБАРЕ */
+        .pec-block { margin-bottom: 8px; border-left: 2px solid var(--text-dim); padding: 8px 10px; cursor: pointer; position: relative; transition: 0.2s; background: rgba(255,255,255,0.02); }
+        .pec-block:hover { background: rgba(255,255,255,0.05); border-color: var(--accent-primary); }
+        .pec-header { display: flex; align-items: center; gap: 8px; padding-bottom: 2px; }
+        .pec-name { font-family: 'Oswald', sans-serif; font-size: 1.0rem; color: var(--accent-primary); }
+        .pec-collapse-icon { color: var(--text-dim); font-size: 0.8rem; transition: transform 0.3s; }
+        .pec-block.collapsed .pec-collapse-icon { transform: rotate(-90deg); }
+        .pec-desc-wrapper { display: grid; grid-template-rows: 1fr; transition: grid-template-rows 0.3s ease; margin-top: 6px; }
+        .pec-block.collapsed .pec-desc-wrapper { grid-template-rows: 0fr; margin-top: 0; }
+        .pec-desc { overflow: hidden; font-size: 0.9rem; color: var(--text-main); line-height: 1.5; white-space: pre-wrap; cursor: text;}
 
         .ctx-menu { position: absolute; background: rgba(0,0,0,0.95); border: 1px solid var(--accent-primary); padding: 5px 0; z-index: 1000; display: none; flex-direction: column; min-width: 180px; box-shadow: 0 4px 12px rgba(0,0,0,0.8); pointer-events: auto;}
         .ctx-item { padding: 8px 16px; color: var(--text-main); font-family: 'Oswald'; font-size: 0.9rem; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 8px; }
@@ -155,11 +155,8 @@
             </div>
             <div id="graph-container-1" class="graph-container" oncontextmenu="window.handleCanvasCtx(event, 1)"></div>
             <div id="sidebar-1" class="node-sidebar">
-                <div id="sidebar-handle-1" class="sidebar-header">
-                    <span><i class="fa-solid fa-grip-lines"></i> ИНФОРМАЦИЯ</span>
-                    <button class="btn-close-sidebar" onclick="document.getElementById('sidebar-1').classList.remove('open')"><i class="fa-solid fa-xmark"></i></button>
-                </div>
-                <div id="content-1" class="sidebar-content-area"></div>
+                <button class="btn-close-sidebar" onclick="document.getElementById('sidebar-1').classList.remove('open')"><i class="fa-solid fa-xmark"></i></button>
+                <div id="content-1" style="margin-top:20px;"></div>
             </div>
         </div>
 
@@ -177,11 +174,8 @@
             </div>
             <div id="graph-container-2" class="graph-container" oncontextmenu="window.handleCanvasCtx(event, 2)"></div>
             <div id="sidebar-2" class="node-sidebar">
-                <div id="sidebar-handle-2" class="sidebar-header">
-                    <span><i class="fa-solid fa-grip-lines"></i> ИНФОРМАЦИЯ</span>
-                    <button class="btn-close-sidebar" onclick="document.getElementById('sidebar-2').classList.remove('open')"><i class="fa-solid fa-xmark"></i></button>
-                </div>
-                <div id="content-2" class="sidebar-content-area"></div>
+                <button class="btn-close-sidebar" onclick="document.getElementById('sidebar-2').classList.remove('open')"><i class="fa-solid fa-xmark"></i></button>
+                <div id="content-2" style="margin-top:20px;"></div>
             </div>
         </div>
     </div>
@@ -232,10 +226,13 @@
             </div>
 
             <div class="tech-text" style="margin-bottom:4px;">ЭЛЕМЕНТ ДЛЯ ИМПОРТА</div>
-            <select id="imp-item" class="cloud-select">
+            <select id="imp-item" class="cloud-select" onchange="window.showImportPreview()">
                 <option value="">-- Загрузка... --</option>
             </select>
             
+            <!-- ПРЕДПРОСМОТР ИМПОРТА -->
+            <div id="imp-preview" style="margin-top:12px; padding:10px; border:1px dashed #333; background:rgba(0,0,0,0.5); min-height:80px; max-height:200px; overflow-y:auto; display:none;"></div>
+
             <button class="action-btn" style="width:100%; margin-top: 10px;" onclick="window.executeImport()"><i class="fa-solid fa-download"></i> ИМПОРТИРОВАТЬ НА ХОЛСТ</button>
         </div>
     </div>
@@ -298,50 +295,58 @@
         const dictFeatBasesImport = { "Background": { name: "Предыстория", color: "#696969" }, "Body": { name: "Тело", color: "#E67E22" }, "Mind": { name: "Разум", color: "#1E3A8A" }, "Martial Arts": { name: "Боевые искусства", color: "#45B3CB" }, "Affiliation": { name: "Принадлежность", color: "#F1C40F" }, "Weapon": { name: "Оружие", color: "#C7243A" }, "Status": { name: "Статус", color: "#8FCC2A" }, "Sin": { name: "Грех", color: "#45B3CB" }, "Shin and Mang": { name: "Шин и Манг", color: "#D94285" }, "E.G.O Feats": { name: "Черты Э.Г.О.", color: "#27AE60" } };
         const dictBestiaryCatsImport = { "ZAYIN": { name: "ZAYIN", color: "#27AE60" }, "TETH": { name: "TETH", color: "#45B3CB" }, "HE": { name: "HE", color: "#F1C40F" }, "WAW": { name: "WAW", color: "#9B59B6" }, "ALEPH": { name: "ALEPH", color: "#C7243A" }, "City": { name: "Город", color: "#696969" }, "Distortions": { name: "Искажения", color: "#E0D8C8" } };
 
+        const catColors = {
+            'status': '#45B3CB',
+            'class': '#1E3A8A',
+            'feat': '#C7243A',
+            'gift': '#E67E22',
+            'equip': '#9B59B6',
+            'bestiary': '#8FCC2A'
+        };
+
+        // ЛОГИКА ИЗМЕНЕНИЯ ШИРИНЫ ПАНЕЛИ
+        function makeResizableSidebar(sidebarId) {
+            const sb = document.getElementById(sidebarId);
+            const resizer = document.createElement('div');
+            resizer.style.width = '8px';
+            resizer.style.cursor = 'ew-resize';
+            resizer.style.position = 'absolute';
+            resizer.style.left = '0';
+            resizer.style.top = '0';
+            resizer.style.bottom = '0';
+            resizer.style.zIndex = '100';
+            resizer.style.background = 'transparent';
+            sb.appendChild(resizer);
+            
+            let startX, startWidth;
+            resizer.addEventListener('mousedown', function(e) {
+                startX = e.clientX;
+                startWidth = parseInt(document.defaultView.getComputedStyle(sb).width, 10);
+                document.documentElement.addEventListener('mousemove', doDrag, false);
+                document.documentElement.addEventListener('mouseup', stopDrag, false);
+                sb.style.transition = 'none'; // Отключаем анимацию для плавного ресайза
+            });
+            
+            function doDrag(e) {
+                let newWidth = startWidth - (e.clientX - startX);
+                if (newWidth > 250 && newWidth < window.innerWidth * 0.8) {
+                    sb.style.width = newWidth + 'px';
+                }
+            }
+            
+            function stopDrag() {
+                document.documentElement.removeEventListener('mousemove', doDrag, false);
+                document.documentElement.removeEventListener('mouseup', stopDrag, false);
+                sb.style.transition = 'right 0.3s ease'; // Возвращаем анимацию для открытия/закрытия
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('gm-notes').value = window.localStorage.getItem('gm_notes') || '';
             initSelectionBox();
-            makeDraggable('sidebar-1', 'sidebar-handle-1');
-            makeDraggable('sidebar-2', 'sidebar-handle-2');
+            makeResizableSidebar('sidebar-1');
+            makeResizableSidebar('sidebar-2');
         });
-
-        // ЛОГИКА ПЕРЕТАСКИВАНИЯ САЙДБАРОВ
-        function makeDraggable(elementId, handleId) {
-            const el = document.getElementById(elementId);
-            const handle = document.getElementById(handleId);
-            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-            
-            if (handle) handle.onmousedown = dragMouseDown;
-
-            function dragMouseDown(e) {
-                e.preventDefault();
-                pos3 = e.clientX;
-                pos4 = e.clientY;
-                document.onmouseup = closeDragElement;
-                document.onmousemove = elementDrag;
-            }
-
-            function elementDrag(e) {
-                e.preventDefault();
-                pos1 = pos3 - e.clientX;
-                pos2 = pos4 - e.clientY;
-                pos3 = e.clientX;
-                pos4 = e.clientY;
-                
-                if (el.style.right !== 'auto') {
-                    el.style.left = el.offsetLeft + "px";
-                    el.style.right = 'auto';
-                }
-                
-                el.style.top = (el.offsetTop - pos2) + "px";
-                el.style.left = (el.offsetLeft - pos1) + "px";
-            }
-
-            function closeDragElement() {
-                document.onmouseup = null;
-                document.onmousemove = null;
-            }
-        }
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
@@ -376,6 +381,7 @@
             
             itemSelect.innerHTML = '<option value="">-- Загрузка... --</option>';
             currentImportData = [];
+            document.getElementById('imp-preview').style.display = 'none';
 
             try {
                 if (src === 'official') {
@@ -404,7 +410,7 @@
                 if(currentImportData.length === 0) {
                     itemSelect.innerHTML = '<option value="">-- Нет данных --</option>';
                 } else {
-                    let html = '';
+                    let html = '<option value="">-- Выберите элемент --</option>';
                     currentImportData.forEach((item, idx) => {
                         html += `<option value="${idx}">${item.Name || item.characterName || 'Без названия'}</option>`;
                     });
@@ -414,6 +420,61 @@
                 itemSelect.innerHTML = '<option value="">-- Ошибка загрузки --</option>';
                 console.error(e);
             }
+        };
+
+        window.showImportPreview = () => {
+            const idx = document.getElementById('imp-item').value;
+            const previewBox = document.getElementById('imp-preview');
+            if (idx === "") {
+                previewBox.style.display = 'none';
+                return;
+            }
+            
+            const d = currentImportData[idx];
+            const cat = document.getElementById('imp-category').value;
+            let tagsHtml = '';
+            
+            const makeBadge = (arr, dict) => {
+                if(!arr) return '';
+                if(typeof arr === 'string') arr = [arr];
+                let h = '';
+                arr.forEach(t => {
+                    const c = dict[t] ? dict[t].color : '#40E0D0';
+                    const n = dict[t] ? dict[t].name : t;
+                    h += `<span style="font-size:0.75rem; border:1px solid ${c}; color:${c}; padding:2px 6px; border-radius:12px; margin-right:4px; display:inline-block; margin-bottom:4px;">${n}</span>`;
+                });
+                return h;
+            };
+
+            let previewText = '';
+            if (cat === 'status') {
+                previewText = d.Effect || '';
+            } else if (cat === 'class') {
+                tagsHtml += makeBadge(d.Type, dictTypesImport);
+                previewText = `**Статы:** ${(d.Stats||[]).join(', ')}`;
+            } else if (cat === 'feat') {
+                tagsHtml += makeBadge(d.Base, dictFeatBasesImport);
+                if(d.Need) previewText += `**Требования:** ${d.Need}\n\n`;
+                previewText += d.desc || '';
+            } else if (cat === 'gift') {
+                tagsHtml += makeBadge(d.Type, dictTypesImport);
+                tagsHtml += `<span style="font-size:0.75rem; border:1px solid #E67E22; color:#E67E22; padding:2px 6px; border-radius:12px; margin-right:4px;">Ур. ${d.Level}</span>`;
+                previewText = d.Description || '';
+            } else if (cat === 'equip') {
+                tagsHtml += makeBadge(d.Type, dictTypesImport);
+                tagsHtml += `<span style="font-size:0.75rem; border:1px solid #E67E22; color:#E67E22; padding:2px 6px; border-radius:12px; margin-right:4px;">Ур. ${d.Level}</span>`;
+                if(d.Rarity) tagsHtml += `<span style="font-size:0.75rem; border:1px solid #9B59B6; color:#9B59B6; padding:2px 6px; border-radius:12px; margin-right:4px;">${d.Rarity}</span>`;
+                if(d.Need) previewText += `**Требования:** ${d.Need}\n\n`;
+                if(d.Stats) previewText += `**Скейлинг:** ${(d.Stats||[]).join(', ')}\n\n`;
+                previewText += d.Desc || '';
+            } else if (cat === 'bestiary') {
+                tagsHtml += makeBadge(d.Category, dictBestiaryCatsImport);
+                if(d.Meta) previewText += `*${d.Meta}*\n\n`;
+                previewText += `**КД:** ${d.ArmorClass} | **ХП:** ${d.HitPoints} | **Скорость:** ${d.Speed}\n`;
+            }
+
+            previewBox.innerHTML = `<div style="margin-bottom:8px;">${tagsHtml}</div><div class="md-content" style="font-size:0.8rem;">${marked.parse(previewText)}</div>`;
+            previewBox.style.display = 'block';
         };
 
         window.executeImport = () => {
@@ -427,7 +488,10 @@
                 id: 'n_' + Date.now() + Math.floor(Math.random()*1000),
                 Name: d.Name || d.characterName || 'Без названия',
                 PName: [], Desc: '', Tags: [], Pec: [],
-                shape: 'circle', scale: 1.0, borderColor: '#40E0D0', imgUrl: '',
+                shape: 'square', // <-- ВАЖНО: Квадратная форма
+                scale: 1.0, 
+                borderColor: catColors[cat] || '#40E0D0', // <-- ВАЖНО: Цвет категории
+                imgUrl: '',
                 x: ctxTarget.x, y: ctxTarget.y
             };
 
@@ -516,6 +580,53 @@
                 window.closeSearch(panelId);
                 window.showSidebar(panelId, target);
             }
+        };
+
+        // --- ЛОГИКА САЙДБАРА СО СВОРАЧИВАЮЩИМИСЯ БЛОКАМИ ---
+        window.showSidebar = (panelId, node) => {
+            if (node.shape === 'group' || node.shape === 'bgImage') return; 
+
+            const sb = document.getElementById(`sidebar-${panelId}`);
+
+            let tags = (node.Tags||[]).map(t=>`<span style="font-size:0.75rem; border:1px solid; padding:2px 6px; border-radius:12px; color:${t.color}; border-color:${t.color}">${t.text}</span>`).join(' ');
+            
+            const buildPec = (pecs) => {
+                if(!pecs || !pecs.length) return '';
+                return pecs.map(p => `
+                    <div class="pec-block collapsed">
+                        <div class="pec-header" onclick="this.parentElement.classList.toggle('collapsed')">
+                            <i class="fa-solid fa-chevron-down pec-collapse-icon"></i>
+                            <span class="pec-name">${applyCustomTags(p.Name)}</span>
+                            <span class="tech-text">${(p.PName||[]).join(', ')}</span>
+                        </div>
+                        <div class="pec-desc-wrapper" onclick="event.stopPropagation()">
+                            <div class="pec-desc md-content">
+                                ${applyCustomTags(marked.parse(p.Desc||''))}
+                                <div style="margin-top:8px;">${buildPec(p.Pec)}</div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            };
+
+            let imgHtml = '';
+            if (node.imgUrl) {
+                imgHtml = `
+                    <div style="margin-bottom:12px; position:relative; display:inline-block;">
+                        <img src="${node.imgUrl}" style="max-width:100%; max-height:200px; border-radius:4px; border: 1px solid #333;">
+                        <button title="Скопировать ссылку на картинку" onclick="navigator.clipboard.writeText('${node.imgUrl}'); alert('Ссылка скопирована!');" style="position:absolute; top:4px; right:4px; background:rgba(0,0,0,0.8); border:none; color:var(--accent-primary); cursor:pointer; padding:6px; border-radius:4px;"><i class="fa-solid fa-copy"></i></button>
+                    </div>`;
+            }
+
+            document.getElementById(`content-${panelId}`).innerHTML = `
+                <h2 style="color:var(--accent-primary); margin-bottom:4px;">${applyCustomTags(node.Name)}</h2>
+                <div class="tech-text" style="margin-bottom:12px;">${(node.PName||[]).join(', ')}</div>
+                ${imgHtml}
+                <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px;">${tags}</div>
+                <div class="md-content">${applyCustomTags(marked.parse(node.Desc||''))}</div>
+                <div style="margin-top:16px; border-top:1px dashed #333; padding-top:10px;">${buildPec(node.Pec)}</div>
+            `;
+            sb.classList.add('open');
         };
 
         window.openAccessModal = (panelId) => {
@@ -975,49 +1086,15 @@
             graphInstances[panelId] = Graph;
         };
 
-        window.showSidebar = (panelId, node) => {
-            if (node.shape === 'group' || node.shape === 'bgImage') return; 
-
-            const sb = document.getElementById(`sidebar-${panelId}`);
-            
-            // Если сайдбар был прикреплен, делаем его плавающим при открытии
-            if (sb.style.right === '') {
-                sb.style.right = '20px';
-                sb.style.top = '20px';
-                sb.style.left = 'auto';
+        window.searchGraph = (panelId, val) => {
+            const query = val.toLowerCase().trim();
+            if(!query || !graphInstances[panelId]) return;
+            const nodes = graphInstances[panelId].graphData().nodes;
+            const target = nodes.find(n => (n.Name||'').toLowerCase().includes(query));
+            if(target) {
+                graphInstances[panelId].centerAt(target.x, target.y, 1000);
+                graphInstances[panelId].zoom(4, 2000);
             }
-
-            let tags = (node.Tags||[]).map(t=>`<span style="font-size:0.75rem; border:1px solid; padding:2px 6px; border-radius:12px; color:${t.color}; border-color:${t.color}">${t.text}</span>`).join(' ');
-            
-            const buildPec = (pecs) => {
-                if(!pecs || !pecs.length) return '';
-                return pecs.map(p => `
-                    <div style="border-left:2px solid var(--text-dim); margin-left:10px; padding-left:10px; margin-top:8px;">
-                        <b style="color:var(--accent-primary);">${applyCustomTags(p.Name)}</b> <span class="tech-text">${(p.PName||[]).join(', ')}</span>
-                        <div class="md-content">${applyCustomTags(marked.parse(p.Desc||''))}</div>
-                        ${buildPec(p.Pec)}
-                    </div>
-                `).join('');
-            };
-
-            let imgHtml = '';
-            if (node.imgUrl) {
-                imgHtml = `
-                    <div style="margin-bottom:12px; position:relative; display:inline-block;">
-                        <img src="${node.imgUrl}" style="max-width:100%; max-height:200px; border-radius:4px; border: 1px solid #333;">
-                        <button title="Скопировать ссылку на картинку" onclick="navigator.clipboard.writeText('${node.imgUrl}'); alert('Ссылка скопирована!');" style="position:absolute; top:4px; right:4px; background:rgba(0,0,0,0.8); border:none; color:var(--accent-primary); cursor:pointer; padding:6px; border-radius:4px;"><i class="fa-solid fa-copy"></i></button>
-                    </div>`;
-            }
-
-            document.getElementById(`content-${panelId}`).innerHTML = `
-                <h2 style="color:var(--accent-primary); margin-bottom:4px;">${applyCustomTags(node.Name)}</h2>
-                <div class="tech-text" style="margin-bottom:12px;">${(node.PName||[]).join(', ')}</div>
-                ${imgHtml}
-                <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px;">${tags}</div>
-                <div class="md-content">${applyCustomTags(marked.parse(node.Desc||''))}</div>
-                <div style="margin-top:16px; border-top:1px dashed #333; padding-top:10px;">${buildPec(node.Pec)}</div>
-            `;
-            sb.classList.add('open');
         };
 
         window.handleCanvasCtx = (e, panelId) => {
