@@ -107,7 +107,6 @@
         </div>
         <div style="display:flex; gap:10px; align-items:center;">
             <div class="tech-text" style="color:var(--color-yellow); margin-right: 10px;"><i class="fa-solid fa-circle-info"></i> Shift + ЛКМ для выделения</div>
-            <button class="btn-base" onclick="document.getElementById('friendsModal').classList.add('active')"><i class="fa-solid fa-users"></i> ДОСТУПЫ</button>
             <span id="user-info" class="tech-text" style="margin: 0 10px;"></span>
             <button class="btn-base" onclick="window.createNewScreen()"><i class="fa-solid fa-folder-plus"></i> НОВАЯ ШИРМА</button>
         </div>
@@ -132,6 +131,7 @@
             <div class="panel-header">
                 <div style="display:flex; gap:8px;">
                     <select id="select-screen-1" class="cloud-select" style="width: 250px;" onchange="window.loadGraph(1, this.value)"></select>
+                    <button class="btn-base" style="border-color:var(--color-yellow); color:var(--color-yellow); padding: 8px 12px;" onclick="window.openAccessModal(1)" title="Настроить доступы текущей Ширмы"><i class="fa-solid fa-users"></i></button>
                     <button class="btn-base" style="border-color:var(--color-red); color:var(--color-red); padding: 8px 12px;" onclick="window.deleteScreen(1)" title="Удалить текущую Ширму"><i class="fa-solid fa-trash"></i></button>
                 </div>
                 <input type="text" class="cloud-input" placeholder="Поиск узла..." onkeyup="window.searchGraph(1, this.value)" style="width:200px;">
@@ -147,6 +147,7 @@
             <div class="panel-header">
                 <div style="display:flex; gap:8px;">
                     <select id="select-screen-2" class="cloud-select" style="width: 250px;" onchange="window.loadGraph(2, this.value)"></select>
+                    <button class="btn-base" style="border-color:var(--color-yellow); color:var(--color-yellow); padding: 8px 12px;" onclick="window.openAccessModal(2)" title="Настроить доступы текущей Ширмы"><i class="fa-solid fa-users"></i></button>
                     <button class="btn-base" style="border-color:var(--color-red); color:var(--color-red); padding: 8px 12px;" onclick="window.deleteScreen(2)" title="Удалить текущую Ширму"><i class="fa-solid fa-trash"></i></button>
                 </div>
                 <input type="text" class="cloud-input" placeholder="Поиск узла..." onkeyup="window.searchGraph(2, this.value)" style="width:200px;">
@@ -164,7 +165,7 @@
     <div class="modal-overlay" id="friendsModal">
         <div class="modal-box" style="width: 500px;">
             <button class="btn-base" style="position:absolute; right:15px; top:15px; border-color:var(--color-red); color:var(--color-red);" onclick="this.closest('.modal-overlay').classList.remove('active')"><i class="fa-solid fa-xmark"></i></button>
-            <h3 style="color:var(--accent-primary); margin-bottom: 16px;"><i class="fa-solid fa-users"></i> СПИСОК ДОСТУПОВ</h3>
+            <h3 style="color:var(--accent-primary); margin-bottom: 16px;"><i class="fa-solid fa-users"></i> ДОСТУПЫ ШИРМЫ</h3>
             
             <div class="tech-text" style="margin-bottom:8px;">Зрители (через запятую):</div>
             <textarea id="friends-list" class="cloud-input" style="min-height: 80px; margin-bottom: 16px;" placeholder="player1@mail.com, ..."></textarea>
@@ -172,7 +173,7 @@
             <div class="tech-text" style="margin-bottom:8px;">Администраторы (через запятую):</div>
             <textarea id="admins-list" class="cloud-input" style="min-height: 80px; margin-bottom: 16px;" placeholder="gm2@mail.com, ..."></textarea>
             
-            <button class="action-btn" style="width:100%;" onclick="window.saveFriends()">СОХРАНИТЬ СПИСОК И ОБНОВИТЬ БАЗУ</button>
+            <button class="action-btn" style="width:100%;" onclick="window.saveFriends()">СОХРАНИТЬ И ОБНОВИТЬ ДОСТУПЫ</button>
         </div>
     </div>
 
@@ -210,8 +211,6 @@
         const db = getFirestore(app, "default");
 
         let currentUser = null;
-        let myFriends = [];
-        let myAdmins = [];
         let screensCache = [];
         let graphInstances = { 1: null, 2: null };
         let isSplit = false;
@@ -223,19 +222,11 @@
         
         let selectedNodes = new Set(); 
         let selectionGraphRect = null; 
+        
+        let currentAccessEditScrId = null;
 
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('gm-notes').value = window.localStorage.getItem('gm_notes') || '';
-            const savedFriends = window.localStorage.getItem('gm_friends');
-            if(savedFriends) {
-                document.getElementById('friends-list').value = savedFriends;
-                myFriends = savedFriends.split(',').map(s=>s.trim()).filter(s=>s);
-            }
-            const savedAdmins = window.localStorage.getItem('gm_admins');
-            if(savedAdmins) {
-                document.getElementById('admins-list').value = savedAdmins;
-                myAdmins = savedAdmins.split(',').map(s=>s.trim()).filter(s=>s);
-            }
             initSelectionBox();
         });
 
@@ -252,45 +243,51 @@
 
         function applyCustomTags(text) {
             if (!text) return '';
-            // Цвет: {#ff0000}Текст{}
             let res = text.replace(/\{(#?[0-9A-Fa-f]{3,6})\}/g, '</span><span style="color: $1;">');
             res = res.replace(/\{\}/g, '</span><span>');
-            // Изображения: {http://...}
             res = res.replace(/\{(https?:\/\/[^\}]+)\}/g, '<img src="$1" style="max-width:100%; border-radius:4px; margin-top:8px; display:block;">');
             return `<span>${res}</span>`;
         }
 
+        window.openAccessModal = (panelId) => {
+            const scrId = document.getElementById(`select-screen-${panelId}`).value;
+            if (!scrId) return alert("Сначала выберите Ширму в выпадающем списке!");
+            
+            const scr = screensCache.find(s => s.id === scrId);
+            if (!scr) return;
+            if (scr.isLocal) return alert("Нельзя менять доступы базового мира (world.json).");
+            if (scr.creatorEmail !== currentUser.email) return alert("Только создатель может изменять доступы к этой Ширме.");
+
+            document.getElementById('friends-list').value = (scr.allowedUsers || []).join(', ');
+            document.getElementById('admins-list').value = (scr.adminUsers || []).join(', ');
+            
+            currentAccessEditScrId = scr.id;
+            document.getElementById('friendsModal').classList.add('active');
+        };
+
         window.saveFriends = async () => {
+            if (!currentAccessEditScrId) return;
+
             const fVal = document.getElementById('friends-list').value;
             const aVal = document.getElementById('admins-list').value;
-            window.localStorage.setItem('gm_friends', fVal);
-            window.localStorage.setItem('gm_admins', aVal);
-            myFriends = fVal.split(',').map(s=>s.trim()).filter(s=>s);
-            myAdmins = aVal.split(',').map(s=>s.trim()).filter(s=>s);
-            document.getElementById('friendsModal').classList.remove('active');
+            
+            const newFriends = fVal.split(',').map(s=>s.trim()).filter(s=>s);
+            const newAdmins = aVal.split(',').map(s=>s.trim()).filter(s=>s);
 
-            // --- НОВОЕ: Обновляем доступы в БД для всех существующих ширм пользователя ---
             try {
-                const myQ = query(collection(db, "custom_screens"), where("creatorEmail", "==", currentUser.email));
-                const mySnap = await getDocs(myQ);
-                const updatePromises = [];
+                await setDoc(doc(db, "custom_screens", currentAccessEditScrId), { 
+                    allowedUsers: newFriends, 
+                    adminUsers: newAdmins 
+                }, { merge: true });
                 
-                mySnap.forEach(d => {
-                    updatePromises.push(setDoc(doc(db, "custom_screens", d.id), { 
-                        allowedUsers: myFriends, 
-                        adminUsers: myAdmins 
-                    }, { merge: true }));
-                });
-                
-                await Promise.all(updatePromises);
-                alert("Доступы успешно обновлены для всех ваших Ширм!");
+                alert("Доступы для этой Ширмы успешно сохранены и применены!");
+                document.getElementById('friendsModal').classList.remove('active');
+                currentAccessEditScrId = null;
+                await window.fetchScreens();
             } catch(e) { 
                 console.error("Ошибка обновления доступов в БД:", e); 
                 alert("Ошибка при сохранении доступов: " + e.message);
             }
-            // -----------------------------------------------------------------------------
-
-            window.fetchScreens();
         };
 
         window.toggleSplit = () => {
@@ -492,7 +489,7 @@
             const newId = 'scr_' + Date.now();
             const payload = {
                 name: name, creatorEmail: currentUser.email, accessLevel: accStr, 
-                allowedUsers: myFriends, adminUsers: myAdmins,
+                allowedUsers: [], adminUsers: [],
                 bgImage: "", graphData: { nodes: [], links: [] }
             };
             
@@ -720,7 +717,6 @@
             }
         };
 
-        // --- САЙДБАР ---
         window.showSidebar = (panelId, node) => {
             if (node.shape === 'group' || node.shape === 'bgImage') return; 
 
@@ -758,14 +754,13 @@
             sb.classList.add('open');
         };
 
-        // --- КОНТЕКСТНОЕ МЕНЮ И ДЕЙСТВИЯ ---
         window.handleCanvasCtx = (e, panelId) => {
             e.preventDefault();
             if (linkingState.active || !graphInstances[panelId]) return;
             
             const scrId = document.getElementById(`select-screen-${panelId}`).value;
             const scr = screensCache.find(s => s.id === scrId);
-            if(!scr || !hasAdminAccess(scr)) return; // Зритель не может взаимодействовать с холстом
+            if(!scr || !hasAdminAccess(scr)) return;
             
             const rect = document.getElementById(`graph-container-${panelId}`).getBoundingClientRect();
             const coords = graphInstances[panelId].screen2GraphCoords(e.clientX - rect.left, e.clientY - rect.top);
