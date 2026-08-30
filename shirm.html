@@ -1,3 +1,290 @@
+
+Gemini
+Новый чат
+Поиск по чатам
+Видео
+Библиотека
+Новый блокнот
+Blender
+Доработка сайта: баги и роли
+Создание медицинского PDF-отчета
+Шаблон медицинского документа ДнД
+Шаблон медицинского документа ДнД
+Оформление документов по ДнД
+Разработка системы интерактивных графов
+Создание графа лора вселенной.
+Google AI Pro для кодинга
+Генерация low-poly 3D референсов
+Создание 3D-модели персонажа по референсу
+Референсы из ИИ для 3D-моделирования
+Генерация изображений по референсам
+Разбор мода Limbus Company
+Подборка манхв и ранобэ
+Определение уровня персонажа в D&D
+Перевод классов в JSON
+Помощь в правке сайта
+Выбор способностей для мага с рапирой
+Инструменты мясника в D&D
+Лучшие бесплатные нодовые аддоны для Blender
+Справочник по Project Moon для D&D
+Расшифровка тирлиста веб-новелл
+Инициализация Терминала Мефистофеля
+Создание D&D классов Project Moon
+Перечисление фракций и подвидов
+Доступ к блокнотам Gemini
+
+История
+Великобритания
+По IP-адресу
+Обновить
+Чат с Gemini
+Приветствую! Мне нужна помощь в доработке данного сайта. На нём были найдены некоторые баги и нужда в правках. Поможешь как опытный Frontend разработчик?
+
+
+
+! 1. Ноды сами по себе улетают после каждого действия, что очень сильно усложняет систематизацию
+
+! 2. Почему-то даже если ты добавляешь кого-то в доступы, у него всё равно не появляется доступ к твоей ширме
+
+
+
+~ 1. Есть лёгкая проблема, не работает перекрёстное форматирование. Если поставлен заголовок то он не может быть перекрашен, если текст зачёркнут он не может стать курсивным.
+
+~ 2. Есть маленькая проблема - Подпись нода невидна в базовой раскраске, от того факта что он чёрный на чёрном. Добавь рядом с названием Палетку, на которой показывается цвет названия. Базовый цвет такой же как и у обводки, но не жёстко привязан(Если меняется цвет обводки, то цвет заголовка становится таким же).
+
+
+
++ 1. Добавь ещё одно поле для доступов под названием "Администраторы". Сделай чтобы те кто записаны в обычные могли только смотреть и не могли видеть то что скрыто(Ноды просто не должны у них появлятся), а у администраторов должна быть возможность редактировать ноды и видеть скрытые, ну и удалять, скрывать и подобное. Возможность копирования должна оставатся вне зависимости от типа доступа.
+
+Для решения описанных проблем и добавления нового функционала потребуется внести точечные изменения в структуру данных, логику загрузки и интерфейс.
+
+Критичные баги (! 1 и ! 2)
+
+Фиксация узлов после перетаскивания (! 1): Узлы разлетаются, потому что физический движок перезапускается без закрепленных координат. Добавьте жесткую фиксацию fx и fy для всех элементов в событии onNodeDragEnd:  
+HTML
+
+JavaScript
+.onNodeDragEnd(node => {
+    node.__lastX = undefined;
+    node.__lastY = undefined;
+    // Закрепляем позицию любого узла после перетаскивания
+    node.fx = node.x; 
+    node.fy = node.y;
+    if (node.shape === 'group') {
+        const nodes = graphInstances[panelId].graphData().nodes;
+        nodes.forEach(n => {
+            if (n.groupId === node.id) { n.fx = n.x; n.fy = n.y; }
+        });
+    }
+})
+Исправление запроса доступов (! 2): При загрузке Ширм в fetchScreens отсутствует запрос к базе для проверки списка друзей. Замените логику fetchScreens на загрузку экранов, где пользователь числится в списках доступа.  
+HTML
+
+Форматирование и Цвет (~ 1 и ~ 2)
+
+Перекрёстное форматирование (~ 1): Порядок обработки текста ломает теги. В функции showSidebar сначала парсите Markdown, а затем применяйте кастомные цвета:  
+HTML
+
+JavaScript
+// Было: marked.parse(applyCustomTags(node.Desc||''))
+// Стало:
+<div class="md-content">${applyCustomTags(marked.parse(node.Desc||''))}</div>
+Палетка цвета для заголовка (~ 2): Добавьте поле titleColor в объект узла.
+
+В renderNodeVisualBuilder рядом с полем имени добавьте палетку, привязанную к цвету обводки:  
+HTML
+
+HTML
+<div class="tech-text" style="margin-bottom:4px;">ОСНОВНОЕ ИМЯ (NAME)</div>
+<div style="display:flex; gap:8px;">
+    <input type="color" id="bn-titlecolor" value="${editingNodeData.titleColor || editingNodeData.borderColor || '#40E0D0'}" class="color-preview-block">
+    <input type="text" id="bn-name" class="cloud-input" value="${editingNodeData.Name}" style="flex:1;">
+</div>
+В syncRootStateFromDOM добавьте сохранение: editingNodeData.titleColor = document.getElementById('bn-titlecolor').value;.
+
+В nodeCanvasObject обновите логику цвета текста:  
+HTML
+
+JavaScript
+let labelColor = node.titleColor || node.borderColor || 'var(--accent-primary)';
+// ... (оставьте логику {#HEX} если она нужна для частичного перекрашивания)
+Разделение ролей: Администраторы и Зрители (+ 1)
+
+Модальное окно доступов: Обновите блок <div id="friendsModal">:  
+HTML
+
+HTML
+<textarea id="friends-list" class="cloud-input" placeholder="Зрители (только просмотр)..."></textarea>
+<textarea id="admins-list" class="cloud-input" placeholder="Администраторы (редактирование)..."></textarea>
+Логика ролей в loadGraph и handleNodeCtx: При загрузке графика проверяйте права текущего пользователя. Если он только зритель (не создатель и не администратор), отфильтруйте скрытые узлы:
+
+JavaScript
+const isViewer = scr.creatorEmail !== currentUser.email && !(scr.adminUsers || []).includes(currentUser.email);
+let gData = sortGraphData(JSON.parse(JSON.stringify(scr.graphData)));
+
+if (isViewer) {
+    gData.nodes = gData.nodes.filter(n => !n.isHidden);
+}
+Ограничение контекстного меню: В handleNodeCtx скройте элементы редактирования, удаления и связывания, если isViewer === true. Оставьте только кнопку "Копировать".  
+HTML
+
+Можешь ли ты скинуть полный html со всеми правками?
+
+Your HTML file with all the requested fixes and new features is ready:
+
+Значок HTML-файла
+shirm-v2
+ HTML 
+Открыть
+Что было изменено:
+Фиксация узлов (! 1): В событие onNodeDragEnd добавлено жесткое закрепление координат (node.fx = node.x; node.fy = node.y;). Теперь после перетаскивания элементы остаются ровно там, где вы их оставили.
+
+Доступы и разделение ролей (! 2, + 1):
+
+В friendsModal добавлено второе поле «Администраторы».  
+HTML
+
+При загрузке и отрисовке меню реализована проверка на администратора. Зрители теперь не могут вызывать расширенное контекстное меню, не могут редактировать узлы и не видят узлы, скрытые туманом войны (свойство isHidden).  
+HTML
+
+Исправлена логика получения списков: вы теперь можете просматривать чужие ширмы, если добавлены в список администраторов или зрителей создателем.
+
+Форматирование (~ 1): Порядок обработки парсеров поменян местами в функции showSidebar. Сначала обрабатывается Markdown (marked.parse), а поверх него применяются кастомные цвета из applyCustomTags. Это решает конфликт жирного текста и цветов.  
+HTML
+
+Палетка цвета для заголовка (~ 2): В визуальный редактор добавлена переменная titleColor с палеткой цвета. При изменении цвета обводки, цвет заголовка автоматически принимает тот же цвет, но вы можете изменить его вручную, нажав на палетку слева от поля Name. Узлы на холсте теперь так же запрашивают этот параметр при отрисовке.  
+HTML
+Ещё 1
+
+! 1. Почему-то всё ещё есть проблемы с доступами. Мой друг не видит просто ширму мою
+
+Проблема заключается в том, что функция сохранения списка друзей (window.saveFriends) обновляла эти списки только в локальной памяти браузера. Из-за этого уже существующие ширмы в базе данных Firebase ничего не знали о новых добавленных друзьях (новые списки применялись только к ширмам, которые создавались после сохранения).
+
+Чтобы исправить это, нам нужно заставить функцию saveFriends принудительно обновлять списки allowedUsers и adminUsers во всех ваших ширмах в базе данных.
+
+Найдите в вашем коде (ближе к строке 200) функцию window.saveFriends = () => { ... } и замените её на следующий асинхронный вариант:
+
+JavaScript
+        window.saveFriends = async () => {
+            const fVal = document.getElementById('friends-list').value;
+            const aVal = document.getElementById('admins-list').value;
+            window.localStorage.setItem('gm_friends', fVal);
+            window.localStorage.setItem('gm_admins', aVal);
+            myFriends = fVal.split(',').map(s=>s.trim()).filter(s=>s);
+            myAdmins = aVal.split(',').map(s=>s.trim()).filter(s=>s);
+            document.getElementById('friendsModal').classList.remove('active');
+
+            // --- НОВОЕ: Обновляем доступы в БД для всех существующих ширм пользователя ---
+            try {
+                const myQ = query(collection(db, "custom_screens"), where("creatorEmail", "==", currentUser.email));
+                const mySnap = await getDocs(myQ);
+                const updatePromises = [];
+                
+                mySnap.forEach(d => {
+                    updatePromises.push(setDoc(doc(db, "custom_screens", d.id), { 
+                        allowedUsers: myFriends, 
+                        adminUsers: myAdmins 
+                    }, { merge: true }));
+                });
+                
+                await Promise.all(updatePromises);
+                alert("Доступы успешно обновлены для всех ваших Ширм!");
+            } catch(e) { 
+                console.error("Ошибка обновления доступов в БД:", e); 
+                alert("Ошибка при сохранении доступов: " + e.message);
+            }
+            // -----------------------------------------------------------------------------
+
+            window.fetchScreens();
+        };
+Что изменилось:
+Теперь, когда вы добавляете email друга в модальное окно и нажимаете кнопку "Сохранить", скрипт пробегается по всем ширмам, где вы являетесь создателем, и прописывает им актуальный список доступов в базу данных.
+
+Примечание: Убедитесь, что ваш друг использует именно тот Email (с учетом регистра и без лишних пробелов, хотя пробелы скрипт теперь обрезает), под которым он авторизован в системе.
+
+Если вам нужно, чтобы я снова сгенерировал полный обновленный .html файл, просто скажите!
+
+Сделай чтобы доступы работали локально. Одна ширма - одни доступы, Другая - другие
+
+Готово! Логика доступов полностью переделана на «индивидуальную» для каждой Ширмы.
+
+Вот итоговый файл:
+
+Значок HTML-файла
+shirm-v3
+ HTML 
+Открыть
+Что конкретно поменялось:
+Кнопка "ДОСТУПЫ" переехала: Ранее она была глобальной кнопкой на верхней панели. Теперь таких кнопок две — они находятся рядом с выпадающим списком (там, где кнопка "Корзина" для удаления ширмы) для первой и второй панели соответственно.
+
+Локальная настройка: Когда вы нажимаете кнопку "Доступы" рядом с активной ширмой (например, в Panel 1), модальное окно открывается в контексте именно этой ширмы.  
+HTML
+
+Загрузка и сохранение:
+
+Списки friends-list и admins-list при открытии окна заполняются теми пользователями, которые уже привязаны к текущей ширме.  
+HTML
+
+При нажатии "СОХРАНИТЬ", скрипт берет ваш список и обновляет в Firebase исключительно ту ширму, доступы которой вы сейчас редактируете. Глобальная перезапись отменена.  
+HTML
+
+Создание новых ширм: При нажатии "НОВАЯ ШИРМА" списки администраторов и зрителей создаются пустыми. После создания вы просто выбираете её и через кнопку "Доступы" назначаете, кого хотите.  
+HTML
+
+Теперь ваш друг будет видеть только те ширмы, куда вы его добавите, и изменения не затронут все остальные ваши проекты!
+
+Обновление которое будет трудно сделать... Ты сможешь его сделать не сломав основную страницу?
+
+Вот что я хотел бы ещё видеть:
+
++ 1. Добавь отображение Тегов при начале ввода в поисковиве.
+
++ 2. Добавь возможность воспринимать файлы воспринимаемые HTML страницей которую я скинул.
+
++ 3. Добавь возможность сдвигать поле просмотра нода.
+
+Так, с можешь добавить функцию быстрого импорта? Ну тоесть нажимаешь правую кнопку и там функция "Быстрый импорт", нажимаешь и открывается окно в котором ты выбираешь Категорию(Ака те категории файлов что ты видел в файле Custom.html), Категорию валидности(Официальный(Список подтягивается из соответствующего категории файла с репозитория(Ака с самого хостинга сайта). Названия файлов: classes.json, feats.json, bestiary.json, egogifts.json, statuses.json, equipment.json) и Пользовательская(Подтягивается напрямую с Firebase)) и предмет(ну тобеж выбор самого объекта)?
+
+Готово! Я внедрил сразу все запрошенные вами функции (и из прошлого, и из текущего сообщения), так как они отлично дополняют друг друга.
+
+Файл со всеми новыми функциями:
+
+Значок HTML-файла
+shirm-v4
+ HTML 
+Открыть
+Что нового:
+Быстрый импорт из Базы (Клик ПКМ по холсту -> "Быстрый импорт"):
+
+Открывается модальное окно.
+
+Выбираете Категорию (Статусы, Бестиарий и т.д.) и Источник (Официальные json файлы или Пользовательская БД Firebase).  
+HTML
+
+Список элементов подтягивается автоматически. При выборе и нажатии кнопки "ИМПОРТИРОВАТЬ" узел создается ровно там, где вы кликнули мышью.
+
+Магия парсинга: Все массивы данных из вашей базы (Статы, Теги урона, Особенности, Таланты, Сайд-эффекты и прочее) автоматически превращаются в цветные теги или уходят в раскрывающиеся подблоки (PEC), чтобы узел сразу выглядел красиво!
+
+Отображение тегов в поиске (! 1):
+
+Теперь при вводе текста в поиск по холсту, выпадает интерактивный список.
+
+В этом списке вы сразу видите Имя узла и все прикрепленные к нему цветные теги.
+
+При клике на результат в списке камера автоматически едет к узлу, приближает его и сразу открывает его панель.
+
+Плавающая панель узла (! 3):
+
+Раньше панель жестко выезжала справа и перекрывала холст. Теперь она стала плавающим окном.
+
+За шапку панели (там, где иконка с полосочками ) вы можете перетаскивать её в любую точку экрана, чтобы она не закрывала важные узлы.
+
+
+
+
+Gemini — это ИИ. Он может ошибаться, в том числе давать неверную информацию о людях. Ваша конфиденциальность в GeminiОткроется в новом окне
+
+Finalizing Sidebar Implementation
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -56,9 +343,21 @@
         .cloud-select, .cloud-input { background: rgba(0,0,0,0.8); border: 1px solid var(--accent-primary); color: var(--text-main); padding: 8px 12px; font-family: 'Inter'; outline: none; width: 100%; font-size: 0.95rem; }
         .cloud-select:focus, .cloud-input:focus { border-color: var(--color-yellow); }
 
-        .node-sidebar { position: absolute; right: -450px; top: 0; width: 400px; height: 100%; background: rgba(7, 7, 7, 0.95); border-left: 2px solid var(--accent-primary); z-index: 50; padding: 20px; overflow-y: auto; transition: right 0.3s ease; backdrop-filter: blur(5px); pointer-events: auto;}
-        .node-sidebar.open { right: 0; }
-        .btn-close-sidebar { position: absolute; top: 10px; right: 10px; background: none; border: none; color: var(--color-red); cursor: pointer; font-size: 1.2rem; }
+        /* ПЛАВАЮЩИЙ И ПЕРЕТАСКИВАЕМЫЙ САЙДБАР */
+        .node-sidebar { 
+            position: absolute; right: 20px; top: 20px; width: 400px; max-height: 90%; 
+            background: rgba(7, 7, 7, 0.95); border: 1px solid var(--accent-primary); 
+            z-index: 50; display: none; flex-direction: column; 
+            backdrop-filter: blur(5px); pointer-events: auto; box-shadow: 0 4px 15px rgba(0,0,0,0.8);
+        }
+        .node-sidebar.open { display: flex; }
+        .sidebar-header {
+            background: rgba(0,0,0,0.8); padding: 8px 12px; cursor: move; border-bottom: 1px solid var(--accent-primary);
+            display: flex; justify-content: space-between; align-items: center; color: var(--accent-primary);
+            font-family: 'Oswald'; user-select: none;
+        }
+        .sidebar-content-area { padding: 20px; overflow-y: auto; flex: 1; }
+        .btn-close-sidebar { background: none; border: none; color: var(--color-red); cursor: pointer; font-size: 1.2rem; }
 
         .ctx-menu { position: absolute; background: rgba(0,0,0,0.95); border: 1px solid var(--accent-primary); padding: 5px 0; z-index: 1000; display: none; flex-direction: column; min-width: 180px; box-shadow: 0 4px 12px rgba(0,0,0,0.8); pointer-events: auto;}
         .ctx-item { padding: 8px 16px; color: var(--text-main); font-family: 'Oswald'; font-size: 0.9rem; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 8px; }
@@ -86,15 +385,17 @@
         .b-tab.active { color: var(--accent-primary); border-bottom: 2px solid var(--accent-primary); }
         .color-preview-block { width: 36px; height: 36px; padding: 0; border: none; cursor: pointer; background: transparent; }
 
-        /* Панель Markdown */
         .md-toolbar { display: flex; gap: 6px; margin-bottom: 4px; align-items: center; border: 1px solid #333; padding: 4px; background: rgba(0,0,0,0.5); }
         .md-tool-btn { background: transparent; border: none; color: var(--text-dim); cursor: pointer; font-size: 1rem; padding: 4px 8px; transition: 0.2s; }
         .md-tool-btn:hover { color: var(--accent-primary); }
         
-        /* Фабрикатор таблиц */
         .table-fabricator { display: none; border: 1px dashed var(--accent-primary); padding: 10px; margin-bottom: 12px; background: rgba(0,0,0,0.7); }
         .tf-cell { background: transparent; border: 1px solid #444; color: var(--text-main); padding: 6px; width: 100px; text-align: center; font-family: 'Inter'; outline: none;}
         .tf-cell:focus { border-color: var(--accent-primary); }
+
+        .search-res-box { position:absolute; top:40px; left:0; width:100%; background:rgba(0,0,0,0.9); border:1px solid var(--accent-primary); display:none; z-index:100; max-height:300px; overflow-y:auto; pointer-events:auto; }
+        .search-res-item { padding:6px 10px; cursor:pointer; border-bottom:1px solid #333; display:flex; flex-direction:column; gap:4px; }
+        .search-res-item:hover { background: rgba(64, 224, 208, 0.2); }
     </style>
 </head>
 <body>
@@ -134,12 +435,18 @@
                     <button class="btn-base" style="border-color:var(--color-yellow); color:var(--color-yellow); padding: 8px 12px;" onclick="window.openAccessModal(1)" title="Настроить доступы текущей Ширмы"><i class="fa-solid fa-users"></i></button>
                     <button class="btn-base" style="border-color:var(--color-red); color:var(--color-red); padding: 8px 12px;" onclick="window.deleteScreen(1)" title="Удалить текущую Ширму"><i class="fa-solid fa-trash"></i></button>
                 </div>
-                <input type="text" class="cloud-input" placeholder="Поиск узла..." onkeyup="window.searchGraph(1, this.value)" style="width:200px;">
+                <div style="position:relative; width: 250px;">
+                    <input type="text" id="search-input-1" class="cloud-input" placeholder="Поиск узла..." oninput="window.handleSearchInput(1, this)" onblur="setTimeout(()=>window.closeSearch(1), 200)">
+                    <div id="search-res-1" class="search-res-box"></div>
+                </div>
             </div>
             <div id="graph-container-1" class="graph-container" oncontextmenu="window.handleCanvasCtx(event, 1)"></div>
             <div id="sidebar-1" class="node-sidebar">
-                <button class="btn-close-sidebar" onclick="document.getElementById('sidebar-1').classList.remove('open')"><i class="fa-solid fa-xmark"></i></button>
-                <div id="content-1" style="margin-top:20px;"></div>
+                <div id="sidebar-handle-1" class="sidebar-header">
+                    <span><i class="fa-solid fa-grip-lines"></i> ИНФОРМАЦИЯ</span>
+                    <button class="btn-close-sidebar" onclick="document.getElementById('sidebar-1').classList.remove('open')"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div id="content-1" class="sidebar-content-area"></div>
             </div>
         </div>
 
@@ -150,18 +457,25 @@
                     <button class="btn-base" style="border-color:var(--color-yellow); color:var(--color-yellow); padding: 8px 12px;" onclick="window.openAccessModal(2)" title="Настроить доступы текущей Ширмы"><i class="fa-solid fa-users"></i></button>
                     <button class="btn-base" style="border-color:var(--color-red); color:var(--color-red); padding: 8px 12px;" onclick="window.deleteScreen(2)" title="Удалить текущую Ширму"><i class="fa-solid fa-trash"></i></button>
                 </div>
-                <input type="text" class="cloud-input" placeholder="Поиск узла..." onkeyup="window.searchGraph(2, this.value)" style="width:200px;">
+                <div style="position:relative; width: 250px;">
+                    <input type="text" id="search-input-2" class="cloud-input" placeholder="Поиск узла..." oninput="window.handleSearchInput(2, this)" onblur="setTimeout(()=>window.closeSearch(2), 200)">
+                    <div id="search-res-2" class="search-res-box"></div>
+                </div>
             </div>
             <div id="graph-container-2" class="graph-container" oncontextmenu="window.handleCanvasCtx(event, 2)"></div>
             <div id="sidebar-2" class="node-sidebar">
-                <button class="btn-close-sidebar" onclick="document.getElementById('sidebar-2').classList.remove('open')"><i class="fa-solid fa-xmark"></i></button>
-                <div id="content-2" style="margin-top:20px;"></div>
+                <div id="sidebar-handle-2" class="sidebar-header">
+                    <span><i class="fa-solid fa-grip-lines"></i> ИНФОРМАЦИЯ</span>
+                    <button class="btn-close-sidebar" onclick="document.getElementById('sidebar-2').classList.remove('open')"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div id="content-2" class="sidebar-content-area"></div>
             </div>
         </div>
     </div>
 
     <div id="ctx-menu" class="ctx-menu"></div>
 
+    <!-- Модалка Доступов -->
     <div class="modal-overlay" id="friendsModal">
         <div class="modal-box" style="width: 500px;">
             <button class="btn-base" style="position:absolute; right:15px; top:15px; border-color:var(--color-red); color:var(--color-red);" onclick="this.closest('.modal-overlay').classList.remove('active')"><i class="fa-solid fa-xmark"></i></button>
@@ -177,6 +491,43 @@
         </div>
     </div>
 
+    <!-- Модалка Быстрого Импорта -->
+    <div class="modal-overlay" id="importModal">
+        <div class="modal-box" style="width: 550px;">
+            <button class="btn-base" style="position:absolute; right:15px; top:15px; border-color:var(--color-red); color:var(--color-red);" onclick="this.closest('.modal-overlay').classList.remove('active')"><i class="fa-solid fa-xmark"></i></button>
+            <h3 style="color:var(--accent-primary); margin-bottom: 16px;"><i class="fa-solid fa-file-import"></i> БЫСТРЫЙ ИМПОРТ ИЗ БАЗЫ</h3>
+            
+            <div class="b-row">
+                <div style="flex:1;">
+                    <div class="tech-text" style="margin-bottom:4px;">КАТЕГОРИЯ</div>
+                    <select id="imp-category" class="cloud-select" onchange="window.updateImportList()">
+                        <option value="status">Статусы</option>
+                        <option value="class">Архетипы</option>
+                        <option value="feat">Черты</option>
+                        <option value="gift">Э.Г.О. Гифты</option>
+                        <option value="equip">Снаряжение</option>
+                        <option value="bestiary">Бестиарий</option>
+                    </select>
+                </div>
+                <div style="flex:1;">
+                    <div class="tech-text" style="margin-bottom:4px;">ИСТОЧНИК</div>
+                    <select id="imp-source" class="cloud-select" onchange="window.updateImportList()">
+                        <option value="official">Официальные (Хостинг)</option>
+                        <option value="custom">Пользовательские (Firebase)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="tech-text" style="margin-bottom:4px;">ЭЛЕМЕНТ ДЛЯ ИМПОРТА</div>
+            <select id="imp-item" class="cloud-select">
+                <option value="">-- Загрузка... --</option>
+            </select>
+            
+            <button class="action-btn" style="width:100%; margin-top: 10px;" onclick="window.executeImport()"><i class="fa-solid fa-download"></i> ИМПОРТИРОВАТЬ НА ХОЛСТ</button>
+        </div>
+    </div>
+
+    <!-- Модалка Редактора Узла -->
     <div class="modal-overlay" id="nodeBuilderModal">
         <div class="modal-box">
             <button class="btn-base" style="position:absolute; right:15px; top:15px; border-color:var(--color-red); color:var(--color-red);" onclick="window.closeBuilder()"><i class="fa-solid fa-xmark"></i> ЗАКРЫТЬ</button>
@@ -225,10 +576,59 @@
         
         let currentAccessEditScrId = null;
 
+        // Данные для импорта
+        let importCache = { official: {}, custom: {} };
+        let currentImportData = [];
+
+        // Словари для тегов импорта
+        const dictTypesImport = { "Burn": { name: "Огонь", color: "#C7243A" }, "Bleed": { name: "Кровотечение", color: "#E67E22" }, "Tremor": { name: "Тремор", color: "#F1C40F" }, "Rupture": { name: "Разрыв", color: "#40E0D0" }, "Sinking": { name: "Утопание", color: "#45B3CB" }, "Poise": { name: "Уверенность", color: "#1E3A8A" }, "Charge": { name: "Заряд", color: "#9B59B6" }, "Other": { name: "Иное/Другое", color: "#27AE60" }, "None": { name: "Пустой/Физ.", color: "#696969" } };
+        const dictFeatBasesImport = { "Background": { name: "Предыстория", color: "#696969" }, "Body": { name: "Тело", color: "#E67E22" }, "Mind": { name: "Разум", color: "#1E3A8A" }, "Martial Arts": { name: "Боевые искусства", color: "#45B3CB" }, "Affiliation": { name: "Принадлежность", color: "#F1C40F" }, "Weapon": { name: "Оружие", color: "#C7243A" }, "Status": { name: "Статус", color: "#8FCC2A" }, "Sin": { name: "Грех", color: "#45B3CB" }, "Shin and Mang": { name: "Шин и Манг", color: "#D94285" }, "E.G.O Feats": { name: "Черты Э.Г.О.", color: "#27AE60" } };
+        const dictBestiaryCatsImport = { "ZAYIN": { name: "ZAYIN", color: "#27AE60" }, "TETH": { name: "TETH", color: "#45B3CB" }, "HE": { name: "HE", color: "#F1C40F" }, "WAW": { name: "WAW", color: "#9B59B6" }, "ALEPH": { name: "ALEPH", color: "#C7243A" }, "City": { name: "Город", color: "#696969" }, "Distortions": { name: "Искажения", color: "#E0D8C8" } };
+
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('gm-notes').value = window.localStorage.getItem('gm_notes') || '';
             initSelectionBox();
+            makeDraggable('sidebar-1', 'sidebar-handle-1');
+            makeDraggable('sidebar-2', 'sidebar-handle-2');
         });
+
+        // ЛОГИКА ПЕРЕТАСКИВАНИЯ САЙДБАРОВ
+        function makeDraggable(elementId, handleId) {
+            const el = document.getElementById(elementId);
+            const handle = document.getElementById(handleId);
+            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+            
+            if (handle) handle.onmousedown = dragMouseDown;
+
+            function dragMouseDown(e) {
+                e.preventDefault();
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                document.onmouseup = closeDragElement;
+                document.onmousemove = elementDrag;
+            }
+
+            function elementDrag(e) {
+                e.preventDefault();
+                pos1 = pos3 - e.clientX;
+                pos2 = pos4 - e.clientY;
+                pos3 = e.clientX;
+                pos4 = e.clientY;
+                
+                if (el.style.right !== 'auto') {
+                    el.style.left = el.offsetLeft + "px";
+                    el.style.right = 'auto';
+                }
+                
+                el.style.top = (el.offsetTop - pos2) + "px";
+                el.style.left = (el.offsetLeft - pos1) + "px";
+            }
+
+            function closeDragElement() {
+                document.onmouseup = null;
+                document.onmousemove = null;
+            }
+        }
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
@@ -248,6 +648,162 @@
             res = res.replace(/\{(https?:\/\/[^\}]+)\}/g, '<img src="$1" style="max-width:100%; border-radius:4px; margin-top:8px; display:block;">');
             return `<span>${res}</span>`;
         }
+
+        // --- ЛОГИКА БЫСТРОГО ИМПОРТА ---
+        window.openQuickImport = () => {
+            window.closeCtx();
+            document.getElementById('importModal').classList.add('active');
+            window.updateImportList();
+        };
+
+        window.updateImportList = async () => {
+            const cat = document.getElementById('imp-category').value;
+            const src = document.getElementById('imp-source').value;
+            const itemSelect = document.getElementById('imp-item');
+            
+            itemSelect.innerHTML = '<option value="">-- Загрузка... --</option>';
+            currentImportData = [];
+
+            try {
+                if (src === 'official') {
+                    if (!importCache.official[cat]) {
+                        const fileMap = {
+                            'status': 'statuses.json', 'class': 'classes.json', 
+                            'feat': 'feats.json', 'gift': 'egogifts.json', 
+                            'equip': 'equipment.json', 'bestiary': 'bestiary.json'
+                        };
+                        const res = await fetch(fileMap[cat]);
+                        if(res.ok) importCache.official[cat] = await res.json();
+                        else importCache.official[cat] = [];
+                    }
+                    currentImportData = importCache.official[cat];
+                } else {
+                    if (!importCache.custom[cat]) {
+                        const q = query(collection(db, "custom_content"), where("type", "==", cat));
+                        const snap = await getDocs(q);
+                        let arr = [];
+                        snap.forEach(d => arr.push(d.data().data));
+                        importCache.custom[cat] = arr;
+                    }
+                    currentImportData = importCache.custom[cat];
+                }
+
+                if(currentImportData.length === 0) {
+                    itemSelect.innerHTML = '<option value="">-- Нет данных --</option>';
+                } else {
+                    let html = '';
+                    currentImportData.forEach((item, idx) => {
+                        html += `<option value="${idx}">${item.Name || item.characterName || 'Без названия'}</option>`;
+                    });
+                    itemSelect.innerHTML = html;
+                }
+            } catch(e) {
+                itemSelect.innerHTML = '<option value="">-- Ошибка загрузки --</option>';
+                console.error(e);
+            }
+        };
+
+        window.executeImport = () => {
+            const idx = document.getElementById('imp-item').value;
+            if (idx === "") return alert("Выберите элемент для импорта!");
+            
+            const d = currentImportData[idx];
+            const cat = document.getElementById('imp-category').value;
+
+            let newNode = {
+                id: 'n_' + Date.now() + Math.floor(Math.random()*1000),
+                Name: d.Name || d.characterName || 'Без названия',
+                PName: [], Desc: '', Tags: [], Pec: [],
+                shape: 'circle', scale: 1.0, borderColor: '#40E0D0', imgUrl: '',
+                x: ctxTarget.x, y: ctxTarget.y
+            };
+
+            const addTags = (arr, dict) => {
+                if(!arr) return;
+                if(typeof arr === 'string') arr = [arr];
+                arr.forEach(t => {
+                    const conf = dict[t] || {name: t, color: '#40E0D0'};
+                    newNode.Tags.push({text: conf.name, color: conf.color});
+                });
+            };
+
+            if (cat === 'status') {
+                newNode.Desc = d.Effect || '';
+                if(d.SideEffects) d.SideEffects.forEach(se => newNode.Pec.push({Name: se.sideeffectname, Desc: se.sideeffect, PName:[], Pec:[]}));
+            } else if (cat === 'class') {
+                addTags(d.Type, dictTypesImport);
+                newNode.Desc = `**Статы:** ${(d.Stats||[]).join(', ')}`;
+                if(d.Talents) d.Talents.forEach(t => newNode.Pec.push({Name: `[Ур. ${t.level}] ${t.name}`, Desc: t.desc, PName:[], Pec:[]}));
+            } else if (cat === 'feat') {
+                addTags(d.Base, dictFeatBasesImport);
+                if(d.Need) newNode.Desc += `**Требования:** ${d.Need}\n\n`;
+                newNode.Desc += d.desc || '';
+            } else if (cat === 'gift') {
+                addTags(d.Type, dictTypesImport);
+                newNode.Tags.push({text: `Ур. ${d.Level}`, color: '#E67E22'});
+                newNode.Desc = d.Description || '';
+            } else if (cat === 'equip') {
+                addTags(d.Type, dictTypesImport);
+                newNode.Tags.push({text: `Ур. ${d.Level}`, color: '#E67E22'});
+                if(d.Rarity) newNode.Tags.push({text: d.Rarity, color: '#9B59B6'});
+                if(d.Need) newNode.Desc += `**Требования:** ${d.Need}\n\n`;
+                if(d.Stats) newNode.Desc += `**Скейлинг:** ${(d.Stats||[]).join(', ')}\n\n`;
+                newNode.Desc += d.Desc || '';
+            } else if (cat === 'bestiary') {
+                addTags(d.Category, dictBestiaryCatsImport);
+                if(d.Meta) newNode.Desc += `*${d.Meta}*\n\n`;
+                newNode.Desc += `**КД:** ${d.ArmorClass} | **ХП:** ${d.HitPoints} | **Скорость:** ${d.Speed}\n`;
+                if(d.Stats) newNode.Desc += `**STR:** ${d.Stats.STR} | **DEX:** ${d.Stats.DEX} | **CON:** ${d.Stats.CON} | **INT:** ${d.Stats.INT} | **WIS:** ${d.Stats.WIS} | **CHA:** ${d.Stats.CHA}\n\n`;
+                newNode.Desc += d.Lore || '';
+                
+                if(d.Traits) d.Traits.forEach(t => newNode.Pec.push({Name: `(Особенность) ${t.name}`, Desc: t.desc, PName:[], Pec:[]}));
+                if(d.Actions) d.Actions.forEach(a => newNode.Pec.push({Name: `(Действие) ${a.name}`, Desc: a.desc, PName:[], Pec:[]}));
+            }
+
+            pushNodeToGraph(ctxTarget.panelId, newNode);
+            document.getElementById('importModal').classList.remove('active');
+        };
+
+        // --- ЛОГИКА ПОИСКА С ТЕГАМИ ---
+        window.handleSearchInput = (panelId, el) => {
+            const query = el.value.toLowerCase().trim();
+            const resBox = document.getElementById(`search-res-${panelId}`);
+            if(!query || !graphInstances[panelId]) { resBox.style.display = 'none'; return; }
+            
+            const nodes = graphInstances[panelId].graphData().nodes;
+            const matches = nodes.filter(n => (n.Name||'').toLowerCase().includes(query) || (n.Tags||[]).some(t => t.text.toLowerCase().includes(query)));
+            
+            if(matches.length === 0) { resBox.style.display = 'none'; return; }
+
+            let html = '';
+            matches.slice(0, 15).forEach(n => {
+                let tagsHtml = (n.Tags||[]).map(t => `<span style="font-size:0.65rem; border:1px solid ${t.color}; color:${t.color}; padding:1px 4px; border-radius:4px;">${t.text}</span>`).join('');
+                html += `
+                    <div class="search-res-item" onmousedown="window.searchGraphAndZoom(${panelId}, '${n.id}')">
+                        <span style="color:var(--text-main); font-size:0.9rem; font-family:'Oswald';">${n.Name}</span> 
+                        <div style="display:flex; gap:4px; flex-wrap:wrap;">${tagsHtml}</div>
+                    </div>`;
+            });
+            resBox.innerHTML = html;
+            resBox.style.display = 'block';
+        };
+
+        window.closeSearch = (panelId) => {
+            const resBox = document.getElementById(`search-res-${panelId}`);
+            if(resBox) resBox.style.display = 'none';
+        };
+
+        window.searchGraphAndZoom = (panelId, nodeId) => {
+            const nodes = graphInstances[panelId].graphData().nodes;
+            const target = nodes.find(n => n.id === nodeId);
+            if(target) {
+                graphInstances[panelId].centerAt(target.x, target.y, 1000);
+                graphInstances[panelId].zoom(4, 2000);
+                document.getElementById(`search-input-${panelId}`).value = target.Name;
+                window.closeSearch(panelId);
+                window.showSidebar(panelId, target);
+            }
+        };
 
         window.openAccessModal = (panelId) => {
             const scrId = document.getElementById(`select-screen-${panelId}`).value;
@@ -706,21 +1262,18 @@
             graphInstances[panelId] = Graph;
         };
 
-        window.searchGraph = (panelId, val) => {
-            const query = val.toLowerCase().trim();
-            if(!query || !graphInstances[panelId]) return;
-            const nodes = graphInstances[panelId].graphData().nodes;
-            const target = nodes.find(n => (n.Name||'').toLowerCase().includes(query));
-            if(target) {
-                graphInstances[panelId].centerAt(target.x, target.y, 1000);
-                graphInstances[panelId].zoom(4, 2000);
-            }
-        };
-
         window.showSidebar = (panelId, node) => {
             if (node.shape === 'group' || node.shape === 'bgImage') return; 
 
             const sb = document.getElementById(`sidebar-${panelId}`);
+            
+            // Если сайдбар был прикреплен, делаем его плавающим при открытии
+            if (sb.style.right === '') {
+                sb.style.right = '20px';
+                sb.style.top = '20px';
+                sb.style.left = 'auto';
+            }
+
             let tags = (node.Tags||[]).map(t=>`<span style="font-size:0.75rem; border:1px solid; padding:2px 6px; border-radius:12px; color:${t.color}; border-color:${t.color}">${t.text}</span>`).join(' ');
             
             const buildPec = (pecs) => {
@@ -773,6 +1326,7 @@
 
             let html = `
                 <div class="ctx-item" onclick="window.cmdCreateNode()"><i class="fa-solid fa-plus"></i> Создать узел здесь</div>
+                <div class="ctx-item" onclick="window.openQuickImport()"><i class="fa-solid fa-file-import"></i> Быстрый импорт</div>
                 ${clipboardNodes.length > 0 ? `<div class="ctx-item" onclick="window.cmdPasteNodes()"><i class="fa-solid fa-paste"></i> Вставить узлы (${clipboardNodes.length})</div>` : ''}
             `;
             showCtxMenu(e.pageX, e.pageY, html);
@@ -1300,3 +1854,5 @@
     </script>
 </body>
 </html>
+shirm-v4.html
+Показан объект "shirm-v4.html".
