@@ -260,7 +260,7 @@
             return `<span>${res}</span>`;
         }
 
-        window.saveFriends = () => {
+        window.saveFriends = async () => {
             const fVal = document.getElementById('friends-list').value;
             const aVal = document.getElementById('admins-list').value;
             window.localStorage.setItem('gm_friends', fVal);
@@ -268,6 +268,28 @@
             myFriends = fVal.split(',').map(s=>s.trim()).filter(s=>s);
             myAdmins = aVal.split(',').map(s=>s.trim()).filter(s=>s);
             document.getElementById('friendsModal').classList.remove('active');
+
+            // --- НОВОЕ: Обновляем доступы в БД для всех существующих ширм пользователя ---
+            try {
+                const myQ = query(collection(db, "custom_screens"), where("creatorEmail", "==", currentUser.email));
+                const mySnap = await getDocs(myQ);
+                const updatePromises = [];
+                
+                mySnap.forEach(d => {
+                    updatePromises.push(setDoc(doc(db, "custom_screens", d.id), { 
+                        allowedUsers: myFriends, 
+                        adminUsers: myAdmins 
+                    }, { merge: true }));
+                });
+                
+                await Promise.all(updatePromises);
+                alert("Доступы успешно обновлены для всех ваших Ширм!");
+            } catch(e) { 
+                console.error("Ошибка обновления доступов в БД:", e); 
+                alert("Ошибка при сохранении доступов: " + e.message);
+            }
+            // -----------------------------------------------------------------------------
+
             window.fetchScreens();
         };
 
