@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Лор-Ширма / Custom Compendium</title>
     
-    <link href="[https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Oswald:wght@400;500;700&display=swap](https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Oswald:wght@400;500;700&display=swap)" rel="stylesheet">
-    <link rel="stylesheet" href="[https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css](https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css)">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Oswald:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <script src="[https://cdn.jsdelivr.net/npm/marked/marked.min.js](https://cdn.jsdelivr.net/npm/marked/marked.min.js)"></script>
-    <script src="[https://unpkg.com/force-graph](https://unpkg.com/force-graph)"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://unpkg.com/force-graph"></script>
 
     <style>
         :root {
@@ -188,9 +188,9 @@
     </div>
 
     <script type="module">
-        import { initializeApp } from "[https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js](https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js)";
-        import { getAuth, onAuthStateChanged } from "[https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js](https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js)";
-        import { getFirestore, doc, setDoc, getDocs, collection, query, where, deleteDoc } from "[https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js](https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js)";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDocs, collection, query, where, deleteDoc } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDaFNBCW76UsBnziHoGveo7TcC11uAdmqs",
@@ -238,14 +238,14 @@
             }
         });
 
-        // Функция обработки кастомных тегов (Цвет и Изображения)
         function applyCustomTags(text) {
             if (!text) return '';
-            let res = String(text);
-            res = res.replace(/\{(#?[0-9A-Fa-f]{3,6})\}/g, '<span style="color: $1;">');
-            res = res.replace(/\{\}/g, '</span>');
+            // Цвет: {#ff0000}Текст{}
+            let res = text.replace(/\{(#?[0-9A-Fa-f]{3,6})\}/g, '</span><span style="color: $1;">');
+            res = res.replace(/\{\}/g, '</span><span>');
+            // Изображения: {http://...}
             res = res.replace(/\{(https?:\/\/[^\}]+)\}/g, '<img src="$1" style="max-width:100%; border-radius:4px; margin-top:8px; display:block;">');
-            return res;
+            return `<span>${res}</span>`;
         }
 
         window.saveFriends = () => {
@@ -323,4 +323,892 @@
             });
 
             window.addEventListener('mousemove', (e) => {
-                if(!isSelecting) return
+                if(!isSelecting) return;
+                const rect = workspace.getBoundingClientRect();
+                const currX = e.clientX - rect.left;
+                const currY = e.clientY - rect.top;
+                
+                selBox.style.left = Math.min(startX, currX) + 'px';
+                selBox.style.top = Math.min(startY, currY) + 'px';
+                selBox.style.width = Math.abs(currX - startX) + 'px';
+                selBox.style.height = Math.abs(currY - startY) + 'px';
+            });
+
+            window.addEventListener('mouseup', (e) => {
+                if(!isSelecting) return;
+                isSelecting = false;
+                
+                const wDOM = parseFloat(selBox.style.width);
+                const hDOM = parseFloat(selBox.style.height);
+                
+                if (wDOM < 5 || hDOM < 5) { window.clearSelection(); return; }
+
+                const boxRect = {
+                    left: parseFloat(selBox.style.left), top: parseFloat(selBox.style.top),
+                    right: parseFloat(selBox.style.left) + wDOM, bottom: parseFloat(selBox.style.top) + hDOM
+                };
+
+                let activePanelId = null;
+
+                [1, 2].forEach(pId => {
+                    if(!graphInstances[pId]) return;
+                    const panel = document.getElementById(`graph-container-${pId}`);
+                    if(panel.classList.contains('hidden') && pId === 2) return;
+                    
+                    const panelRect = panel.getBoundingClientRect();
+                    if (e.clientX >= panelRect.left && e.clientX <= panelRect.right && 
+                        e.clientY >= panelRect.top && e.clientY <= panelRect.bottom) {
+                        activePanelId = pId;
+                    }
+                });
+
+                if (activePanelId) {
+                    const pId = activePanelId;
+                    const panel = document.getElementById(`graph-container-${pId}`);
+                    const wsRect = workspace.getBoundingClientRect();
+                    const panelRect = panel.getBoundingClientRect();
+                    const pOffsetLeft = panelRect.left - wsRect.left;
+                    const pOffsetTop = panelRect.top - wsRect.top;
+
+                    const tl = graphInstances[pId].screen2GraphCoords(boxRect.left - pOffsetLeft, boxRect.top - pOffsetTop);
+                    const br = graphInstances[pId].screen2GraphCoords(boxRect.right - pOffsetLeft, boxRect.bottom - pOffsetTop);
+
+                    selectionGraphRect = {
+                        w: Math.abs(br.x - tl.x), h: Math.abs(br.y - tl.y),
+                        cx: tl.x + (br.x - tl.x)/2, cy: tl.y + (br.y - tl.y)/2, pId: pId
+                    };
+
+                    const nodes = graphInstances[pId].graphData().nodes;
+                    nodes.forEach(n => {
+                        const screenCoords = graphInstances[pId].graph2ScreenCoords(n.x, n.y);
+                        const absoluteX = screenCoords.x + pOffsetLeft;
+                        const absoluteY = screenCoords.y + pOffsetTop;
+
+                        if (absoluteX >= boxRect.left && absoluteX <= boxRect.right && 
+                            absoluteY >= boxRect.top && absoluteY <= boxRect.bottom) {
+                            if (n.shape !== 'bgImage' && n.shape !== 'group') selectedNodes.add(n.id);
+                        }
+                    });
+
+                    if(graphInstances[1]) window.forceGraphUpdate(1);
+                    if(graphInstances[2] && isSplit) window.forceGraphUpdate(2);
+                    showSelectionMenu(e.pageX, e.pageY);
+                } else {
+                    window.clearSelection();
+                }
+            });
+        }
+
+        window.fetchScreens = async () => {
+            screensCache = [];
+            try {
+                const res = await fetch('world.json');
+                if(res.ok) {
+                    const localData = await res.json();
+                    localData.forEach(scr => screensCache.push({ ...scr, isLocal: true, label: `[BASE] ${scr.name}` }));
+                }
+            } catch(e) {}
+
+            try {
+                const myQ = query(collection(db, "custom_screens"), where("creatorEmail", "==", currentUser.email));
+                const mySnap = await getDocs(myQ);
+                mySnap.forEach(doc => screensCache.push({ id: doc.id, ...doc.data(), label: `[МОИ] ${doc.data().name}` }));
+
+                const pubQ = query(collection(db, "custom_screens"), where("accessLevel", "==", "public"));
+                const pubSnap = await getDocs(pubQ);
+                pubSnap.forEach(doc => {
+                    if(!screensCache.find(s => s.id === doc.id)) screensCache.push({ id: doc.id, ...doc.data(), label: `[ОБЩИЕ] ${doc.data().name}` });
+                });
+                updateSelects();
+            } catch(e) { console.error("Ошибка Firebase:", e); }
+        };
+
+        function updateSelects() {
+            let html = '<option value="">-- Выберите Ширму --</option>';
+            screensCache.forEach(s => html += `<option value="${s.id}">${s.label}</option>`);
+            document.getElementById('select-screen-1').innerHTML = html;
+            document.getElementById('select-screen-2').innerHTML = html;
+        }
+
+        window.createNewScreen = async () => {
+            const name = prompt("Название Ширмы:");
+            if(!name) return;
+            const access = prompt("Доступ: 1 - Приватный, 2 - Друзья, 3 - Публичный", "1");
+            const accStr = access === '3' ? 'public' : (access === '2' ? 'friends' : 'private');
+            
+            const newId = 'scr_' + Date.now();
+            const payload = {
+                name: name, creatorEmail: currentUser.email, accessLevel: accStr, allowedUsers: myFriends,
+                bgImage: "", graphData: { nodes: [], links: [] }
+            };
+            
+            await setDoc(doc(db, "custom_screens", newId), payload);
+            await window.fetchScreens();
+        };
+
+        window.deleteScreen = async (panelId) => {
+            const scrId = document.getElementById(`select-screen-${panelId}`).value;
+            if(!scrId) return;
+            const scr = screensCache.find(s => s.id === scrId);
+            if(scr.isLocal) return alert("Базовый мир (world.json) нельзя удалить!");
+            if(scr.creatorEmail !== currentUser.email) return alert("Вы можете удалять только свои Ширмы.");
+
+            if(!confirm(`ВЫ УВЕРЕНЫ, ЧТО ХОТИТЕ НАВСЕГДА УДАЛИТЬ ШИРМУ "${scr.name}"? Это действие необратимо.`)) return;
+
+            try {
+                await deleteDoc(doc(db, "custom_screens", scrId));
+                document.getElementById(`graph-container-${panelId}`).innerHTML = '';
+                graphInstances[panelId] = null;
+                alert("Ширма удалена.");
+                await window.fetchScreens();
+            } catch(e) { alert("Ошибка удаления: " + e.message); }
+        };
+
+        function sortGraphData(gData) {
+            const sortedNodes = [...gData.nodes].sort((a, b) => {
+                const isBgA = (a.shape === 'group' || a.shape === 'bgImage') ? -1 : 1;
+                const isBgB = (b.shape === 'group' || b.shape === 'bgImage') ? -1 : 1;
+                return isBgA - isBgB;
+            });
+            return { nodes: sortedNodes, links: gData.links };
+        }
+
+        window.loadGraph = (panelId, screenId) => {
+            const container = document.getElementById(`graph-container-${panelId}`);
+            container.innerHTML = '';
+            const scr = screensCache.find(s => s.id === screenId);
+            if(!scr) return;
+
+            const gData = sortGraphData(JSON.parse(JSON.stringify(scr.graphData)));
+
+            const Graph = ForceGraph()(container)
+                .graphData(gData)
+                .nodeId('id')
+                .linkColor(link => link.color || 'var(--text-dim)')
+                .linkDirectionalArrowLength(4)
+                .linkDirectionalArrowRelPos(1)
+                .linkCanvasObjectMode(() => 'after')
+                .linkCanvasObject((link, ctx) => {
+                    if (!link.label) return;
+                    const start = link.source, end = link.target;
+                    if (typeof start !== 'object' || typeof end !== 'object') return;
+                    const textPos = { x: start.x + (end.x - start.x)/2, y: start.y + (end.y - start.y)/2 };
+                    ctx.font = `4px Oswald`; ctx.fillStyle = link.color || 'var(--text-dim)'; ctx.textAlign = 'center';
+                    ctx.fillText(link.label, textPos.x, textPos.y);
+                })
+                .nodePointerAreaPaint((node, color, ctx) => {
+                    ctx.fillStyle = color;
+                    if (node.shape === 'group' || node.shape === 'bgImage') {
+                        const w = node.w || 200; const h = node.h || 200;
+                        ctx.fillRect(node.x - w/2, node.y - h/2, w, h);
+                    } else {
+                        const baseSize = 16; const scaleMult = node.scale || 1.0; const size = baseSize * scaleMult;
+                        ctx.beginPath(); ctx.arc(node.x, node.y, size/2 + 4, 0, 2*Math.PI); ctx.fill();
+                    }
+                })
+                .nodeCanvasObject((node, ctx, globalScale) => {
+                    if(node.isHidden) ctx.globalAlpha = 0.3;
+                    const shape = node.shape || 'circle';
+                    
+                    let label = node.Name || '';
+                    let labelColor = 'var(--accent-primary)'; // ИЗМЕНЕНО НА ГОЛУБОЙ (~2)
+                    const colorMatch = label.match(/^\{(#?[0-9A-Fa-f]{3,6})\}(.*)/);
+                    if (colorMatch) {
+                        labelColor = colorMatch[1];
+                        if (!labelColor.startsWith('#')) labelColor = '#' + labelColor;
+                        label = colorMatch[2].replace(/\{\}/g, '');
+                    }
+
+                    if (shape === 'group') {
+                        const w = node.w || 200; const h = node.h || 200;
+                        ctx.fillStyle = 'rgba(0,0,0,0.85)';
+                        ctx.fillRect(node.x - w/2, node.y - h/2, w, h);
+                        
+                        // Изображение внутри группы (+3)
+                        if (node.imgUrl) {
+                            if (!node.__img) {
+                                const img = new Image(); img.src = node.imgUrl;
+                                img.onload = () => { node.__img = img; Graph.resumeAnimation(); };
+                            } else if (node.__img.complete) {
+                                ctx.drawImage(node.__img, node.x - w/2, node.y - h/2, w, h);
+                            }
+                        }
+
+                        ctx.strokeStyle = node.borderColor || 'var(--accent-primary)'; ctx.lineWidth = 2;
+                        if(selectedNodes.has(node.id)) { ctx.shadowColor = 'var(--color-yellow)'; ctx.shadowBlur = 15; ctx.strokeStyle = 'var(--color-yellow)'; }
+                        ctx.strokeRect(node.x - w/2, node.y - h/2, w, h);
+                        ctx.shadowBlur = 0;
+                        
+                        ctx.font = `14px Oswald`; ctx.textAlign = 'center'; ctx.fillStyle = node.borderColor || 'var(--accent-primary)';
+                        ctx.fillText(label, node.x, node.y - h/2 + 18);
+                        
+                    } else if (shape === 'bgImage') {
+                        const w = node.w || 200; const h = node.h || 200;
+                        if (node.imgUrl) {
+                            if (!node.__img) {
+                                const img = new Image(); img.src = node.imgUrl;
+                                img.onload = () => { node.__img = img; Graph.resumeAnimation(); };
+                            } else if (node.__img.complete) {
+                                ctx.drawImage(node.__img, node.x - w/2, node.y - h/2, w, h);
+                            }
+                        } else {
+                            ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.strokeRect(node.x - w/2, node.y - h/2, w, h);
+                        }
+                        if(selectedNodes.has(node.id)) { ctx.strokeStyle = 'var(--color-yellow)'; ctx.lineWidth = 2; ctx.strokeRect(node.x - w/2, node.y - h/2, w, h); }
+                        
+                    } else {
+                        const baseSize = 16; const scaleMult = node.scale || 1.0; const size = baseSize * scaleMult;
+                        
+                        if (shape !== 'custom') {
+                            ctx.fillStyle = '#000'; ctx.strokeStyle = node.borderColor || 'var(--accent-primary)'; ctx.lineWidth = 1.5;
+                            if(selectedNodes.has(node.id)) { ctx.shadowColor = 'var(--color-yellow)'; ctx.shadowBlur = 15; ctx.strokeStyle = 'var(--color-yellow)'; }
+                            if (shape === 'square') { ctx.fillRect(node.x-size/2, node.y-size/2, size, size); ctx.strokeRect(node.x-size/2, node.y-size/2, size, size); } 
+                            else { ctx.beginPath(); ctx.arc(node.x, node.y, size/2, 0, 2*Math.PI); ctx.fill(); ctx.stroke(); }
+                            ctx.shadowBlur = 0;
+                        } else if (selectedNodes.has(node.id)) {
+                            ctx.shadowColor = 'var(--color-yellow)'; ctx.shadowBlur = 15; ctx.strokeStyle = 'var(--color-yellow)'; ctx.lineWidth = 1.5;
+                            ctx.strokeRect(node.x-size/2, node.y-size/2, size, size); ctx.shadowBlur = 0;
+                        }
+
+                        if (node.imgUrl) {
+                            if (!node.__img) {
+                                const img = new Image(); img.src = node.imgUrl;
+                                img.onload = () => { node.__img = img; Graph.resumeAnimation(); };
+                            } else if (node.__img.complete) {
+                                ctx.save();
+                                if (shape === 'circle') { ctx.beginPath(); ctx.arc(node.x, node.y, size/2, 0, 2*Math.PI); ctx.clip(); }
+                                ctx.drawImage(node.__img, node.x-size/2, node.y-size/2, size, size);
+                                ctx.restore();
+                            }
+                        }
+
+                        const fontSize = 12 / globalScale;
+                        ctx.font = `${fontSize}px Oswald`; ctx.textAlign = 'center'; ctx.fillStyle = labelColor;
+                        ctx.fillText(label, node.x, node.y + size/2 + fontSize + 2);
+                        if(node.fx !== undefined) { ctx.fillStyle = 'var(--color-red)'; ctx.fillText('⚓', node.x + size/2, node.y - size/2); }
+                    }
+                    ctx.globalAlpha = 1;
+                })
+                .onNodeClick(node => {
+                    if (linkingState.active && linkingState.panelId === panelId) finishLinking(node);
+                    else window.showSidebar(panelId, node);
+                })
+                .onBackgroundClick(() => {
+                    if (selectedNodes.size > 0 || selectionGraphRect) window.clearSelection();
+                })
+                .onNodeDrag((node) => {
+                    if (node.shape === 'group') {
+                        if (node.__lastX === undefined) { node.__lastX = node.x; node.__lastY = node.y; return; }
+                        const dx = node.x - node.__lastX;
+                        const dy = node.y - node.__lastY;
+                        const nodes = graphInstances[panelId].graphData().nodes;
+                        nodes.forEach(n => {
+                            if (n.groupId === node.id && n.id !== node.id) {
+                                n.x += dx; n.y += dy;
+                                if (n.fx !== undefined) { n.fx += dx; n.fy += dy; }
+                            }
+                        });
+                        node.__lastX = node.x;
+                        node.__lastY = node.y;
+                    }
+                })
+                .onNodeDragEnd(node => {
+                    node.__lastX = undefined;
+                    node.__lastY = undefined;
+                    if(node.fx !== undefined) { node.fx = node.x; node.fy = node.y; }
+                    if (node.shape === 'group') {
+                        const nodes = graphInstances[panelId].graphData().nodes;
+                        nodes.forEach(n => {
+                            if (n.groupId === node.id && n.fx !== undefined) { n.fx = n.x; n.fy = n.y; }
+                        });
+                    }
+                })
+                .onNodeRightClick((node, e) => window.handleNodeCtx(e, panelId, node))
+                .onBackgroundRightClick(e => window.handleCanvasCtx(e, panelId))
+                .width(container.clientWidth).height(container.clientHeight);
+
+            Graph.d3Force('center', null);
+            Graph.d3Force('charge').strength(n => (n.shape === 'bgImage' || n.shape === 'group') ? 0 : -30);
+
+            Graph.onZoom(({ k, x, y }) => {
+                container.style.backgroundPosition = `${x}px ${y}px`;
+                container.style.backgroundSize = `${24 * k}px ${24 * k}px`;
+            });
+
+            graphInstances[panelId] = Graph;
+        };
+
+        window.searchGraph = (panelId, val) => {
+            const query = val.toLowerCase().trim();
+            if(!query || !graphInstances[panelId]) return;
+            const nodes = graphInstances[panelId].graphData().nodes;
+            const target = nodes.find(n => (n.Name||'').toLowerCase().includes(query));
+            if(target) {
+                graphInstances[panelId].centerAt(target.x, target.y, 1000);
+                graphInstances[panelId].zoom(4, 2000);
+            }
+        };
+
+        // --- САЙДБАР ---
+        window.showSidebar = (panelId, node) => {
+            if (node.shape === 'group' || node.shape === 'bgImage') return; 
+
+            const sb = document.getElementById(`sidebar-${panelId}`);
+            let tags = (node.Tags||[]).map(t=>`<span style="font-size:0.75rem; border:1px solid; padding:2px 6px; border-radius:12px; color:${t.color}; border-color:${t.color}">${t.text}</span>`).join(' ');
+            
+            const buildPec = (pecs) => {
+                if(!pecs || !pecs.length) return '';
+                return pecs.map(p => `
+                    <div style="border-left:2px solid var(--text-dim); margin-left:10px; padding-left:10px; margin-top:8px;">
+                        <b style="color:var(--accent-primary);">${applyCustomTags(p.Name)}</b> <span class="tech-text">${(p.PName||[]).join(', ')}</span>
+                        <div class="md-content">${marked.parse(applyCustomTags(p.Desc||''))}</div>
+                        ${buildPec(p.Pec)}
+                    </div>
+                `).join('');
+            };
+
+            // Копирование картинки (+5)
+            let imgHtml = '';
+            if (node.imgUrl) {
+                imgHtml = `
+                    <div style="margin-bottom:12px; position:relative; display:inline-block;">
+                        <img src="${node.imgUrl}" style="max-width:100%; max-height:200px; border-radius:4px; border: 1px solid #333;">
+                        <button title="Скопировать ссылку на картинку" onclick="navigator.clipboard.writeText('${node.imgUrl}'); alert('Ссылка скопирована!');" style="position:absolute; top:4px; right:4px; background:rgba(0,0,0,0.8); border:none; color:var(--accent-primary); cursor:pointer; padding:6px; border-radius:4px;"><i class="fa-solid fa-copy"></i></button>
+                    </div>`;
+            }
+
+            document.getElementById(`content-${panelId}`).innerHTML = `
+                <h2 style="color:var(--accent-primary); margin-bottom:4px;">${applyCustomTags(node.Name)}</h2>
+                <div class="tech-text" style="margin-bottom:12px;">${(node.PName||[]).join(', ')}</div>
+                ${imgHtml}
+                <div style="display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px;">${tags}</div>
+                <div class="md-content">${marked.parse(applyCustomTags(node.Desc||''))}</div>
+                <div style="margin-top:16px; border-top:1px dashed #333; padding-top:10px;">${buildPec(node.Pec)}</div>
+            `;
+            sb.classList.add('open');
+        };
+
+        // --- КОНТЕКСТНОЕ МЕНЮ И ДЕЙСТВИЯ ---
+        window.handleCanvasCtx = (e, panelId) => {
+            e.preventDefault();
+            if (linkingState.active || !graphInstances[panelId]) return;
+            
+            const rect = document.getElementById(`graph-container-${panelId}`).getBoundingClientRect();
+            const coords = graphInstances[panelId].screen2GraphCoords(e.clientX - rect.left, e.clientY - rect.top);
+            ctxTarget = { type: 'canvas', panelId, x: coords.x, y: coords.y };
+            
+            if (selectionGraphRect && selectionGraphRect.pId === panelId) {
+                showSelectionMenu(e.pageX, e.pageY);
+                return;
+            }
+
+            let html = `
+                <div class="ctx-item" onclick="window.cmdCreateNode()"><i class="fa-solid fa-plus"></i> Создать узел здесь</div>
+                ${clipboardNodes.length > 0 ? `<div class="ctx-item" onclick="window.cmdPasteNodes()"><i class="fa-solid fa-paste"></i> Вставить узлы (${clipboardNodes.length})</div>` : ''}
+            `;
+            showCtxMenu(e.pageX, e.pageY, html);
+        };
+
+        window.handleNodeCtx = (e, panelId, node) => {
+            e.preventDefault();
+            if (linkingState.active) return; 
+
+            if (selectedNodes.has(node.id) && selectedNodes.size > 1) {
+                ctxTarget = { type: 'node', panelId, node: node, x: node.x, y: node.y };
+                showSelectionMenu(e.pageX, e.pageY);
+                return;
+            }
+
+            ctxTarget = { type: 'node', panelId, node: node, x: node.x, y: node.y };
+            
+            let html = `
+                <div class="ctx-item" onclick="window.cmdEditNode()"><i class="fa-solid fa-pen"></i> Редактировать</div>
+                <div class="ctx-item" onclick="window.cmdCopySingleNode()"><i class="fa-solid fa-copy"></i> Копировать</div>
+                <div class="ctx-divider"></div>
+                ${node.shape !== 'group' && node.shape !== 'bgImage' ? `<div class="ctx-item" onclick="window.cmdStartLink()"><i class="fa-solid fa-link"></i> Связать с...</div>` : ''}
+                <div class="ctx-item" onclick="window.cmdToggleAnchor()"><i class="fa-solid fa-anchor"></i> ${node.fx !== undefined ? 'Открепить якорь' : 'Закрепить позицию здесь'}</div>
+                <div class="ctx-item" onclick="window.cmdToggleFog()"><i class="fa-solid fa-eye-slash"></i> ${node.isHidden ? 'Сделать видимым' : 'Скрыть (Туман войны)'}</div>
+                <div class="ctx-divider"></div>
+                <div class="ctx-item" style="color:var(--color-red);" onclick="window.cmdDeleteNode()"><i class="fa-solid fa-trash"></i> Удалить</div>
+            `;
+            showCtxMenu(e.pageX, e.pageY, html);
+        };
+
+        function showSelectionMenu(x, y) {
+            let html = ``;
+            if (selectedNodes.size > 0) {
+                html += `<div class="ctx-item" onclick="window.cmdGroupSelection()"><i class="fa-solid fa-object-group"></i> Создать Группу</div>`;
+            }
+            html += `<div class="ctx-item" onclick="window.cmdCreateBgFromSelection()"><i class="fa-solid fa-image"></i> Создать Фон по рамке</div>`;
+            
+            if (selectedNodes.size > 0) {
+                html += `
+                    <div class="ctx-divider"></div>
+                    <div class="ctx-item" onclick="window.cmdCopySelection()"><i class="fa-solid fa-copy"></i> Копировать выделенное</div>
+                    <div class="ctx-item" onclick="window.cmdToggleFogSelection()"><i class="fa-solid fa-eye-slash"></i> Скрыть/Показать</div>
+                    <div class="ctx-divider"></div>
+                    <div class="ctx-item" style="color:var(--color-red);" onclick="window.cmdDeleteSelection()"><i class="fa-solid fa-trash"></i> Удалить выделенное</div>
+                `;
+            }
+            showCtxMenu(x, y, html);
+        }
+
+        function showCtxMenu(x, y, html) {
+            const menu = document.getElementById('ctx-menu');
+            menu.innerHTML = html; menu.style.left = `${x}px`; menu.style.top = `${y}px`; menu.style.display = 'flex';
+        }
+
+        window.cmdGroupSelection = () => {
+            if(!selectionGraphRect) return;
+            const pId = selectionGraphRect.pId;
+            const { nodes, links } = graphInstances[pId].graphData();
+            const selected = nodes.filter(n => selectedNodes.has(n.id));
+            if(selected.length === 0) return;
+
+            const color = prompt("Введите цвет обводки группы (например #40E0D0 или red):", "#40E0D0") || "#40E0D0";
+            const name = prompt("Название группы:", "Новая Группа") || "";
+            const groupId = 'grp_' + Date.now();
+
+            const groupNode = { 
+                id: groupId, Name: name, shape: 'group', borderColor: color, 
+                w: selectionGraphRect.w, h: selectionGraphRect.h, 
+                x: selectionGraphRect.cx, y: selectionGraphRect.cy, 
+                fx: selectionGraphRect.cx, fy: selectionGraphRect.cy 
+            };
+
+            selected.forEach(n => {
+                n.groupId = groupId;
+                n.fx = n.x; n.fy = n.y; 
+            });
+
+            pushNodeToGraph(pId, groupNode);
+            window.clearSelection();
+        };
+
+        window.cmdCreateBgFromSelection = () => {
+            if(!selectionGraphRect) return;
+            const pId = selectionGraphRect.pId;
+            const url = prompt("URL изображения:");
+            if(!url) return;
+            
+            const bgNode = { 
+                id: 'bg_' + Date.now(), Name: '', shape: 'bgImage', imgUrl: url, 
+                w: selectionGraphRect.w, h: selectionGraphRect.h, 
+                x: selectionGraphRect.cx, y: selectionGraphRect.cy, 
+                fx: selectionGraphRect.cx, fy: selectionGraphRect.cy 
+            };
+            pushNodeToGraph(pId, bgNode);
+            window.clearSelection();
+        };
+
+        window.cmdCopySelection = () => {
+            const pId = ctxTarget.panelId || selectionGraphRect?.pId;
+            if(!pId) return;
+            const nodes = graphInstances[pId].graphData().nodes;
+            clipboardNodes = nodes.filter(n => selectedNodes.has(n.id)).map(n => JSON.parse(JSON.stringify(n)));
+            alert(`Скопировано узлов: ${clipboardNodes.length}`);
+            window.clearSelection();
+        };
+
+        window.cmdDeleteSelection = () => {
+            if(!confirm("Удалить выделенные узлы?")) return;
+            const pId = ctxTarget.panelId || selectionGraphRect?.pId;
+            if(!pId) return;
+            let { nodes, links } = graphInstances[pId].graphData();
+            nodes = nodes.filter(n => !selectedNodes.has(n.id));
+            links = links.filter(l => !selectedNodes.has(l.source.id) && !selectedNodes.has(l.target.id));
+            graphInstances[pId].graphData(sortGraphData({ nodes, links }));
+            window.clearSelection();
+        };
+
+        window.cmdToggleFogSelection = () => {
+            const pId = ctxTarget.panelId || selectionGraphRect?.pId;
+            if(!pId) return;
+            let { nodes, links } = graphInstances[pId].graphData();
+            nodes.forEach(n => { if(selectedNodes.has(n.id)) n.isHidden = !n.isHidden; });
+            graphInstances[pId].graphData(sortGraphData({ nodes, links }));
+            window.clearSelection();
+        };
+
+        window.cmdCreateNode = () => {
+            editingNodeData = { id: 'n_'+Date.now(), Name: '', PName:[], Desc:'', Tags:[], Pec:[], shape:'circle', scale: 1.0, borderColor: '#40E0D0', imgUrl: '', x: ctxTarget.x, y: ctxTarget.y };
+            window.switchNodeEditor('visual');
+            document.getElementById('nodeBuilderModal').classList.add('active');
+        };
+
+        window.cmdEditNode = () => {
+            editingNodeData = JSON.parse(JSON.stringify(ctxTarget.node)); 
+            window.switchNodeEditor('visual');
+            document.getElementById('nodeBuilderModal').classList.add('active');
+        };
+
+        window.cmdCopySingleNode = () => { clipboardNodes = [JSON.parse(JSON.stringify(ctxTarget.node))]; alert("Узел скопирован!"); };
+        
+        window.cmdPasteNodes = () => {
+            if(clipboardNodes.length === 0) return;
+            const pId = ctxTarget.panelId;
+            let { nodes, links } = graphInstances[pId].graphData();
+            
+            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+            clipboardNodes.forEach(n => {
+                if(n.x < minX) minX = n.x; if(n.x > maxX) maxX = n.x;
+                if(n.y < minY) minY = n.y; if(n.y > maxY) maxY = n.y;
+            });
+            const cx = minX + (maxX - minX)/2;
+            const cy = minY + (maxY - minY)/2;
+
+            clipboardNodes.forEach(clipN => {
+                const newNode = { ...clipN, id: 'n_' + Date.now() + Math.floor(Math.random()*1000) };
+                newNode.x = ctxTarget.x + (clipN.x - cx);
+                newNode.y = ctxTarget.y + (clipN.y - cy);
+                delete newNode.fx; delete newNode.fy; 
+                nodes.push(newNode);
+            });
+            
+            graphInstances[pId].graphData(sortGraphData({ nodes, links }));
+        };
+
+        window.cmdToggleAnchor = () => {
+            const n = ctxTarget.node;
+            if(n.fx !== undefined) { delete n.fx; delete n.fy; }
+            else { n.fx = n.x; n.fy = n.y; }
+            window.forceGraphUpdate(ctxTarget.panelId);
+        };
+
+        window.cmdToggleFog = () => { ctxTarget.node.isHidden = !ctxTarget.node.isHidden; window.forceGraphUpdate(ctxTarget.panelId); };
+
+        window.cmdDeleteNode = () => {
+            if(!confirm("Удалить узел?")) return;
+            const pId = ctxTarget.panelId;
+            let { nodes, links } = graphInstances[pId].graphData();
+            nodes = nodes.filter(n => n.id !== ctxTarget.node.id);
+            links = links.filter(l => l.source.id !== ctxTarget.node.id && l.target.id !== ctxTarget.node.id);
+            graphInstances[pId].graphData(sortGraphData({ nodes, links }));
+        };
+
+        window.cmdStartLink = () => {
+            linkingState = { active: true, sourceNode: ctxTarget.node, panelId: ctxTarget.panelId };
+        };
+
+        function finishLinking(targetNode) {
+            if (targetNode.id === linkingState.sourceNode.id) { linkingState.active = false; return; }
+            const label = prompt("Название связи (оставьте пустым если не нужно):", "");
+            if (label === null) { linkingState.active = false; return; }
+            
+            const pId = linkingState.panelId;
+            const { nodes, links } = graphInstances[pId].graphData();
+            links.push({ source: linkingState.sourceNode.id, target: targetNode.id, label: label, color: '#40E0D0' });
+            
+            graphInstances[pId].graphData(sortGraphData({ nodes, links }));
+            linkingState.active = false;
+        }
+
+        // --- ИСПРАВЛЕНИЕ (! 1): Обновляем существующий объект вместо его замены ---
+        function pushNodeToGraph(panelId, newNode) {
+            const pId = panelId || 1;
+            if(!graphInstances[pId]) return alert("Сначала выберите Ширму для сохранения узла.");
+            const { nodes, links } = graphInstances[pId].graphData();
+            
+            const existingNode = nodes.find(n => n.id === newNode.id);
+            if(existingNode) {
+                // Очищаем старые свойства, сохраняя D3 переменные и связи
+                Object.keys(existingNode).forEach(k => { if(!['x','y','vx','vy','fx','fy','index'].includes(k)) delete existingNode[k]; });
+                Object.assign(existingNode, newNode);
+            } else {
+                nodes.push(newNode);
+            }
+            
+            graphInstances[pId].graphData(sortGraphData({ nodes, links }));
+        }
+
+        window.manualSaveAll = async () => {
+            window.localStorage.setItem('gm_notes', document.getElementById('gm-notes').value);
+            
+            let saved = false;
+            for(let i=1; i<=2; i++) {
+                if(document.getElementById(`select-screen-${i}`).value && graphInstances[i]) {
+                    await saveGraphDataToDB(i);
+                    saved = true;
+                }
+            }
+            if(saved) alert("Ширма и заметки успешно сохранены в Базу!");
+            else alert("Заметки сохранены локально.");
+        };
+
+        async function saveGraphDataToDB(panelId) {
+            const scrId = document.getElementById(`select-screen-${panelId}`).value;
+            if(!scrId) return;
+            const scr = screensCache.find(s => s.id === scrId);
+            if(scr.isLocal) return alert(`Ширма в Панели ${panelId} является базовым миром и не может быть изменена.`);
+
+            const { nodes, links } = graphInstances[panelId].graphData();
+            
+            const cleanNodes = nodes.map(n => {
+                const c = {...n}; 
+                delete c.index; delete c.vx; delete c.vy; delete c.__img; delete c.__indexColor; delete c.__lastX; delete c.__lastY;
+                return c;
+            });
+            const cleanLinks = links.map(l => ({ 
+                source: typeof l.source === 'object' ? l.source.id : l.source, 
+                target: typeof l.target === 'object' ? l.target.id : l.target,
+                label: l.label, color: l.color
+            }));
+
+            const finalNodes = JSON.parse(JSON.stringify(cleanNodes));
+            const finalLinks = JSON.parse(JSON.stringify(cleanLinks));
+
+            try {
+                await setDoc(doc(db, "custom_screens", scrId), { graphData: { nodes: finalNodes, links: finalLinks } }, { merge: true });
+                scr.graphData = { nodes: finalNodes, links: finalLinks }; 
+            } catch(e) { 
+                console.error(e); 
+                alert(`Ошибка сохранения в Firebase: ${e.message}`); 
+            }
+        }
+
+        // --- РЕКУРСИВНЫЙ КОНСТРУКТОР УЗЛА + МАРКДАУН + ТАБЛИЦЫ ---
+        window.closeBuilder = () => { document.getElementById('nodeBuilderModal').classList.remove('active'); };
+        
+        window.switchNodeEditor = (mode) => {
+            const isVis = mode === 'visual';
+            document.getElementById('tab-visual').classList.toggle('active', isVis);
+            document.getElementById('tab-json').classList.toggle('active', !isVis);
+            document.getElementById('node-visual-area').style.display = isVis ? 'block' : 'none';
+            document.getElementById('json-editor-area').style.display = isVis ? 'none' : 'block';
+
+            if (isVis) {
+                try { editingNodeData = JSON.parse(document.getElementById('json-editor-area').value); } catch(e){}
+                renderNodeVisualBuilder();
+            } else {
+                syncRootStateFromDOM();
+                document.getElementById('json-editor-area').value = JSON.stringify(editingNodeData, null, 4);
+            }
+        };
+
+        window.insertMd = (inputId, prefix, suffix = '') => {
+            const el = document.getElementById(inputId);
+            if(!el) return;
+            const start = el.selectionStart;
+            const end = el.selectionEnd;
+            const text = el.value;
+            el.value = text.substring(0, start) + prefix + text.substring(start, end) + suffix + text.substring(end);
+            el.focus();
+            el.selectionStart = start + prefix.length;
+            el.selectionEnd = end + prefix.length;
+            syncRootStateFromDOM();
+        };
+
+        // Логика визуального Фабрикатора Таблиц (.+ 1)
+        let tbRows = 2, tbCols = 2, tbTarget = '';
+        window.openTableFabricator = (targetId) => {
+            tbTarget = targetId;
+            tbRows = 2; tbCols = 2;
+            document.getElementById('table-fabricator').style.display = 'block';
+            window.renderTbGrid();
+        };
+        window.tbAddRow = () => { tbRows++; window.renderTbGrid(); };
+        window.tbAddCol = () => { tbCols++; window.renderTbGrid(); };
+        window.renderTbGrid = () => {
+            const c = document.getElementById('tf-grid');
+            let html = '<table style="border-collapse:collapse; margin-bottom:8px;">';
+            for(let r=0; r<tbRows; r++){
+                html += '<tr>';
+                for(let c=0; c<tbCols; c++){
+                    html += `<td><input type="text" class="tf-cell" id="tf_${r}_${c}" placeholder="${r===0 ? 'Заголовок' : 'Текст'}"></td>`;
+                }
+                html += '</tr>';
+            }
+            html += '</table>';
+            c.innerHTML = html;
+        };
+        window.tbInsert = () => {
+            let md = '\n';
+            for(let r=0; r<tbRows; r++){
+                md += '|';
+                for(let c=0; c<tbCols; c++){
+                    md += ` ${document.getElementById(`tf_${r}_${c}`).value} |`;
+                }
+                md += '\n';
+                if(r===0) {
+                    md += '|';
+                    for(let c=0; c<tbCols; c++) md += '---|';
+                    md += '\n';
+                }
+            }
+            window.insertMd(tbTarget, md, '');
+            document.getElementById('table-fabricator').style.display = 'none';
+        };
+
+        function syncRootStateFromDOM() {
+            if(!document.getElementById('bn-name')) return;
+            editingNodeData.Name = document.getElementById('bn-name').value;
+            editingNodeData.Desc = document.getElementById('bn-desc').value;
+            editingNodeData.shape = document.getElementById('bn-shape').value;
+            editingNodeData.borderColor = document.getElementById('bn-bordercolor').value;
+            editingNodeData.imgUrl = document.getElementById('bn-imgurl') ? document.getElementById('bn-imgurl').value : '';
+            editingNodeData.PName = document.getElementById('bn-pname').value.split(',').map(s=>s.trim()).filter(s=>s);
+            
+            if (editingNodeData.shape === 'bgImage' || editingNodeData.shape === 'group') {
+                editingNodeData.w = parseFloat(document.getElementById('bn-w').value) || 200;
+                editingNodeData.h = parseFloat(document.getElementById('bn-h').value) || 200;
+            } else {
+                editingNodeData.scale = parseFloat(document.getElementById('bn-scale').value) || 1.0;
+            }
+
+            const tTexts = document.querySelectorAll('.tag-text-input');
+            const tColors = document.querySelectorAll('.tag-color-input');
+            editingNodeData.Tags = [];
+            tTexts.forEach((el, idx) => { editingNodeData.Tags.push({ text: el.value, color: tColors[idx].value }); });
+        }
+
+        window.updatePecValue = (pathStr, field, value) => {
+            const path = JSON.parse(pathStr); 
+            let target = editingNodeData;
+            for (let i = 0; i < path.length; i++) target = target.Pec[path[i]];
+            if (field === 'PName') target[field] = value.split(',').map(s=>s.trim()).filter(s=>s);
+            else target[field] = value;
+        };
+
+        window.addRootPec = () => { syncRootStateFromDOM(); if(!editingNodeData.Pec) editingNodeData.Pec = []; editingNodeData.Pec.push({ Name: '', Desc: '', PName: [], Pec: [] }); renderNodeVisualBuilder(); };
+        window.addNestedPec = (pathStr) => { syncRootStateFromDOM(); const path = JSON.parse(pathStr); let target = editingNodeData; for (let i=0; i<path.length; i++) target = target.Pec[path[i]]; if(!target.Pec) target.Pec = []; target.Pec.push({ Name: '', Desc: '', PName: [], Pec: [] }); renderNodeVisualBuilder(); };
+        window.removeNestedPec = (pathStr) => { syncRootStateFromDOM(); const path = JSON.parse(pathStr); const idx = path.pop(); let parent = editingNodeData; for (let i=0; i<path.length; i++) parent = parent.Pec[path[i]]; parent.Pec.splice(idx, 1); renderNodeVisualBuilder(); };
+        window.addTagToNode = () => { syncRootStateFromDOM(); if(!editingNodeData.Tags) editingNodeData.Tags = []; editingNodeData.Tags.push({ text: 'Новый', color: '#40E0D0' }); renderNodeVisualBuilder(); };
+        window.removeTag = (idx) => { syncRootStateFromDOM(); editingNodeData.Tags.splice(idx, 1); renderNodeVisualBuilder(); };
+
+        function renderNodeVisualBuilder() {
+            const c = document.getElementById('node-visual-area');
+            let tagsHtml = (editingNodeData.Tags || []).map((t, i) => `
+                <div style="display:flex; gap:8px; margin-bottom:8px; align-items:center;">
+                    <input type="color" value="${t.color}" class="color-preview-block tag-color-input">
+                    <input type="text" class="cloud-input tag-text-input" style="flex:1;" placeholder="Имя тега" value="${t.text}">
+                    <button class="btn-small-bld" style="color:var(--color-red); border-color:var(--color-red);" onclick="window.removeTag(${i})"><i class="fa-solid fa-trash"></i></button>
+                </div>
+            `).join('');
+
+            const getToolbar = (targetId) => `
+                <div class="md-toolbar">
+                    <button class="md-tool-btn" onclick="window.insertMd('${targetId}', '**', '**')" title="Жирный"><i class="fa-solid fa-bold"></i></button>
+                    <button class="md-tool-btn" onclick="window.insertMd('${targetId}', '*', '*')" title="Курсив"><i class="fa-solid fa-italic"></i></button>
+                    <button class="md-tool-btn" onclick="window.openTableFabricator('${targetId}')" title="Таблица"><i class="fa-solid fa-table"></i></button>
+                    <div style="width:1px; height:20px; background:#444; margin:0 6px;"></div>
+                    <input type="color" onchange="window.insertMd('${targetId}', '{' + this.value + '}', '{}')" title="Выбрать цвет текста" style="cursor:pointer;">
+                </div>
+            `;
+
+            const renderPec = (pecs, parentPath = []) => {
+                let h = `<div style="margin-left:15px; border-left:1px dashed #555; padding-left:15px; margin-top:10px;">`;
+                pecs.forEach((p, idx) => {
+                    const pStr = JSON.stringify([...parentPath, idx]);
+                    const taId = `pec-desc-${pStr.replace(/\D/g,'')}`;
+                    h += `
+                    <div class="b-se-entry">
+                        <div class="b-row">
+                            <input type="text" class="cloud-input" style="flex:2;" placeholder="Название подблока" value="${p.Name}" onchange="window.updatePecValue('${pStr}', 'Name', this.value)">
+                            <input type="text" class="cloud-input" style="flex:1;" placeholder="Прозвища (через запятую)" value="${(p.PName||[]).join(', ')}" onchange="window.updatePecValue('${pStr}', 'PName', this.value)">
+                        </div>
+                        ${getToolbar(taId)}
+                        <textarea id="${taId}" class="cloud-input" placeholder="Описание лора..." style="min-height:70px;" onchange="window.updatePecValue('${pStr}', 'Desc', this.value)">${p.Desc}</textarea>
+                        <div style="display:flex; gap:10px; margin-top:8px;">
+                            <button class="btn-small-bld" onclick="window.addNestedPec('${pStr}')">+ ВЛОЖЕННЫЙ БЛОК</button>
+                            <button class="btn-small-bld" style="color:var(--color-red); border-color:var(--color-red);" onclick="window.removeNestedPec('${pStr}')">УДАЛИТЬ</button>
+                        </div>
+                        ${renderPec(p.Pec || [], [...parentPath, idx])}
+                    </div>`;
+                });
+                return h + `</div>`;
+            };
+
+            const isBgOrGroup = (editingNodeData.shape === 'bgImage' || editingNodeData.shape === 'group');
+
+            c.innerHTML = `
+                <div class="b-row">
+                    <div style="flex:2;">
+                        <div class="tech-text" style="margin-bottom:4px;">ОСНОВНОЕ ИМЯ (NAME) <span style="color:var(--color-yellow); font-size:0.7rem;">{#HEX}Текст{} для цвета</span></div>
+                        <input type="text" id="bn-name" class="cloud-input" value="${editingNodeData.Name}">
+                    </div>
+                    <div style="flex:1;">
+                        <div class="tech-text" style="margin-bottom:4px;">ФОРМА УЗЛА</div>
+                        <select id="bn-shape" class="cloud-select" onchange="syncRootStateFromDOM(); renderNodeVisualBuilder()">
+                            <option value="circle" ${editingNodeData.shape==='circle'?'selected':''}>Круг</option>
+                            <option value="square" ${editingNodeData.shape==='square'?'selected':''}>Квадрат</option>
+                            <option value="custom" ${editingNodeData.shape==='custom'?'selected':''}>Кастомная (Иконка)</option>
+                            <option value="bgImage" ${editingNodeData.shape==='bgImage'?'selected':''}>Объект Фона (Картинка)</option>
+                            <option value="group" ${editingNodeData.shape==='group'?'selected':''}>Группа (Рамка)</option>
+                        </select>
+                    </div>
+                    <div style="flex:1;">
+                        <div class="tech-text" style="margin-bottom:4px;">ЦВЕТ ОБВОДКИ</div>
+                        <input type="color" id="bn-bordercolor" value="${editingNodeData.borderColor || '#40E0D0'}" style="width:100%; height:38px; cursor:pointer;">
+                    </div>
+                </div>
+                
+                <div class="b-row">
+                    <div style="flex:2;">
+                        <div class="tech-text" style="margin-bottom:4px;">URL КАРТИНКИ (Иконка, форма или фон группы)</div>
+                        <input type="text" id="bn-imgurl" class="cloud-input" placeholder="https://..." value="${editingNodeData.imgUrl||''}" style="margin-bottom:12px;">
+                    </div>
+                    ${isBgOrGroup ? `
+                        <div style="flex:0.5;">
+                            <div class="tech-text" style="margin-bottom:4px;">ШИРИНА (W)</div>
+                            <input type="number" id="bn-w" class="cloud-input" value="${editingNodeData.w || 200}" style="margin-bottom:12px;">
+                        </div>
+                        <div style="flex:0.5;">
+                            <div class="tech-text" style="margin-bottom:4px;">ВЫСОТА (H)</div>
+                            <input type="number" id="bn-h" class="cloud-input" value="${editingNodeData.h || 200}" style="margin-bottom:12px;">
+                        </div>
+                    ` : `
+                        <div style="flex:1;">
+                            <div class="tech-text" style="margin-bottom:4px;">МАСШТАБ (Размер узла)</div>
+                            <input type="number" id="bn-scale" class="cloud-input" step="0.1" min="0.5" max="2.0" value="${editingNodeData.scale || 1.0}" style="margin-bottom:12px;">
+                        </div>
+                    `}
+                </div>
+
+                <div class="tech-text" style="margin-bottom:4px;">ПРОЗВИЩА / АЛЬТ. ИМЕНА (через запятую)</div>
+                <input type="text" id="bn-pname" class="cloud-input" value="${(editingNodeData.PName||[]).join(', ')}" style="margin-bottom:16px;">
+                
+                <div style="border: 1px solid #333; padding: 12px; margin-bottom: 16px;">
+                    <div class="tech-text" style="margin-bottom:10px; color:var(--accent-primary); display:flex; justify-content:space-between;">
+                        ЦВЕТНЫЕ ТЕГИ <button class="btn-small-bld" style="border-color:var(--accent-primary); color:var(--accent-primary);" onclick="window.addTagToNode()">+ ДОБАВИТЬ ТЕГ</button>
+                    </div>
+                    <div>${tagsHtml}</div>
+                </div>
+
+                <div class="tech-text" style="margin-bottom:4px;">ОПИСАНИЕ УЗЛА <span style="color:var(--color-yellow); font-size:0.7rem;">(Поддерживает Markdown, {#HEX}Текст{}, {http...})</span></div>
+                
+                <div id="table-fabricator" class="table-fabricator">
+                    <div class="tech-text" style="color:var(--color-yellow); margin-bottom:8px;">ФАБРИКАТОР ТАБЛИЦ</div>
+                    <div id="tf-grid" style="overflow-x:auto; margin-bottom:8px;"></div>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn-small-bld" onclick="window.tbAddRow()">+ Строка</button>
+                        <button class="btn-small-bld" onclick="window.tbAddCol()">+ Колонка</button>
+                        <button class="btn-small-bld" style="border-color:var(--color-cyan); color:var(--color-cyan);" onclick="window.tbInsert()">ВСТАВИТЬ В ТЕКСТ</button>
+                        <button class="btn-small-bld" style="border-color:var(--color-red); color:var(--color-red);" onclick="document.getElementById('table-fabricator').style.display='none'">Отмена</button>
+                    </div>
+                </div>
+
+                ${getToolbar('bn-desc')}
+                <textarea id="bn-desc" class="cloud-input" style="min-height: 120px;">${editingNodeData.Desc}</textarea>
+                
+                <div style="border-top: 1px solid var(--accent-primary); margin-top: 24px; padding-top: 20px;">
+                    <div class="tech-text" style="color:var(--color-yellow); display:flex; justify-content:space-between;">
+                        ПОДБЛОКИ ЛОРА (PEC) <button class="btn-small-bld" style="border-color:var(--color-yellow); color:var(--color-yellow);" onclick="window.addRootPec()">+ ДОБАВИТЬ КОРНЕВОЙ БЛОК</button>
+                    </div>
+                    ${renderPec(editingNodeData.Pec || [])}
+                </div>
+            `;
+        }
+
+        window.saveNode = () => {
+            if (document.getElementById('tab-json').classList.contains('active')) {
+                try { editingNodeData = JSON.parse(document.getElementById('json-editor-area').value); } 
+                catch(e) { return alert("Ошибка в JSON!"); }
+            } else { syncRootStateFromDOM(); }
+
+            if(!editingNodeData.Name && editingNodeData.shape !== 'bgImage') return alert("Имя узла обязательно!");
+            pushNodeToGraph(ctxTarget.panelId || 1, editingNodeData);
+            window.closeBuilder();
+        };
+    </script>
+</body>
+</html>
