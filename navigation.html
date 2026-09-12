@@ -1,283 +1,1831 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>База Знаний / Navigation Hub</title>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Merriweather:ital,wght@0,300;1,300;1,700&family=Oswald:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <style>
-        :root {
-            --bg-main: #070707; --bg-panel: #000000; 
-            --accent-primary: #D9772F; --accent-muted: #8B5A2B;
-            --color-cyan: #45B3CB; --color-red: #C7243A; 
-            --color-yellow: #F1C40F; --color-magenta: #D94285; 
-            --text-main: #E0D8C8; --text-dim: #696969;
-            --border-width: 1px; --chamfer: 14px;
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Единая База Знаний / Project Moon 5e</title>
 
-            /* Цвета Грехов Project Moon */
-            --sin-pride: #1E3A8A;   /* Темно-синий */
-            --sin-wrath: #C7243A;   /* Красный */
-            --sin-envy: #9B59B6;    /* Фиолетовый */
-            --sin-sloth: #F1C40F;   /* Желтый */
-            --sin-gluttony: #8FCC2A; /* Салатовый */
-            --sin-lust: #E67E22;    /* Оранжевый */
-            --sin-gloom: #45B3CB;   /* Голубой */
-            --sin-other: #27AE60;   /* Изумрудный */
-        }
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Merriweather:ital,wght@0,300;1,300;1,700&family=Oswald:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+<style>
+:root{
+  --bg-main:#070707; --bg-panel:#000; --panel-soft:rgba(255,255,255,.02);
+  --text-main:#E0D8C8; --text-dim:#696969;
+  --accent-primary:#45B3CB; --accent-muted:#2c6e7d;
+  --color-red:#C7243A; --color-cyan:#45B3CB; --color-yellow:#F1C40F; --color-magenta:#D94285;
+  --border-width:1px; --chamfer:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
 
-        body {
-            background-color: var(--bg-main); color: var(--text-main); font-family: 'Inter', sans-serif;
-            min-height: 100vh; padding: 60px 20px 40px 20px; display: flex; flex-direction: column; align-items: center;
-            background-image: linear-gradient(rgba(7,7,7,0.8), rgba(7,7,7,0.8)), repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.02) 2px, rgba(255,255,255,0.02) 4px);
-            overflow-x: hidden;
-        }
+body{
+  background-color:var(--bg-main);color:var(--text-main);font-family:'Inter',sans-serif;
+  min-height:100vh;padding:56px 20px 40px;display:flex;flex-direction:column;align-items:center;
+  background-image:linear-gradient(rgba(7,7,7,.82),rgba(7,7,7,.82)),repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,255,255,.02) 2px,rgba(255,255,255,.02) 4px);
+  overflow-x:hidden;
+}
+h1,h2,h3,h4,.oswald{font-family:'Oswald',sans-serif;text-transform:uppercase}
+.tech-text{font-family:'Inter',sans-serif;color:var(--accent-primary);font-size:.8rem}
+.lore-text{font-family:'Merriweather',serif;font-style:italic;color:var(--text-dim);font-size:.9rem;line-height:1.6;white-space:pre-wrap}
+.wrap{width:100%;max-width:1200px}
 
-        h1, h2, h3, h4, .oswald { font-family: 'Oswald', sans-serif; text-transform: uppercase; }
-        .lore-text { font-family: 'Merriweather', serif; font-style: italic; color: var(--text-dim); font-size: 0.85rem; line-height: 1.4; }
+/* ---------- Верхняя панель ---------- */
+.topbar{position:fixed;top:0;left:0;right:0;height:46px;z-index:500;background:rgba(7,7,7,.94);
+  border-bottom:1px solid #1c1c1c;display:flex;align-items:center;gap:10px;padding:0 16px;backdrop-filter:blur(4px)}
+.tb-btn{padding:5px 10px;font-size:.78rem;font-family:'Oswald',sans-serif;background:transparent;text-decoration:none;
+  display:flex;align-items:center;gap:6px;cursor:pointer;text-transform:uppercase;transition:.2s;border:1px solid var(--text-dim);color:var(--text-dim);border-radius:2px}
+.tb-btn:hover{border-color:var(--accent-primary);color:var(--accent-primary)}
+.tb-btn.accent{border-color:var(--accent-primary);color:var(--accent-primary)}
+.tb-btn.accent:hover{background:var(--accent-primary);color:#000}
+.tb-spacer{flex:1}
+.tb-user{font-size:.78rem;color:var(--text-dim);font-family:'Inter',sans-serif}
+.src-switch{display:flex;border:1px solid #333;border-radius:2px;overflow:hidden}
+.src-switch button{padding:5px 10px;font-size:.72rem;font-family:'Oswald',sans-serif;background:transparent;border:none;
+  color:var(--text-dim);cursor:pointer;text-transform:uppercase;transition:.2s;border-right:1px solid #333}
+.src-switch button:last-child{border-right:none}
+.src-switch button:hover{color:var(--text-main)}
+.src-switch button.active{background:var(--accent-primary);color:#000}
 
-        /* Навигация */
-        .top-nav-btn { position: fixed; top: 10px; left: 20px; padding: 6px 12px; font-size: 0.8rem; border-color: var(--color-cyan); color: var(--color-cyan); font-family: 'Oswald', sans-serif; z-index: 100; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; border: 1px solid var(--color-cyan); cursor: pointer; text-transform: uppercase; transition: 0.2s; }
-        .top-nav-btn:hover { background-color: var(--color-cyan); color: #000; }
+/* ---------- Вкладки категорий ---------- */
+.cat-tabs{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:20px}
+.cat-btn{padding:7px 14px;border:1px solid #333;background:rgba(0,0,0,.5);color:var(--text-dim);
+  font-family:'Oswald',sans-serif;font-size:.92rem;cursor:pointer;transition:.2s;text-transform:uppercase;
+  display:flex;align-items:center;gap:7px;border-radius:2px}
+.cat-btn:hover{border-color:var(--text-main);color:var(--text-main)}
+.cat-btn.active{color:#000;font-weight:500}
 
-        /* Заголовок страницы */
-        .header-bar { width: 100%; max-width: 1200px; display: flex; justify-content: center; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--accent-muted); padding-bottom: 10px; margin-top: 10px; }
-        .header-title { color: var(--color-cyan); font-size: 1.8rem; letter-spacing: 2px; text-align: center; }
+.header-bar{display:flex;flex-direction:column;align-items:center;gap:6px;margin-bottom:18px;
+  border-bottom:1px solid var(--accent-muted);padding-bottom:10px}
+.header-title{color:var(--accent-primary);font-size:1.7rem;letter-spacing:2px;text-align:center;font-family:'Oswald',sans-serif;text-transform:uppercase}
+.header-subtitle{color:var(--text-dim);font-size:.85rem;text-align:center}
 
-        /* Секция с официальной вики */
-        .wiki-section { width: 100%; max-width: 1200px; margin-bottom: 30px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
-        
-        .official-wiki-btn { width: 100%; display: flex; align-items: center; justify-content: center; gap: 12px; background: rgba(69, 179, 203, 0.1); border: 1px solid var(--color-cyan); color: var(--color-cyan); padding: 16px; font-family: 'Oswald', sans-serif; font-size: 1.2rem; text-decoration: none; text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; border-radius: 2px; }
-        .official-wiki-btn:hover { background: var(--color-cyan); color: #000; box-shadow: 0 0 20px rgba(69, 179, 203, 0.4); }
-        .official-wiki-btn i { font-size: 1.5rem; }
+/* ---------- Панель действий ---------- */
+.action-bar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+.action-btn{flex:1;min-width:180px;padding:9px;font-size:.85rem;font-family:'Oswald',sans-serif;cursor:pointer;
+  border:1px solid var(--accent-primary);color:var(--accent-primary);background:transparent;text-transform:uppercase;
+  transition:.2s;text-align:center;display:flex;align-items:center;justify-content:center;gap:8px;border-radius:2px}
+.action-btn:hover{background:var(--accent-primary);color:#000}
+.action-btn.ghost{border-color:var(--text-dim);color:var(--text-dim)}
+.action-btn.ghost:hover{background:var(--text-dim);color:#000}
 
-        /* Секция с Пользовательской Базой */
-        .custom-wiki-btn { width: 100%; display: flex; align-items: center; justify-content: center; gap: 12px; background: rgba(217, 66, 133, 0.1); border: 1px solid var(--color-magenta); color: var(--color-magenta); padding: 16px; font-family: 'Oswald', sans-serif; font-size: 1.2rem; text-decoration: none; text-transform: uppercase; letter-spacing: 1px; transition: 0.3s; border-radius: 2px; }
-        .custom-wiki-btn:hover { background: var(--color-magenta); color: #000; box-shadow: 0 0 20px rgba(217, 66, 133, 0.4); }
-        .custom-wiki-btn i { font-size: 1.5rem; }
+/* ---------- Фильтры ---------- */
+.filters-section{display:flex;flex-direction:column;gap:10px;margin-bottom:20px}
+.search-wrapper{background-color:var(--accent-muted);padding:var(--border-width);transition:background-color .2s}
+.search-wrapper:focus-within{background-color:var(--accent-primary)}
+.search-inner{background:rgba(0,0,0,.7);display:flex;align-items:center}
+.search-icon{padding-left:14px;font-size:.9rem;color:var(--text-dim)}
+.search-input{width:100%;background:transparent;border:none;color:var(--text-main);padding:9px 14px 9px 10px;
+  font-family:'Inter',sans-serif;font-size:.95rem;outline:none}
+.search-input::placeholder{color:var(--text-dim)}
+.filter-group-title{font-family:'Oswald',sans-serif;color:var(--accent-primary);font-size:.85rem;
+  border-bottom:1px dashed #333;padding-bottom:4px;margin-top:6px;display:flex;justify-content:space-between;align-items:baseline}
+.filter-hint{color:var(--text-dim);font-size:.7rem;font-family:'Inter',sans-serif;text-transform:none;letter-spacing:0}
+.type-filters{display:flex;flex-wrap:wrap;gap:8px}
+.filter-btn{display:flex;align-items:center;gap:6px;font-family:'Oswald',sans-serif;font-size:.82rem;text-transform:uppercase;
+  border:1px solid var(--text-dim);color:var(--text-dim);background:rgba(0,0,0,.5);padding:4px 10px;cursor:pointer;
+  transition:.2s;border-radius:2px}
+.filter-btn:hover{border-color:var(--text-main);color:var(--text-main)}
+.filter-btn.active{background:rgba(255,255,255,.06)}
+.filter-btn .type-icon{width:14px;height:14px;object-fit:contain}
+.result-count{color:var(--text-dim);font-size:.78rem;margin-bottom:12px;font-family:'Oswald',sans-serif;letter-spacing:1px}
 
-        /* Сетка Навигации */
-        .compendium-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; width: 100%; max-width: 1200px; align-items: start; }
+/* ---------- Панели / карточки ---------- */
+.panel-outer{background-color:var(--accent-primary);padding:var(--border-width);position:relative;display:flex;flex-direction:column}
+.panel-inner{background-color:var(--bg-panel);padding:16px 20px;height:100%;display:flex;flex-direction:column}
+.cut-tl{clip-path:polygon(var(--chamfer) 0,100% 0,100% 100%,0 100%,0 var(--chamfer))}
+.hazard-tape{height:6px;background:repeating-linear-gradient(45deg,#000 0,#000 10px,var(--accent-muted) 10px,var(--accent-muted) 20px);
+  border-bottom:1px solid var(--accent-primary)}
 
-        .panel-outer { padding: var(--border-width); position: relative; display: flex; flex-direction: column; text-decoration: none; color: inherit; transition: transform 0.2s, box-shadow 0.2s; height: 100%; }
-        .panel-inner { background-color: var(--bg-panel); padding: 20px; height: 100%; display: flex; flex-direction: column; transition: background-color 0.2s; }
-        .cut-tl { clip-path: polygon(var(--chamfer) 0, 100% 0, 100% 100%, 0 100%, 0 var(--chamfer)); }
-        
-        .hazard-tape { height: 6px; width: 100%; border-bottom: 1px solid; }
+.compendium-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:20px;align-items:stretch}
+.card{transition:transform .18s ease,box-shadow .18s ease}
+.card:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.55)}
+.card.expanded{grid-column:1/-1;transform:none}
 
-        .panel-outer:hover .panel-inner { background-color: rgba(20, 20, 20, 1); }
+/* Свёрнутая карточка держит одинаковую высоту — без «лесенки» */
+.card-head{cursor:pointer;position:relative;padding-right:26px;user-select:none;
+  min-height:118px;display:flex;flex-direction:column}
+.card.expanded .card-head{min-height:0}
+.expand-icon{position:absolute;right:0;top:8px;color:var(--text-dim);transition:transform .3s ease}
+.card.expanded .expand-icon{transform:rotate(180deg);color:var(--accent-primary)}
+.card-title-row{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;
+  border-bottom:1px solid #222;padding-bottom:8px;margin-bottom:8px}
+.card-title{font-size:1.3rem;color:var(--accent-primary);font-family:'Oswald',sans-serif;text-transform:uppercase;
+  line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card.expanded .card-title{-webkit-line-clamp:unset;overflow:visible}
+.card-meta{font-size:.75rem;color:var(--text-dim);font-family:'Inter',sans-serif;margin-bottom:2px}
+.card-meta.italic{font-style:italic}
+.level-badge{align-self:flex-start;background:var(--accent-primary);color:#000;font-family:'Oswald',sans-serif;
+  font-size:.72rem;padding:2px 6px;border-radius:2px;margin-bottom:4px}
+.badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;align-content:flex-start}
+.badge{display:flex;align-items:center;gap:5px;font-family:'Oswald',sans-serif;font-size:.75rem;text-transform:uppercase;
+  border:1px solid;padding:2px 7px;border-radius:2px;background:rgba(0,0,0,.5);white-space:nowrap}
+.badge .type-icon{width:15px;height:15px;object-fit:contain}
+.badge-origin{border-color:var(--color-magenta);color:var(--color-magenta)}
+.badge-private{border-color:var(--color-red);color:var(--color-red)}
 
-        .card-header { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; border-bottom: 1px solid #222; padding-bottom: 12px; }
-        .card-icon { font-size: 2rem; }
-        .card-title { font-size: 1.3rem; color: var(--text-main); }
-        
-        .status-badge { display: inline-block; padding: 4px 10px; font-family: 'Oswald', sans-serif; font-size: 0.75rem; border: 1px solid var(--text-dim); color: var(--text-dim); border-radius: 2px; letter-spacing: 1px; margin-top: auto; align-self: flex-start; }
-        .panel-outer:hover .status-badge { border-color: var(--text-main); color: var(--text-main); }
+/* Режим отображения бейджей у Архетипов */
+body[data-badge="types"] .badge-stat{display:none!important}
+body[data-badge="stats"] .badge-type{display:none!important}
 
-        /* ================= ЦВЕТОВЫЕ СХЕМЫ ГРЕХОВ ================= */
-        
-        /* 1. Гордыня (Pride) */
-        .card-pride { background-color: var(--sin-pride); }
-        .card-pride .hazard-tape { background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--sin-pride) 10px, var(--sin-pride) 20px); border-color: var(--sin-pride); }
-        .card-pride .card-icon { color: var(--sin-pride); }
-        .card-pride:hover { transform: translateY(-3px); box-shadow: 0 0 15px rgba(30, 58, 138, 0.4); }
+/* Раскрытие: без magic numbers */
+.card-body{display:grid;grid-template-rows:0fr;transition:grid-template-rows .32s ease;opacity:0}
+.card.expanded .card-body{grid-template-rows:1fr;opacity:1;margin-top:10px}
+.card-body>.card-body-inner{overflow:hidden;min-height:0}
 
-        /* 2. Гнев (Wrath) */
-        .card-wrath { background-color: var(--sin-wrath); }
-        .card-wrath .hazard-tape { background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--sin-wrath) 10px, var(--sin-wrath) 20px); border-color: var(--sin-wrath); }
-        .card-wrath .card-icon { color: var(--sin-wrath); }
-        .card-wrath:hover { transform: translateY(-3px); box-shadow: 0 0 15px rgba(199, 36, 58, 0.4); }
+.sub-block{margin-bottom:10px;border-left:2px solid var(--text-dim);padding:8px 10px;cursor:pointer;
+  background:var(--panel-soft);transition:background .2s}
+.sub-block:last-child{margin-bottom:0}
+.sub-block:hover{background:rgba(255,255,255,.05)}
+.sub-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.sub-head-left{display:flex;align-items:baseline;gap:8px}
+.sub-name{font-family:'Oswald',sans-serif;font-size:1.05rem}
+.sub-level{color:var(--text-dim);font-size:.72rem;font-family:'Inter',sans-serif}
+.sub-icon{color:var(--text-dim);font-size:.75rem;transition:transform .3s}
+.sub-block.collapsed .sub-icon{transform:rotate(-90deg)}
+.sub-desc-wrap{display:grid;grid-template-rows:1fr;transition:grid-template-rows .3s ease;margin-top:6px}
+.sub-block.collapsed .sub-desc-wrap{grid-template-rows:0fr;margin-top:0}
+.sub-desc{overflow:hidden;font-size:.88rem;line-height:1.5}
 
-        /* 3. Зависть (Envy) */
-        .card-envy { background-color: var(--sin-envy); }
-        .card-envy .hazard-tape { background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--sin-envy) 10px, var(--sin-envy) 20px); border-color: var(--sin-envy); }
-        .card-envy .card-icon { color: var(--sin-envy); }
-        .card-envy:hover { transform: translateY(-3px); box-shadow: 0 0 15px rgba(155, 89, 182, 0.4); }
+.req-text{color:var(--color-red);font-size:.82rem;font-family:'Oswald',sans-serif;text-transform:uppercase;margin-bottom:8px}
+.creator-tag{font-size:.7rem;color:var(--text-dim);text-align:right;margin-top:10px;font-style:italic}
+.card-controls{display:flex;gap:8px;margin-top:12px;border-top:1px solid #222;padding-top:12px;flex-wrap:wrap}
+.ctrl-btn{flex:1;min-width:74px;background:transparent;border:1px solid;padding:6px;font-size:.72rem;
+  font-family:'Oswald',sans-serif;cursor:pointer;text-transform:uppercase;transition:.2s;border-radius:2px}
+.ctrl-pick{border-color:var(--text-dim);color:var(--text-dim)}
+.ctrl-pick:hover{border-color:var(--accent-primary);color:var(--accent-primary)}
+.ctrl-pick.on{border-color:var(--accent-primary);color:var(--accent-primary);background:rgba(255,255,255,.07)}
+.ctrl-copy{border-color:var(--color-cyan);color:var(--color-cyan)}
+.ctrl-copy:hover{background:var(--color-cyan);color:#000}
+.ctrl-dl{border-color:var(--text-main);color:var(--text-main)}
+.ctrl-dl:hover{background:var(--text-main);color:#000}
+.ctrl-edit{border-color:var(--color-yellow);color:var(--color-yellow)}
+.ctrl-edit:hover{background:var(--color-yellow);color:#000}
+.ctrl-del{border-color:var(--color-red);color:var(--color-red)}
+.ctrl-del:hover{background:var(--color-red);color:#fff}
+.ctrl-priv{border-color:#555;color:#555}
+.ctrl-priv:hover{border-color:var(--color-red);color:var(--color-red)}
 
-        /* 4. Лень (Sloth) */
-        .card-sloth { background-color: var(--sin-sloth); }
-        .card-sloth .hazard-tape { background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--sin-sloth) 10px, var(--sin-sloth) 20px); border-color: var(--sin-sloth); }
-        .card-sloth .card-icon { color: var(--sin-sloth); }
-        .card-sloth:hover { transform: translateY(-3px); box-shadow: 0 0 15px rgba(241, 196, 15, 0.4); }
+/* Стат-блок бестиария */
+.stat-line{margin-bottom:4px;font-size:.88rem}
+.stat-line strong{color:var(--accent-primary);font-family:'Oswald',sans-serif;letter-spacing:1px}
+.stat-grid{display:flex;justify-content:space-between;text-align:center;margin:12px 0;padding:12px 0;
+  border-top:2px solid var(--accent-primary);border-bottom:2px solid var(--accent-primary)}
+.stat-col{display:flex;flex-direction:column;width:16%}
+.stat-name{font-family:'Oswald',sans-serif;color:var(--accent-primary);font-size:.95rem}
+.stat-val{font-size:.85rem;font-weight:bold}
+.section-sub{font-family:'Oswald',sans-serif;font-size:.95rem;border-bottom:1px dashed #333;
+  margin:14px 0 8px;padding-bottom:4px;letter-spacing:1px}
 
-        /* 5. Обжорство (Gluttony) */
-        .card-gluttony { background-color: var(--sin-gluttony); }
-        .card-gluttony .hazard-tape { background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--sin-gluttony) 10px, var(--sin-gluttony) 20px); border-color: var(--sin-gluttony); }
-        .card-gluttony .card-icon { color: var(--sin-gluttony); }
-        .card-gluttony:hover { transform: translateY(-3px); box-shadow: 0 0 15px rgba(143, 204, 42, 0.4); }
+/* ---------- Markdown ---------- */
+.md{line-height:1.55;font-size:.9rem}
+.md p{margin-bottom:8px}
+.md p:last-child{margin-bottom:0}
+.md strong,.md b{color:var(--accent-primary);font-family:'Oswald',sans-serif;font-weight:normal;letter-spacing:.5px}
+.md em,.md i{color:var(--text-dim)}
+.md ul,.md ol{margin:0 0 8px 20px}
+.md li{margin-bottom:4px}
+.md code{background:rgba(255,255,255,.1);padding:2px 4px;border-radius:3px;font-family:monospace;color:var(--color-yellow)}
+.md blockquote{border-left:3px solid var(--accent-primary);padding-left:10px;color:var(--text-dim);font-style:italic}
+.md table,.md-table{width:100%;border-collapse:collapse;margin:10px 0;font-size:.85rem;background:rgba(0,0,0,.3);display:block;overflow-x:auto}
+.md th,.md td{border:1px solid #2a2a2a;padding:7px 11px;text-align:left;vertical-align:top}
+.md th{background:rgba(255,255,255,.05);color:var(--accent-primary);font-family:'Oswald',sans-serif;text-transform:uppercase}
+.md tr:nth-child(even){background:rgba(255,255,255,.02)}
 
-        /* 6. Похоть (Lust) */
-        .card-lust { background-color: var(--sin-lust); }
-        .card-lust .hazard-tape { background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--sin-lust) 10px, var(--sin-lust) 20px); border-color: var(--sin-lust); }
-        .card-lust .card-icon { color: var(--sin-lust); }
-        .card-lust:hover { transform: translateY(-3px); box-shadow: 0 0 15px rgba(230, 126, 34, 0.4); }
+/* ---------- Статьи (rules / lore / лор снаряжения) ---------- */
+.article-host{display:flex;flex-direction:column;gap:30px}
+.article-host .panel-inner{padding:28px}
+.article-host .section-title{font-size:1.6rem;color:var(--accent-primary);margin-bottom:18px;border-bottom:1px solid #333;
+  padding-bottom:8px;display:flex;align-items:center;gap:12px;font-family:'Oswald',sans-serif;text-transform:uppercase}
+.article-host .rule-block{margin-bottom:22px}
+.article-host .rule-block:last-child{margin-bottom:0}
+.article-host .rule-title,.article-host .conflict-name{font-family:'Oswald',sans-serif;font-size:1.25rem;
+  color:var(--color-cyan);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px}
+.article-host .conflict-name{color:#fff}
+.article-host .rule-desc,.article-host .conflict-desc{font-size:.94rem;line-height:1.6}
+.article-host .rule-desc p,.article-host .paragraph{margin-bottom:12px;text-align:justify}
+.article-host .paragraph:last-child{margin-bottom:0}
+.article-host .rule-desc ul{margin:0 0 12px 20px}
+.article-host .rule-desc li{margin-bottom:6px}
+.article-host .highlight{color:var(--accent-primary);font-weight:bold;font-family:'Oswald',sans-serif;letter-spacing:1px}
+.article-host .warning-text{color:var(--color-red);font-weight:bold}
+.article-host .quote-block{border-left:3px solid var(--accent-primary);margin:16px 0;background:var(--panel-soft);
+  padding:12px 16px;font-style:italic;color:#ccc}
+.article-host .conflict-block,.article-host .info-block{border-left:3px solid var(--accent-primary);margin-bottom:22px;
+  background:var(--panel-soft);padding:16px 16px 16px 20px;border-radius:0 4px 4px 0}
+.article-host .conflict-block:last-child,.article-host .info-block:last-child{margin-bottom:0}
+.article-host .date-badge{display:inline-block;background:var(--accent-muted);font-family:'Oswald',sans-serif;
+  font-size:.78rem;padding:2px 8px;border-radius:2px;margin-left:10px;vertical-align:middle}
+.article-host .lore-text{color:var(--text-main);font-style:normal;white-space:normal}
+.subtabs{display:flex;gap:10px;margin-bottom:20px}
+.subtab{flex:1;padding:11px;background:rgba(0,0,0,.5);border:1px solid var(--text-dim);color:var(--text-dim);
+  font-family:'Oswald',sans-serif;font-size:1rem;cursor:pointer;transition:.2s;text-transform:uppercase;letter-spacing:1px}
+.subtab:hover{border-color:var(--accent-primary);color:var(--accent-primary)}
+.subtab.active{border-color:var(--accent-primary);color:var(--text-main);background:rgba(255,255,255,.07)}
 
-        /* 7. Уныние (Gloom) */
-        .card-gloom { background-color: var(--sin-gloom); }
-        .card-gloom .hazard-tape { background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--sin-gloom) 10px, var(--sin-gloom) 20px); border-color: var(--sin-gloom); }
-        .card-gloom .card-icon { color: var(--sin-gloom); }
-        .card-gloom:hover { transform: translateY(-3px); box-shadow: 0 0 15px rgba(69, 179, 203, 0.4); }
+/* ---------- Правый сайдбар (Сборка / Основа) ---------- */
+.side-toggle{position:fixed;right:0;top:50%;transform:translateY(-50%);z-index:600;display:flex;flex-direction:column;gap:6px}
+.side-toggle button{writing-mode:vertical-rl;padding:14px 7px;background:var(--bg-main);border:1px solid var(--accent-primary);
+  border-right:none;color:var(--accent-primary);font-family:'Oswald',sans-serif;font-size:.8rem;cursor:pointer;
+  text-transform:uppercase;letter-spacing:1px}
+.side-toggle button:hover{background:var(--accent-primary);color:#000}
+.side-count{background:var(--accent-primary);color:#000;border-radius:8px;padding:0 5px;font-size:.7rem;margin-top:6px;writing-mode:horizontal-tb;display:inline-block}
+.sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:900;opacity:0;pointer-events:none;transition:.3s;backdrop-filter:blur(3px)}
+.sidebar-overlay.active{opacity:1;pointer-events:all}
+.sidebar{position:fixed;top:0;right:-660px;width:660px;max-width:92vw;height:100vh;background:var(--bg-main);
+  border-left:2px solid var(--accent-primary);z-index:950;transition:right .3s ease;overflow-y:auto;padding:24px 22px 40px;
+  box-shadow:-10px 0 30px rgba(0,0,0,.8)}
+.sidebar.active{right:0}
+.sidebar::-webkit-scrollbar{width:6px}
+.sidebar::-webkit-scrollbar-thumb{background:var(--accent-primary)}
+.sidebar-title{font-size:1.5rem;color:var(--text-main);border-bottom:2px solid var(--accent-primary);padding-bottom:8px;
+  margin-bottom:14px;font-family:'Oswald',sans-serif;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center}
+.sidebar-h2{font-size:1.1rem;color:var(--accent-primary);border-bottom:1px solid #333;margin:20px 0 10px;
+  padding-bottom:4px;font-family:'Oswald',sans-serif;text-transform:uppercase}
+.sidebar-empty{color:var(--text-dim);font-size:.88rem;line-height:1.5}
+.pick-entry{border:1px solid #262626;border-left:3px solid var(--accent-primary);padding:10px 12px;margin-bottom:10px;background:var(--panel-soft)}
+.pick-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.pick-name{font-family:'Oswald',sans-serif;font-size:1.02rem;color:var(--text-main)}
+.pick-actions{display:flex;gap:6px}
+.mini-btn{background:transparent;border:1px solid var(--text-dim);color:var(--text-dim);cursor:pointer;padding:3px 7px;
+  font-size:.7rem;font-family:'Oswald',sans-serif;text-transform:uppercase;transition:.2s;border-radius:2px}
+.mini-btn:hover{border-color:var(--accent-primary);color:var(--accent-primary)}
+.mini-btn.danger:hover{border-color:var(--color-red);color:var(--color-red)}
 
-        /* 8. Иное (Other - Emerald) */
-        .card-other { background-color: var(--sin-other); }
-        .card-other .hazard-tape { background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--sin-other) 10px, var(--sin-other) 20px); border-color: var(--sin-other); }
-        .card-other .card-icon { color: var(--sin-other); }
-        .card-other:hover { transform: translateY(-3px); box-shadow: 0 0 15px rgba(39, 174, 96, 0.4); }
+/* ---------- Модалки ---------- */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;justify-content:center;align-items:flex-start;
+  z-index:2000;backdrop-filter:blur(4px);padding:50px 12px;overflow-y:auto}
+.modal-overlay.active{display:flex}
+.modal-box{width:820px;max-width:100%;position:relative;margin-bottom:50px}
+.modal-box.narrow{width:420px}
+.btn-close-modal{background:transparent;border:none;color:var(--color-red);font-size:1.5rem;cursor:pointer;
+  position:absolute;right:14px;top:14px;z-index:10}
+.btn-close-modal:hover{color:#ff0044}
+.cloud-input,.cloud-select{width:100%;background:#111;border:1px solid #333;color:var(--text-main);padding:9px;
+  margin-bottom:10px;outline:none;font-family:'Inter',sans-serif;font-size:.92rem}
+.cloud-input:focus,.cloud-select:focus{border-color:var(--accent-primary)}
+textarea.cloud-input{resize:vertical;min-height:80px}
+.b-row{display:flex;gap:10px;flex-wrap:wrap}
+.b-row>div{flex:1;min-width:120px}
+.check-group{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px}
+.check-label{display:flex;align-items:center;gap:5px;font-size:.85rem;cursor:pointer;color:var(--text-dim)}
+.check-label input{accent-color:var(--accent-primary)}
+.check-label:hover{color:var(--text-main)}
+.b-entry{border:1px solid #333;border-left:3px solid var(--accent-primary);padding:12px;margin-bottom:12px;
+  position:relative;background:var(--panel-soft)}
+.b-entry .cloud-input{margin-bottom:8px}
+.sec-head{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1px solid #333;
+  padding-bottom:8px;margin:16px 0 12px}
 
-    </style>
+/* Панель Markdown над текстовыми полями */
+.md-editor{margin-bottom:10px}
+.md-editor textarea{margin-bottom:0}
+.md-toolbar{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px;align-items:center}
+.md-toolbar button{background:#0d0d0d;border:1px solid #2e2e2e;color:var(--text-dim);cursor:pointer;
+  min-width:30px;height:26px;display:flex;align-items:center;justify-content:center;font-size:.78rem;
+  font-family:'Oswald',sans-serif;transition:.15s;border-radius:2px;padding:0 6px}
+.md-toolbar button:hover{border-color:var(--accent-primary);color:var(--accent-primary);background:#141414}
+.md-toolbar button.on{border-color:var(--accent-primary);color:var(--accent-primary)}
+.md-toolbar .md-sep{width:1px;height:26px;background:#2e2e2e;margin:0 3px}
+.md-toolbar .md-spacer{flex:1}
+
+.md-preview{border:1px dashed #2e2e2e;border-top:none;background:rgba(255,255,255,.025);padding:10px 12px}
+.md-preview[hidden]{display:none}
+.md-preview-label{font-size:.62rem;color:var(--text-dim);font-family:'Oswald',sans-serif;letter-spacing:1px;
+  text-transform:uppercase;margin-bottom:6px;display:flex;justify-content:space-between}
+
+/* Картинки в описаниях: [URL W:400 H:200] */
+.md-img{max-width:100%;height:auto;display:block;margin:8px 0;border:1px solid #222;background:#0a0a0a}
+
+/* Описание архетипа над способностями */
+.card-desc{margin-bottom:12px;padding-bottom:12px;border-bottom:1px dashed #333}
+
+/* Редактор таблиц */
+.tbl-ctrls{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.tbl-scroll{overflow-x:auto;padding-bottom:6px}
+.tbl-grid{display:grid;gap:4px;min-width:min-content}
+.tbl-grid input{background:#111;border:1px solid #2e2e2e;color:var(--text-main);padding:6px 8px;
+  font-family:'Inter',sans-serif;font-size:.85rem;outline:none;width:100%;min-width:110px}
+.tbl-grid input:focus{border-color:var(--accent-primary)}
+.tbl-hdr{display:flex;gap:3px}
+.tbl-hdr input{background:#161616;color:var(--accent-primary);font-family:'Oswald',sans-serif;text-transform:uppercase}
+.tbl-align{background:#0d0d0d;border:1px solid #2e2e2e;color:var(--text-dim);width:30px;flex:0 0 30px;
+  cursor:pointer;font-size:.72rem;transition:.15s}
+.tbl-align:hover{border-color:var(--accent-primary);color:var(--accent-primary)}
+.tool-hint{color:var(--text-dim);font-size:.78rem;margin-bottom:12px;line-height:1.5}
+.img-preview{margin-top:10px;border:1px dashed #2e2e2e;padding:10px;min-height:60px;display:flex;
+  align-items:center;justify-content:center;background:rgba(255,255,255,.02)}
+.img-preview img{max-width:100%;max-height:260px}
+
+/* Переключатель «Типы / Характеристики» */
+.mode-toggle{display:flex;align-items:center;gap:8px;flex:0 0 auto;min-width:0;padding:9px 14px;
+  border:1px solid var(--text-dim);color:var(--text-dim);font-family:'Oswald',sans-serif;font-size:.85rem;
+  text-transform:uppercase;cursor:pointer;transition:.2s;border-radius:2px;user-select:none}
+.mode-toggle:hover{border-color:var(--accent-primary);color:var(--accent-primary)}
+.mode-toggle input{accent-color:var(--accent-primary);width:14px;height:14px;cursor:pointer}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#111;
+  border:1px solid var(--accent-primary);color:var(--accent-primary);font-family:'Oswald',sans-serif;font-size:.85rem;
+  padding:10px 18px;z-index:5000;opacity:0;pointer-events:none;transition:.25s;text-transform:uppercase;letter-spacing:1px}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.notice{color:var(--text-dim);text-align:center;padding:30px 10px;font-family:'Oswald',sans-serif;font-size:1.05rem;grid-column:1/-1}
+.notice.error{color:var(--color-red)}
+
+@media(max-width:600px){
+  body{padding-top:88px}
+  .topbar{height:auto;flex-wrap:wrap;padding:6px 10px;gap:6px}
+  .sidebar{padding:20px 14px 40px}
+}
+</style>
 </head>
-<body>
+<body data-badge="types">
 
-    <!-- Навигация -->
-    <a href="index.html" class="top-nav-btn"><i class="fa-solid fa-house"></i> ГЛАВНОЕ МЕНЮ</a>
+<!-- ======== ВЕРХНЯЯ ПАНЕЛЬ ======== -->
+<div class="topbar">
+  <a href="index.html" class="tb-btn"><i class="fa-solid fa-house"></i> Хаб</a>
+  <div class="src-switch" id="src-switch">
+    <button data-src="canon" class="active">Канон</button>
+    <button data-src="custom">Кастом</button>
+    <button data-src="all">Всё</button>
+  </div>
+  <select id="system-select" class="cloud-input" style="width:auto;margin:0;padding:4px 8px;font-size:.78rem;display:none">
+    <option value="fixer">Фиксер</option>
+    <option value="bloodfiend">Кровосос</option>
+  </select>
+  <div class="tb-spacer"></div>
+  <span class="tb-user" id="user-info"></span>
+  <button class="tb-btn accent" data-act="auth"><i class="fa-solid fa-user"></i> <span id="auth-label">Вход</span></button>
+</div>
 
-    <!-- Заголовок страницы -->
-    <div class="header-bar">
-        <div class="header-title oswald">БАЗА ЗНАНИЙ И АРХИВЫ (НАВИГАЦИЯ)</div>
+<!-- ======== БОКОВЫЕ КНОПКИ ======== -->
+<div class="side-toggle">
+  <button data-act="open-picks">Сборка<span class="side-count" id="pick-count">0</span></button>
+  <button data-act="open-base" id="btn-base" style="display:none">Основа</button>
+</div>
+
+<div class="wrap">
+  <div class="cat-tabs" id="cat-tabs"></div>
+
+  <div class="header-bar">
+    <div class="header-title" id="page-title">База знаний</div>
+    <div class="header-subtitle" id="page-sub"></div>
+  </div>
+
+  <!-- Вкладки внутри категории (напр. Снаряжение: база / лор) -->
+  <div class="subtabs" id="subtabs" style="display:none"></div>
+
+  <!-- Режим данных -->
+  <div id="data-view">
+    <div class="action-bar" id="action-bar"></div>
+    <div class="filters-section" id="filters"></div>
+    <div class="result-count" id="result-count"></div>
+    <div class="compendium-grid" id="grid"></div>
+  </div>
+
+  <!-- Режим статьи -->
+  <div id="article-view" class="article-host" style="display:none"></div>
+</div>
+
+<!-- ======== САЙДБАР ======== -->
+<div class="sidebar-overlay" id="sb-overlay" data-act="close-sidebars"></div>
+
+<div class="sidebar" id="sb-picks">
+  <div class="sidebar-title">
+    <span>Моя сборка</span>
+    <button class="btn-close-modal" style="position:static" data-act="close-sidebars"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  <div class="b-row" style="margin-bottom:14px">
+    <button class="action-btn" data-act="picks-copy"><i class="fa-regular fa-copy"></i> Копировать всё</button>
+    <button class="action-btn ghost" data-act="picks-export"><i class="fa-solid fa-download"></i> JSON</button>
+    <button class="action-btn ghost" data-act="picks-clear"><i class="fa-solid fa-trash"></i> Очистить</button>
+  </div>
+  <div id="picks-body"></div>
+</div>
+
+<div class="sidebar" id="sb-base">
+  <div class="sidebar-title">
+    <span id="base-title">Основной класс</span>
+    <button class="btn-close-modal" style="position:static" data-act="close-sidebars"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  <div id="base-body"><div class="sidebar-empty">Загрузка…</div></div>
+</div>
+
+<!-- ======== МОДАЛКА АВТОРИЗАЦИИ ======== -->
+<div class="modal-overlay" id="authModal">
+  <div class="panel-outer cut-tl modal-box narrow">
+    <div class="hazard-tape"></div>
+    <div class="panel-inner cut-tl">
+      <button class="btn-close-modal" data-act="close-modal"><i class="fa-solid fa-xmark"></i></button>
+      <div class="card-title" style="margin-bottom:18px">Панель доступа</div>
+      <div id="auth-unlogged">
+        <input type="email" id="auth-email" class="cloud-input" placeholder="Email" autocomplete="username">
+        <input type="password" id="auth-pass" class="cloud-input" placeholder="Пароль" autocomplete="current-password">
+        <button class="action-btn" style="width:100%;margin-bottom:8px" data-act="login"><i class="fa-solid fa-right-to-bracket"></i> Войти</button>
+        <button class="action-btn ghost" style="width:100%" data-act="register"><i class="fa-solid fa-user-plus"></i> Регистрация</button>
+      </div>
+      <div id="auth-logged" style="display:none">
+        <div class="tech-text" style="margin-bottom:4px">Ваш никнейм (отображается как автор)</div>
+        <input type="text" id="auth-nickname" class="cloud-input" placeholder="Никнейм…">
+        <button class="action-btn" style="width:100%;margin-bottom:14px;border-color:var(--color-yellow);color:var(--color-yellow)" data-act="save-nick"><i class="fa-solid fa-floppy-disk"></i> Сохранить никнейм</button>
+        <div id="admin-tools" style="display:none;margin-bottom:14px">
+          <div class="tech-text" style="color:var(--color-yellow);margin-bottom:6px">Администрирование</div>
+          <button class="action-btn ghost" style="width:100%" data-act="migrate"><i class="fa-solid fa-wrench"></i> Проверить записи без флага приватности</button>
+        </div>
+        <button class="action-btn ghost" style="width:100%" data-act="logout"><i class="fa-solid fa-power-off"></i> Выйти</button>
+      </div>
     </div>
+  </div>
+</div>
 
-    <!-- Кнопка на официальную WIKI -->
-    <div class="wiki-section">
-        <a href="https://www.dandwiki.com/wiki/Project_Moon_(5e_Campaign_Setting)" target="_blank" class="official-wiki-btn">
-            <i class="fa-solid fa-globe"></i> ОФИЦИАЛЬНАЯ WIKI МОДУЛЯ D&D 5E
-        </a>
+<!-- ======== МОДАЛКА КОНСТРУКТОРА ======== -->
+<div class="modal-overlay" id="builderModal">
+  <div class="panel-outer cut-tl modal-box">
+    <div class="hazard-tape"></div>
+    <div class="panel-inner cut-tl" style="padding-top:36px">
+      <button class="btn-close-modal" data-act="close-modal"><i class="fa-solid fa-xmark"></i></button>
+      <div class="card-title" id="builder-title" style="margin-bottom:14px;border-bottom:1px solid var(--accent-primary);padding-bottom:8px">Конструктор</div>
+      <div class="tech-text" style="color:var(--color-yellow);margin-bottom:14px">
+        <i class="fa-solid fa-circle-info"></i> Текстовые поля поддерживают Markdown: **жирный**, *курсив*, списки и таблицы.
+      </div>
+      <div id="builder-fields"></div>
+      <div class="check-group" style="margin-top:14px;border-top:1px dashed #333;padding-top:12px">
+        <label class="check-label" style="color:var(--color-red)">
+          <input type="checkbox" id="bf-private"> <i class="fa-solid fa-eye-slash"></i> Сделать запись приватной
+        </label>
+      </div>
+      <div class="b-row">
+        <button class="action-btn" data-act="builder-save"><i class="fa-solid fa-cloud-arrow-up"></i> Сохранить в базу</button>
+        <button class="action-btn ghost" data-act="builder-download"><i class="fa-solid fa-file-export"></i> Скачать JSON</button>
+      </div>
     </div>
+  </div>
+</div>
 
-    <!-- Сетка с локальными базами (8 кнопок) -->
-    <div class="compendium-grid">
-        
-        <!-- 1. Гордыня (Pride) -->
-        <a href="grimoire.html" class="panel-outer cut-tl card-pride">
-            <div class="hazard-tape"></div>
-            <div class="panel-inner cut-tl" style="border-top: none;">
-                <div class="card-header">
-                    <i class="fa-solid fa-book-journal-whills card-icon"></i>
-                    <div class="card-title oswald">ГРИМУАР АРХЕТИПОВ</div>
-                </div>
-                <div class="lore-text" style="margin-bottom: 16px;">
-                    Полный перечень корпоративных, офисных и синдикатных классов.
-                </div>
-                <div class="status-badge">ДОСТУП РАЗРЕШЕН</div>
-            </div>
-        </a>
-
-        <!-- 2. Гнев (Wrath) -->
-        <a href="feats.html" class="panel-outer cut-tl card-wrath">
-            <div class="hazard-tape"></div>
-            <div class="panel-inner cut-tl" style="border-top: none;">
-                <div class="card-header">
-                    <i class="fa-solid fa-dumbbell card-icon"></i>
-                    <div class="card-title oswald">БАЗА ЧЕРТ (FEATS)</div>
-                </div>
-                <div class="lore-text" style="margin-bottom: 16px;">
-                    Архив уникальных пассивных умений, стилей боя и мутаций.
-                </div>
-                <div class="status-badge">ДОСТУП РАЗРЕШЕН</div>
-            </div>
-        </a>
-
-        <!-- 3. Зависть (Envy) -->
-        <a href="equipment.html" class="panel-outer cut-tl card-envy">
-            <div class="hazard-tape"></div>
-            <div class="panel-inner cut-tl" style="border-top: none;">
-                <div class="card-header">
-                    <i class="fa-solid fa-shield-halved card-icon"></i>
-                    <div class="card-title oswald">БАЗА СНАРЯЖЕНИЯ</div>
-                </div>
-                <div class="lore-text" style="margin-bottom: 16px;">
-                    Мастерское оружие, броня, аугментации и импланты.
-                </div>
-                <div class="status-badge">ДОСТУП РАЗРЕШЕН</div>
-            </div>
-        </a>
-
-        <!-- 4. Лень (Sloth) -->
-        <a href="rules.html" class="panel-outer cut-tl card-sloth">
-            <div class="hazard-tape"></div>
-            <div class="panel-inner cut-tl" style="border-top: none;">
-                <div class="card-header">
-                    <i class="fa-solid fa-scale-balanced card-icon"></i>
-                    <div class="card-title oswald">ПРАВИЛА И МЕХАНИКИ</div>
-                </div>
-                <div class="lore-text" style="margin-bottom: 16px;">
-                    Свод правил по Столкновениям (Clashing) и рассудку.
-                </div>
-                <div class="status-badge">ДОСТУП РАЗРЕШЕН</div>
-            </div>
-        </a>
-
-        <!-- 5. Обжорство (Gluttony) -->
-        <a href="bestiary.html" class="panel-outer cut-tl card-gluttony">
-            <div class="hazard-tape"></div>
-            <div class="panel-inner cut-tl" style="border-top: none;">
-                <div class="card-header">
-                    <i class="fa-solid fa-skull card-icon"></i>
-                    <div class="card-title oswald">БЕСТИАРИЙ</div>
-                </div>
-                <div class="lore-text" style="margin-bottom: 16px;">
-                    Архив Аномалий, Искажений и прочих угроз Города.
-                </div>
-                <div class="status-badge">ДОСТУП РАЗРЕШЕН</div>
-            </div>
-        </a>
-
-        <!-- 6. Похоть (Lust) -->
-        <a href="egogifts.html" class="panel-outer cut-tl card-lust">
-            <div class="hazard-tape"></div>
-            <div class="panel-inner cut-tl" style="border-top: none;">
-                <div class="card-header">
-                    <i class="fa-solid fa-gem card-icon"></i>
-                    <div class="card-title oswald">Э.Г.О. ГИФТЫ</div>
-                </div>
-                <div class="lore-text" style="margin-bottom: 16px;">
-                    Каталог проявлений Э.Г.О. и даров Аномалий (E.G.O. Gifts).
-                </div>
-                <div class="status-badge">ДОСТУП РАЗРЕШЕН</div>
-            </div>
-        </a>
-
-        <!-- 7. Уныние (Gloom) -->
-        <a href="statuses.html" class="panel-outer cut-tl card-gloom">
-            <div class="hazard-tape"></div>
-            <div class="panel-inner cut-tl" style="border-top: none;">
-                <div class="card-header">
-                    <i class="fa-solid fa-biohazard card-icon"></i>
-                    <div class="card-title oswald">СТАТУС ЭФФЕКТЫ</div>
-                </div>
-                <div class="lore-text" style="margin-bottom: 16px;">
-                    Подробное описание Кровотечения, Огня, Тремора, Разрыва и прочих.
-                </div>
-                <div class="status-badge">ДОСТУП РАЗРЕШЕН</div>
-            </div>
-        </a>
-
-        <!-- 8. Иное (Other / Emerald) -->
-        <a href="lore.html" class="panel-outer cut-tl card-other">
-            <div class="hazard-tape"></div>
-            <div class="panel-inner cut-tl" style="border-top: none;">
-                <div class="card-header">
-                    <i class="fa-solid fa-hourglass-half card-icon"></i>
-                    <div class="card-title oswald">ВРЕМЯ И ИСТОРИЯ</div>
-                </div>
-                <div class="lore-text" style="margin-bottom: 16px;">
-                    Хронология событий Города, падение корпораций и лор.
-                </div>
-                <div class="status-badge">ДОСТУП РАЗРЕШЕН</div>
-            </div>
-        </a>
-
+<!-- ======== МОДАЛКА ИНСТРУМЕНТОВ (таблица / картинка) ======== -->
+<div class="modal-overlay" id="toolModal">
+  <div class="panel-outer cut-tl modal-box">
+    <div class="hazard-tape"></div>
+    <div class="panel-inner cut-tl" style="padding-top:36px">
+      <button class="btn-close-modal" data-act="close-modal"><i class="fa-solid fa-xmark"></i></button>
+      <div class="card-title" id="tool-title" style="margin-bottom:12px;border-bottom:1px solid var(--accent-primary);padding-bottom:8px">Инструмент</div>
+      <div id="tool-body"></div>
+      <div class="b-row" style="margin-top:16px">
+        <button class="action-btn" data-act="tool-apply"><i class="fa-solid fa-check"></i> Вставить в текст</button>
+        <button class="action-btn ghost" data-act="close-modal">Отмена</button>
+      </div>
     </div>
+  </div>
+</div>
 
-    <!-- Кнопка на Пользовательскую базу (Custom Compendium) -->
-    <div class="wiki-section" style="margin-top: 30px;">
-        <a href="custom.html" class="custom-wiki-btn">
-            <i class="fa-solid fa-users"></i> ПОЛЬЗОВАТЕЛЬСКАЯ БАЗА (CUSTOM COMPENDIUM)
-        </a>
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut }
+  from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, getDocs, collection, deleteDoc, query, where }
+  from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+
+/* ============================================================
+   0. ИНИЦИАЛИЗАЦИЯ
+   ============================================================ */
+const firebaseConfig = {
+  apiKey: "AIzaSyDaFNBCW76UsBnziHoGveo7TcC11uAdmqs",
+  authDomain: "projectmoonchar.firebaseapp.com",
+  projectId: "projectmoonchar",
+  messagingSenderId: "516028417887",
+  appId: "1:516028417887:web:4c0404f653b09ecffb58ea"
+};
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app, "default");
+const COLL = "custom_content";
+
+marked.setOptions({ breaks: true, gfm: true });
+
+/* ============================================================
+   1. ХЕЛПЕРЫ
+   ============================================================ */
+const $  = s => document.querySelector(s);
+const ESC_MAP = { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" };
+const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ESC_MAP[c]);
+/* Картинки в описаниях: [URL], [URL W:400], [URL H:200], [URL W:400 H:200].
+   Без размеров — вписывается в ширину блока с сохранением пропорций. */
+const IMG_TOKEN = /\[\s*([^\s\]<>"'`]+?)((?:\s+[WH]\s*:\s*\d+)*)\s*\]/gi;
+const IMG_OK = /^(https?:\/\/[^\s]+|\/[^\s]*|[\w.\-/]+\.(?:png|jpe?g|gif|webp|svg|avif))$/i;
+function mdImages(src){
+  return String(src).replace(IMG_TOKEN, (whole, url, opts) => {
+    if (!IMG_OK.test(url)) return whole;                 // не ссылка — оставляем текст как есть
+    const w = (/W\s*:\s*(\d+)/i.exec(opts) || [])[1];
+    const h = (/H\s*:\s*(\d+)/i.exec(opts) || [])[1];
+    const attrs = [w ? `width="${w}"` : "", h ? `height="${h}"` : ""].filter(Boolean).join(" ");
+    return `<img class="md-img" loading="lazy" alt="" src="${url.replace(/"/g, "%22")}" ${attrs}>`;
+  });
+}
+const md  = v => DOMPurify.sanitize(marked.parse(mdImages(String(v ?? ""))));
+const arr = v => Array.isArray(v) ? v : (v ? [v] : []);
+
+let toastTimer;
+function toast(msg){
+  const el = $("#toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("show"), 2200);
+}
+async function copyText(text){
+  try { await navigator.clipboard.writeText(text); toast("Скопировано в буфер"); }
+  catch { toast("Не удалось скопировать"); }
+}
+function downloadJson(data, filename){
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type:"application/json" });
+  const url  = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
+
+/* ============================================================
+   2. СЛОВАРИ — единственный источник правды
+   ============================================================ */
+const DICT = {
+  types: {
+    Burn:{name:"Огонь",color:"#C7243A",icon:"Burn.png"},
+    Bleed:{name:"Кровотечение",color:"#E67E22",icon:"Bleed.png"},
+    Tremor:{name:"Тремор",color:"#F1C40F",icon:"Tremor.png"},
+    Rupture:{name:"Разрыв",color:"#40E0D0",icon:"Rupture.png"},
+    Sinking:{name:"Утопание",color:"#45B3CB",icon:"Sinking.png"},
+    Poise:{name:"Уверенность",color:"#1E3A8A",icon:"Poise.png"},
+    Charge:{name:"Заряд",color:"#9B59B6",icon:"Charge.png"},
+    Other:{name:"Иное",color:"#27AE60",icon:"Other.png"},
+    None:{name:"Физические",color:"#696969",icon:"phis.png"}
+  },
+  stats: {
+    Str:{name:"Сила",color:"#C7243A",fa:"fa-hand-fist"}, Dex:{name:"Ловкость",color:"#45B3CB",fa:"fa-feather-pointed"},
+    Con:{name:"Телосложение",color:"#F1C40F",fa:"fa-heart-pulse"}, Int:{name:"Интеллект",color:"#1E3A8A",fa:"fa-brain"},
+    Wis:{name:"Мудрость",color:"#9B59B6",fa:"fa-eye"}, Cha:{name:"Харизма",color:"#E67E22",fa:"fa-comments"},
+    None:{name:"Нет скейлинга",color:"#696969",fa:"fa-ban"}
+  },
+  featBases: {
+    Background:{name:"Предыстория",color:"#696969",fa:"fa-scroll"}, Body:{name:"Тело",color:"#E67E22",fa:"fa-dumbbell"},
+    Mind:{name:"Разум",color:"#1E3A8A",fa:"fa-brain"}, "Martial Arts":{name:"Боевые искусства",color:"#45B3CB",fa:"fa-hand-back-fist"},
+    Affiliation:{name:"Принадлежность",color:"#F1C40F",fa:"fa-building"}, Weapon:{name:"Оружие",color:"#C7243A",fa:"fa-gun"},
+    Status:{name:"Статус",color:"#8FCC2A",fa:"fa-biohazard"}, Sin:{name:"Грех",color:"#45B3CB",fa:"fa-fire"},
+    "Shin and Mang":{name:"Шин и Манг",color:"#D94285",fa:"fa-yin-yang"}, "E.G.O Feats":{name:"Черты Э.Г.О.",color:"#27AE60",fa:"fa-gem"}
+  },
+  itemTypes: {
+    Weapon:{name:"Оружие",color:"#C7243A",fa:"fa-gun"}, Armor:{name:"Броня",color:"#3498DB",fa:"fa-shield-halved"},
+    Mod:{name:"Модификатор",color:"#F1C40F",fa:"fa-microchip"}
+  },
+  rarity: {
+    Common:{name:"Common",color:"#B0B0B0",fa:"fa-circle"}, Uncommon:{name:"Uncommon",color:"#2ECC71",fa:"fa-certificate"},
+    Rare:{name:"Rare",color:"#3498DB",fa:"fa-star"}, "Very Rare":{name:"Very Rare",color:"#9B59B6",fa:"fa-crown"},
+    Legendary:{name:"Legendary",color:"#F1C40F",fa:"fa-fire-flame-curved"}
+  },
+  bestiaryCats: {
+    ZAYIN:{name:"ZAYIN",color:"#27AE60",fa:"fa-seedling"}, TETH:{name:"TETH",color:"#45B3CB",fa:"fa-paw"},
+    HE:{name:"HE",color:"#F1C40F",fa:"fa-spider"}, WAW:{name:"WAW",color:"#9B59B6",fa:"fa-dragon"},
+    ALEPH:{name:"ALEPH",color:"#C7243A",fa:"fa-skull-crossbones"}, City:{name:"Город",color:"#696969",fa:"fa-city"},
+    Distortions:{name:"Искажения",color:"#E0D8C8",fa:"fa-masks-theater"}
+  },
+  giftLevels: { 1:{name:"Уровень I",color:"#B0B0B0",fa:"fa-1"}, 2:{name:"Уровень II",color:"#2ECC71",fa:"fa-2"},
+    3:{name:"Уровень III",color:"#3498DB",fa:"fa-3"}, 4:{name:"Уровень IV",color:"#9B59B6",fa:"fa-4"}, 5:{name:"Уровень V",color:"#F1C40F",fa:"fa-5"} },
+  ruleTags: {
+    sanity:{name:"Рассудок",color:"#45B3CB",fa:"fa-brain"},
+    combat:{name:"Бой",color:"#C7243A",fa:"fa-khanda"},
+    ego:{name:"Э.Г.О.",color:"#D94285",fa:"fa-gem"},
+    anomaly:{name:"Аномалии",color:"#8FCC2A",fa:"fa-bug"},
+    character:{name:"Персонаж",color:"#F1C40F",fa:"fa-user-gear"},
+    homebrew:{name:"Хоумбрю",color:"#27AE60",fa:"fa-flask"}
+  },
+  loreTags: {
+    setting:{name:"Сеттинг",color:"#27AE60",fa:"fa-city"},
+    conflict:{name:"Конфликты",color:"#C7243A",fa:"fa-fire-flame-curved"},
+    faction:{name:"Организации",color:"#45B3CB",fa:"fa-building"},
+    timeline:{name:"Хронология",color:"#F1C40F",fa:"fa-hourglass-half"},
+    people:{name:"Личности",color:"#9B59B6",fa:"fa-user-secret"}
+  }
+};
+const ROMAN = ["I","II","III","IV","V"];
+const roman = n => ROMAN[Number(n)-1] || n;
+
+/* ---- Общие кусочки разметки ---- */
+function iconFor(c){
+  if (c.icon) return `<img src="${esc(c.icon)}" class="type-icon" alt="" onerror="this.style.display='none'">`;
+  if (c.fa)   return `<i class="fa-solid ${esc(c.fa)}"></i>`;
+  return "";
+}
+function badges(values, dictName, extraClass=""){
+  const d = DICT[dictName] || {};
+  return arr(values).map(k => {
+    const c = d[k] || { name:k, color:"var(--text-dim)" };
+    return `<div class="badge ${extraClass}" style="color:${esc(c.color)};border-color:${esc(c.color)}">${iconFor(c)}${esc(c.name)}</div>`;
+  }).join("");
+}
+function subBlock(name, desc, color, level, open){
+  return `<div class="sub-block${open?"":" collapsed"}" data-act="toggle-sub" style="border-left-color:${esc(color||"var(--accent-primary)")}">
+    <div class="sub-head">
+      <div class="sub-head-left">
+        <i class="fa-solid fa-chevron-down sub-icon"></i>
+        <span class="sub-name" style="color:${esc(color||"var(--accent-primary)")}">${esc(name)}</span>
+        ${level!=null && level!=="" ? `<span class="sub-level">Ур. ${esc(level)}</span>` : ""}
+      </div>
     </div>
+    <div class="sub-desc-wrap"><div class="sub-desc md">${md(desc)}</div></div>
+  </div>`;
+}
+const statGrid = s => `<div class="stat-grid">${["STR","DEX","CON","INT","WIS","CHA"]
+  .map(k => `<div class="stat-col"><span class="stat-name">${k}</span><span class="stat-val">${esc(s?.[k] ?? "-")}</span></div>`).join("")}</div>`;
 
+/* ---- Текстовые категории (Правила, Лор): общий рендер ---- */
+function textCard(dictName){
+  return function(it){
+    let body = it.Intro ? `<div class="md" style="margin-bottom:12px">${md(it.Intro)}</div>` : "";
+    body += arr(it.Blocks).map(b =>
+      subBlock(b.Title + (b.Date ? ` · ${b.Date}` : ""), b.Body, "var(--accent-primary)", null, true)).join("");
+    return {
+      icon: it.Icon,
+      meta: it.Sub ? esc(it.Sub) : "", metaBelow: true,
+      title: it.Name,
+      badges: badges(it.Tags, dictName) + (it.Date ? `<div class="badge" style="color:var(--text-dim);border-color:var(--text-dim)"><i class="fa-solid fa-clock"></i>${esc(it.Date)}</div>` : ""),
+      body: body || `<div class="sidebar-empty">Текст не заполнен.</div>`
+    };
+  };
+}
+function textPlain(it){
+  let s = `=== ${it.Name} ===\n`;
+  if (it.Date) s += `${it.Date}\n`;
+  if (it.Sub) s += `${it.Sub}\n`;
+  if (it.Intro) s += `\n${it.Intro}\n`;
+  arr(it.Blocks).forEach(b => s += `\n--- ${b.Title}${b.Date ? " · " + b.Date : ""} ---\n${b.Body}\n`);
+  return s;
+}
+const textBuilder = dictName => ([
+  { t:"row", of:[
+    { t:"text", k:"Name", label:"Название раздела", flex:3 },
+    { t:"text", k:"Icon", label:"Иконка Font Awesome", ph:"fa-brain" }
+  ]},
+  { t:"text", k:"Sub", label:"Короткое описание (видно на свёрнутой карточке)" },
+  { t:"text", k:"Date", label:"Дата / период (необязательно)", ph:"Завершена ~ 974 г.", nullable:true },
+  { t:"checks", k:"Tags", dict:dictName, label:"Метки" },
+  { t:"md", k:"Intro", label:"Вступление" },
+  { t:"repeat", k:"Blocks", label:"Блоки текста", sub:[
+    { t:"text", k:"Title", label:"Заголовок блока", flex:3 },
+    { t:"text", k:"Date", label:"Дата" },
+    { t:"md", k:"Body", label:"Текст блока" }
+  ]}
+]);
+
+/* ============================================================
+   3. КОНФИГ КАТЕГОРИЙ
+   Добавить новую категорию = добавить объект сюда.
+   ============================================================ */
+const CATS = {
+  classes: {
+    label:"Архетипы", icon:"fa-book-journal-whills", color:"#1E3A8A", kind:"data",
+    title:"База данных: архетипы и классы", customType:"class", badgeModes:true,
+    systems:{
+      fixer:      { label:"Фиксер",  list:"classes.json",  base:"fixer.json",      baseTitle:"Фиксер (основной класс)" },
+      bloodfiend: { label:"Кровосос", list:"bloodarch.json", base:"bloodfiend.json", baseTitle:"Первородный кровосос (основной класс)" }
+    },
+    filters:[
+      { key:"Type",  title:"Типы эффектов",  dict:"types", mode:"types" },
+      { key:"Stats", title:"Характеристики", dict:"stats", mode:"stats" }
+    ],
+    sort:(a,b)=>(a.No??9999)-(b.No??9999) || String(a.Name).localeCompare(String(b.Name)),
+    card(it){
+      return {
+        title: it.Name,
+        badges: badges(it.Type,"types","badge-type") + badges(it.Stats,"stats","badge-stat"),
+        body: (it.Desc ? `<div class="card-desc md">${md(it.Desc)}</div>` : "")
+              + (arr(it.Talents).length
+                  ? (it.Desc ? `<div class="section-sub" style="color:var(--accent-primary)">Способности</div>` : "")
+                    + arr(it.Talents).map(t => subBlock(t.name, t.desc, t.Color||t.color, t.level)).join("")
+                  : `<div class="sidebar-empty">Способности не указаны.</div>`)
+      };
+    },
+    plain(it){
+      let s = `=== ${it.Name} ===\nТипы: ${arr(it.Type).join(", ")} | Статы: ${arr(it.Stats).join(", ")}\n`;
+      if (it.Desc) s += `\n${it.Desc}\n`;
+      arr(it.Talents).forEach(t => s += `\n[Ур. ${t.level}] ${t.name}\n${t.desc}\n`);
+      return s;
+    },
+    builder:[
+      { t:"text", k:"Name", label:"Название архетипа", ph:"Например: Агент R-Corp" },
+      { t:"checks", k:"Type", dict:"types", label:"Типы урона / статуса" },
+      { t:"checks", k:"Stats", dict:"stats", label:"Характеристики" },
+      { t:"md", k:"Desc", label:"Описание архетипа (показывается над способностями)" },
+      { t:"repeat", k:"Talents", label:"Таланты", sub:[
+        { t:"text", k:"name", label:"Название", flex:2 },
+        { t:"num", k:"level", label:"Уровень", def:1 },
+        { t:"text", k:"Color", label:"HEX цвет" },
+        { t:"md", k:"desc", label:"Описание" }
+      ]}
+    ]
+  },
+
+  feats: {
+    label:"Черты", icon:"fa-dumbbell", color:"#C7243A", kind:"data",
+    title:"База данных: черты (feats)", customType:"feat", src:"feats.json",
+    filters:[ { key:"Base", title:"Базовые категории", dict:"featBases" } ],
+    sort:(a,b)=>String(a.Name).localeCompare(String(b.Name)),
+    card(it){
+      return {
+        title: it.Name,
+        badges: badges(it.Base,"featBases"),
+        body: (it.Need ? `<div class="req-text">Требования: ${esc(it.Need)}</div>` : "") + `<div class="md">${md(it.desc)}</div>`
+      };
+    },
+    plain: it => `=== ${it.Name} ===\n${it.Need ? `Требования: ${it.Need}\n` : ""}Категории: ${arr(it.Base).join(", ")}\n\n${it.desc||""}`,
+    builder:[
+      { t:"text", k:"Name", label:"Название черты", ph:"Например: Железная хватка" },
+      { t:"text", k:"Need", label:"Требования", ph:"Например: Сила 16 (пусто — если нет)", nullable:true },
+      { t:"checks", k:"Base", dict:"featBases", label:"Категории" },
+      { t:"md", k:"desc", label:"Описание черты" }
+    ]
+  },
+
+  equipment: {
+    label:"Снаряжение", icon:"fa-shield-halved", color:"#9B59B6", kind:"data",
+    title:"База снаряжения (equipment)", customType:"equip", src:"equipment.json",
+    sub:"Мастерские, аугментации, налоги и арсенал Фиксеров.",
+    article:{ label:"Лор и правила", src:"equipment.html", pick:"#tab-lore" },
+    filters:[
+      { key:"ItemType", title:"Тип предмета", dict:"itemTypes" },
+      { key:"Type", title:"Типы урона (для оружия)", dict:"types" },
+      { key:"Stats", title:"Скейлинг", dict:"stats" },
+      { key:"Rarity", title:"Редкость", dict:"rarity" }
+    ],
+    sort:(a,b)=>(a.Level??0)-(b.Level??0) || String(a.Name).localeCompare(String(b.Name)),
+    card(it){
+      const r = DICT.rarity[it.Rarity] || { color:"var(--text-main)" };
+      return {
+        meta:`<span style="color:${esc(r.color)}">${esc(it.Rarity||"")}</span>`,
+        level:`Уровень ${esc(it.Level ?? "-")}`,
+        title: it.Name,
+        badges: badges(it.ItemType,"itemTypes") + (it.IsEGO ? `<div class="badge" style="color:#D94285;border-color:#D94285">Э.Г.О.</div>` : "")
+                + badges(it.Type,"types") + badges(it.Stats,"stats"),
+        body:(it.Need ? `<div class="req-text">Требования: ${esc(it.Need)}</div>` : "") + `<div class="md">${md(it.Desc)}</div>`
+      };
+    },
+    plain: it => `=== ${it.Name} ===\n[Ур. ${it.Level} | ${it.Rarity}] ${it.ItemType}${it.IsEGO?" | Э.Г.О.":""}\n`
+      + (it.Need ? `Требования: ${it.Need}\n` : "") + `Скейлинг: ${arr(it.Stats).join(", ")}\n\n${it.Desc||""}`,
+    builder:[
+      { t:"text", k:"Name", label:"Название", ph:"Например: Solemn Lament" },
+      { t:"row", of:[
+        { t:"num", k:"Level", label:"Уровень", def:1 },
+        { t:"select", k:"ItemType", label:"Тип предмета", opts:{ Weapon:"Оружие", Armor:"Броня", Mod:"Мод / Аугмент" } },
+        { t:"select", k:"Rarity", label:"Редкость", opts:{ Common:"Common", Uncommon:"Uncommon", Rare:"Rare", "Very Rare":"Very Rare", Legendary:"Legendary" } }
+      ]},
+      { t:"bool", k:"IsEGO", label:"Является Э.Г.О. экипировкой" },
+      { t:"text", k:"Need", label:"Требования", ph:"Например: Сила 15", nullable:true },
+      { t:"checks", k:"Type", dict:"types", label:"Типы урона (для оружия)" },
+      { t:"checks", k:"Stats", dict:"stats", label:"Скейлинг" },
+      { t:"md", k:"Desc", label:"Описание" }
+    ]
+  },
+
+  rules: {
+    label:"Правила", icon:"fa-scale-balanced", color:"#F1C40F", kind:"data",
+    title:"Правила и механики (вариантные)", customType:"rule", src:"rules.json",
+    sub:"Ни одно из этих правил не обязательно, но все они рекомендуются для полного погружения. С разрешения ДМа.",
+    filters:[ { key:"Tags", title:"Метки", dict:"ruleTags" } ],
+    card: textCard("ruleTags"), plain: textPlain, builder: textBuilder("ruleTags")
+  },
+
+  bestiary: {
+    label:"Бестиарий", icon:"fa-skull", color:"#8FCC2A", kind:"data",
+    title:"Бестиарий Города", customType:"bestiary", src:"bestiary.json",
+    filters:[ { key:"Category", title:"Уровень угрозы", dict:"bestiaryCats" } ],
+    sort:(a,b)=>String(a.Name).localeCompare(String(b.Name)),
+    card(it){
+      const opt = (lbl,val) => val ? `<div class="stat-line"><strong>${lbl}:</strong> ${esc(val)}</div>` : "";
+      let body = `<div class="stat-line"><strong>КД:</strong> ${esc(it.ArmorClass||"-")}</div>
+        <div class="stat-line"><strong>Хиты:</strong> ${esc(it.HitPoints||"-")}</div>
+        <div class="stat-line"><strong>Скорость:</strong> ${esc(it.Speed||"-")}</div>
+        ${statGrid(it.Stats)}
+        ${opt("Спасброски",it.SavingThrows)}${opt("Навыки",it.Skills)}${opt("Чувства",it.Senses)}
+        ${opt("Языки",it.Languages)}${opt("Опасность (CR)",it.Challenge)}`;
+      if (arr(it.Traits).length)
+        body += `<div class="section-sub" style="color:var(--color-yellow)">Особенности</div>`
+             + arr(it.Traits).map(t => subBlock(t.name, t.desc, "var(--color-yellow)")).join("");
+      if (arr(it.Actions).length)
+        body += `<div class="section-sub" style="color:var(--color-red)">Действия</div>`
+             + arr(it.Actions).map(a => subBlock(a.name, a.desc, "var(--color-red)")).join("");
+      if (it.Lore)
+        body += `<div class="md" style="margin-top:14px;border-top:1px dashed #333;padding-top:14px">${md(it.Lore)}</div>`;
+      return { title:it.Name, meta:esc(it.Meta||""), metaItalic:true, metaBelow:true, badges:badges(it.Category,"bestiaryCats"), body };
+    },
+    plain(it){
+      const s = it.Stats || {};
+      let out = `=== ${it.Name} ===\n${it.Meta||""}\nКД: ${it.ArmorClass} | ХП: ${it.HitPoints} | Скорость: ${it.Speed}\n`
+        + `STR ${s.STR}, DEX ${s.DEX}, CON ${s.CON}, INT ${s.INT}, WIS ${s.WIS}, CHA ${s.CHA}\n`;
+      arr(it.Traits).forEach(t => out += `\n${t.name}. ${t.desc}`);
+      if (arr(it.Actions).length){ out += `\n\nДЕЙСТВИЯ:`; arr(it.Actions).forEach(a => out += `\n${a.name}. ${a.desc}`); }
+      if (it.Lore) out += `\n\nЛОР:\n${it.Lore}`;
+      return out;
+    },
+    builder:[
+      { t:"row", of:[ { t:"text", k:"Name", label:"Имя монстра" }, { t:"text", k:"Meta", label:"Мета", ph:"Средняя нежить, хаотично-злая" } ]},
+      { t:"checks", k:"Category", dict:"bestiaryCats", label:"Уровень угрозы" },
+      { t:"row", of:[ { t:"text", k:"ArmorClass", label:"КД" }, { t:"text", k:"HitPoints", label:"Хиты" }, { t:"text", k:"Speed", label:"Скорость" } ]},
+      { t:"stats6", k:"Stats", label:'Характеристики — формат "10 (+0)"' },
+      { t:"row", of:[ { t:"text", k:"SavingThrows", label:"Спасброски" }, { t:"text", k:"Skills", label:"Навыки" } ]},
+      { t:"row", of:[ { t:"text", k:"Senses", label:"Чувства" }, { t:"text", k:"Languages", label:"Языки" }, { t:"text", k:"Challenge", label:"Опасность / XP" } ]},
+      { t:"repeat", k:"Traits", label:"Особенности", sub:[ { t:"text", k:"name", label:"Название" }, { t:"md", k:"desc", label:"Описание" } ]},
+      { t:"repeat", k:"Actions", label:"Действия", sub:[ { t:"text", k:"name", label:"Название" }, { t:"md", k:"desc", label:"Описание" } ]},
+      { t:"md", k:"Lore", label:"Лор и описание" }
+    ]
+  },
+
+  gifts: {
+    label:"Э.Г.О. Гифты", icon:"fa-gem", color:"#E67E22", kind:"data",
+    title:"База данных: Э.Г.О. гифты", customType:"gift", src:"egogifts.json",
+    filters:[
+      { key:"Type", title:"Типы эффектов", dict:"types" },
+      { key:"Level", title:"Уровень", dict:"giftLevels" }
+    ],
+    sort:(a,b)=>(a.Level??0)-(b.Level??0) || String(a.Name).localeCompare(String(b.Name)),
+    card:it => ({
+      level:`Уровень ${roman(it.Level)}`,
+      title: it.Name,
+      badges: badges(it.Type,"types"),
+      body:`<div class="md">${md(it.Description)}</div>`
+    }),
+    plain: it => `=== ${it.Name} ===\n[Ур. ${roman(it.Level)}] Типы: ${arr(it.Type).join(", ")}\n\n${it.Description||""}`,
+    builder:[
+      { t:"row", of:[
+        { t:"text", k:"Name", label:"Название", ph:"Например: Blood-stained Gossypium", flex:3 },
+        { t:"select", k:"Level", label:"Уровень", opts:{1:"I",2:"II",3:"III",4:"IV",5:"V"}, num:true }
+      ]},
+      { t:"checks", k:"Type", dict:"types", label:"Тип урона / статуса" },
+      { t:"md", k:"Description", label:"Описание" }
+    ]
+  },
+
+  statuses: {
+    label:"Статус-эффекты", icon:"fa-biohazard", color:"#45B3CB", kind:"data",
+    title:"База данных: статус-эффекты", customType:"status", src:"statuses.json",
+    filters:[],
+    sort:(a,b)=>String(a.Name).localeCompare(String(b.Name)),
+    card:it => ({
+      title: it.Name,
+      badges:"",
+      body:`<div class="md" style="margin-bottom:12px"><b>Эффект:</b><br>${md(it.Effect)}</div>`
+        + arr(it.SideEffects).map(se => subBlock(se.sideeffectname, se.sideeffect, "var(--color-yellow)")).join("")
+    }),
+    plain(it){
+      let s = `=== ${it.Name} ===\n${it.Effect||""}\n`;
+      if (arr(it.SideEffects).length){
+        s += `\n--- Сайд-эффекты ---\n`;
+        arr(it.SideEffects).forEach(se => s += `* ${se.sideeffectname}:\n${se.sideeffect}\n\n`);
+      }
+      return s;
+    },
+    builder:[
+      { t:"text", k:"Name", label:"Название статуса", ph:"Например: Tremor (Тремор)" },
+      { t:"md", k:"Effect", label:"Базовый эффект" },
+      { t:"repeat", k:"SideEffects", label:"Сайд-эффекты", sub:[
+        { t:"text", k:"sideeffectname", label:"Название" }, { t:"md", k:"sideeffect", label:"Описание" }
+      ]}
+    ]
+  },
+
+  lore: {
+    label:"Время и история", icon:"fa-hourglass-half", color:"#27AE60", kind:"data",
+    title:"Время и история (лор)", customType:"lore", src:"lore.json",
+    sub:"Хронология событий Города, падение корпораций и устройство мира.",
+    filters:[ { key:"Tags", title:"Метки", dict:"loreTags" } ],
+    card: textCard("loreTags"), plain: textPlain, builder: textBuilder("loreTags")
+  }
+};
+const CAT_BY_CUSTOM = Object.fromEntries(
+  Object.entries(CATS).filter(([,c]) => c.customType).map(([id,c]) => [c.customType, id])
+);
+
+/* ============================================================
+   4. СОСТОЯНИЕ
+   ============================================================ */
+const PICK_KEY = "pm_compendium_picks_v1";
+const state = {
+  cat: "classes",
+  system: "fixer",
+  source: "canon",          // canon | custom | all
+  badgeMode: "types",       // types | stats — только для Архетипов
+  subtab: "data",           // data | article
+  search: "",
+  filters: {},              // {filterKey: Set}
+  canonCache: {},           // filename -> array
+  customCache: null,        // array of normalized custom items
+  customLoaded: false,
+  picks: [],
+  user: null,
+  isAdmin: false,
+  editId: null
+};
+try { state.picks = JSON.parse(localStorage.getItem(PICK_KEY) || "[]"); } catch { state.picks = []; }
+const savePicks = () => { try { localStorage.setItem(PICK_KEY, JSON.stringify(state.picks)); } catch {} };
+
+const catCfg = () => CATS[state.cat];
+const uidOf = (catId, it) => it.__origin === "custom"
+  ? `${catId}:c:${it.__id}`
+  : `${catId}:k:${it.__sys ? it.__sys + ":" : ""}${it.Name}`;
+
+/* ============================================================
+   5. ЗАГРУЗКА ДАННЫХ
+   ============================================================ */
+async function loadJson(file){
+  if (state.canonCache[file]) return state.canonCache[file];
+  const res = await fetch(file);
+  if (!res.ok) throw new Error(`Файл ${file} не найден`);
+  const data = await res.json();
+  const list = (Array.isArray(data) ? data : [data]).map(x => ({ ...x, __origin:"canon" }));
+  state.canonCache[file] = list;
+  return list;
+}
+
+async function loadCustom(force=false){
+  if (state.customLoaded && !force) return state.customCache;
+  const seen = new Map();
+  const push = snap => snap.forEach(d => {
+    const raw = d.data();
+    seen.set(d.id, {
+      ...(raw.data || {}),
+      __origin:"custom", __id:d.id, __type:raw.type,
+      __creator:raw.creator || "—", __owner:raw.creatorEmail || "", __private:!!raw.isPrivate
+    });
+  });
+  try {
+    if (state.isAdmin){
+      push(await getDocs(collection(db, COLL)));            // админ видит всё
+    } else {
+      push(await getDocs(query(collection(db, COLL), where("isPrivate","==",false))));
+      if (state.user)
+        push(await getDocs(query(collection(db, COLL), where("creatorEmail","==",state.user.email))));
+    }
+    state.customCache = [...seen.values()];
+    state.customLoaded = true;
+  } catch(e){
+    console.error(e);
+    state.customCache = [];
+    state.customLoaded = true;
+    toast("Не удалось прочитать пользовательскую базу");
+  }
+  return state.customCache;
+}
+
+async function currentItems(){
+  const c = catCfg();
+  let canon = [], custom = [];
+  if (state.source !== "custom"){
+    try {
+      if (c.systems) canon = (await loadJson(c.systems[state.system].list)).map(x => ({ ...x, __sys:state.system }));
+      else if (c.src) canon = await loadJson(c.src);
+    } catch(e){ canon = []; throw e; }
+  }
+  if (state.source !== "canon" && c.customType){
+    const all = await loadCustom();
+    custom = all.filter(x => x.__type === c.customType);
+  }
+  return [...canon, ...custom].sort(c.sort || ((a,b)=>0));
+}
+
+/* ============================================================
+   6. КАТЕГОРИИ И ТЕМА
+   ============================================================ */
+function renderTabs(){
+  $("#cat-tabs").innerHTML = Object.entries(CATS).map(([id,c]) =>
+    `<button class="cat-btn${id===state.cat?" active":""}" data-act="set-cat" data-cat="${id}"
+       style="${id===state.cat?`background:${c.color};border-color:${c.color}`:""}">
+       <i class="fa-solid ${c.icon}"></i> ${esc(c.label)}</button>`).join("");
+}
+function applyTheme(color){
+  const root = document.documentElement.style;
+  root.setProperty("--accent-primary", color);
+  root.setProperty("--accent-muted", color + "55");
+}
+async function setCategory(id){
+  state.cat = id;
+  state.search = "";
+  state.filters = {};
+  state.subtab = "data";
+  const c = catCfg();
+  applyTheme(c.color);
+  renderTabs();
+  $("#page-title").textContent = c.title;
+  $("#page-sub").textContent = c.sub || "";
+  $("#system-select").style.display = c.systems ? "" : "none";
+  $("#btn-base").style.display = c.systems ? "" : "none";
+  $("#src-switch").style.visibility = c.kind === "data" ? "visible" : "hidden";
+  renderSubtabs();
+  if (c.systems) loadBase();
+  await renderView();
+}
+function renderSubtabs(){
+  const c = catCfg(), el = $("#subtabs");
+  if (c.kind === "data" && c.article){
+    el.style.display = "flex";
+    el.innerHTML = `<button class="subtab${state.subtab==="data"?" active":""}" data-act="set-subtab" data-sub="data">База данных</button>
+      <button class="subtab${state.subtab==="article"?" active":""}" data-act="set-subtab" data-sub="article">${esc(c.article.label)}</button>`;
+  } else el.style.display = "none";
+}
+
+/* ============================================================
+   7. ФИЛЬТРЫ
+   ============================================================ */
+function renderFilters(){
+  const c = catCfg();
+  let html = `<div class="search-wrapper cut-tl"><div class="search-inner cut-tl">
+      <i class="fa-solid fa-magnifying-glass search-icon"></i>
+      <input type="text" id="search-input" class="search-input" value="${esc(state.search)}"
+             placeholder="Поиск по названию и описанию…">
+    </div></div>`;
+  (c.filters || []).forEach(f => {
+    if (f.mode && c.badgeModes && f.mode !== state.badgeMode) return;
+    const sel = state.filters[f.key] || new Set();
+    html += `<div class="filter-group-title">${esc(f.title)}
+        <span class="filter-hint">несколько значений — «или»; разные группы — «и»</span></div>
+      <div class="type-filters">
+        <button class="filter-btn${sel.size===0?" active":""}" data-act="clear-filter" data-key="${esc(f.key)}"
+          style="${sel.size===0?"border-color:var(--accent-primary);color:var(--accent-primary)":""}">Все</button>`;
+    Object.entries(DICT[f.dict]).forEach(([k,d]) => {
+      const on = sel.has(k);
+      html += `<button class="filter-btn${on?" active":""}" data-act="toggle-filter" data-key="${esc(f.key)}" data-val="${esc(k)}"
+        style="${on?`border-color:${esc(d.color)};color:${esc(d.color)}`:""}">${iconFor(d)} ${esc(d.name)}</button>`;
+    });
+    html += `</div>`;
+  });
+  $("#filters").innerHTML = html;
+}
+function matches(it){
+  const c = catCfg();
+  for (const f of (c.filters || [])){
+    const sel = state.filters[f.key];
+    if (!sel || sel.size === 0) continue;
+    const vals = arr(it[f.key]).map(String);
+    if (!vals.some(v => sel.has(v))) return false;
+  }
+  if (state.search){
+    const q = state.search.toLowerCase();
+    const hay = (String(it.Name || "") + " " + (c.plain ? c.plain(it) : "")).toLowerCase();
+    if (!hay.includes(q)) return false;
+  }
+  return true;
+}
+
+/* ============================================================
+   8. РЕНДЕР КАРТОЧЕК
+   ============================================================ */
+function canManage(it){
+  return it.__origin === "custom" && state.user &&
+         (state.isAdmin || it.__owner === state.user.email);
+}
+function cardHtml(it){
+  const c = catCfg(), v = c.card(it), uid = uidOf(state.cat, it);
+  const picked = state.picks.some(p => p.uid === uid);
+  const metaHtml = v.meta ? `<div class="card-meta${v.metaItalic?" italic":""}">${v.meta}</div>` : "";
+  const titleIcon = v.icon ? `<i class="fa-solid ${esc(v.icon)}" style="margin-right:8px;opacity:.85"></i>` : "";
+  const left = [
+    v.level ? `<div class="level-badge">${v.level}</div>` : "",
+    v.metaBelow ? "" : metaHtml,
+    `<div class="card-title">${titleIcon}${esc(v.title)}</div>`,
+    v.metaBelow ? metaHtml : ""
+  ].join("");
+  const origin = (state.source === "all" && it.__origin === "custom")
+    ? `<div class="badge badge-origin"><i class="fa-solid fa-users"></i> Пользовательское</div>` : "";
+  const priv = it.__private ? `<div class="badge badge-private"><i class="fa-solid fa-lock"></i> Приватно</div>` : "";
+
+  let ctrl = `<button class="ctrl-btn ctrl-pick${picked?" on":""}" data-act="pick" data-uid="${esc(uid)}">
+      <i class="fa-regular ${picked?"fa-square-check":"fa-square"}"></i> ${picked?"Выбрано":"Выбрать"}</button>
+    <button class="ctrl-btn ctrl-copy" data-act="copy-item" data-uid="${esc(uid)}"><i class="fa-regular fa-copy"></i> Текст</button>
+    <button class="ctrl-btn ctrl-dl" data-act="dl-item" data-uid="${esc(uid)}"><i class="fa-solid fa-download"></i> JSON</button>`;
+  if (canManage(it)) ctrl += `
+    <button class="ctrl-btn ctrl-priv" data-act="toggle-priv" data-uid="${esc(uid)}" title="Скрыть/показать"><i class="fa-solid ${it.__private?"fa-eye":"fa-eye-slash"}"></i></button>
+    <button class="ctrl-btn ctrl-edit" data-act="edit-item" data-uid="${esc(uid)}"><i class="fa-solid fa-pen"></i></button>
+    <button class="ctrl-btn ctrl-del" data-act="del-item" data-uid="${esc(uid)}"><i class="fa-solid fa-trash"></i></button>`;
+
+  return `<div class="panel-outer cut-tl card" data-uid="${esc(uid)}">
+    <div class="hazard-tape"></div>
+    <div class="panel-inner cut-tl" style="border-top:none">
+      <div class="card-head" data-act="toggle-card">
+        <i class="fa-solid fa-chevron-down expand-icon"></i>
+        <div class="card-title-row">
+          <div style="display:flex;flex-direction:column;min-width:0">${left}</div>
+          </div>
+        ${(v.badges || origin || priv) ? `<div class="badges">${origin}${priv}${v.badges}</div>` : ""}
+      </div>
+      <div class="card-body"><div class="card-body-inner">
+        ${v.body}
+        ${it.__origin === "custom" ? `<div class="creator-tag">Автор: ${esc(it.__creator)}</div>` : ""}
+        <div class="card-controls">${ctrl}</div>
+      </div></div>
+    </div>
+  </div>`;
+}
+
+let visible = [];
+async function renderView(){
+  const c = catCfg();
+  const dataView = $("#data-view"), artView = $("#article-view");
+  const showArticle = c.kind === "article" || state.subtab === "article";
+  dataView.style.display = showArticle ? "none" : "";
+  artView.style.display  = showArticle ? "flex" : "none";
+  if (showArticle) return renderArticle(c.article);
+
+  const modeToggle = c.badgeModes ? `
+    <label class="mode-toggle" title="Показывать характеристики вместо типов эффектов">
+      <input type="checkbox" id="badge-mode" ${state.badgeMode==="stats"?"checked":""}> Режим характеристик
+    </label>` : "";
+  $("#action-bar").innerHTML = (c.customType ? `
+    <button class="action-btn" data-act="new-entry"><i class="fa-solid fa-plus"></i> Создать запись</button>
+    <label class="action-btn ghost" style="cursor:pointer">
+      <i class="fa-solid fa-file-import"></i> Загрузить JSON
+      <input type="file" id="json-upload" accept=".json" style="display:none">
+    </label>` : "") + modeToggle;
+  renderFilters();
+  await renderGrid();
+}
+
+async function renderGrid(){
+  const c = catCfg(), grid = $("#grid");
+  grid.innerHTML = `<div class="notice">Установка соединения с базой данных…</div>`;
+  let items;
+  try { items = await currentItems(); }
+  catch(e){
+    grid.innerHTML = `<div class="notice error">Ошибка связи с базой данных.<br><span style="font-size:.8rem;color:var(--text-dim)">${esc(e.message)}</span></div>`;
+    $("#result-count").textContent = "";
+    return;
+  }
+  visible = items.filter(matches);
+  $("#result-count").textContent = `Показано ${visible.length} из ${items.length}`;
+  grid.innerHTML = visible.length
+    ? visible.map(cardHtml).join("")
+    : `<div class="notice">Подходящие записи не найдены</div>`;
+}
+
+const findItem = uid => visible.find(i => uidOf(state.cat, i) === uid);
+
+/* ============================================================
+   9. СТАТЬИ (rules / lore / лор снаряжения)
+   Контент берётся из исходных страниц — без дублирования текста.
+   ============================================================ */
+const articleCache = {};
+async function renderArticle(a){
+  const host = $("#article-view");
+  if (articleCache[a.src + a.pick]){ host.innerHTML = articleCache[a.src + a.pick]; return; }
+  host.innerHTML = `<div class="notice">Загрузка материала…</div>`;
+  try {
+    const res = await fetch(a.src);
+    if (!res.ok) throw new Error(`${a.src} недоступен`);
+    const dom  = new DOMParser().parseFromString(await res.text(), "text/html");
+    const node = dom.querySelector(a.pick);
+    if (!node) throw new Error(`Блок ${a.pick} не найден в ${a.src}`);
+    articleCache[a.src + a.pick] = node.innerHTML;
+    host.innerHTML = node.innerHTML;
+  } catch(e){
+    host.innerHTML = `<div class="notice error">Не удалось загрузить материал.<br>
+      <span style="font-size:.8rem;color:var(--text-dim)">${esc(e.message)}</span><br>
+      <a href="${esc(a.src)}" class="tb-btn" style="display:inline-flex;margin-top:12px">Открыть страницу напрямую</a></div>`;
+  }
+}
+
+/* ============================================================
+   10. СБОРКА (выбранные элементы)
+   ============================================================ */
+function cleanCopy(it){
+  const o = {};
+  for (const k in it) if (!k.startsWith("__")) o[k] = it[k];
+  return o;
+}
+function togglePick(uid){
+  const i = state.picks.findIndex(p => p.uid === uid);
+  if (i >= 0){ state.picks.splice(i,1); toast("Убрано из сборки"); }
+  else {
+    const it = findItem(uid);
+    if (!it) return;
+    state.picks.push({ uid, cat:state.cat, name:it.Name, origin:it.__origin, data:cleanCopy(it) });
+    toast("Добавлено в сборку");
+  }
+  savePicks(); renderPicks();
+  document.querySelectorAll(`[data-act="pick"][data-uid="${CSS.escape(uid)}"]`).forEach(b => {
+    const on = state.picks.some(p => p.uid === uid);
+    b.classList.toggle("on", on);
+    b.innerHTML = `<i class="fa-regular ${on?"fa-square-check":"fa-square"}"></i> ${on?"Выбрано":"Выбрать"}`;
+  });
+}
+function pickPlain(p){
+  const c = CATS[p.cat];
+  return c && c.plain ? c.plain(p.data) : `=== ${p.name} ===`;
+}
+function renderPicks(){
+  $("#pick-count").textContent = state.picks.length;
+  const body = $("#picks-body");
+  if (!state.picks.length){
+    body.innerHTML = `<div class="sidebar-empty">Пока ничего не выбрано.<br><br>
+      Нажмите «Выбрать» на любой карточке — архетипе, черте, предмете, статусе — и элемент осядет здесь.
+      Сборка хранится в этом браузере и переживает перезагрузку страницы.</div>`;
+    return;
+  }
+  const byCat = {};
+  state.picks.forEach(p => (byCat[p.cat] = byCat[p.cat] || []).push(p));
+  body.innerHTML = Object.entries(byCat).map(([cat, list]) => {
+    const c = CATS[cat];
+    return `<div class="sidebar-h2" style="color:${esc(c.color)}"><i class="fa-solid ${c.icon}"></i> ${esc(c.label)}</div>`
+      + list.map(p => {
+        const v = c.card(p.data);
+        return `<div class="pick-entry card" style="border-left-color:${esc(c.color)}">
+          <div class="pick-top">
+            <div class="pick-name" data-act="toggle-card" style="cursor:pointer;flex:1">
+              <i class="fa-solid fa-chevron-down sub-icon"></i> ${esc(p.name)}</div>
+            <div class="pick-actions">
+              <button class="mini-btn" data-act="pick-copy" data-uid="${esc(p.uid)}">Копировать</button>
+              <button class="mini-btn danger" data-act="pick-remove" data-uid="${esc(p.uid)}">Убрать</button>
+            </div>
+          </div>
+          <div class="card-body"><div class="card-body-inner" style="padding-top:10px">${v.body}</div></div>
+        </div>`;
+      }).join("");
+  }).join("");
+}
+
+/* ============================================================
+   11. ОСНОВА КЛАССА (сайдбар для Архетипов)
+   ============================================================ */
+async function loadBase(){
+  const c = catCfg();
+  if (!c.systems) return;
+  const sys = c.systems[state.system];
+  $("#base-title").textContent = sys.baseTitle;
+  const box = $("#base-body");
+  box.innerHTML = `<div class="sidebar-empty">Загрузка основы…</div>`;
+  try {
+    const data = await loadJson(sys.base);
+    const cls  = data[0] || {};
+    box.innerHTML = (cls.Desc ? `<div class="card-desc md">${md(cls.Desc)}</div>` : "")
+      + (arr(cls.Talents).length
+          ? `<div class="sidebar-h2">Классовые способности</div>`
+            + arr(cls.Talents).map(t => subBlock(t.name, t.desc, t.Color || t.color, t.level)).join("")
+          : `<div class="sidebar-empty">Нет данных о способностях основы.</div>`);
+  } catch(e){
+    box.innerHTML = `<div class="sidebar-empty" style="color:var(--color-red)">Ошибка загрузки основы (${esc(sys.base)}).</div>`;
+  }
+}
+
+/* ============================================================
+   12. КОНСТРУКТОР
+   ============================================================ */
+/* ---- Панель Markdown ---- */
+const MD_TOOLS = [
+  { k:"bold",   h:"<b>Ж</b>",                              t:"Жирный  **текст**" },
+  { k:"italic", h:"<i>К</i>",                              t:"Курсив  *текст*" },
+  { k:"code",   h:'<i class="fa-solid fa-code"></i>',      t:"Моноширинный  `текст`" },
+  { k:"sep" },
+  { k:"h",      h:"H",                                     t:"Подзаголовок  ### текст" },
+  { k:"ul",     h:'<i class="fa-solid fa-list-ul"></i>',   t:"Маркированный список" },
+  { k:"ol",     h:'<i class="fa-solid fa-list-ol"></i>',   t:"Нумерованный список" },
+  { k:"quote",  h:'<i class="fa-solid fa-quote-left"></i>',t:"Цитата" },
+  { k:"hr",     h:'<i class="fa-solid fa-minus"></i>',     t:"Разделитель" },
+  { k:"sep" },
+  { k:"table",  h:'<i class="fa-solid fa-table"></i>',     t:"Редактор таблицы" },
+  { k:"image",  h:'<i class="fa-solid fa-image"></i>',     t:"Вставить картинку" }
+];
+const mdToolbar = () => `<div class="md-toolbar">${MD_TOOLS.map(b =>
+    b.k === "sep" ? `<span class="md-sep"></span>`
+    : `<button type="button" data-act="md-ins" data-md="${b.k}" title="${esc(b.t)}">${b.h}</button>`).join("")}
+  <span class="md-spacer"></span>
+  <button type="button" class="on" data-act="md-preview" title="Показать или скрыть предпросмотр">
+    <i class="fa-solid fa-eye"></i></button></div>`;
+
+const mdField = (f, val) => `<div class="md-editor">${mdToolbar()}
+  <textarea class="cloud-input" data-f="${esc(f.k)}" placeholder="Поддерживается Markdown">${esc(val ?? "")}</textarea>
+  <div class="md-preview"${String(val ?? "").trim() ? "" : " hidden"}>
+    <div class="md-preview-label"><span>Предпросмотр</span></div>
+    <div class="md md-preview-body">${md(val ?? "")}</div>
+  </div></div>`;
+
+function refreshPreview(ta){
+  const wrap = ta.closest(".md-editor"); if (!wrap) return;
+  const box = wrap.querySelector(".md-preview");
+  const btn = wrap.querySelector('[data-act="md-preview"]');
+  if (!box || !btn.classList.contains("on")) return;
+  const text = ta.value.trim();
+  box.hidden = !text;
+  if (text) wrap.querySelector(".md-preview-body").innerHTML = md(ta.value);
+}
+
+function mdInsert(ta, kind){
+  const s = ta.selectionStart, e = ta.selectionEnd;
+  const sel = ta.value.slice(s, e);
+  const lines = t => (sel || t).split("\n");
+  let out, caret;
+
+  const inline = (mark, ph) => { out = mark + (sel || ph) + mark; caret = s + mark.length + (sel || ph).length; };
+  const block  = txt => {
+    const pre = (s > 0 && ta.value[s-1] !== "\n") ? "\n" : "";
+    out = pre + txt; caret = s + out.length;
+  };
+
+  switch(kind){
+    case "bold":   inline("**", "текст"); break;
+    case "italic": inline("*",  "текст"); break;
+    case "code":   inline("`",  "код");   break;
+    case "h":      block(lines("Подзаголовок").map(l => "### " + l).join("\n")); break;
+    case "ul":     block(lines("пункт").map(l => "- " + l).join("\n")); break;
+    case "ol":     block(lines("пункт").map((l,i) => `${i+1}. ${l}`).join("\n")); break;
+    case "quote":  block(lines("цитата").map(l => "> " + l).join("\n")); break;
+    case "hr":     block("\n---\n"); break;
+    default: return;
+  }
+  ta.value = ta.value.slice(0, s) + out + ta.value.slice(e);
+  ta.focus();
+  ta.setSelectionRange(caret, caret);
+  refreshPreview(ta);
+}
+
+/* ---- Редактор таблиц и вставка картинок ---- */
+const ALIGN_CYCLE = ["none","left","center","right"];
+const ALIGN_GLYPH = { none:"—", left:"⟵", center:"⟷", right:"⟶" };
+const ALIGN_MD    = { none:"---", left:":---", center:":---:", right:"---:" };
+let activeTA = null, toolKind = null, tbl = null, tblRange = null;
+
+function emptyTable(){ return { align:["none","none"], rows:[["Столбец 1","Столбец 2"],["",""],["",""]] }; }
+
+/* Ищем markdown-таблицу, внутри которой стоит курсор */
+function tableAtCursor(ta){
+  const text = ta.value, pos = ta.selectionStart;
+  const starts = [0]; for (let i = 0; i < text.length; i++) if (text[i] === "\n") starts.push(i+1);
+  const lineAt = p => { let i = 0; while (i+1 < starts.length && starts[i+1] <= p) i++; return i; };
+  const lineText = i => text.slice(starts[i], i+1 < starts.length ? starts[i+1]-1 : text.length);
+  const isRow = i => i >= 0 && i < starts.length && lineText(i).trim().startsWith("|");
+
+  let a = lineAt(pos); if (!isRow(a)) return null;
+  let b = a;
+  while (isRow(a-1)) a--;
+  while (isRow(b+1)) b++;
+  const raw = [];
+  for (let i = a; i <= b; i++) raw.push(lineText(i).trim());
+  if (raw.length < 2) return null;
+  const cells = l => l.replace(/^\||\|$/g,"").split("|").map(c => c.trim());
+  const sepCells = cells(raw[1]);
+  if (!sepCells.every(c => /^:?-{2,}:?$/.test(c))) return null;
+
+  const align = sepCells.map(c => c.startsWith(":") && c.endsWith(":") ? "center"
+                                : c.endsWith(":") ? "right"
+                                : c.startsWith(":") ? "left" : "none");
+  const rows = [cells(raw[0]), ...raw.slice(2).map(cells)];
+  const cols = align.length;
+  rows.forEach(r => { while (r.length < cols) r.push(""); r.length = cols; });
+  return { table:{ align, rows }, range:{ start:starts[a], end:starts[b] + raw[b-a].length } };
+}
+function tableToMd(t){
+  const line = cs => "| " + cs.map(c => String(c).replace(/\|/g,"\\|").trim() || " ").join(" | ") + " |";
+  return [line(t.rows[0]), "| " + t.align.map(a => ALIGN_MD[a]).join(" | ") + " |",
+          ...t.rows.slice(1).map(line)].join("\n");
+}
+function renderTableEditor(){
+  const cols = tbl.align.length;
+  const cell = (r,c) => `<input data-r="${r}" data-c="${c}" value="${esc(tbl.rows[r][c] ?? "")}">`;
+  let g = `<div class="tbl-hdr">${tbl.align.map((a,c) =>
+      `<div style="flex:1;display:flex;gap:3px;min-width:110px">${cell(0,c)}
+        <button type="button" class="tbl-align" data-act="tbl-align" data-c="${c}"
+          title="Выравнивание столбца">${ALIGN_GLYPH[a]}</button></div>`).join("")}</div>`;
+  g += `<div class="tbl-grid" style="grid-template-columns:repeat(${cols},minmax(110px,1fr));margin-top:4px">`;
+  for (let r = 1; r < tbl.rows.length; r++) for (let c = 0; c < cols; c++) g += cell(r,c);
+  g += `</div>`;
+  $("#tool-body").innerHTML = `
+    <div class="tool-hint">Первая строка — заголовок. Кнопка справа от заголовка переключает выравнивание столбца.
+      Если курсор стоял внутри существующей таблицы, она уже загружена сюда и будет заменена целиком.</div>
+    <div class="tbl-ctrls">
+      <button class="mini-btn" data-act="tbl-col-add">+ столбец</button>
+      <button class="mini-btn danger" data-act="tbl-col-del">− столбец</button>
+      <button class="mini-btn" data-act="tbl-row-add">+ строка</button>
+      <button class="mini-btn danger" data-act="tbl-row-del">− строка</button>
+    </div>
+    <div class="tbl-scroll">${g}</div>`;
+}
+function syncTable(){
+  $("#tool-body").querySelectorAll("input[data-r]").forEach(i => {
+    tbl.rows[+i.dataset.r][+i.dataset.c] = i.value;
+  });
+}
+function renderImageTool(){
+  $("#tool-body").innerHTML = `
+    <div class="tool-hint">Вставится как <code>[ссылка W:ширина H:высота]</code>. Оставьте размеры пустыми —
+      картинка впишется в ширину блока с сохранением пропорций. Указан только один размер — второй посчитается сам.</div>
+    <div class="tech-text" style="margin-bottom:4px">Ссылка на изображение</div>
+    <input type="text" id="img-url" class="cloud-input" placeholder="https://… или Burn.png">
+    <div class="b-row">
+      <div><div class="tech-text" style="margin-bottom:4px">Ширина, px</div>
+        <input type="number" id="img-w" class="cloud-input" placeholder="авто" min="1"></div>
+      <div><div class="tech-text" style="margin-bottom:4px">Высота, px</div>
+        <input type="number" id="img-h" class="cloud-input" placeholder="авто" min="1"></div>
+    </div>
+    <div class="img-preview" id="img-preview"><span class="tool-hint" style="margin:0">Предпросмотр появится здесь</span></div>`;
+}
+function openTool(kind, ta){
+  activeTA = ta; toolKind = kind; tblRange = null;
+  $("#tool-title").textContent = kind === "table" ? "Редактор таблицы" : "Вставка изображения";
+  if (kind === "table"){
+    const found = tableAtCursor(ta);
+    tbl = found ? found.table : emptyTable();
+    tblRange = found ? found.range : null;
+    renderTableEditor();
+  } else renderImageTool();
+  $("#toolModal").classList.add("active");
+}
+function applyTool(){
+  if (!activeTA) return;
+  let text;
+  if (toolKind === "table"){ syncTable(); text = tableToMd(tbl); }
+  else {
+    const url = $("#img-url").value.trim();
+    if (!url) return toast("Укажите ссылку на изображение");
+    const w = $("#img-w").value.trim(), h = $("#img-h").value.trim();
+    text = `[${url}${w ? " W:" + w : ""}${h ? " H:" + h : ""}]`;
+  }
+  const ta = activeTA;
+  if (toolKind === "table" && tblRange){
+    ta.value = ta.value.slice(0, tblRange.start) + text + ta.value.slice(tblRange.end);
+    ta.setSelectionRange(tblRange.start + text.length, tblRange.start + text.length);
+  } else {
+    const s = ta.selectionStart, e = ta.selectionEnd;
+    const pre = (s > 0 && ta.value[s-1] !== "\n") ? "\n" : "";
+    ta.value = ta.value.slice(0, s) + pre + text + "\n" + ta.value.slice(e);
+    const caret = s + pre.length + text.length + 1;
+    ta.setSelectionRange(caret, caret);
+  }
+  $("#toolModal").classList.remove("active");
+  ta.focus();
+  refreshPreview(ta);
+}
+
+function fieldHtml(f, data){
+  const val = data?.[f.k];
+  const lbl = f.label ? `<div class="tech-text" style="margin-bottom:4px">${esc(f.label)}</div>` : "";
+  switch(f.t){
+    case "row":
+      return `<div class="b-row">${f.of.map(x => `<div style="flex:${x.flex||1}">${fieldHtml(x, data)}</div>`).join("")}</div>`;
+    case "text":
+      return `${lbl}<input type="text" class="cloud-input" data-f="${esc(f.k)}" placeholder="${esc(f.ph||"")}" value="${esc(val ?? "")}">`;
+    case "num":
+      return `${lbl}<input type="number" class="cloud-input" data-f="${esc(f.k)}" value="${esc(val ?? f.def ?? 1)}" min="1">`;
+    case "md":
+      return `${lbl}${mdField(f, val)}`;
+    case "bool":
+      return `<div class="check-group"><label class="check-label">
+        <input type="checkbox" data-f="${esc(f.k)}" ${val?"checked":""}> ${esc(f.label)}</label></div>`;
+    case "select":
+      return `${lbl}<select class="cloud-select" data-f="${esc(f.k)}" ${f.num?'data-num="1"':""}>${
+        Object.entries(f.opts).map(([k,v]) => `<option value="${esc(k)}" ${String(val)===String(k)?"selected":""}>${esc(v)}</option>`).join("")}</select>`;
+    case "checks":
+      return `${lbl}<div class="check-group" data-checks="${esc(f.k)}">${
+        Object.entries(DICT[f.dict]).map(([k,d]) => `<label class="check-label">
+          <input type="checkbox" value="${esc(k)}" ${arr(val).includes(k)?"checked":""}> ${esc(d.name)}</label>`).join("")}</div>`;
+    case "stats6":
+      return `${lbl}<div class="b-row" data-stats6="${esc(f.k)}">${["STR","DEX","CON","INT","WIS","CHA"]
+        .map(s => `<div><div class="tech-text">${s}</div>
+          <input type="text" class="cloud-input" data-f="${s}" value="${esc(val?.[s] ?? "10 (+0)")}"></div>`).join("")}</div>`;
+    case "repeat":
+      return `<div class="sec-head"><div class="tech-text" style="color:var(--color-yellow)">${esc(f.label)}</div>
+          <button class="mini-btn" data-act="repeat-add" data-key="${esc(f.k)}">+ Добавить</button></div>
+        <div data-repeat="${esc(f.k)}">${arr(val).map(row => repeatRow(f, row)).join("")}</div>`;
+    default: return "";
+  }
+}
+function repeatRow(f, row){
+  const inline = f.sub.filter(s => s.t !== "md");
+  const blocks = f.sub.filter(s => s.t === "md");
+  return `<div class="b-entry">
+    <button class="mini-btn danger" style="position:absolute;right:10px;top:10px" data-act="repeat-del"><i class="fa-solid fa-trash"></i></button>
+    <div class="b-row" style="width:calc(100% - 46px)">${inline.map(s => fieldHtml(s, row)).join("")}</div>
+    ${blocks.map(s => fieldHtml(s, row)).join("")}
+  </div>`;
+}
+const REPEAT_SPEC = {};
+function openBuilder(data=null, isPrivate=false, editId=null){
+  const c = catCfg();
+  if (!state.user) return toast("Для создания контента нужно войти");
+  state.editId = editId;
+  $("#builder-title").textContent = editId ? `Редактирование: ${c.label}` : `Создать: ${c.label}`;
+  $("#bf-private").checked = !!isPrivate;
+  c.builder.forEach(f => { if (f.t === "repeat") REPEAT_SPEC[f.k] = f; });
+  $("#builder-fields").innerHTML = c.builder.map(f => fieldHtml(f, data || {})).join("");
+  $("#builderModal").classList.add("active");
+}
+function collectField(f, scope){
+  switch(f.t){
+    case "row": { const o = {}; f.of.forEach(x => Object.assign(o, collectField(x, scope))); return o; }
+    case "bool": return { [f.k]: !!scope.querySelector(`[data-f="${CSS.escape(f.k)}"]`)?.checked };
+    case "checks": return { [f.k]: [...scope.querySelectorAll(`[data-checks="${CSS.escape(f.k)}"] input:checked`)].map(i => i.value) };
+    case "stats6": {
+      const box = scope.querySelector(`[data-stats6="${CSS.escape(f.k)}"]`), o = {};
+      ["STR","DEX","CON","INT","WIS","CHA"].forEach(s => o[s] = box?.querySelector(`[data-f="${s}"]`)?.value || "");
+      return { [f.k]: o };
+    }
+    case "repeat": {
+      const rows = [...scope.querySelectorAll(`[data-repeat="${CSS.escape(f.k)}"] > .b-entry`)].map(el => {
+        const o = {};
+        f.sub.forEach(s => {
+          const inp = el.querySelector(`[data-f="${CSS.escape(s.k)}"]`);
+          o[s.k] = s.t === "num" ? (parseInt(inp?.value) || 1) : (inp?.value || "");
+        });
+        return o;
+      });
+      return { [f.k]: rows };
+    }
+    case "num": return { [f.k]: parseInt(scope.querySelector(`[data-f="${CSS.escape(f.k)}"]`)?.value) || (f.def ?? 1) };
+    case "select": {
+      const el = scope.querySelector(`[data-f="${CSS.escape(f.k)}"]`);
+      return { [f.k]: el?.dataset.num ? (parseInt(el.value) || 1) : (el?.value || "") };
+    }
+    default: {
+      const v = scope.querySelector(`[data-f="${CSS.escape(f.k)}"]`)?.value ?? "";
+      return { [f.k]: (f.nullable && v.trim() === "") ? null : v };
+    }
+  }
+}
+function collectBuilder(){
+  const scope = $("#builder-fields"), out = {};
+  catCfg().builder.forEach(f => Object.assign(out, collectField(f, scope)));
+  return out;
+}
+async function saveEntry(){
+  const c = catCfg(), data = collectBuilder();
+  if (!String(data.Name || "").trim()) return toast("Название обязательно");
+  const isPrivate = $("#bf-private").checked;
+  const payload = { type:c.customType, data, isPrivate, updatedAt:new Date().toISOString() };
+  if (!state.editId){
+    payload.creatorEmail = state.user.email;
+    payload.creator = localStorage.getItem("custom_nickname") || state.user.email.split("@")[0];
+  }
+  try {
+    const id = state.editId || `${c.customType}_${Date.now()}`;
+    await setDoc(doc(db, COLL, id), payload, { merge:true });
+    $("#builderModal").classList.remove("active");
+    state.editId = null;
+    await loadCustom(true);
+    await renderGrid();
+    toast("Сохранено");
+  } catch(e){
+    console.error(e);
+    toast("Ошибка сохранения — проверьте правила доступа Firestore");
+  }
+}
+
+/* ============================================================
+   13. АВТОРИЗАЦИЯ И АДМИНЫ
+   ============================================================ */
+/* Права админа лежат в Firestore: коллекция admins, id документа = email.
+   Каждый читает только свой документ, поэтому список админов нигде не светится.
+   BOOTSTRAP — страховка от блокировки, пока документы не созданы.
+   После создания admins/<ваш email> этот массив можно удалить: реальные права
+   всё равно проверяются правилами Firestore на сервере. */
+const BOOTSTRAP_ADMINS = ["nikkitamatveev2009@gmail.com","pavlovichpavel03@gmail.com"];
+
+async function resolveAdmin(user){
+  if (!user) return false;
+  try {
+    const snap = await getDoc(doc(db, "admins", user.email));
+    if (snap.exists()) return true;
+  } catch { /* правила ещё не развёрнуты — падаем в запасной список */ }
+  return BOOTSTRAP_ADMINS.includes(user.email);
+}
+
+onAuthStateChanged(auth, async user => {
+  state.user = user || null;
+  state.isAdmin = await resolveAdmin(user);
+  const nick = user ? (localStorage.getItem("custom_nickname") || user.email.split("@")[0]) : "";
+  $("#user-info").textContent = user ? (state.isAdmin ? nick + " · админ" : nick) : "";
+  $("#auth-label").textContent = user ? "Профиль" : "Вход";
+  $("#auth-unlogged").style.display = user ? "none" : "block";
+  $("#auth-logged").style.display   = user ? "block" : "none";
+  $("#admin-tools").style.display   = state.isAdmin ? "block" : "none";
+  if (user) $("#auth-nickname").value = nick;
+  state.customLoaded = false;
+  if (catCfg().kind === "data" && state.subtab === "data") await renderGrid();
+});
+
+async function migrateFlags(){
+  if (!state.isAdmin) return;
+  try {
+    const snap = await getDocs(collection(db, COLL));
+    const broken = [];
+    snap.forEach(d => { if (typeof d.data().isPrivate !== "boolean") broken.push(d.id); });
+    if (!broken.length) return toast("Все записи в порядке");
+    if (!confirm(`Найдено записей без флага приватности: ${broken.length}. Проставить им isPrivate: false?`)) return;
+    for (const id of broken) await setDoc(doc(db, COLL, id), { isPrivate:false }, { merge:true });
+    toast(`Исправлено записей: ${broken.length}`);
+    await loadCustom(true); await renderGrid();
+  } catch(e){ console.error(e); toast("Не удалось выполнить проверку"); }
+}
+
+/* ============================================================
+   14. СОБЫТИЯ
+   ============================================================ */
+const closeSidebars = () => {
+  $("#sb-picks").classList.remove("active");
+  $("#sb-base").classList.remove("active");
+  $("#sb-overlay").classList.remove("active");
+};
+const openSidebar = id => { closeSidebars(); $(id).classList.add("active"); $("#sb-overlay").classList.add("active"); };
+
+document.addEventListener("click", async ev => {
+  const el = ev.target.closest("[data-act]");
+  if (!el) return;
+  const act = el.dataset.act, uid = el.dataset.uid;
+
+  switch(act){
+    case "set-cat": await setCategory(el.dataset.cat); break;
+    case "set-subtab": state.subtab = el.dataset.sub; renderSubtabs(); await renderView(); break;
+
+    case "toggle-card": el.closest(".card")?.classList.toggle("expanded"); break;
+    case "toggle-sub": ev.stopPropagation(); el.classList.toggle("collapsed"); break;
+
+    case "toggle-filter": {
+      const k = el.dataset.key;
+      state.filters[k] = state.filters[k] || new Set();
+      state.filters[k].has(el.dataset.val) ? state.filters[k].delete(el.dataset.val) : state.filters[k].add(el.dataset.val);
+      renderFilters(); await renderGrid(); break;
+    }
+    case "clear-filter": state.filters[el.dataset.key] = new Set(); renderFilters(); await renderGrid(); break;
+
+    case "pick": togglePick(uid); break;
+    case "copy-item": { const it = findItem(uid); if (it) copyText(catCfg().plain(it)); break; }
+    case "dl-item": { const it = findItem(uid); if (it) downloadJson([cleanCopy(it)], `${it.Name || "item"}.json`); break; }
+
+    case "open-picks": openSidebar("#sb-picks"); break;
+    case "open-base": openSidebar("#sb-base"); break;
+    case "close-sidebars": closeSidebars(); break;
+    case "pick-copy": { const p = state.picks.find(x => x.uid === uid); if (p) copyText(pickPlain(p)); break; }
+    case "pick-remove": {
+      state.picks = state.picks.filter(x => x.uid !== uid); savePicks(); renderPicks();
+      if (catCfg().kind === "data" && state.subtab === "data") await renderGrid(); break;
+    }
+    case "picks-copy": copyText(state.picks.map(pickPlain).join("\n\n")); break;
+    case "picks-export": downloadJson(state.picks.map(p => ({ category:p.cat, ...p.data })), "my-build.json"); break;
+    case "picks-clear":
+      if (confirm("Очистить всю сборку?")){ state.picks = []; savePicks(); renderPicks(); await renderGrid(); }
+      break;
+
+    case "auth": $("#authModal").classList.add("active"); break;
+    case "close-modal": el.closest(".modal-overlay").classList.remove("active"); break;
+    case "login":
+      try { await signInWithEmailAndPassword(auth, $("#auth-email").value, $("#auth-pass").value);
+            $("#authModal").classList.remove("active"); }
+      catch(e){ toast("Ошибка входа"); console.error(e); } break;
+    case "register":
+      try { await createUserWithEmailAndPassword(auth, $("#auth-email").value, $("#auth-pass").value);
+            $("#authModal").classList.remove("active"); }
+      catch(e){ toast("Ошибка регистрации"); console.error(e); } break;
+    case "logout": await signOut(auth); $("#authModal").classList.remove("active"); break;
+    case "save-nick": {
+      const n = $("#auth-nickname").value.trim();
+      if (!n) return toast("Никнейм не может быть пустым");
+      localStorage.setItem("custom_nickname", n);
+      $("#user-info").textContent = state.isAdmin ? n + " · админ" : n;
+      toast("Никнейм сохранён (для новых записей)"); break;
+    }
+    case "migrate": await migrateFlags(); break;
+
+    case "new-entry": openBuilder(); break;
+    case "edit-item": { const it = findItem(uid); if (it) openBuilder(cleanCopy(it), it.__private, it.__id); break; }
+    case "toggle-priv": {
+      const it = findItem(uid); if (!it) break;
+      try { await setDoc(doc(db, COLL, it.__id), { isPrivate: !it.__private }, { merge:true });
+            await loadCustom(true); await renderGrid(); }
+      catch(e){ toast("Не удалось изменить приватность"); } break;
+    }
+    case "del-item": {
+      const it = findItem(uid); if (!it) break;
+      if (!confirm(`Удалить «${it.Name}» навсегда?`)) break;
+      try { await deleteDoc(doc(db, COLL, it.__id)); await loadCustom(true); await renderGrid(); toast("Удалено"); }
+      catch(e){ toast("Ошибка удаления"); } break;
+    }
+    case "builder-save": await saveEntry(); break;
+    case "builder-download": {
+      const d = collectBuilder();
+      downloadJson([d], `${d.Name || "entry"}.json`); break;
+    }
+    case "md-ins": {
+      ev.preventDefault();
+      const ta = el.closest(".md-editor")?.querySelector("textarea");
+      if (!ta) break;
+      if (el.dataset.md === "table" || el.dataset.md === "image") openTool(el.dataset.md, ta);
+      else mdInsert(ta, el.dataset.md);
+      break;
+    }
+    case "md-preview": {
+      ev.preventDefault();
+      el.classList.toggle("on");
+      const wrap = el.closest(".md-editor");
+      const box = wrap.querySelector(".md-preview");
+      if (el.classList.contains("on")) refreshPreview(wrap.querySelector("textarea"));
+      else box.hidden = true;
+      break;
+    }
+    case "tool-apply": applyTool(); break;
+    case "tbl-col-add": syncTable(); tbl.align.push("none"); tbl.rows.forEach(r => r.push("")); renderTableEditor(); break;
+    case "tbl-col-del":
+      if (tbl.align.length > 1){ syncTable(); tbl.align.pop(); tbl.rows.forEach(r => r.pop()); renderTableEditor(); }
+      break;
+    case "tbl-row-add": syncTable(); tbl.rows.push(tbl.align.map(() => "")); renderTableEditor(); break;
+    case "tbl-row-del":
+      if (tbl.rows.length > 2){ syncTable(); tbl.rows.pop(); renderTableEditor(); }
+      break;
+    case "tbl-align": {
+      syncTable();
+      const c = +el.dataset.c;
+      tbl.align[c] = ALIGN_CYCLE[(ALIGN_CYCLE.indexOf(tbl.align[c]) + 1) % ALIGN_CYCLE.length];
+      renderTableEditor(); break;
+    }
+    case "repeat-add": {
+      const f = REPEAT_SPEC[el.dataset.key];
+      document.querySelector(`[data-repeat="${CSS.escape(el.dataset.key)}"]`)
+        ?.insertAdjacentHTML("beforeend", repeatRow(f, {}));
+      break;
+    }
+    case "repeat-del": el.closest(".b-entry")?.remove(); break;
+  }
+});
+
+document.addEventListener("input", ev => {
+  if (ev.target.matches(".md-editor textarea")){
+    clearTimeout(ev.target.__pv);
+    ev.target.__pv = setTimeout(() => refreshPreview(ev.target), 220);
+  }
+  if (ev.target.id === "img-url" || ev.target.id === "img-w" || ev.target.id === "img-h"){
+    const url = $("#img-url").value.trim();
+    const w = $("#img-w").value.trim(), h = $("#img-h").value.trim();
+    $("#img-preview").innerHTML = url
+      ? md(`[${url}${w ? " W:" + w : ""}${h ? " H:" + h : ""}]`)
+      : `<span class="tool-hint" style="margin:0">Предпросмотр появится здесь</span>`;
+  }
+  if (ev.target.id === "search-input"){
+    state.search = ev.target.value;
+    clearTimeout(window.__searchTimer);
+    window.__searchTimer = setTimeout(renderGrid, 180);
+  }
+});
+document.addEventListener("change", async ev => {
+  if (ev.target.id === "system-select"){ state.system = ev.target.value; loadBase(); await renderGrid(); }
+  if (ev.target.id === "json-upload") await uploadJson(ev.target);
+  if (ev.target.id === "badge-mode"){
+    state.badgeMode = ev.target.checked ? "stats" : "types";
+    document.body.setAttribute("data-badge", state.badgeMode);
+    state.filters = {};                 // чтобы не остался невидимый активный фильтр
+    renderFilters();
+    await renderGrid();
+  }
+});
+$("#src-switch").addEventListener("click", async ev => {
+  const b = ev.target.closest("button[data-src]"); if (!b) return;
+  state.source = b.dataset.src;
+  [...$("#src-switch").children].forEach(x => x.classList.toggle("active", x === b));
+  await renderGrid();
+});
+
+async function uploadJson(input){
+  if (!state.user){ input.value = ""; return toast("Авторизуйтесь для загрузки"); }
+  const file = input.files[0]; if (!file) return;
+  const c = catCfg();
+  try {
+    const list = JSON.parse(await file.text());
+    if (!Array.isArray(list)) throw new Error("Ожидается массив [ {...} ]");
+    const nick = localStorage.getItem("custom_nickname") || state.user.email.split("@")[0];
+    for (const item of list){
+      const id = `${c.customType}_${Date.now()}_${Math.floor(Math.random()*1000)}`;
+      await setDoc(doc(db, COLL, id), {
+        type:c.customType, data:item, isPrivate:false,
+        creatorEmail:state.user.email, creator:nick, updatedAt:new Date().toISOString()
+      });
+    }
+    toast(`Загружено записей: ${list.length}`);
+    await loadCustom(true); await renderGrid();
+  } catch(e){ console.error(e); toast("Ошибка формата файла"); }
+  finally { input.value = ""; }
+}
+
+/* ============================================================
+   15. СТАРТ
+   ============================================================ */
+renderPicks();
+
+/* Диплинки: compendium.html#feats, #bestiary, #lore и т.д.
+   Позволяет оставить карточки в navigation.html — просто поменяйте href. */
+function catFromHash(){
+  const h = location.hash.replace("#","");
+  return CATS[h] ? h : "classes";
+}
+window.addEventListener("hashchange", () => {
+  const id = catFromHash();
+  if (id !== state.cat) setCategory(id);
+});
+const _setCategory = setCategory;
+setCategory = async id => { await _setCategory(id); if (location.hash !== "#" + id) history.replaceState(null, "", "#" + id); };
+
+setCategory(catFromHash());
+</script>
 </body>
 </html>
