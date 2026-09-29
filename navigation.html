@@ -134,11 +134,12 @@ body[data-badge="stats"] .badge-type{display:none!important}
 .card.expanded .card-body{grid-template-rows:1fr;opacity:1;margin-top:10px}
 .card-body>.card-body-inner{overflow:hidden;min-height:0}
 
-.sub-block{margin-bottom:10px;border-left:2px solid var(--text-dim);padding:8px 10px;cursor:pointer;
+.sub-block{margin-bottom:10px;border-left:2px solid var(--text-dim);padding:8px 10px;
   background:var(--panel-soft);transition:background .2s}
 .sub-block:last-child{margin-bottom:0}
 .sub-block:hover{background:rgba(255,255,255,.05)}
-.sub-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+/* Сворачивает только строка заголовка — текст можно выделять и копировать */
+.sub-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px;cursor:pointer;user-select:none}
 .sub-head-left{display:flex;align-items:baseline;gap:8px}
 .sub-name{font-family:'Oswald',sans-serif;font-size:1.05rem}
 .sub-level{color:var(--text-dim);font-size:.72rem;font-family:'Inter',sans-serif}
@@ -325,6 +326,80 @@ textarea.cloud-input{resize:vertical;min-height:80px}
 .mode-toggle:hover{border-color:var(--accent-primary);color:var(--accent-primary)}
 .mode-toggle input{accent-color:var(--accent-primary);width:14px;height:14px;cursor:pointer}
 
+/* ---------- Микро-код: калькуляторы ---------- */
+.calc-host{display:block;margin:10px 0}
+.calc{position:relative;border:1px solid #262626;border-left:2px solid var(--accent-primary);background:rgba(0,0,0,.35);padding:12px 26px 10px 12px}
+.calc-canvas{position:relative;min-height:30px}
+.calc-el{position:absolute;min-width:40px}
+.calc-el.is-hidden{display:none}
+.calc-lbl{font-family:'Oswald',sans-serif;font-size:.78rem;color:var(--color-cyan);text-transform:uppercase;margin-bottom:4px;letter-spacing:.5px}
+.calc-btn{background:#222;border:1px solid #444;color:#fff;min-width:32px;height:30px;padding:0 10px;cursor:pointer;
+  font-family:'Oswald',sans-serif;font-size:.9rem;transition:.15s;border-radius:2px;white-space:nowrap}
+.calc-btn:hover:not(:disabled){background:var(--accent-primary);border-color:var(--accent-primary);color:#000}
+.calc-btn:disabled,.calc select:disabled,.calc input:disabled{opacity:.4;cursor:not-allowed}
+.calc .cloud-input,.calc .cloud-select{margin-bottom:0;padding:6px 8px;font-size:.85rem}
+.calc-desc{font-size:.78rem;color:var(--text-dim);margin-top:4px;line-height:1.4}
+.calc-out{position:relative;border:1px dashed var(--accent-primary);background:rgba(255,255,255,.03);
+  padding:7px 28px 7px 10px;min-height:34px;font-size:.88rem;line-height:1.45}
+.calc-el.is-disabled .calc-out{opacity:.45}
+.calc-copy{position:absolute;right:4px;top:4px;background:transparent;border:none;color:var(--text-dim);cursor:pointer;font-size:.8rem;padding:3px}
+.calc-copy:hover{color:var(--accent-primary)}
+.calc-empty{color:var(--text-dim)}
+.calc-reset{position:absolute;right:4px;top:4px;background:transparent;border:none;color:var(--text-dim);cursor:pointer;
+  font-size:.75rem;padding:3px 5px;z-index:3}
+.calc-reset:hover{color:var(--accent-primary)}
+.calc-err{color:var(--color-red);font-size:.75rem;margin-top:6px;font-family:Consolas,monospace;white-space:pre-wrap}
+.calc-err:empty{display:none}
+.calc-missing{color:var(--color-red);font-size:.8rem;font-family:'Oswald',sans-serif}
+/* Узкий экран: элементы выстраиваются потоком */
+.calc.flow .calc-canvas{display:flex;flex-wrap:wrap;gap:8px;height:auto!important;align-items:flex-end}
+.calc.flow .calc-el{position:static;width:auto!important}
+.calc.flow .calc-el:not(.k-button){flex:1 1 100%}
+.calc.flow .calc-el.is-hidden{display:none}
+/* Режим редактора */
+.calc-edit{border-style:dashed}
+.calc-edit .calc-canvas{min-height:240px;overflow:auto;
+  background-image:radial-gradient(circle,#2a2a2a 1px,transparent 1px);background-size:10px 10px}
+.calc-edit .calc-el{outline:1px dashed #3a3a3a}
+.calc-edit .calc-el:hover,.calc-edit .calc-el.dragging{outline-color:var(--accent-primary);z-index:5}
+.calc-edit .calc-el.is-hidden{display:block;opacity:.35}
+.calc-grip{position:absolute;left:-15px;top:0;bottom:0;width:13px;display:flex;align-items:center;justify-content:center;
+  cursor:grab;touch-action:none;font-size:.65rem;color:var(--text-dim);background:#111;border:1px solid #2a2a2a}
+.calc-grip:hover,.calc-edit .dragging .calc-grip{color:var(--accent-primary);border-color:var(--accent-primary)}
+.calc-edit .dragging .calc-grip{cursor:grabbing}
+.calc-tag{position:absolute;left:-15px;bottom:100%;margin-bottom:2px;display:none;align-items:center;gap:6px;z-index:6;
+  background:#0b0b0b;border:1px solid var(--accent-primary);padding:1px 5px;font-size:.62rem;color:var(--text-main);
+  font-family:Consolas,monospace;white-space:nowrap}
+.calc-edit .calc-el:hover .calc-tag,.calc-edit .calc-el.dragging .calc-tag{display:flex}
+.calc-del{background:transparent;border:none;color:var(--text-dim);cursor:pointer;font-size:.85rem;line-height:1;padding:0 2px}
+.calc-del:hover{color:var(--color-red)}
+.calc-rsz{position:absolute;right:-4px;top:0;bottom:0;width:7px;cursor:ew-resize;touch-action:none}
+.calc-rsz:hover{background:var(--accent-primary);opacity:.6}
+
+/* Редактор микро-кода */
+.modal-box.wide{width:1260px}
+.ce-cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:16px}
+@media(max-width:900px){.ce-cols{grid-template-columns:1fr}}
+.ce-bar{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;min-height:26px}
+.ce-h{font-family:'Oswald',sans-serif;color:var(--accent-primary);text-transform:uppercase;font-size:.9rem;letter-spacing:1px}
+textarea.ce-code{font-family:Consolas,'Courier New',monospace;font-size:.85rem;min-height:400px;line-height:1.5;tab-size:4;
+  white-space:pre;overflow:auto;margin-bottom:4px}
+.ce-err{font-family:Consolas,monospace;font-size:.78rem;color:var(--color-red);min-height:1.2em;margin-bottom:6px;white-space:pre-wrap}
+.ce-err.ok{color:#27AE60}
+.ce-menu-wrap{position:relative}
+.ce-menu{position:absolute;left:0;top:calc(100% + 4px);z-index:50;width:440px;max-width:80vw;max-height:440px;overflow-y:auto;
+  background:#0b0b0b;border:1px solid var(--accent-primary);box-shadow:0 10px 30px rgba(0,0,0,.8);padding:4px 6px 8px}
+.ce-menu[hidden]{display:none}
+.ce-group{font-family:'Oswald',sans-serif;font-size:.75rem;color:var(--color-yellow);text-transform:uppercase;letter-spacing:1px;
+  padding:8px 6px 4px;border-bottom:1px solid #222;margin-bottom:2px}
+.ce-item{display:block;width:100%;text-align:left;background:transparent;border:none;color:var(--text-main);cursor:pointer;padding:5px 8px;border-radius:2px}
+.ce-item:hover{background:rgba(255,255,255,.07)}
+.ce-item code{font-family:Consolas,monospace;font-size:.8rem;color:var(--accent-primary);white-space:pre-wrap;word-break:break-word}
+.ce-item span{display:block;font-size:.72rem;color:var(--text-dim);margin-top:2px;line-height:1.35}
+.ce-help{font-size:.78rem;color:var(--text-dim);line-height:1.5;margin-top:6px}
+.ce-help summary{cursor:pointer;color:var(--accent-primary);font-family:'Oswald',sans-serif;text-transform:uppercase;font-size:.78rem;letter-spacing:1px}
+.ce-help pre{font-family:Consolas,monospace;font-size:.76rem;color:var(--text-main);background:#0d0d0d;border:1px solid #222;padding:8px;margin-top:6px;overflow:auto;white-space:pre}
+
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#111;
   border:1px solid var(--accent-primary);color:var(--accent-primary);font-family:'Oswald',sans-serif;font-size:.85rem;
   padding:10px 18px;z-index:5000;opacity:0;pointer-events:none;transition:.25s;text-transform:uppercase;letter-spacing:1px}
@@ -478,6 +553,79 @@ textarea.cloud-input{resize:vertical;min-height:80px}
   </div>
 </div>
 
+<!-- ======== МОДАЛКА МИКРО-КОДА (калькулятор) ======== -->
+<div class="modal-overlay" id="calcModal">
+  <div class="panel-outer cut-tl modal-box wide">
+    <div class="hazard-tape"></div>
+    <div class="panel-inner cut-tl" style="padding-top:36px">
+      <button class="btn-close-modal" data-act="close-modal"><i class="fa-solid fa-xmark"></i></button>
+      <div class="card-title" style="margin-bottom:12px;border-bottom:1px solid var(--accent-primary);padding-bottom:8px">
+        <i class="fa-solid fa-calculator"></i> Калькулятор (микро-код)</div>
+      <div class="tech-text" style="margin-bottom:4px">Имя калькулятора — в тексте он вставляется как <code>[calc:имя]</code></div>
+      <input type="text" id="ce-name" class="cloud-input" style="max-width:360px" spellcheck="false">
+      <div class="ce-cols">
+        <div>
+          <div class="ce-bar">
+            <span class="ce-h">Псевдо-код</span>
+            <div class="ce-menu-wrap">
+              <button type="button" class="mini-btn" data-act="ce-menu"><i class="fa-solid fa-list"></i> Вставить ▾</button>
+              <div class="ce-menu" id="ce-menu" hidden></div>
+            </div>
+          </div>
+          <textarea id="ce-code" class="cloud-input ce-code" spellcheck="false" autocomplete="off"></textarea>
+          <div class="ce-err" id="ce-err"></div>
+          <details class="ce-help">
+            <summary>Шпаргалка</summary>
+<pre># комментарий
+Plus  = button "+" max 5          # значение = число нажатий
+Rank  = select "Ранг":            # значение = значение варианта
+    ZAYIN = 4 "описание" [коррозия = 0]
+    HE    = 6 "описание" [коррозия = 1] if Level >= 12
+Level = input number "Уровень" default 1 min 1 max 20
+Name  = input "Название"
+Out   = output "Итог"             # заполняется присваиванием
+
+var pts = 0                       # помнит значение между нажатиями
+on Plus:                          # выполняется при нажатии
+    pts += 1
+
+if pts > Rank:
+    Out = "**Перерасход!** {pts} / {Rank}"
+elif pts == Rank:
+    Out = "Ровно"
+else:
+    Out = "Осталось: {Rank - pts}"
+    hide(Plus)
+
+Rank.label  Rank.desc  Rank.index  Rank.коррозия</pre>
+          </details>
+        </div>
+        <div>
+          <div class="ce-bar">
+            <span class="ce-h">Превью</span>
+            <div style="display:flex;gap:4px;flex-wrap:wrap">
+              <button type="button" class="mini-btn" data-act="ce-add" data-kind="button">+ Кнопка</button>
+              <button type="button" class="mini-btn" data-act="ce-add" data-kind="select">+ Выбор</button>
+              <button type="button" class="mini-btn" data-act="ce-add" data-kind="input">+ Ввод</button>
+              <button type="button" class="mini-btn" data-act="ce-add" data-kind="output">+ Вывод</button>
+            </div>
+          </div>
+          <div id="ce-preview"></div>
+          <div class="tool-hint" style="margin-top:6px">
+            Тяните за <i class="fa-solid fa-grip-vertical"></i>, чтобы двигать (сетка 10px), за правый край — чтобы менять ширину.
+            Двойной клик по элементу выделяет его строки в коде. Калькулятор здесь уже работает — можно нажимать.</div>
+        </div>
+      </div>
+      <div class="b-row" style="margin-top:14px">
+        <button class="action-btn" data-act="ce-apply"><i class="fa-solid fa-check"></i> <span id="ce-apply-label">Вставить в текст</span></button>
+        <button class="action-btn ghost" id="ce-del-btn" data-act="ce-delete" style="border-color:var(--color-red);color:var(--color-red)">
+          <i class="fa-solid fa-trash"></i> Удалить калькулятор</button>
+        <button class="action-btn ghost" data-act="close-modal">Отмена</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script type="module">
@@ -523,7 +671,9 @@ function mdImages(src){
     return `<img class="md-img" loading="lazy" alt="" src="${url.replace(/"/g, "%22")}" ${attrs}>`;
   });
 }
-const md  = v => DOMPurify.sanitize(marked.parse(mdImages(String(v ?? ""))));
+/* md() — текст карточек (с калькуляторами [calc:имя]); mdOut() — вывод калькулятора (без них) */
+const md    = v => injectCalcs(DOMPurify.sanitize(marked.parse(mdImages(String(v ?? "")))));
+const mdOut = v => DOMPurify.sanitize(marked.parse(String(v ?? "")));
 const arr = v => Array.isArray(v) ? v : (v ? [v] : []);
 
 let toastTimer;
@@ -625,8 +775,8 @@ function badges(values, dictName, extraClass=""){
   }).join("");
 }
 function subBlock(name, desc, color, level, open){
-  return `<div class="sub-block${open?"":" collapsed"}" data-act="toggle-sub" style="border-left-color:${esc(color||"var(--accent-primary)")}">
-    <div class="sub-head">
+  return `<div class="sub-block${open?"":" collapsed"}" style="border-left-color:${esc(color||"var(--accent-primary)")}">
+    <div class="sub-head" data-act="toggle-sub">
       <div class="sub-head-left">
         <i class="fa-solid fa-chevron-down sub-icon"></i>
         <span class="sub-name" style="color:${esc(color||"var(--accent-primary)")}">${esc(name)}</span>
@@ -923,7 +1073,8 @@ const state = {
   picks: [],
   user: null,
   isAdmin: false,
-  editId: null
+  editId: null,
+  draftCalcs: {}            // калькуляторы записи, открытой в конструкторе
 };
 try { state.picks = JSON.parse(localStorage.getItem(PICK_KEY) || "[]"); } catch { state.picks = []; }
 const savePicks = () => { try { localStorage.setItem(PICK_KEY, JSON.stringify(state.picks)); } catch {} };
@@ -1083,7 +1234,8 @@ function canManage(it){
          (state.isAdmin || it.__owner === state.user.email);
 }
 function cardHtml(it){
-  const c = catCfg(), v = c.card(it), uid = uidOf(state.cat, it);
+  const c = catCfg(), uid = uidOf(state.cat, it);
+  const v = withCalcs(uid, it.Calcs, () => c.card(it));
   const picked = state.picks.some(p => p.uid === uid);
   const metaHtml = v.meta ? `<div class="card-meta${v.metaItalic?" italic":""}">${v.meta}</div>` : "";
   const titleIcon = v.icon ? `<i class="fa-solid ${esc(v.icon)}" style="margin-right:8px;opacity:.85"></i>` : "";
@@ -1163,6 +1315,7 @@ async function renderGrid(){
   grid.innerHTML = visible.length
     ? visible.map(cardHtml).join("")
     : `<div class="notice">Подходящие записи не найдены</div>`;
+  mountCalcs(grid);
 }
 
 const findItem = uid => visible.find(i => uidOf(state.cat, i) === uid);
@@ -1217,7 +1370,7 @@ function togglePick(uid){
 }
 function pickPlain(p){
   const c = CATS[p.cat];
-  return c && c.plain ? c.plain(p.data) : `=== ${p.name} ===`;
+  return c && c.plain ? withCalcText(c.plain(p.data), p.data.Calcs, p.uid) : `=== ${p.name} ===`;
 }
 function renderPicks(){
   $("#pick-count").textContent = state.picks.length;
@@ -1234,7 +1387,7 @@ function renderPicks(){
     const c = CATS[cat];
     return `<div class="sidebar-h2" style="color:${esc(c.color)}"><i class="fa-solid ${c.icon}"></i> ${esc(c.label)}</div>`
       + list.map(p => {
-        const v = c.card(p.data);
+        const v = withCalcs(p.uid, p.data.Calcs, () => c.card(p.data));
         return `<div class="pick-entry card" style="border-left-color:${esc(c.color)}">
           <div class="pick-top">
             <div class="pick-name" data-act="toggle-card" style="cursor:pointer;flex:1">
@@ -1248,6 +1401,7 @@ function renderPicks(){
         </div>`;
       }).join("");
   }).join("");
+  mountCalcs(body);
 }
 
 /* ============================================================
@@ -1263,11 +1417,13 @@ async function loadBase(){
   try {
     const data = await loadJson(sys.base);
     const cls  = data[0] || {};
-    box.innerHTML = (cls.Desc ? `<div class="card-desc md">${md(cls.Desc)}</div>` : "")
+    box.innerHTML = withCalcs(`base:${state.system}`, cls.Calcs, () =>
+      (cls.Desc ? `<div class="card-desc md">${md(cls.Desc)}</div>` : "")
       + (arr(cls.Talents).length
           ? `<div class="sidebar-h2">Классовые способности</div>`
             + arr(cls.Talents).map(t => subBlock(t.name, t.desc, t.Color || t.color, t.level)).join("")
-          : `<div class="sidebar-empty">Нет данных о способностях основы.</div>`);
+          : `<div class="sidebar-empty">Нет данных о способностях основы.</div>`));
+    mountCalcs(box);
   } catch(e){
     box.innerHTML = `<div class="sidebar-empty" style="color:var(--color-red)">Ошибка загрузки основы (${esc(sys.base)}).</div>`;
   }
@@ -1289,7 +1445,8 @@ const MD_TOOLS = [
   { k:"hr",     h:'<i class="fa-solid fa-minus"></i>',     t:"Разделитель" },
   { k:"sep" },
   { k:"table",  h:'<i class="fa-solid fa-table"></i>',     t:"Редактор таблицы" },
-  { k:"image",  h:'<i class="fa-solid fa-image"></i>',     t:"Вставить картинку" }
+  { k:"image",  h:'<i class="fa-solid fa-image"></i>',     t:"Вставить картинку" },
+  { k:"calc",   h:'<i class="fa-solid fa-calculator"></i>',t:"Калькулятор (микро-код). Курсор на [calc:имя] — редактировать его" }
 ];
 const mdToolbar = () => `<div class="md-toolbar">${MD_TOOLS.map(b =>
     b.k === "sep" ? `<span class="md-sep"></span>`
@@ -1302,7 +1459,7 @@ const mdField = (f, val) => `<div class="md-editor">${mdToolbar()}
   <textarea class="cloud-input" data-f="${esc(f.k)}" placeholder="Поддерживается Markdown">${esc(val ?? "")}</textarea>
   <div class="md-preview"${String(val ?? "").trim() ? "" : " hidden"}>
     <div class="md-preview-label"><span>Предпросмотр</span></div>
-    <div class="md md-preview-body">${md(val ?? "")}</div>
+    <div class="md md-preview-body">${withCalcs("draft", state.draftCalcs, () => md(val ?? ""))}</div>
   </div></div>`;
 
 function refreshPreview(ta){
@@ -1312,7 +1469,11 @@ function refreshPreview(ta){
   if (!box || !btn.classList.contains("on")) return;
   const text = ta.value.trim();
   box.hidden = !text;
-  if (text) wrap.querySelector(".md-preview-body").innerHTML = md(ta.value);
+  if (text){
+    const body = wrap.querySelector(".md-preview-body");
+    body.innerHTML = withCalcs("draft", state.draftCalcs, () => md(ta.value));
+    mountCalcs(body);
+  }
 }
 
 function mdInsert(ta, kind){
@@ -1511,8 +1672,10 @@ function openBuilder(data=null, isPrivate=false, editId=null){
   $("#builder-title").textContent = editId ? `Редактирование: ${c.label}` : `Создать: ${c.label}`;
   $("#bf-private").checked = !!isPrivate;
   c.builder.forEach(f => { if (f.t === "repeat") REPEAT_SPEC[f.k] = f; });
+  state.draftCalcs = JSON.parse(JSON.stringify(data?.Calcs || {}));
   $("#builder-fields").innerHTML = c.builder.map(f => fieldHtml(f, data || {})).join("");
   $("#builderModal").classList.add("active");
+  mountCalcs($("#builder-fields"));
 }
 function collectField(f, scope){
   switch(f.t){
@@ -1549,6 +1712,11 @@ function collectField(f, scope){
 function collectBuilder(){
   const scope = $("#builder-fields"), out = {};
   catCfg().builder.forEach(f => Object.assign(out, collectField(f, scope)));
+  // Калькуляторы: сохраняем только те, на которые остались ссылки [calc:имя] в тексте
+  const calcs = {};
+  for (const m of JSON.stringify(out).matchAll(CALC_TOKEN))
+    if (Object.hasOwn(state.draftCalcs, m[1])) calcs[m[1]] = state.draftCalcs[m[1]];
+  if (Object.keys(calcs).length) out.Calcs = calcs;
   return out;
 }
 async function saveEntry(){
@@ -1573,6 +1741,1135 @@ async function saveEntry(){
     toast("Ошибка сохранения — проверьте правила доступа Firestore");
   }
 }
+
+/* ============================================================
+   12b. МИКРО-КОД: КАЛЬКУЛЯТОРЫ
+   В тексте: [calc:имя]. В JSON записи: "Calcs": { имя: { code, layout } }.
+   Код выполняет собственный интерпретатор — никакого eval, поэтому
+   чужая запись не может запустить JavaScript у читателя.
+   ============================================================ */
+
+/* ---- 12b.1 Ядро: разбор и выполнение (без DOM) ---- */
+class CalcErr extends Error { constructor(msg, line){ super(msg); this.line = line; } }
+const CALC_TOKEN = /\[calc:([\p{L}\p{N}_-]{1,40})\]/gu;
+const CALC_NAME_OK = /^[\p{L}\p{N}_-]{1,40}$/u;
+const EL_KINDS = new Set(["button","select","input","output"]);
+const CALC_RESERVED = new Set(["if","elif","else","on","var","pass","and","or","not","true","false","True","False",
+  "button","select","input","output"]);
+const hasOwn = (o, k) => o != null && Object.prototype.hasOwnProperty.call(o, k);
+
+function calcLex(src, line){
+  const out = [], two = ["==","!=","<=",">=","+=","-=","*=","/=","//"];
+  let i = 0;
+  while (i < src.length){
+    const ch = src[i];
+    if (ch === " " || ch === "\t" || ch === "\r"){ i++; continue; }
+    if (ch === "#") break;
+    if (ch === '"' || ch === "'" || ch === "«"){
+      const close = ch === "«" ? "»" : ch;
+      let j = i + 1, s = "";
+      while (j < src.length && src[j] !== close){
+        if (src[j] === "\\" && j + 1 < src.length){
+          const e = src[j+1]; s += e === "n" ? "\n" : e === "t" ? "\t" : e; j += 2;
+        } else s += src[j++];
+      }
+      if (j >= src.length) throw new CalcErr("Незакрытая строка — не хватает кавычки", line);
+      out.push({ t:"str", v:s }); i = j + 1; continue;
+    }
+    const rest = src.slice(i);
+    let m;
+    if ((m = /^(\d+\.?\d*|\.\d+)/.exec(rest))){ out.push({ t:"num", v:parseFloat(m[1]) }); i += m[1].length; continue; }
+    if ((m = /^[\p{L}_][\p{L}\p{N}_]*/u.exec(rest))){ out.push({ t:"id", v:m[0] }); i += m[0].length; continue; }
+    if (two.includes(rest.slice(0, 2))){ out.push({ t:"op", v:rest.slice(0, 2) }); i += 2; continue; }
+    if ("+-−*/%<>=(),.:[]".includes(ch)){ out.push({ t:"op", v: ch === "−" ? "-" : ch }); i++; continue; }
+    throw new CalcErr(`Непонятный символ «${ch}»`, line);
+  }
+  return out;
+}
+
+/* Строка с подстановками: "Урон {dmg}" ; {{ и }} — буквальные скобки */
+function calcTemplate(s, line){
+  const parts = [];
+  let buf = "", i = 0;
+  while (i < s.length){
+    const c = s[i];
+    if (c === "{" && s[i+1] === "{"){ buf += "{"; i += 2; continue; }
+    if (c === "}" && s[i+1] === "}"){ buf += "}"; i += 2; continue; }
+    if (c === "{"){
+      const j = s.indexOf("}", i);
+      if (j < 0) throw new CalcErr("В строке не закрыта «{»", line);
+      if (buf) parts.push(buf);
+      buf = "";
+      const p = new CalcParser(calcLex(s.slice(i + 1, j), line), line);
+      parts.push(p.expr()); p.done();
+      i = j + 1; continue;
+    }
+    buf += c; i++;
+  }
+  if (buf || !parts.length) parts.push(buf);
+  return parts.length === 1 && typeof parts[0] === "string" ? { k:"lit", v:parts[0] } : { k:"tpl", parts };
+}
+
+class CalcParser {
+  constructor(toks, line){ this.t = toks; this.i = 0; this.line = line; }
+  peek(o = 0){ return this.t[this.i + o]; }
+  is(v, o = 0){ const k = this.t[this.i + o]; return !!k && k.t !== "str" && k.t !== "num" && k.v === v; }
+  next(){ return this.t[this.i++]; }
+  end(){ return this.i >= this.t.length; }
+  err(msg){ throw new CalcErr(msg, this.line); }
+  expect(v){ if (!this.is(v)) this.err(`Ожидалось «${v}»` + (this.end() ? " в конце строки" : `, а стоит «${this.peek().v}»`)); return this.next(); }
+  ident(){ const k = this.next(); if (!k || k.t !== "id") this.err("Ожидалось имя"); return k.v; }
+  done(){ if (!this.end()) this.err(`Лишнее в строке: «${this.peek().v}»`); }
+  expr(){ return this.or(); }
+  or(){ let a = this.and(); while (this.is("or")){ this.next(); a = { k:"or", a, b:this.and() }; } return a; }
+  and(){ let a = this.not(); while (this.is("and")){ this.next(); a = { k:"and", a, b:this.not() }; } return a; }
+  not(){ if (this.is("not")){ this.next(); return { k:"not", a:this.not() }; } return this.cmp(); }
+  cmp(){
+    let a = this.add();
+    while (["==","!=","<",">","<=",">="].some(o => this.is(o))){ const op = this.next().v; a = { k:"bin", op, a, b:this.add() }; }
+    return a;
+  }
+  add(){ let a = this.mul(); while (this.is("+") || this.is("-")){ const op = this.next().v; a = { k:"bin", op, a, b:this.mul() }; } return a; }
+  mul(){
+    let a = this.un();
+    while (["*","/","//","%"].some(o => this.is(o))){ const op = this.next().v; a = { k:"bin", op, a, b:this.un() }; }
+    return a;
+  }
+  un(){
+    if (this.is("-")){ this.next(); return { k:"neg", a:this.un() }; }
+    if (this.is("+")){ this.next(); return this.un(); }
+    let a = this.prim();
+    while (this.is(".")){ this.next(); a = { k:"mem", o:a, f:this.ident() }; }
+    return a;
+  }
+  prim(){
+    const k = this.next();
+    if (!k) this.err("Выражение оборвалось");
+    if (k.t === "num") return { k:"lit", v:k.v };
+    if (k.t === "str") return calcTemplate(k.v, this.line);
+    if (k.t === "id"){
+      if (k.v === "true" || k.v === "True") return { k:"lit", v:true };
+      if (k.v === "false" || k.v === "False") return { k:"lit", v:false };
+      if (CALC_RESERVED.has(k.v)) this.err(`«${k.v}» нельзя использовать внутри выражения`);
+      if (this.is("(")){
+        this.next();
+        const args = [];
+        if (!this.is(")")) do { args.push(this.expr()); } while (this.is(",") && this.next());
+        this.expect(")");
+        return { k:"call", f:k.v, args };
+      }
+      return { k:"name", n:k.v };
+    }
+    if (k.v === "("){ const e = this.expr(); this.expect(")"); return e; }
+    this.err(`Неожиданное «${k.v}»`);
+  }
+}
+
+const CALC_CACHE = new Map();
+function compileCalc(code){
+  code = String(code ?? "");
+  if (CALC_CACHE.has(code)) return CALC_CACHE.get(code);
+  let res;
+  try { res = compileCalcRaw(code); }
+  catch(e){ if (!(e instanceof CalcErr)) throw e; res = { error:e, decls:[], byName:{}, handlers:{}, vars:new Set() }; }
+  if (CALC_CACHE.size > 300) CALC_CACHE.clear();
+  CALC_CACHE.set(code, res);
+  return res;
+}
+
+function compileCalcRaw(code){
+  const lines = [];
+  code.split("\n").forEach((raw, idx) => {
+    const lead = /^[ \t]*/.exec(raw)[0];
+    const toks = calcLex(raw.slice(lead.length), idx + 1);
+    if (toks.length) lines.push({ n:idx + 1, ind:lead.replace(/\t/g, "    ").length, toks });
+  });
+  const prog = { decls:[], byName:Object.create(null), handlers:Object.create(null), main:[], vars:new Set() };
+  let i = 0;
+
+  const checkName = (n, line) => {
+    if (CALC_RESERVED.has(n)) throw new CalcErr(`«${n}» — служебное слово, выберите другое имя`, line);
+    if (n.startsWith("__")) throw new CalcErr("Имя не может начинаться с «__»", line);
+  };
+  const block = (ind, top) => {
+    const out = [];
+    while (i < lines.length && lines[i].ind >= ind){
+      if (lines[i].ind > ind) throw new CalcErr("Лишний отступ", lines[i].n);
+      out.push(...stmt(lines[i], ind, top));
+    }
+    return out;
+  };
+  const child = L => {
+    if (i >= lines.length || lines[i].ind <= L.ind) throw new CalcErr("После «:» нужны строки с отступом (4 пробела)", L.n);
+    return block(lines[i].ind, false);
+  };
+  const optSpec = q => {
+    const k = q.next();
+    if (!k || !["id","str","num"].includes(k.t)) q.err("Ожидалось название варианта");
+    const o = { label:String(k.v), value:null, desc:null, fields:[], cond:null };
+    if (q.is("=")){ q.next(); o.value = q.expr(); }
+    if (q.peek()?.t === "str") o.desc = calcTemplate(q.next().v, q.line);
+    if (q.is("[")){
+      q.next();
+      if (!q.is("]")) do {
+        const f = q.ident(); checkName(f, q.line); q.expect("="); o.fields.push([f, q.expr()]);
+      } while (q.is(",") && q.next());
+      q.expect("]");
+    }
+    if (q.is("if")){ q.next(); o.cond = q.expr(); }
+    return o;
+  };
+  const decl = (p, L) => {
+    const name = p.ident(); checkName(name, L.n);
+    if (prog.byName[name]) throw new CalcErr(`Элемент «${name}» уже объявлен`, L.n);
+    p.expect("=");
+    const kind = p.ident();
+    const d = { name, kind, line:L.n, end:L.n, label:null, mods:Object.create(null), opts:[], type:"text" };
+    if (kind === "input" && (p.is("number") || p.is("text"))) d.type = p.next().v;
+    const MODS = ["min","max","default"];
+    if (!p.end() && !p.is(":") && !MODS.some(m => p.is(m))) d.label = p.expr();
+    while (!p.end() && MODS.some(m => p.is(m))){ const m = p.next().v; d.mods[m] = p.expr(); }
+    if (kind === "select"){
+      if (!p.is(":")) p.err("После select нужны «:» и варианты");
+      p.next();
+      if (p.end()){
+        if (i >= lines.length || lines[i].ind <= L.ind) throw new CalcErr("Нужен список вариантов с отступом", L.n);
+        const ind = lines[i].ind;
+        while (i < lines.length && lines[i].ind >= ind){
+          const O = lines[i];
+          if (O.ind > ind) throw new CalcErr("Лишний отступ", O.n);
+          const q = new CalcParser(O.toks, O.n);
+          d.opts.push(optSpec(q)); q.done();
+          d.end = O.n; i++;
+        }
+      } else {
+        do { d.opts.push(optSpec(p)); } while (p.is(",") && p.next());
+      }
+    }
+    p.done();
+    prog.decls.push(d); prog.byName[name] = d;
+  };
+  const stmt = (L, ind, top) => {
+    const p = new CalcParser(L.toks, L.n);
+    i++;
+    if (p.is("if")){
+      p.next();
+      const cond = p.expr(); p.expect(":"); p.done();
+      const node = { k:"if", line:L.n, arms:[{ cond, body:child(L) }], els:null };
+      while (i < lines.length && lines[i].ind === ind && lines[i].toks[0].t === "id" &&
+             (lines[i].toks[0].v === "elif" || lines[i].toks[0].v === "else")){
+        const E = lines[i], q = new CalcParser(E.toks, E.n);
+        i++;
+        if (q.next().v === "elif"){ const c = q.expr(); q.expect(":"); q.done(); node.arms.push({ cond:c, body:child(E) }); }
+        else { q.expect(":"); q.done(); node.els = child(E); break; }
+      }
+      return [node];
+    }
+    if (p.is("elif") || p.is("else")) p.err(`«${p.peek().v}» без «if» перед ним (проверьте отступы)`);
+    if (p.is("on")){
+      if (!top) p.err("«on» пишется без отступа, вне if");
+      p.next();
+      const name = p.ident(); p.expect(":"); p.done();
+      if (prog.handlers[name]) p.err(`Обработчик «on ${name}» уже есть`);
+      const body = child(L);
+      prog.handlers[name] = { body, line:L.n, end:lines[i-1].n };
+      return [];
+    }
+    if (p.is("pass")){ p.next(); p.done(); return []; }
+    if (p.is("var")){
+      p.next();
+      const name = p.ident(); checkName(name, L.n);
+      p.expect("=");
+      const e = p.expr(); p.done();
+      prog.vars.add(name);
+      return [{ k:"var", line:L.n, name, e }];
+    }
+    const t0 = p.peek(), t1 = p.peek(1), t2 = p.peek(2);
+    if (t0.t === "id" && t1?.t === "op" && t1.v === "=" && t2?.t === "id" && EL_KINDS.has(t2.v)){
+      if (!top) p.err("Элементы объявляются без отступа, вне if и on");
+      decl(p, L);
+      return [];
+    }
+    if (t0.t === "id" && t1?.t === "op" && ["=","+=","-=","*=","/="].includes(t1.v)){
+      const name = p.ident(); checkName(name, L.n);
+      const op = p.next().v, e = p.expr(); p.done();
+      return [{ k:"set", line:L.n, name, op, e }];
+    }
+    const e = p.expr(); p.done();
+    return [{ k:"expr", line:L.n, e }];
+  };
+
+  prog.main = block(0, true);
+  for (const [n, h] of Object.entries(prog.handlers))
+    if (!prog.byName[n]) throw new CalcErr(`«on ${n}»: элемент «${n}» не объявлен`, h.line);
+  return prog;
+}
+
+/* ---- Значения ---- */
+function calcFmt(v){
+  if (v == null) return "";
+  if (typeof v === "number") return Number.isFinite(v) ? String(Math.round(v * 100) / 100) : "∞";
+  if (typeof v === "boolean") return v ? "да" : "нет";
+  return String(v);
+}
+const calcNum = v => {
+  if (typeof v === "number") return v;
+  if (typeof v === "boolean") return v ? 1 : 0;
+  const n = parseFloat(v);
+  return Number.isFinite(n) ? n : 0;
+};
+const numLike = v => typeof v === "number" || typeof v === "boolean" || (typeof v === "string" && v.trim() !== "" && !isNaN(+v));
+const calcEq = (a, b) => numLike(a) && numLike(b) ? calcNum(a) === calcNum(b) : calcFmt(a) === calcFmt(b);
+
+function calcBin(op, a, b){
+  const nz = () => { if (calcNum(b) === 0) throw new Error("Деление на ноль"); };
+  switch(op){
+    case "+":  return (typeof a === "string" || typeof b === "string") ? calcFmt(a) + calcFmt(b) : calcNum(a) + calcNum(b);
+    case "-":  return calcNum(a) - calcNum(b);
+    case "*":  return calcNum(a) * calcNum(b);
+    case "/":  nz(); return calcNum(a) / calcNum(b);
+    case "//": nz(); return Math.floor(calcNum(a) / calcNum(b));
+    case "%":  { nz(); const m = calcNum(b); return ((calcNum(a) % m) + m) % m; }
+    case "==": return calcEq(a, b);
+    case "!=": return !calcEq(a, b);
+  }
+  const c = numLike(a) && numLike(b) ? calcNum(a) - calcNum(b) : calcFmt(a).localeCompare(calcFmt(b));
+  return op === "<" ? c < 0 : op === ">" ? c > 0 : op === "<=" ? c <= 0 : c >= 0;
+}
+
+/* ---- Кубы: лестница как в конструкторе Э.Г.О. ---- */
+const DICE_TIERS = [4, 6, 8, 10, 12];
+function parseDice(s){
+  const m = /^\s*(\d*)\s*[dдк]\s*(\d+)\s*$/i.exec(String(s));
+  if (!m) throw new Error(`«${calcFmt(s)}» — не кубы (нужно вида 2d8)`);
+  return [m[1] ? +m[1] : 1, +m[2]];
+}
+function upDice(s, steps = 1){
+  const [n, f] = parseDice(s);
+  let idx = DICE_TIERS.indexOf(f);
+  if (idx < 0) idx = 2;
+  const fin = Math.max(0, Math.min(5, idx + Math.trunc(calcNum(steps))));
+  return fin === 5 ? `${n * 2}d6` : `${n}d${DICE_TIERS[fin]}`;
+}
+function rollDice(s){
+  const src = String(s).replace(/\s+/g, "");
+  if (!/^[+-]?(\d*[dдк]\d+|\d+)([+-](\d*[dдк]\d+|\d+))*$/i.test(src)) throw new Error(`roll: не понимаю «${calcFmt(s)}»`);
+  let total = 0;
+  for (const m of src.matchAll(/([+-]?)(?:(\d*)[dдк](\d+)|(\d+))/gi)){
+    const sign = m[1] === "-" ? -1 : 1;
+    if (m[4] !== undefined){ total += sign * +m[4]; continue; }
+    const n = Math.min(m[2] ? +m[2] : 1, 1000), f = +m[3];
+    for (let k = 0; k < n; k++) total += sign * (f > 0 ? 1 + Math.floor(Math.random() * f) : 0);
+  }
+  return total;
+}
+
+const CALC_FN = {
+  min:   (...a) => Math.min(...a.map(calcNum)),
+  max:   (...a) => Math.max(...a.map(calcNum)),
+  clamp: (x, a, b) => Math.min(Math.max(calcNum(x), calcNum(a)), calcNum(b)),
+  floor: x => Math.floor(calcNum(x)),
+  ceil:  x => Math.ceil(calcNum(x)),
+  round: (x, d = 0) => { const k = 10 ** calcNum(d); return Math.round(calcNum(x) * k) / k; },
+  abs:   x => Math.abs(calcNum(x)),
+  iif:   (c, a, b) => c ? a : b,
+  str:   v => calcFmt(v),
+  num:   v => calcNum(v),
+  len:   v => calcFmt(v).length,
+  dice:  (n, f) => `${calcNum(n)}d${calcNum(f)}`,
+  upDice,
+  addDice: (s, k = 1) => { const [n, f] = parseDice(s); return `${Math.max(0, n + calcNum(k))}d${f}`; },
+  roll:  rollDice
+};
+const CALC_UI_FN = { hide:["hidden", true], show:["hidden", false], disable:["disabled", true], enable:["disabled", false] };
+
+/* ---- Выполнение ----
+   st  — сохраняемое состояние { el:{имя:значение}, vars:{var-переменные} }
+   mem — память между запусками (не сохраняется): последние значения переменных
+   event — { name, kind:"click"|"change"|"input", value } или null */
+function execCalc(prog, st, mem, event){
+  if (!st.el || typeof st.el !== "object") st.el = {};
+  if (!st.vars || typeof st.vars !== "object") st.vars = {};
+  const env = Object.create(null);
+  Object.assign(env, mem.last || {}, st.vars);
+  const R = { prog, st, env, ui:Object.create(null), out:Object.create(null) };
+  let error = null;
+  try {
+    const d = event && prog.byName[event.name];
+    if (d){
+      if (event.kind === "click") st.el[d.name] = calcClampBtn(R, d, calcNum(calcEl(R, d.name)) + 1);
+      else st.el[d.name] = event.value;
+      const h = prog.handlers[d.name];
+      if (h && event.kind !== "input") calcRun(R, h.body);
+    }
+    calcRun(R, prog.main);
+  } catch(e){
+    error = e instanceof CalcErr ? e : new CalcErr(e?.message || String(e), null);
+  }
+  mem.last = { ...env };
+  prog.vars.forEach(v => { if (v in env) st.vars[v] = env[v]; });
+  return { view:prog.decls.map(d => calcView(R, d)), error, out:R.out };
+}
+
+function calcRun(R, stmts){
+  for (const s of stmts){
+    try { calcStmt(R, s); }
+    catch(e){ throw e instanceof CalcErr ? e : new CalcErr(e?.message || String(e), s.line); }
+  }
+}
+function calcStmt(R, s){
+  switch(s.k){
+    case "var":
+      if (!hasOwn(R.st.vars, s.name)) R.env[s.name] = calcEval(R, s.e);
+      break;
+    case "set": {
+      const d = R.prog.byName[s.name];
+      let v = calcEval(R, s.e);
+      if (s.op !== "="){
+        if (!d && !(s.name in R.env)) throw new Error(`Переменная «${s.name}» ещё не задана`);
+        v = calcBin(s.op[0], d ? calcRead(R, d) : R.env[s.name], v);
+      }
+      if (d) calcWrite(R, d, v); else R.env[s.name] = v;
+      break;
+    }
+    case "expr": calcEval(R, s.e); break;
+    case "if": {
+      const arm = s.arms.find(a => calcEval(R, a.cond));
+      if (arm) calcRun(R, arm.body);
+      else if (s.els) calcRun(R, s.els);
+      break;
+    }
+  }
+}
+function calcEval(R, n){
+  switch(n.k){
+    case "lit": return n.v;
+    case "tpl": return n.parts.map(p => typeof p === "string" ? p : calcFmt(calcEval(R, p))).join("");
+    case "name": {
+      const d = R.prog.byName[n.n];
+      if (d) return calcRead(R, d);
+      if (n.n in R.env) return R.env[n.n];
+      throw new Error(`Неизвестное имя «${n.n}»`);
+    }
+    case "mem": {
+      if (n.o.k === "name" && R.prog.byName[n.o.n]) return calcMember(R, R.prog.byName[n.o.n], n.f);
+      const v = calcEval(R, n.o);
+      if (n.f === "length") return calcFmt(v).length;
+      throw new Error(`У значения нет поля «${n.f}»`);
+    }
+    case "call": {
+      if (hasOwn(CALC_UI_FN, n.f)){
+        const [key, val] = CALC_UI_FN[n.f];
+        if (!n.args.length) throw new Error(`${n.f}() — укажите элемент`);
+        n.args.forEach(a => {
+          if (a.k !== "name" || !R.prog.byName[a.n]) throw new Error(`${n.f}() принимает только имена элементов`);
+          (R.ui[a.n] ||= {})[key] = val;
+        });
+        return true;
+      }
+      if (!hasOwn(CALC_FN, n.f)) throw new Error(`Нет функции «${n.f}»`);
+      return CALC_FN[n.f](...n.args.map(a => calcEval(R, a)));
+    }
+    case "neg": return -calcNum(calcEval(R, n.a));
+    case "not": return !calcEval(R, n.a);
+    case "and": { const a = calcEval(R, n.a); return a ? calcEval(R, n.b) : a; }
+    case "or":  { const a = calcEval(R, n.a); return a ? a : calcEval(R, n.b); }
+    case "bin": return calcBin(n.op, calcEval(R, n.a), calcEval(R, n.b));
+  }
+}
+
+const calcEl = (R, n) => hasOwn(R.st.el, n) ? R.st.el[n] : undefined;
+function calcClampBtn(R, d, v){
+  const lo = d.mods.min ? calcNum(calcEval(R, d.mods.min)) : 0;
+  const hi = d.mods.max ? calcNum(calcEval(R, d.mods.max)) : Infinity;
+  return Math.min(Math.max(v, lo), hi);
+}
+function calcOpts(R, d){
+  const out = [];
+  for (const o of d.opts){
+    if (o.cond && !calcEval(R, o.cond)) continue;
+    const fields = Object.create(null);
+    o.fields.forEach(([k, e]) => fields[k] = calcEval(R, e));
+    out.push({ label:o.label, value:o.value ? calcEval(R, o.value) : o.label,
+               desc:o.desc ? calcFmt(calcEval(R, o.desc)) : "", fields });
+  }
+  return out;
+}
+function calcCur(R, d){
+  const list = calcOpts(R, d);
+  if (!list.length) return null;
+  const i = Math.max(0, list.findIndex(o => o.label === calcEl(R, d.name)));
+  return { ...list[i], index:i + 1, count:list.length };
+}
+function calcRead(R, d){
+  const v = calcEl(R, d.name);
+  switch(d.kind){
+    case "button": return calcNum(v ?? 0);
+    case "select": return calcCur(R, d)?.value ?? "";
+    case "input": {
+      const raw = hasOwn(R.st.el, d.name) ? v : (d.mods.default ? calcEval(R, d.mods.default) : (d.type === "number" ? 0 : ""));
+      return d.type === "number" ? calcNum(raw) : calcFmt(raw);
+    }
+    case "output": return R.out[d.name] ?? "";
+  }
+}
+function calcMember(R, d, f){
+  if (f === "title") return d.label ? calcFmt(calcEval(R, d.label)) : "";
+  if (d.kind === "select"){
+    const c = calcCur(R, d);
+    if (f === "count") return c ? c.count : 0;
+    if (!c) return "";
+    if (f === "label" || f === "value" || f === "desc" || f === "index") return c[f];
+    return hasOwn(c.fields, f) ? c.fields[f] : "";
+  }
+  if (f === "label") return d.label ? calcFmt(calcEval(R, d.label)) : "";
+  if (["value","count","text"].includes(f)) return calcRead(R, d);
+  throw new Error(`У «${d.name}» нет поля «${f}»`);
+}
+function calcWrite(R, d, v){
+  switch(d.kind){
+    case "button": R.st.el[d.name] = calcClampBtn(R, d, calcNum(v)); break;
+    case "select": {
+      const list = calcOpts(R, d);
+      const o = list.find(x => x.label === calcFmt(v)) || list.find(x => calcEq(x.value, v));
+      if (!o) throw new Error(`В «${d.name}» нет варианта «${calcFmt(v)}»`);
+      R.st.el[d.name] = o.label; break;
+    }
+    case "input":  R.st.el[d.name] = v; break;
+    case "output": R.out[d.name] = calcFmt(v); break;
+  }
+}
+function calcView(R, d){
+  const safe = (f, dflt) => { try { return f(); } catch { return dflt; } };
+  const ui = R.ui[d.name] || {};
+  const v = { name:d.name, kind:d.kind, hidden:!!ui.hidden, disabled:!!ui.disabled,
+              label:d.label ? safe(() => calcFmt(calcEval(R, d.label)), "?") : "" };
+  switch(d.kind){
+    case "button": v.count = calcNum(calcEl(R, d.name) ?? 0); break;
+    case "select": v.opts = safe(() => calcOpts(R, d), []); v.cur = safe(() => calcCur(R, d), null); break;
+    case "input":
+      v.type = d.type; v.value = safe(() => calcRead(R, d), "");
+      v.min = d.mods.min ? safe(() => calcNum(calcEval(R, d.mods.min)), null) : null;
+      v.max = d.mods.max ? safe(() => calcNum(calcEval(R, d.mods.max)), null) : null;
+      break;
+    case "output": v.text = R.out[d.name] ?? ""; break;
+  }
+  return v;
+}
+
+/* ---- 12b.2 Состояние, вставка в текст, копирование ---- */
+const CALC_STORE_KEY = "pm_calc_state_v1";
+let CALC_STORE = {};
+try { CALC_STORE = JSON.parse(localStorage.getItem(CALC_STORE_KEY) || "{}") || {}; } catch { CALC_STORE = {}; }
+let calcSaveTimer;
+function saveCalcStore(){
+  clearTimeout(calcSaveTimer);
+  calcSaveTimer = setTimeout(() => { try { localStorage.setItem(CALC_STORE_KEY, JSON.stringify(CALC_STORE)); } catch {} }, 250);
+}
+const DRAFT_CALC_STATE = {};     // черновики в конструкторе — только в памяти
+const CALC_MEM = new Map();
+function calcState(key, persist){
+  const bag = persist ? CALC_STORE : DRAFT_CALC_STATE;
+  if (!hasOwn(bag, key) || !bag[key] || typeof bag[key] !== "object") bag[key] = { el:{}, vars:{} };
+  return bag[key];
+}
+function calcMem(key){
+  if (!CALC_MEM.has(key)) CALC_MEM.set(key, {});
+  return CALC_MEM.get(key);
+}
+
+/* Во время рендера карточки md() знает, чьи калькуляторы подставлять */
+const CALC_REG = {};
+let CALC_CTX = null;
+function withCalcs(key, calcs, fn){
+  const prev = CALC_CTX;
+  CALC_CTX = { key, calcs:calcs || {} };
+  CALC_REG[key] = CALC_CTX.calcs;
+  try { return fn(); } finally { CALC_CTX = prev; }
+}
+function calcHostHtml(name){
+  if (!CALC_CTX || !hasOwn(CALC_CTX.calcs, name))
+    return `<span class="calc-missing"><i class="fa-solid fa-calculator"></i> калькулятор «${esc(name)}» не найден</span>`;
+  return `<div class="calc-host" data-ck="${esc(CALC_CTX.key)}" data-cn="${esc(name)}"></div>`;
+}
+function injectCalcs(html){
+  return html.replace(/<p>\s*\[calc:([\p{L}\p{N}_-]{1,40})\]\s*<\/p>/gu, (_, n) => calcHostHtml(n))
+             .replace(CALC_TOKEN, (_, n) => calcHostHtml(n));
+}
+function mountCalcs(root){
+  if (!root) return;
+  CALC_LIVE.forEach(w => { if (!w.host.isConnected){ calcRO?.unobserve(w.host); CALC_LIVE.delete(w); } });
+  root.querySelectorAll(".calc-host[data-cn]").forEach(h => {
+    if (h.__calc) return;
+    const key = h.dataset.ck, name = h.dataset.cn;
+    const prog = CALC_REG[key]?.[name];
+    if (prog) new CalcWidget(h, prog, { key:`${key}|${name}`, persist:!key.startsWith("draft") });
+  });
+}
+
+/* Текст для «Копировать»: вместо [calc:имя] — содержимое полей вывода */
+function calcPlain(prog, key){
+  const c = compileCalc(prog?.code);
+  if (!prog || c.error) return "[калькулятор: ошибка в коде]";
+  const st = JSON.parse(JSON.stringify(CALC_STORE[key] || { el:{}, vars:{} }));
+  const res = execCalc(c, st, { last:{ ...(CALC_MEM.get(key)?.last || {}) } }, null);
+  return res.view.filter(v => v.kind === "output" && !v.hidden && v.text)
+    .map(v => (v.label ? `${v.label}: ` : "") + v.text).join("\n");
+}
+function withCalcText(text, calcs, key){
+  return String(text).replace(CALC_TOKEN, (_, n) => hasOwn(calcs, n) ? calcPlain(calcs[n], `${key}|${n}`) : "");
+}
+
+/* ---- 12b.3 Виджет калькулятора (просмотр и редактор) ---- */
+const CALC_GRID = 10;
+const CALC_EDIT_PAD = { x:18, y:20 };    // место под ручку перетаскивания в редакторе
+const CALC_LIVE = new Set();
+const calcRO = typeof ResizeObserver !== "undefined"
+  ? new ResizeObserver(entries => entries.forEach(e => {
+      const w = e.target.__calc;
+      if (w && Math.abs((w._lastW || 0) - e.contentRect.width) > 1){ w._lastW = e.contentRect.width; w.fit(); }
+    }))
+  : null;
+const calcSnap = v => Math.round(v / CALC_GRID) * CALC_GRID;
+
+class CalcWidget {
+  /* o: { key, persist, edit, st, mem, onLayout, onDelete, onPick } */
+  constructor(host, prog, o = {}){
+    if (host.__calc) CALC_LIVE.delete(host.__calc);
+    this.host = host; this.o = o; this.key = o.key || "";
+    this.st  = o.st  || calcState(this.key, o.persist !== false);
+    this.mem = o.mem || calcMem(this.key);
+    host.__calc = this;
+    host.classList.add("calc-host");
+    this.root = document.createElement("div");
+    this.root.className = "calc" + (o.edit ? " calc-edit" : "");
+    host.innerHTML = "";
+    host.appendChild(this.root);
+    this.bind();
+    this.setProgram(prog);
+    CALC_LIVE.add(this);
+    calcRO?.observe(host);
+  }
+
+  setProgram(prog){
+    this.prog = prog;
+    if (this.o.edit) this.layout = (prog.layout ||= {});
+    else this.layout = JSON.parse(JSON.stringify(prog.layout || {}));
+    this.c = compileCalc(prog.code);
+    this.build();
+    this.run(null);
+  }
+
+  fillLayout(){
+    const est = { button:30, select:84, input:62, output:64 };
+    let y = 0;
+    this.c.decls.forEach(d => { const p = this.layout[d.name]; if (p) y = Math.max(y, (p.y || 0) + est[d.kind] + 10); });
+    this.c.decls.forEach(d => {
+      if (this.layout[d.name]) return;
+      this.layout[d.name] = { x:0, y:calcSnap(y) };
+      if (d.kind !== "button") this.layout[d.name].w = d.kind === "output" ? 320 : 220;
+      y += est[d.kind] + 20;
+    });
+  }
+
+  build(){
+    this.root.innerHTML = `<button type="button" class="calc-reset" title="Сбросить значения"><i class="fa-solid fa-rotate-left"></i></button>
+      <div class="calc-canvas"></div><div class="calc-err"></div>`;
+    this.canvas = this.root.querySelector(".calc-canvas");
+    this.errBox = this.root.querySelector(".calc-err");
+    this.els = {};
+    this.natW = {};
+    if (this.c.error) return;
+    this.fillLayout();
+    const L = n => this.layout[n] || { x:0, y:0 };
+    [...this.c.decls].sort((a, b) => (L(a.name).y - L(b.name).y) || (L(a.name).x - L(b.name).x)).forEach(d => {
+      const el = document.createElement("div");
+      el.className = `calc-el k-${d.kind}`;
+      el.dataset.n = d.name;
+      let h = "";
+      switch(d.kind){
+        case "button": h = `<button type="button" class="calc-btn" data-cb="${esc(d.name)}"></button>`; break;
+        case "select": h = `<div class="calc-lbl"></div><select class="cloud-select" data-cs="${esc(d.name)}"></select><div class="calc-desc md"></div>`; break;
+        case "input":  h = `<div class="calc-lbl"></div><input class="cloud-input" data-ci="${esc(d.name)}" type="${d.type === "number" ? "number" : "text"}">`; break;
+        case "output": h = `<div class="calc-lbl"></div><div class="calc-out"><div class="calc-out-body md"></div>
+            <button type="button" class="calc-copy" data-cc="${esc(d.name)}" title="Копировать"><i class="fa-regular fa-copy"></i></button></div>`; break;
+      }
+      if (this.o.edit)
+        h += `<span class="calc-grip" title="Перетащить"><i class="fa-solid fa-grip-vertical"></i></span>
+              <div class="calc-tag">${esc(d.name)} · ${d.kind}<button type="button" class="calc-del" title="Удалить элемент из кода">×</button></div>`
+          + (d.kind !== "button" ? `<span class="calc-rsz" title="Потяните, чтобы изменить ширину"></span>` : "");
+      el.innerHTML = h;
+      this.canvas.appendChild(el);
+      this.els[d.name] = el;
+      this.place(el, d.name);
+    });
+  }
+
+  place(el, n){
+    const p = this.layout[n] || { x:0, y:0 };
+    const pad = this.o.edit ? CALC_EDIT_PAD : { x:0, y:0 };
+    el.style.left = (p.x || 0) + pad.x + "px";
+    el.style.top  = (p.y || 0) + pad.y + "px";
+    el.style.width = p.w ? p.w + "px" : "";
+  }
+
+  bind(){
+    const r = this.root;
+    r.addEventListener("click", e => {
+      const b = e.target.closest("button");
+      if (!b || !r.contains(b)) return;
+      if (b.classList.contains("calc-reset")) return this.reset();
+      if (b.dataset.cb) return this.run({ name:b.dataset.cb, kind:"click" });
+      if (b.dataset.cc) return copyText(this.lastOut?.[b.dataset.cc] ?? "");
+      if (b.classList.contains("calc-del")) this.o.onDelete?.(b.closest(".calc-el").dataset.n);
+    });
+    r.addEventListener("change", e => {
+      const t = e.target;
+      if (t.dataset.cs) this.run({ name:t.dataset.cs, kind:"change", value:t.value });
+      if (t.dataset.ci){ clearTimeout(this._inT); this.run({ name:t.dataset.ci, kind:"change", value:this.inpVal(t) }); }
+    });
+    r.addEventListener("input", e => {
+      const t = e.target;
+      if (!t.dataset.ci) return;
+      clearTimeout(this._inT);
+      this._inT = setTimeout(() => this.run({ name:t.dataset.ci, kind:"input", value:this.inpVal(t) }), 160);
+    });
+    if (this.o.edit){
+      r.addEventListener("dblclick", e => {
+        const el = e.target.closest(".calc-el");
+        if (el && !e.target.closest("input,select,button")) this.o.onPick?.(el.dataset.n);
+      });
+      r.addEventListener("pointerdown", e => this.dragStart(e));
+    }
+  }
+  inpVal(t){ return t.type === "number" ? (t.value === "" ? 0 : parseFloat(t.value)) : t.value; }
+
+  run(event){
+    if (this.c.error){
+      this.errBox.textContent = `Строка ${this.c.error.line}: ${this.c.error.message}`;
+      this.fit();
+      return;
+    }
+    const res = execCalc(this.c, this.st, this.mem, event);
+    this.lastOut = res.out;
+    this.patch(res.view);
+    this.errBox.textContent = res.error ? (res.error.line ? `Строка ${res.error.line}: ` : "") + res.error.message : "";
+    if (this.o.persist !== false && !this.o.st) saveCalcStore();
+    this.fit();
+    if (event) CALC_LIVE.forEach(w => { if (w !== this && w.key === this.key && w.host.isConnected) w.run(null); });
+  }
+
+  reset(){
+    this.st.el = {};
+    this.st.vars = {};
+    this.mem.last = {};
+    this.run(null);
+    CALC_LIVE.forEach(w => { if (w !== this && w.key === this.key && w.host.isConnected) w.run(null); });
+  }
+
+  patch(view){
+    view.forEach(v => {
+      const el = this.els[v.name];
+      if (!el) return;
+      el.classList.toggle("is-hidden", v.hidden);
+      const lbl = el.querySelector(".calc-lbl");
+      if (lbl){ lbl.textContent = v.label; lbl.style.display = v.label ? "" : "none"; }
+      switch(v.kind){
+        case "button": {
+          const b = el.querySelector(".calc-btn");
+          b.textContent = v.label || v.name;
+          b.disabled = v.disabled;
+          b.title = `Нажатий: ${v.count}`;
+          break;
+        }
+        case "select": {
+          const s = el.querySelector("select");
+          const sig = v.opts.map(o => o.label).join("\u0001");
+          if (s.__sig !== sig){
+            s.innerHTML = v.opts.map(o => `<option value="${esc(o.label)}">${esc(o.label)}</option>`).join("");
+            s.__sig = sig;
+          }
+          s.value = v.cur ? v.cur.label : "";
+          s.disabled = v.disabled;
+          const dsc = el.querySelector(".calc-desc"), t = v.cur?.desc || "";
+          dsc.innerHTML = t ? mdOut(t) : "";
+          dsc.style.display = t ? "" : "none";
+          break;
+        }
+        case "input": {
+          const i = el.querySelector("input");
+          if (document.activeElement !== i) i.value = v.value ?? "";
+          i.disabled = v.disabled;
+          if (v.min != null) i.min = v.min; else i.removeAttribute("min");
+          if (v.max != null) i.max = v.max; else i.removeAttribute("max");
+          break;
+        }
+        case "output":
+          el.querySelector(".calc-out-body").innerHTML = v.text ? mdOut(v.text) : `<span class="calc-empty">—</span>`;
+          el.classList.toggle("is-disabled", v.disabled);
+          break;
+      }
+    });
+  }
+
+  /* Высота холста; на узком экране — переход в «поток» */
+  fit(){
+    const cv = this.canvas;
+    if (!cv) return;
+    const items = Object.entries(this.els);
+    if (!this.o.edit){
+      const need = Math.max(0, ...items.map(([n]) => {
+        const p = this.layout[n] || {};
+        return (p.x || 0) + (p.w || this.natW[n] || 0);
+      }));
+      const avail = cv.clientWidth || this.host.clientWidth;
+      const flow = avail > 0 && need > avail + 1;
+      this.root.classList.toggle("flow", flow);
+      if (flow){ cv.style.height = ""; return; }
+    }
+    let h = 0;
+    items.forEach(([n, el]) => {
+      if (!el.offsetParent) return;
+      h = Math.max(h, el.offsetTop + el.offsetHeight);
+      if (!this.layout[n]?.w) this.natW[n] = el.offsetWidth;
+    });
+    cv.style.height = (this.o.edit ? Math.max(h + 60, 240) : h + 2) + "px";
+  }
+  bottom(){
+    let h = 0;
+    Object.entries(this.els).forEach(([n, el]) => {
+      const p = this.layout[n] || {};
+      h = Math.max(h, (p.y || 0) + el.offsetHeight);
+    });
+    return h ? calcSnap(h + 15) : 0;
+  }
+
+  dragStart(e){
+    const grip = e.target.closest(".calc-grip, .calc-rsz");
+    if (!grip) return;
+    e.preventDefault();
+    const el = grip.closest(".calc-el"), n = el.dataset.n;
+    const p = this.layout[n] || (this.layout[n] = { x:0, y:0 });
+    const resize = grip.classList.contains("calc-rsz");
+    const sx = e.clientX, sy = e.clientY, ox = p.x || 0, oy = p.y || 0, ow = p.w || el.offsetWidth;
+    el.classList.add("dragging");
+    const move = ev => {
+      const dx = ev.clientX - sx, dy = ev.clientY - sy;
+      if (resize) p.w = Math.max(80, calcSnap(ow + dx));
+      else { p.x = Math.max(0, calcSnap(ox + dx)); p.y = Math.max(0, calcSnap(oy + dy)); }
+      this.place(el, n);
+      this.fit();
+    };
+    const up = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      el.classList.remove("dragging");
+      this.o.onLayout?.(this.layout);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+  }
+}
+
+/* ---- 12b.4 Редактор: код ↔ превью ---- */
+const CE_DEFAULT = `# Пример — измените или удалите
+Rank = select "Ранг":
+    ZAYIN = 4 "Персональное Э.Г.О., без коррозии" [коррозия = 0]
+    TETH = 5 "Э.Г.О. аномалии" [коррозия = 1]
+Minus = button "−"
+Plus = button "+"
+Out = output "Итог"
+
+var pts = 0
+
+on Plus:
+    pts = min(pts + 1, Rank)
+on Minus:
+    pts = max(pts - 1, 0)
+
+if pts == Rank:
+    Out = "**Все очки распределены:** {pts} / {Rank}"
+else:
+    Out = "Потрачено очков: {pts} / {Rank}"
+if Rank.коррозия:
+    Out += "\\n\\n*Есть коррозия*"
+`;
+let CE = null;
+
+function calcTokenAt(ta){
+  const pos = ta.selectionStart;
+  for (const m of ta.value.matchAll(CALC_TOKEN)){
+    const s = m.index, e = s + m[0].length;
+    if (pos >= s && pos <= e) return { name:m[1], range:{ start:s, end:e } };
+  }
+  return null;
+}
+function openCalcEditor(ta){
+  const calcs = state.draftCalcs;
+  const found = calcTokenAt(ta);
+  let name = found?.name;
+  if (!name){ let k = 1; while (hasOwn(calcs, "calc" + k)) k++; name = "calc" + k; }
+  const exists = hasOwn(calcs, name);
+  const src = exists ? calcs[name] : { code:CE_DEFAULT, layout:{} };
+  CE = {
+    ta, orig:exists ? name : null, range:found ? found.range : null,
+    prog:{ code:String(src.code || ""), layout:JSON.parse(JSON.stringify(src.layout || {})) },
+    st:{ el:{}, vars:{} }, mem:{}, snips:[]
+  };
+  $("#ce-name").value = name;
+  $("#ce-code").value = CE.prog.code;
+  $("#ce-del-btn").style.display = CE.orig ? "" : "none";
+  $("#ce-apply-label").textContent = CE.orig ? "Сохранить" : "Вставить в текст";
+  $("#ce-menu").hidden = true;
+  $("#calcModal").classList.add("active");
+  CE.widget = new CalcWidget($("#ce-preview"), CE.prog, {
+    key:"ce", persist:false, edit:true, st:CE.st, mem:CE.mem,
+    onDelete:ceDeleteEl, onPick:cePick
+  });
+  ceShowErr();
+}
+function ceShowErr(){
+  const e = compileCalc(CE.prog.code).error, box = $("#ce-err");
+  box.textContent = e ? `Строка ${e.line}: ${e.message}` : "✓ Код разобран без ошибок";
+  box.classList.toggle("ok", !e);
+}
+let ceTimer;
+function ceSyncSoon(){ clearTimeout(ceTimer); ceTimer = setTimeout(ceSync, 220); }
+function ceSync(){
+  if (!CE) return;
+  clearTimeout(ceTimer);
+  CE.prog.code = $("#ce-code").value;
+  CE.widget.setProgram(CE.prog);
+  ceShowErr();
+}
+function ceFreeName(base){
+  const code = $("#ce-code").value;
+  let k = 1;
+  while (new RegExp(`(^|[^\\p{L}\\p{N}_])${base}${k}(?![\\p{L}\\p{N}_])`, "u").test(code)) k++;
+  return base + k;
+}
+function ceLineRange(ta, from, to){          // строки from..to (с 1) → позиции символов
+  const lines = ta.value.split("\n");
+  let s = 0;
+  for (let k = 0; k < from - 1; k++) s += lines[k].length + 1;
+  let e = s;
+  for (let k = from - 1; k < to; k++) e += lines[k].length + 1;
+  return [s, Math.min(e - 1, ta.value.length)];
+}
+
+const CE_ADD = {
+  button: n => `${n} = button "Кнопка"`,
+  select: n => `${n} = select "Выбор":\n    A = 1 "Описание варианта A"\n    B = 2 "Описание варианта B"`,
+  input:  n => `${n} = input number "Число" default 0`,
+  output: n => `${n} = output "Результат"`
+};
+const CE_BASE = { button:"Button", select:"Select", input:"Input", output:"Output" };
+function ceAdd(kind){
+  if (!CE) return;
+  const ta = $("#ce-code"), c = compileCalc(ta.value);
+  const name = ceFreeName(CE_BASE[kind]);
+  const lines = ta.value.split("\n");
+  const at = !c.error && c.decls.length ? Math.max(...c.decls.map(d => d.end)) : 0;
+  lines.splice(at, 0, CE_ADD[kind](name));
+  ta.value = lines.join("\n");
+  CE.prog.layout[name] = { x:0, y:CE.widget.bottom() };
+  if (kind !== "button") CE.prog.layout[name].w = kind === "output" ? 320 : 220;
+  ceSync();
+}
+function ceDeleteEl(name){
+  const ta = $("#ce-code"), c = compileCalc(ta.value);
+  if (c.error) return toast("Сначала исправьте ошибку в коде");
+  const d = c.byName[name];
+  if (!d) return;
+  const h = c.handlers[name];
+  if (!confirm(`Удалить элемент «${name}»${h ? ` и его блок «on ${name}»` : ""} из кода?`)) return;
+  const lines = ta.value.split("\n");
+  [[d.line, d.end], ...(h ? [[h.line, h.end]] : [])]
+    .sort((a, b) => b[0] - a[0])
+    .forEach(([s, e]) => lines.splice(s - 1, e - s + 1));
+  ta.value = lines.join("\n");
+  delete CE.prog.layout[name];
+  ceSync();
+}
+function cePick(name){
+  const ta = $("#ce-code"), d = compileCalc(ta.value).byName[name];
+  if (!d) return;
+  const [s, e] = ceLineRange(ta, d.line, d.end);
+  ta.focus();
+  ta.setSelectionRange(s, e);
+  const lh = parseFloat(getComputedStyle(ta).lineHeight) || 20;
+  ta.scrollTop = Math.max(0, (d.line - 3) * lh);
+}
+
+/* Вставка из меню «Вставить ▾»; § — где окажется курсор */
+function ceInsert(sn){
+  const ta = $("#ce-code");
+  const s = ta.selectionStart, e = ta.selectionEnd, v = ta.value;
+  const ls = v.lastIndexOf("\n", s - 1) + 1;
+  const cur = v.slice(ls, s);
+  const indent = /^ */.exec(cur)[0];
+  let text = sn.s;
+  if (sn.block){
+    text = text.split("\n").map((l, k) => k ? indent + l : l).join("\n");
+    if (cur.trim() !== "") text = "\n" + indent + text;
+  }
+  let caret = text.indexOf("§");
+  text = text.replace("§", "");
+  if (caret < 0) caret = text.length;
+  ta.focus();
+  ta.setSelectionRange(s, e);
+  if (!document.execCommand?.("insertText", false, text)) ta.setRangeText(text, s, e, "end");
+  ta.setSelectionRange(s + caret, s + caret);
+  ceSyncSoon();
+}
+function ceRenderMenu(){
+  const c = compileCalc($("#ce-code").value);
+  const els = c.decls || [];
+  const pick = kind => els.find(d => d.kind === kind)?.name;
+  const B = pick("button") || "Кнопка", S = pick("select") || "Выбор", A = els[0]?.name || "Элемент";
+  const nb = ceFreeName("Button"), ns = ceFreeName("Select"), ni = ceFreeName("Input"), no = ceFreeName("Output");
+  const nk = /\d+$/.exec(nb)[0];
+  const G = [
+    ["Элементы", [
+      [`${nb} = button "Текст"`, "Кнопка. Её значение — сколько раз нажали (Button = 2 после двух нажатий).", 1],
+      [`${nb} = button "+" max 5`, "Кнопка с пределом нажатий. min/max можно задать выражением: max Rank.", 1],
+      [`${ns} = select "Подпись": A = 1, B = 2, C = 3`, "Выбор в одну строку. Значение — значение выбранного варианта.", 1],
+      [`${ns} = select "Ранг":\n    ZAYIN = 4 "Описание" [коррозия = 0]\n    TETH = 5 "Описание" [коррозия = 1]`,
+        "Выбор блоком: у варианта есть описание (показывается под списком) и свои поля в [ ].", 1],
+      [`    ВАРИАНТ = 6 "Описание" [поле = 1] if §условие`, "Строка варианта, видимая только при условии (варианты из кода).", 1],
+      [`${ni} = input number "Подпись" default 0 min 0 max 10`, "Поле ввода числа.", 1],
+      [`${ni} = input "Подпись"`, "Поле ввода текста — названия, кастомные эффекты.", 1],
+      [`${no} = output "Подпись"`, "Поле вывода. Заполняется присваиванием: Out = \"текст {выражение}\" (поддерживает Markdown).", 1]
+    ]],
+    ["Логика", [
+      [`if §условие:\n    pass`, "Условие.", 1],
+      [`if §условие:\n    pass\nelse:\n    pass`, "Условие с «иначе».", 1],
+      [`if §условие:\n    pass\nelif условие:\n    pass\nelse:\n    pass`, "Цепочка условий.", 1],
+      [`on ${B}:\n    §pass`, "Код при нажатии кнопки (или при смене выбора / вводе). Пишется без отступа.", 1],
+      [`var §имя = 0`, "Переменная, которая помнит значение между нажатиями. Начальное значение задаётся один раз.", 1],
+      [`§имя += 1`, "Прибавить (есть также -=, *=, /=).", 1],
+      [`Minus${nk} = button "−"\nPlus${nk} = button "+"\nvar count${nk} = 0\non Plus${nk}:\n    count${nk} = min(count${nk} + 1, 5)\non Minus${nk}:\n    count${nk} = max(count${nk} - 1, 0)`,
+        "Готовая пара «− N +», как в конструкторе Э.Г.О.", 1],
+      [`hide(${A})`, "Спрятать элемент (show — показать). Пишите в if в основном коде.", 1],
+      [`disable(${A})`, "Сделать элемент неактивным (enable — вернуть).", 1],
+      [`# §`, "Комментарий — не выполняется.", 1]
+    ]],
+    ["Текст", [
+      [`"Текст {§}"`, "Строка с подстановкой: всё внутри { } вычисляется."],
+      [`\\n`, "Перенос строки внутри строки."],
+      [`**§**`, "Жирный текст в поле вывода (Markdown)."],
+      [`{{`, "Буквальная фигурная скобка в строке."]
+    ]],
+    ["Функции", [
+      ["min(§)", "Наименьшее из чисел: min(a, b, …)."],
+      ["max(§)", "Наибольшее из чисел."],
+      ["clamp(§x, 0, 10)", "Зажать число в границы."],
+      ["floor(§)", "Округлить вниз."],
+      ["ceil(§)", "Округлить вверх."],
+      ["round(§, 0)", "Округлить до N знаков."],
+      ["abs(§)", "Модуль числа."],
+      ["iif(§условие, \"да\", \"нет\")", "Значение по условию в одну строку."],
+      ["str(§)", "Превратить в текст."],
+      ["num(§)", "Превратить в число."],
+      ["len(§)", "Длина текста."],
+      ["dice(§2, 8)", "Собрать кубы: dice(2, 8) → 2d8."],
+      ["upDice(§\"2d8\", 1)", "Поднять тир куба: d4→d6→d8→d10→d12→2d6."],
+      ["addDice(§\"2d8\", 1)", "Добавить кубы: 2d8 → 3d8."],
+      ["roll(\"§1d20+3\")", "Случайный бросок. Лучше вызывать внутри on, иначе перебрасывается при каждом клике."]
+    ]],
+    ["Поля элементов", [
+      [`${S}.label`, "Название выбранного варианта (ZAYIN, TETH…)."],
+      [`${S}.title`, "Подпись самого элемента (\"Ранг\")."],
+      [`${S}.value`, "Значение выбранного варианта (то же, что просто имя)."],
+      [`${S}.desc`, "Описание выбранного варианта."],
+      [`${S}.index`, "Номер выбранного варианта, с 1."],
+      [`${S}.count`, "Сколько вариантов сейчас доступно."],
+      [`${S}.§поле`, "Своё поле варианта из [поле = …]."]
+    ]],
+    ["Операторы", [
+      [" and ", "И"], [" or ", "ИЛИ"], ["not ", "НЕ"],
+      [" == ", "Равно"], [" != ", "Не равно"], [" >= ", "Больше или равно"], [" <= ", "Меньше или равно"],
+      [" // ", "Целочисленное деление"], [" % ", "Остаток от деления"]
+    ]]
+  ];
+  const names = [
+    ...els.map(d => [d.name, { button:"кнопка — число нажатий", select:"выбор — значение варианта",
+                               input:"ввод — введённое значение", output:"вывод — текст" }[d.kind]]),
+    ...[...(c.vars || [])].map(v => [v, "переменная (var)"])
+  ];
+  if (names.length) G.push(["Имена в программе", names]);
+
+  CE.snips = [];
+  $("#ce-menu").innerHTML = G.map(([title, items]) => `<div class="ce-group">${esc(title)}</div>` + items.map(([s, d, block]) => {
+    const i = CE.snips.push({ s, block:!!block }) - 1;
+    return `<button type="button" class="ce-item" data-act="ce-snip" data-i="${i}"><code>${esc(s.replace("§", ""))}</code><span>${esc(d)}</span></button>`;
+  }).join("")).join("");
+}
+
+function ceApply(){
+  if (!CE) return;
+  const name = $("#ce-name").value.trim();
+  if (!CALC_NAME_OK.test(name)) return toast("Имя: буквы, цифры, _ и -, до 40 символов");
+  const calcs = state.draftCalcs;
+  if (name !== CE.orig && hasOwn(calcs, name)) return toast("Калькулятор с таким именем уже есть");
+  CE.prog.code = $("#ce-code").value;
+  const c = compileCalc(CE.prog.code);
+  if (!c.error) Object.keys(CE.prog.layout).forEach(k => { if (!c.byName[k]) delete CE.prog.layout[k]; });
+  if (CE.orig && CE.orig !== name) delete calcs[CE.orig];
+  calcs[name] = { code:CE.prog.code, layout:CE.prog.layout };
+  Object.keys(DRAFT_CALC_STATE).forEach(k => { if (k === `draft|${name}`) delete DRAFT_CALC_STATE[k]; });
+
+  const ta = CE.ta, token = `[calc:${name}]`;
+  if (CE.range){
+    ta.value = ta.value.slice(0, CE.range.start) + token + ta.value.slice(CE.range.end);
+    ta.setSelectionRange(CE.range.start + token.length, CE.range.start + token.length);
+  } else {
+    const s = ta.selectionStart, e = ta.selectionEnd;
+    const pre = (s > 0 && ta.value[s-1] !== "\n") ? "\n" : "";
+    ta.value = ta.value.slice(0, s) + pre + token + "\n" + ta.value.slice(e);
+    const caret = s + pre.length + token.length + 1;
+    ta.setSelectionRange(caret, caret);
+  }
+  if (CE.orig && CE.orig !== name)          // переименование — обновляем и другие ссылки
+    document.querySelectorAll("#builder-fields textarea").forEach(t => { t.value = t.value.split(`[calc:${CE.orig}]`).join(token); });
+  $("#calcModal").classList.remove("active");
+  document.querySelectorAll("#builder-fields .md-editor textarea").forEach(refreshPreview);
+  ta.focus();
+  if (c.error) toast(`Сохранено, но в коде ошибка (строка ${c.error.line})`);
+  CE = null;
+}
+function ceDeleteCalc(){
+  if (!CE?.orig) return;
+  if (!confirm(`Удалить калькулятор «${CE.orig}» и все ссылки на него из текста?`)) return;
+  delete state.draftCalcs[CE.orig];
+  const token = `[calc:${CE.orig}]`;
+  document.querySelectorAll("#builder-fields textarea").forEach(t => { t.value = t.value.split(token).join(""); });
+  $("#calcModal").classList.remove("active");
+  document.querySelectorAll("#builder-fields .md-editor textarea").forEach(refreshPreview);
+  CE = null;
+}
+
+/* Клавиши в поле кода: Tab / Shift+Tab — отступ, Enter — сохраняет отступ (+4 после «:») */
+$("#ce-code").addEventListener("keydown", e => {
+  const ta = e.target, s = ta.selectionStart, v = ta.value;
+  const ls = v.lastIndexOf("\n", s - 1) + 1;
+  const ins = t => { if (!document.execCommand?.("insertText", false, t)) ta.setRangeText(t, s, ta.selectionEnd, "end"); };
+  if (e.key === "Tab"){
+    e.preventDefault();
+    if (e.shiftKey){
+      const m = /^ {1,4}/.exec(v.slice(ls));
+      if (m){ ta.setSelectionRange(ls, ls + m[0].length); ins(""); ta.setSelectionRange(Math.max(ls, s - m[0].length), Math.max(ls, s - m[0].length)); }
+    } else ins("    ");
+    ceSyncSoon();
+  } else if (e.key === "Enter" && !e.ctrlKey && !e.metaKey){
+    e.preventDefault();
+    const line = v.slice(ls, s);
+    let indent = /^ */.exec(line)[0];
+    if (/:\s*$/.test(line.replace(/#.*$/, ""))) indent += "    ";
+    ins("\n" + indent);
+    ceSyncSoon();
+  }
+});
 
 /* ============================================================
    13. АВТОРИЗАЦИЯ И АДМИНЫ
@@ -1632,6 +2929,7 @@ const closeSidebars = () => {
 const openSidebar = id => { closeSidebars(); $(id).classList.add("active"); $("#sb-overlay").classList.add("active"); };
 
 document.addEventListener("click", async ev => {
+  if (!ev.target.closest(".ce-menu-wrap")) $("#ce-menu").hidden = true;
   const el = ev.target.closest("[data-act]");
   if (!el) return;
   const act = el.dataset.act, uid = el.dataset.uid;
@@ -1641,7 +2939,7 @@ document.addEventListener("click", async ev => {
     case "set-subtab": state.subtab = el.dataset.sub; renderSubtabs(); await renderView(); break;
 
     case "toggle-card": el.closest(".card")?.classList.toggle("expanded"); break;
-    case "toggle-sub": ev.stopPropagation(); el.classList.toggle("collapsed"); break;
+    case "toggle-sub": el.closest(".sub-block")?.classList.toggle("collapsed"); break;
 
     case "toggle-filter": {
       const k = el.dataset.key;
@@ -1652,7 +2950,7 @@ document.addEventListener("click", async ev => {
     case "clear-filter": state.filters[el.dataset.key] = new Set(); renderFilters(); await renderGrid(); break;
 
     case "pick": togglePick(uid); break;
-    case "copy-item": { const it = findItem(uid); if (it) copyText(catCfg().plain(it)); break; }
+    case "copy-item": { const it = findItem(uid); if (it) copyText(withCalcText(catCfg().plain(it), it.Calcs, uid)); break; }
     case "dl-item": { const it = findItem(uid); if (it) downloadJson([cleanCopy(it)], `${it.Name || "item"}.json`); break; }
 
     case "open-picks": openSidebar("#sb-picks"); break;
@@ -1713,9 +3011,15 @@ document.addEventListener("click", async ev => {
       const ta = el.closest(".md-editor")?.querySelector("textarea");
       if (!ta) break;
       if (el.dataset.md === "table" || el.dataset.md === "image") openTool(el.dataset.md, ta);
+      else if (el.dataset.md === "calc") openCalcEditor(ta);
       else mdInsert(ta, el.dataset.md);
       break;
     }
+    case "ce-menu": { const m = $("#ce-menu"); if (m.hidden) ceRenderMenu(); m.hidden = !m.hidden; break; }
+    case "ce-snip": { const s = CE?.snips?.[+el.dataset.i]; $("#ce-menu").hidden = true; if (s) ceInsert(s); break; }
+    case "ce-add": ceAdd(el.dataset.kind); break;
+    case "ce-apply": ceApply(); break;
+    case "ce-delete": ceDeleteCalc(); break;
     case "md-preview": {
       ev.preventDefault();
       el.classList.toggle("on");
@@ -1751,6 +3055,7 @@ document.addEventListener("click", async ev => {
 });
 
 document.addEventListener("input", ev => {
+  if (ev.target.id === "ce-code") ceSyncSoon();
   if (ev.target.matches(".md-editor textarea")){
     clearTimeout(ev.target.__pv);
     ev.target.__pv = setTimeout(() => refreshPreview(ev.target), 220);
