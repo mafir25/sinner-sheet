@@ -22,6 +22,7 @@ function toMeta(id: string, d: DocumentData): ScreenMeta {
     adminUsers: Array.isArray(d.adminUsers) ? d.adminUsers : [],
     schemaVersion: typeof d.schemaVersion === 'number' ? d.schemaVersion : 1,
     legacyGraph: d.schemaVersion === SCHEMA_VERSION ? undefined : d.graphData,
+    hasLegacyData: d.schemaVersion === SCHEMA_VERSION && !!d.graphData,
   };
 }
 
@@ -142,7 +143,13 @@ export async function finishMigration(meta: ScreenMeta, items: ItemMap): Promise
   if (meta.legacyGraph) {
     await setDoc(doc(db, SCREENS, meta.id, 'secret', '__legacy_backup'), { graphData: meta.legacyGraph, savedAt: Date.now() });
   }
-  await setDoc(doc(db, SCREENS, meta.id), { schemaVersion: SCHEMA_VERSION, graphData: null }, { merge: true });
+  // старый graphData НЕ удаляем: пока на сайте работает старая страница, она продолжит его видеть.
+  // Создатель может удалить его кнопкой в настройках (это закрывает доступ игроков к скрытым узлам старой копии).
+  await setDoc(doc(db, SCREENS, meta.id), { schemaVersion: SCHEMA_VERSION }, { merge: true });
+}
+
+export async function clearLegacyData(id: string): Promise<void> {
+  await setDoc(doc(db, SCREENS, id), { graphData: null }, { merge: true });
 }
 
 export async function createScreen(name: string, accessLevel: AccessLevel, email: string): Promise<string> {

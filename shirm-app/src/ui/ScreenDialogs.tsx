@@ -3,7 +3,9 @@ import { useEffect, useState } from 'react';
 import { Modal } from './dialogs';
 import { renderMarkdown } from '../model/markdown';
 import { type AccessLevel, type NodeItem, type ScreenMeta, emptyNode, uid } from '../model/schema';
-import { type ImportCategory, loadImportList } from '../data/screens';
+import { type ImportCategory, clearLegacyData, loadImportList } from '../data/screens';
+import { confirmDialog } from './dialogs';
+import { toast } from './toast';
 
 const ACCESS: { v: AccessLevel; t: string; d: string }[] = [
   { v: 'private', t: 'Приватная', d: 'Только ты и те, кого добавишь в доступы' },
@@ -65,6 +67,15 @@ export function AccessModal({ meta, isCreator, onSave, onClose }: {
             </label>
           </>
         ) : <p className="hint">Доступы может менять только создатель ширмы ({meta.creatorEmail}).</p>}
+        {isCreator && meta.hasLegacyData && (
+          <div className="legacy-box">
+            <p className="hint">У ширмы осталась копия в старом формате — её видит старая страница (shirm-legacy.html), и из неё игроки технически могут прочитать скрытые узлы. Когда новая Ширма будет на сайте, эту копию стоит удалить. Резервная копия для админов останется.</p>
+            <button className="btn btn-danger btn-sm" onClick={async () => {
+              if (!(await confirmDialog('Удалить старую копию данных?', 'Старая страница перестанет показывать эту ширму.', true))) return;
+              try { await clearLegacyData(meta.id); meta.hasLegacyData = false; toast('Старая копия удалена'); } catch { toast('Не удалось удалить', 'error'); }
+            }}>Удалить старую копию</button>
+          </div>
+        )}
       </div>
     </Modal>
   );

@@ -233,3 +233,4 @@ kbd { font-family: var(--head); color: var(--accent); }
   .topbar { flex-wrap: wrap; }
 }
 .row > .input { width: auto; flex: 1 1 160px; }
+.legacy-box { border: 1px dashed var(--yellow); padding: 10px; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }

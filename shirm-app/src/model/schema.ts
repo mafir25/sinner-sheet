@@ -103,6 +103,8 @@ export type ScreenMeta = {
   localItems?: ItemMap;
   /** старый формат (v1), если ширма ещё не переведена */
   legacyGraph?: unknown;
+  /** у переведённой ширмы ещё лежит старая копия graphData */
+  hasLegacyData?: boolean;
 };
 
 export const uid = (p = 'i') => `${p}_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
