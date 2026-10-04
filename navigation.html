@@ -407,6 +407,71 @@ textarea.ce-code{font-family:Consolas,'Courier New',monospace;font-size:.85rem;m
 .notice{color:var(--text-dim);text-align:center;padding:30px 10px;font-family:'Oswald',sans-serif;font-size:1.05rem;grid-column:1/-1}
 .notice.error{color:var(--color-red)}
 
+/* ---------- Автоссылки и всплывающее окно ---------- */
+.xref{color:var(--xref-color,#7fd3e6);border-bottom:1px dashed currentColor;cursor:pointer;transition:.15s}
+.xref:hover{color:#fff;border-bottom-style:solid}
+/* `код`, ставший ссылкой, выглядит как обычная ссылка — обратные кавычки лишь пометка */
+.md-inline code{background:rgba(255,255,255,.1);padding:2px 4px;border-radius:3px;font-family:monospace;color:var(--color-yellow);text-transform:none}
+.md-inline code.xref,.md code.xref{font-family:inherit;font-size:inherit;background:none;padding:0;border-radius:0;
+  color:var(--xref-color,#7fd3e6);border-bottom:1px dashed currentColor}
+.md code.xref:hover,.md-inline code.xref:hover{color:#fff;border-bottom-style:solid}
+.xref-pop{position:fixed;z-index:4000;display:none;flex-direction:column;max-height:72vh;width:480px;
+  background:#0b0b0b;border:1px solid var(--pop-color,var(--accent-primary));box-shadow:0 14px 40px rgba(0,0,0,.8);border-radius:2px}
+.xref-pop.open{display:flex}
+.xref-pop .xp-head{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid #222}
+.xref-pop .xp-cat{font-family:'Oswald',sans-serif;font-size:.72rem;text-transform:uppercase;letter-spacing:1px;
+  color:var(--pop-color,var(--accent-primary));display:flex;align-items:center;gap:6px}
+.xref-pop .xp-title{font-family:'Oswald',sans-serif;text-transform:uppercase;font-size:1.15rem;line-height:1.2;color:var(--pop-color,var(--accent-primary))}
+.xref-pop .xp-meta{font-size:.75rem;color:var(--text-dim);font-style:italic;margin-top:2px}
+.xref-pop .xp-x{margin-left:auto;background:none;border:none;color:var(--text-dim);font-size:1.1rem;cursor:pointer;padding:2px 6px;align-self:flex-start}
+.xref-pop .xp-x:hover{color:var(--text-main)}
+.xref-pop .xp-back{background:none;border:1px solid #333;color:var(--text-dim);cursor:pointer;padding:2px 8px;font-size:.8rem;border-radius:2px;align-self:flex-start}
+.xref-pop .xp-back:hover{color:var(--text-main);border-color:var(--text-main)}
+.xref-pop .xp-body{overflow-y:auto;padding:12px;--accent-primary:var(--pop-color)}
+.xref-pop .xp-foot{display:flex;gap:6px;padding:10px 12px;border-top:1px solid #222;flex-wrap:wrap}
+.xref-pop .xp-foot .ctrl-btn{min-width:0}
+.xref-pop .badges{margin:0 0 10px}
+.xp-choice{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:rgba(255,255,255,.03);border:1px solid #222;
+  border-left:3px solid var(--c);color:var(--text-main);padding:9px 10px;margin-bottom:6px;cursor:pointer;font-family:'Inter',sans-serif;font-size:.88rem}
+.xp-choice:hover{background:rgba(255,255,255,.08)}
+.xp-choice small{color:var(--c);font-family:'Oswald',sans-serif;text-transform:uppercase;margin-left:auto;white-space:nowrap}
+.xref-pop.sheet{left:0!important;right:0;bottom:0;top:auto!important;width:auto!important;max-height:78vh;border-width:1px 0 0}
+.card.flash{animation:cardFlash 1.6s ease}
+@keyframes cardFlash{0%,40%{box-shadow:0 0 0 2px var(--accent-primary),0 0 24px var(--accent-primary)}100%{box-shadow:none}}
+
+/* ---------- Полный парсинг ---------- */
+.fp-ctrls{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 12px}
+.fp-group{border:1px solid #222;border-left:3px solid var(--c);margin-bottom:8px;background:rgba(255,255,255,.02)}
+.fp-ghead{display:flex;align-items:center;gap:8px;padding:8px 10px;cursor:pointer;font-family:'Oswald',sans-serif;
+  text-transform:uppercase;color:var(--c);font-size:.95rem}
+.fp-ghead small{color:var(--text-dim);margin-left:auto;font-family:'Inter',sans-serif;text-transform:none;font-size:.75rem;white-space:nowrap}
+.fp-ghead .fp-cat{font-size:.68rem;border:1px solid var(--c);padding:0 5px;opacity:.85}
+.fp-item{display:flex;gap:8px;align-items:flex-start;padding:6px 10px 6px 30px;border-top:1px dashed #1c1c1c;font-size:.84rem;cursor:pointer;line-height:1.45}
+.fp-item:hover{background:rgba(255,255,255,.04)}
+.fp-item input,.fp-ghead input{accent-color:var(--c);margin-top:3px;flex:none}
+.fp-where{color:var(--text-dim);font-size:.72rem;flex:0 0 150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fp-ctx{flex:1;min-width:0;word-break:break-word}
+.fp-ctx mark{background:rgba(127,211,230,.22);color:#fff;padding:0 2px;border-radius:2px}
+.fp-tag{font-size:.64rem;border:1px solid;padding:0 4px;margin-left:6px;white-space:nowrap;font-family:'Oswald',sans-serif;text-transform:uppercase}
+.fp-res{display:block;margin-top:3px;font-size:.75rem;color:var(--text-dim)}
+.fp-res code{background:rgba(255,255,255,.08);color:var(--color-yellow);padding:1px 4px;border-radius:2px;font-family:monospace}
+.fp-var{width:auto;max-width:100%;margin:5px 0 0;padding:3px 6px;font-size:.78rem;display:block}
+.fp-tag.doubt{color:var(--color-yellow)} .fp-tag.quote{color:var(--color-magenta)} .fp-tag.code{color:var(--color-cyan)}
+@media(max-width:600px){ .fp-item{flex-wrap:wrap;padding-left:12px} .fp-where{flex-basis:100%} }
+
+/* ---------- Личный кабинет ---------- */
+.cab-head{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:14px;
+  padding:12px 14px;border:1px solid #222;background:rgba(0,0,0,.45)}
+.cab-user{font-family:'Oswald',sans-serif;font-size:1.25rem;text-transform:uppercase;color:var(--accent-primary)}
+.cab-mail{font-size:.75rem;color:var(--text-dim)}
+.cab-stats{display:flex;gap:8px;flex-wrap:wrap}
+.cab-stat{border:1px solid #333;padding:6px 10px;text-align:center;min-width:76px}
+.cab-stat b{display:block;font-family:'Oswald',sans-serif;font-size:1.2rem;color:var(--text-main)}
+.cab-stat span{font-size:.68rem;color:var(--text-dim);text-transform:uppercase}
+.cab-create{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.cab-create select{width:auto;margin:0}
+.badge-cat{background:rgba(0,0,0,.7)}
+
 @media(max-width:600px){
   body{padding-top:88px}
   .topbar{height:auto;flex-wrap:wrap;padding:6px 10px;gap:6px}
@@ -532,6 +597,10 @@ textarea.ce-code{font-family:Consolas,'Courier New',monospace;font-size:.85rem;m
       <div class="b-row">
         <button class="action-btn" data-act="builder-save"><i class="fa-solid fa-cloud-arrow-up"></i> Сохранить в базу</button>
         <button class="action-btn ghost" data-act="builder-download"><i class="fa-solid fa-file-export"></i> Скачать JSON</button>
+        <button class="action-btn ghost" data-act="force-parse" title="Найти в тексте все названия записей и превратить их в ссылки">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> Полный парсинг</button>
+        <button class="action-btn ghost" id="fp-undo-btn" data-act="fp-undo" style="display:none;border-color:var(--color-yellow);color:var(--color-yellow)">
+          <i class="fa-solid fa-rotate-left"></i> Отменить парсинг</button>
       </div>
     </div>
   </div>
@@ -549,6 +618,46 @@ textarea.ce-code{font-family:Consolas,'Courier New',monospace;font-size:.85rem;m
         <button class="action-btn" data-act="tool-apply"><i class="fa-solid fa-check"></i> Вставить в текст</button>
         <button class="action-btn ghost" data-act="close-modal">Отмена</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======== ПОЛНЫЙ ПАРСИНГ ======== -->
+<div class="modal-overlay" id="parseModal">
+  <div class="panel-outer cut-tl modal-box">
+    <div class="hazard-tape"></div>
+    <div class="panel-inner cut-tl" style="padding-top:36px">
+      <button class="btn-close-modal" data-act="close-modal"><i class="fa-solid fa-xmark"></i></button>
+      <div class="card-title" style="margin-bottom:10px;border-bottom:1px solid var(--accent-primary);padding-bottom:8px">
+        <i class="fa-solid fa-wand-magic-sparkles"></i> Полный парсинг</div>
+      <div class="tool-hint">Ищутся все названия записей базы — в любом регистре, в кавычках, в «кривом» `коде`.
+        Поиск нечёткий: понимает падежи, опечатки и разметку, при нескольких подходящих записях даёт выбор.
+        Отметьте целую группу или отдельные совпадения — выбранное станет ссылкой.
+        <span style="color:var(--color-yellow)">Неточные и сомнительные</span> совпадения по умолчанию не отмечены.</div>
+      <div class="fp-ctrls">
+        <button class="mini-btn" data-act="fp-sel" data-mode="all">Отметить всё</button>
+        <button class="mini-btn" data-act="fp-sel" data-mode="sure">Только уверенные</button>
+        <button class="mini-btn danger" data-act="fp-sel" data-mode="none">Снять всё</button>
+      </div>
+      <div id="fp-body"></div>
+      <div class="b-row" style="margin-top:14px">
+        <button class="action-btn" data-act="fp-apply"><i class="fa-solid fa-check"></i> <span id="fp-apply-label">Применить</span></button>
+        <button class="action-btn ghost" data-act="close-modal">Отмена</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======== ПРОВЕРКА БИТЫХ ССЫЛОК ======== -->
+<div class="modal-overlay" id="linkModal">
+  <div class="panel-outer cut-tl modal-box">
+    <div class="hazard-tape"></div>
+    <div class="panel-inner cut-tl" style="padding-top:36px">
+      <button class="btn-close-modal" data-act="close-modal"><i class="fa-solid fa-xmark"></i></button>
+      <div class="card-title" style="margin-bottom:10px;border-bottom:1px solid var(--accent-primary);padding-bottom:8px">
+        <i class="fa-solid fa-link-slash"></i> Проверка ссылок</div>
+      <div id="link-body"></div>
+      <div class="b-row" style="margin-top:14px"><button class="action-btn ghost" data-act="close-modal">Закрыть</button></div>
     </div>
   </div>
 </div>
@@ -628,6 +737,9 @@ Rank.label  Rank.desc  Rank.index  Rank.коррозия</pre>
 
 <div class="toast" id="toast"></div>
 
+<!-- Всплывающее окно автоссылок -->
+<div class="xref-pop" id="xref-pop" role="dialog" aria-modal="false"></div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
 import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut }
@@ -674,6 +786,8 @@ function mdImages(src){
 /* md() — текст карточек (с калькуляторами [calc:имя]); mdOut() — вывод калькулятора (без них) */
 const md    = v => injectCalcs(DOMPurify.sanitize(marked.parse(mdImages(String(v ?? "")))));
 const mdOut = v => DOMPurify.sanitize(marked.parse(String(v ?? "")));
+/* однострочные поля (требования, иммунитеты…): строчный Markdown, чтобы работали `ссылки` */
+const mdInline = v => `<span class="md-inline">${DOMPurify.sanitize(marked.parseInline(String(v ?? "")))}</span>`;
 const arr = v => Array.isArray(v) ? v : (v ? [v] : []);
 
 let toastTimer;
@@ -786,8 +900,36 @@ function subBlock(name, desc, color, level, open){
     <div class="sub-desc-wrap"><div class="sub-desc md">${md(desc)}</div></div>
   </div>`;
 }
+/* "16" → "16 (+3)"; уже готовое "16 (+3)" и прочий текст не трогаем */
+function statText(v){
+  const s = String(v ?? "").trim();
+  if (!/^-?\d+$/.test(s)) return s || "-";
+  const m = Math.floor((Number(s) - 10) / 2);
+  return `${s} (${m >= 0 ? "+" : ""}${m})`;
+}
 const statGrid = s => `<div class="stat-grid">${["STR","DEX","CON","INT","WIS","CHA"]
-  .map(k => `<div class="stat-col"><span class="stat-name">${k}</span><span class="stat-val">${esc(s?.[k] ?? "-")}</span></div>`).join("")}</div>`;
+  .map(k => `<div class="stat-col"><span class="stat-name">${k}</span><span class="stat-val">${esc(statText(s?.[k]))}</span></div>`).join("")}</div>`;
+/* Бонус мастерства по CR (правила 5e): CR 0–4 → +2, 5–8 → +3, … */
+function profFromCR(ch){
+  const m = /^\s*(\d+)(?:\s*\/\s*(\d+))?/.exec(String(ch ?? ""));
+  if (!m) return "";
+  const cr = m[2] ? Number(m[1]) / Number(m[2]) : Number(m[1]);
+  return "+" + (cr < 1 ? 2 : 2 + Math.floor((cr - 1) / 4));
+}
+/* Разделы стат-блока бестиария в порядке вывода */
+const BESTIARY_SECTIONS = [
+  { k:"Traits",           title:"Особенности",          color:"var(--color-yellow)" },
+  { k:"Actions",          title:"Действия",             color:"var(--color-red)" },
+  { k:"BonusActions",     title:"Бонусные действия",    color:"#E67E22" },
+  { k:"Reactions",        title:"Реакции",              color:"var(--color-cyan)" },
+  { k:"LegendaryActions", title:"Легендарные действия", color:"var(--color-magenta)", intro:"LegendaryIntro",
+    defIntro:"Существо может совершить 3 легендарных действия, выбирая из представленных ниже вариантов. "
+           + "За один раз можно использовать только одно легендарное действие, и только в конце хода другого существа. "
+           + "Существо восстанавливает потраченные легендарные действия в начале своего хода." },
+  { k:"LairActions",      title:"Действия логова",      color:"#27AE60", intro:"LairIntro",
+    defIntro:"При значении инициативы 20 (в случае ничьей проигрывает) существо совершает действие логова, "
+           + "вызывая один из эффектов ниже. Нельзя использовать один и тот же эффект два раунда подряд." }
+];
 
 /* ---- Текстовые категории (Правила, Лор): общий рендер ---- */
 function textCard(dictName){
@@ -885,13 +1027,13 @@ const CATS = {
       return {
         title: it.Name,
         badges: badges(it.Base,"featBases"),
-        body: (it.Need ? `<div class="req-text">Требования: ${esc(it.Need)}</div>` : "") + `<div class="md">${md(it.desc)}</div>`
+        body: (it.Need ? `<div class="req-text">Требования: ${mdInline(it.Need)}</div>` : "") + `<div class="md">${md(it.desc)}</div>`
       };
     },
     plain: it => `=== ${it.Name} ===\n${it.Need ? `Требования: ${it.Need}\n` : ""}Категории: ${arr(it.Base).join(", ")}\n\n${it.desc||""}`,
     builder:[
       { t:"text", k:"Name", label:"Название черты", ph:"Например: Железная хватка" },
-      { t:"text", k:"Need", label:"Требования", ph:"Например: Сила 16 (пусто — если нет)", nullable:true },
+      { t:"text", k:"Need", label:"Требования", ph:"Например: Сила 16 (пусто — если нет)", nullable:true, link:true },
       { t:"checks", k:"Base", dict:"featBases", label:"Категории" },
       { t:"md", k:"desc", label:"Описание черты" }
     ]
@@ -917,7 +1059,7 @@ const CATS = {
         title: it.Name,
         badges: badges(it.ItemType,"itemTypes") + (it.IsEGO ? `<div class="badge" style="color:#D94285;border-color:#D94285">Э.Г.О.</div>` : "")
                 + badges(it.Type,"types") + badges(it.Stats,"stats"),
-        body:(it.Need ? `<div class="req-text">Требования: ${esc(it.Need)}</div>` : "") + `<div class="md">${md(it.Desc)}</div>`
+        body:(it.Need ? `<div class="req-text">Требования: ${mdInline(it.Need)}</div>` : "") + `<div class="md">${md(it.Desc)}</div>`
       };
     },
     plain: it => `=== ${it.Name} ===\n[Ур. ${it.Level} | ${it.Rarity}] ${it.ItemType}${it.IsEGO?" | Э.Г.О.":""}\n`
@@ -930,7 +1072,7 @@ const CATS = {
         { t:"select", k:"Rarity", label:"Редкость", opts:{ Common:"Common", Uncommon:"Uncommon", Rare:"Rare", "Very Rare":"Very Rare", Legendary:"Legendary" } }
       ]},
       { t:"bool", k:"IsEGO", label:"Является Э.Г.О. экипировкой" },
-      { t:"text", k:"Need", label:"Требования", ph:"Например: Сила 15", nullable:true },
+      { t:"text", k:"Need", label:"Требования", ph:"Например: Сила 15", nullable:true, link:true },
       { t:"checks", k:"Type", dict:"types", label:"Типы урона (для оружия)" },
       { t:"checks", k:"Stats", dict:"stats", label:"Скейлинг" },
       { t:"md", k:"Desc", label:"Описание" }
@@ -950,42 +1092,80 @@ const CATS = {
     title:"Бестиарий Города", customType:"bestiary", src:"bestiary.json",
     filters:[ { key:"Category", title:"Уровень угрозы", dict:"bestiaryCats" } ],
     sort:(a,b)=>String(a.Name).localeCompare(String(b.Name)),
+    /* Все поля, кроме Name, необязательны: старые записи (без новых полей)
+       отображаются как раньше, пустые разделы просто не выводятся. */
     card(it){
-      const opt = (lbl,val) => val ? `<div class="stat-line"><strong>${lbl}:</strong> ${esc(val)}</div>` : "";
+      const opt = (lbl,val) => String(val ?? "").trim()
+        ? `<div class="stat-line"><strong>${lbl}:</strong> ${esc(val)}</div>` : "";
+      const optL = (lbl,val) => String(val ?? "").trim()        // поле, где можно ставить `ссылки`
+        ? `<div class="stat-line"><strong>${lbl}:</strong> ${mdInline(val)}</div>` : "";
+      const pb = String(it.Proficiency ?? "").trim() || profFromCR(it.Challenge);
       let body = `<div class="stat-line"><strong>КД:</strong> ${esc(it.ArmorClass||"-")}</div>
         <div class="stat-line"><strong>Хиты:</strong> ${esc(it.HitPoints||"-")}</div>
         <div class="stat-line"><strong>Скорость:</strong> ${esc(it.Speed||"-")}</div>
+        ${opt("Инициатива",it.Initiative)}
         ${statGrid(it.Stats)}
-        ${opt("Спасброски",it.SavingThrows)}${opt("Навыки",it.Skills)}${opt("Чувства",it.Senses)}
-        ${opt("Языки",it.Languages)}${opt("Опасность (CR)",it.Challenge)}`;
-      if (arr(it.Traits).length)
-        body += `<div class="section-sub" style="color:var(--color-yellow)">Особенности</div>`
-             + arr(it.Traits).map(t => subBlock(t.name, t.desc, "var(--color-yellow)")).join("");
-      if (arr(it.Actions).length)
-        body += `<div class="section-sub" style="color:var(--color-red)">Действия</div>`
-             + arr(it.Actions).map(a => subBlock(a.name, a.desc, "var(--color-red)")).join("");
+        ${opt("Спасброски",it.SavingThrows)}${opt("Навыки",it.Skills)}
+        ${optL("Уязвимость к урону",it.DamageVulnerabilities)}${optL("Сопротивление урону",it.DamageResistances)}
+        ${optL("Иммунитет к урону",it.DamageImmunities)}${optL("Иммунитет к состояниям",it.ConditionImmunities)}
+        ${optL("Чувства",it.Senses)}${opt("Языки",it.Languages)}
+        ${opt("Опасность (CR)",it.Challenge)}${opt("Бонус мастерства",pb)}`;
+      body += BESTIARY_SECTIONS.map(s => {
+        const list = arr(it[s.k]).filter(x => x && (x.name || x.desc));
+        const intro = s.intro ? String(it[s.intro] ?? "").trim() : "";
+        if (!list.length && !intro) return "";
+        const introHtml = s.intro ? `<div class="md" style="margin-bottom:10px;color:var(--text-dim)">${md(intro || s.defIntro)}</div>` : "";
+        return `<div class="section-sub" style="color:${s.color}">${s.title}</div>${introHtml}`
+             + list.map(a => subBlock(a.name, a.desc, s.color)).join("");
+      }).join("");
       if (it.Lore)
         body += `<div class="md" style="margin-top:14px;border-top:1px dashed #333;padding-top:14px">${md(it.Lore)}</div>`;
       return { title:it.Name, meta:esc(it.Meta||""), metaItalic:true, metaBelow:true, badges:badges(it.Category,"bestiaryCats"), body };
     },
     plain(it){
       const s = it.Stats || {};
+      const line = (lbl,val) => String(val ?? "").trim() ? `${lbl}: ${val}\n` : "";
       let out = `=== ${it.Name} ===\n${it.Meta||""}\nКД: ${it.ArmorClass} | ХП: ${it.HitPoints} | Скорость: ${it.Speed}\n`
-        + `STR ${s.STR}, DEX ${s.DEX}, CON ${s.CON}, INT ${s.INT}, WIS ${s.WIS}, CHA ${s.CHA}\n`;
-      arr(it.Traits).forEach(t => out += `\n${t.name}. ${t.desc}`);
-      if (arr(it.Actions).length){ out += `\n\nДЕЙСТВИЯ:`; arr(it.Actions).forEach(a => out += `\n${a.name}. ${a.desc}`); }
+        + line("Инициатива", it.Initiative)
+        + `STR ${statText(s.STR)}, DEX ${statText(s.DEX)}, CON ${statText(s.CON)}, INT ${statText(s.INT)}, WIS ${statText(s.WIS)}, CHA ${statText(s.CHA)}\n`
+        + line("Спасброски", it.SavingThrows) + line("Навыки", it.Skills)
+        + line("Уязвимость к урону", it.DamageVulnerabilities) + line("Сопротивление урону", it.DamageResistances)
+        + line("Иммунитет к урону", it.DamageImmunities) + line("Иммунитет к состояниям", it.ConditionImmunities)
+        + line("Чувства", it.Senses) + line("Языки", it.Languages) + line("Опасность", it.Challenge)
+        + line("Бонус мастерства", String(it.Proficiency ?? "").trim() || profFromCR(it.Challenge));
+      BESTIARY_SECTIONS.forEach(sec => {
+        const list = arr(it[sec.k]).filter(x => x && (x.name || x.desc));
+        const intro = sec.intro ? String(it[sec.intro] ?? "").trim() : "";
+        if (!list.length && !intro) return;
+        out += sec.k === "Traits" ? "" : `\n\n${sec.title.toUpperCase()}:`;
+        if (sec.intro) out += `\n${intro || sec.defIntro}`;
+        list.forEach(a => out += `\n${a.name}. ${a.desc}`);
+      });
       if (it.Lore) out += `\n\nЛОР:\n${it.Lore}`;
       return out;
     },
     builder:[
       { t:"row", of:[ { t:"text", k:"Name", label:"Имя монстра" }, { t:"text", k:"Meta", label:"Мета", ph:"Средняя нежить, хаотично-злая" } ]},
       { t:"checks", k:"Category", dict:"bestiaryCats", label:"Уровень угрозы" },
-      { t:"row", of:[ { t:"text", k:"ArmorClass", label:"КД" }, { t:"text", k:"HitPoints", label:"Хиты" }, { t:"text", k:"Speed", label:"Скорость" } ]},
-      { t:"stats6", k:"Stats", label:'Характеристики — формат "10 (+0)"' },
-      { t:"row", of:[ { t:"text", k:"SavingThrows", label:"Спасброски" }, { t:"text", k:"Skills", label:"Навыки" } ]},
-      { t:"row", of:[ { t:"text", k:"Senses", label:"Чувства" }, { t:"text", k:"Languages", label:"Языки" }, { t:"text", k:"Challenge", label:"Опасность / XP" } ]},
+      { t:"row", of:[ { t:"text", k:"ArmorClass", label:"КД" }, { t:"text", k:"HitPoints", label:"Хиты" },
+                      { t:"text", k:"Speed", label:"Скорость" }, { t:"text", k:"Initiative", label:"Инициатива", ph:"+2 (12)" } ]},
+      { t:"stats6", k:"Stats", label:'Характеристики — "16 (+3)" или просто "16" (модификатор посчитается сам)' },
+      { t:"row", of:[ { t:"text", k:"SavingThrows", label:"Спасброски", ph:"Сил +6, Тел +7" }, { t:"text", k:"Skills", label:"Навыки", ph:"Восприятие +6" } ]},
+      { t:"row", of:[ { t:"text", k:"DamageVulnerabilities", label:"Уязвимость к урону", link:true },
+                      { t:"text", k:"DamageResistances", label:"Сопротивление урону", link:true },
+                      { t:"text", k:"DamageImmunities", label:"Иммунитет к урону", link:true } ]},
+      { t:"text", k:"ConditionImmunities", label:"Иммунитет к состояниям", ph:"Очарование, испуг", link:true },
+      { t:"row", of:[ { t:"text", k:"Senses", label:"Чувства", link:true }, { t:"text", k:"Languages", label:"Языки" } ]},
+      { t:"row", of:[ { t:"text", k:"Challenge", label:"Опасность / XP", ph:"5 (1800 XP)" },
+                      { t:"text", k:"Proficiency", label:"Бонус мастерства", ph:"пусто — по CR" } ]},
       { t:"repeat", k:"Traits", label:"Особенности", sub:[ { t:"text", k:"name", label:"Название" }, { t:"md", k:"desc", label:"Описание" } ]},
       { t:"repeat", k:"Actions", label:"Действия", sub:[ { t:"text", k:"name", label:"Название" }, { t:"md", k:"desc", label:"Описание" } ]},
+      { t:"repeat", k:"BonusActions", label:"Бонусные действия", sub:[ { t:"text", k:"name", label:"Название" }, { t:"md", k:"desc", label:"Описание" } ]},
+      { t:"repeat", k:"Reactions", label:"Реакции", sub:[ { t:"text", k:"name", label:"Название" }, { t:"md", k:"desc", label:"Описание" } ]},
+      { t:"md", k:"LegendaryIntro", label:"Легендарные действия — вступление (пусто = стандартный текст)" },
+      { t:"repeat", k:"LegendaryActions", label:"Легендарные действия", sub:[ { t:"text", k:"name", label:"Название (можно указать стоимость)" }, { t:"md", k:"desc", label:"Описание" } ]},
+      { t:"md", k:"LairIntro", label:"Действия логова — вступление (пусто = стандартный текст)" },
+      { t:"repeat", k:"LairActions", label:"Действия логова", sub:[ { t:"text", k:"name", label:"Название" }, { t:"md", k:"desc", label:"Описание" } ]},
       { t:"md", k:"Lore", label:"Лор и описание" }
     ]
   },
@@ -1049,8 +1229,19 @@ const CATS = {
     sub:"Хронология событий Города, падение корпораций и устройство мира.",
     filters:[ { key:"Tags", title:"Метки", dict:"loreTags" } ],
     card: textCard("loreTags"), plain: textPlain, builder: textBuilder("loreTags")
+  },
+
+  /* Личный кабинет: только записи текущего пользователя из всех разделов */
+  me: {
+    label:"Кабинет", icon:"fa-id-card", color:"#D94285", kind:"cabinet",
+    title:"Личный кабинет", sub:"Всё, что вы создали, — во всех разделах базы."
   }
 };
+/* Синонимы для автоссылок — общее поле для всех конструкторов */
+Object.values(CATS).forEach(c => {
+  if (c.builder) c.builder.push({ t:"text", k:"Aliases", nullable:true,
+    label:"Синонимы для автоссылок — через запятую (необязательно)", ph:"Например: кровоток, кровопускание" });
+});
 const CAT_BY_CUSTOM = Object.fromEntries(
   Object.entries(CATS).filter(([,c]) => c.customType).map(([id,c]) => [c.customType, id])
 );
@@ -1099,6 +1290,8 @@ async function loadJson(file){
 
 async function loadCustom(force=false){
   if (state.customLoaded && !force) return state.customCache;
+  const who = (state.user?.email || "") + (state.isAdmin ? "#a" : "");
+  const sameUser = () => (state.user?.email || "") + (state.isAdmin ? "#a" : "") === who;
   const seen = new Map();
   const push = snap => snap.forEach(d => {
     const raw = d.data();
@@ -1117,7 +1310,7 @@ async function loadCustom(force=false){
         push(await getDocs(query(collection(db, COLL), where("creatorEmail","==",state.user.email))));
     }
     state.customCache = [...seen.values()];
-    state.customLoaded = true;
+    state.customLoaded = sameUser();   // пользователь сменился во время загрузки — перечитаем в следующий раз
   } catch(e){
     console.error(e);
     state.customCache = [];
@@ -1233,9 +1426,15 @@ function canManage(it){
   return it.__origin === "custom" && state.user &&
          (state.isAdmin || it.__owner === state.user.email);
 }
-function cardHtml(it){
-  const c = catCfg(), uid = uidOf(state.cat, it);
+/* Реестр отрисованных карточек: uid → { it, cat }. Нужен, чтобы кнопки
+   работали и в обычной сетке, и в кабинете, и во всплывающем окне. */
+const REG = new Map();
+function cardHtml(it, catId = state.cat, opts = {}){
+  const c = CATS[catId], uid = uidOf(catId, it);
+  REG.set(uid, { it, cat:catId });
   const v = withCalcs(uid, it.Calcs, () => c.card(it));
+  if (opts.showCat) v.badges = `<div class="badge badge-cat" style="color:${esc(c.color)};border-color:${esc(c.color)}">
+      <i class="fa-solid ${esc(c.icon)}"></i>${esc(c.label)}</div>` + (v.badges || "");
   const picked = state.picks.some(p => p.uid === uid);
   const metaHtml = v.meta ? `<div class="card-meta${v.metaItalic?" italic":""}">${v.meta}</div>` : "";
   const titleIcon = v.icon ? `<i class="fa-solid ${esc(v.icon)}" style="margin-right:8px;opacity:.85"></i>` : "";
@@ -1245,7 +1444,7 @@ function cardHtml(it){
     `<div class="card-title">${titleIcon}${esc(v.title)}</div>`,
     v.metaBelow ? metaHtml : ""
   ].join("");
-  const origin = (state.source === "all" && it.__origin === "custom")
+  const origin = (state.source === "all" && it.__origin === "custom" && !opts.showCat)
     ? `<div class="badge badge-origin"><i class="fa-solid fa-users"></i> Пользовательское</div>` : "";
   const priv = it.__private ? `<div class="badge badge-private"><i class="fa-solid fa-lock"></i> Приватно</div>` : "";
 
@@ -1253,9 +1452,12 @@ function cardHtml(it){
       <i class="fa-regular ${picked?"fa-square-check":"fa-square"}"></i> ${picked?"Выбрано":"Выбрать"}</button>
     <button class="ctrl-btn ctrl-copy" data-act="copy-item" data-uid="${esc(uid)}"><i class="fa-regular fa-copy"></i> Текст</button>
     <button class="ctrl-btn ctrl-dl" data-act="dl-item" data-uid="${esc(uid)}"><i class="fa-solid fa-download"></i> JSON</button>`;
+  if (opts.showCat) ctrl += `
+    <button class="ctrl-btn ctrl-copy" data-act="open-in-base" data-uid="${esc(uid)}" title="Открыть в разделе базы"><i class="fa-solid fa-arrow-up-right-from-square"></i></button>`;
   if (canManage(it)) ctrl += `
     <button class="ctrl-btn ctrl-priv" data-act="toggle-priv" data-uid="${esc(uid)}" title="Скрыть/показать"><i class="fa-solid ${it.__private?"fa-eye":"fa-eye-slash"}"></i></button>
     <button class="ctrl-btn ctrl-edit" data-act="edit-item" data-uid="${esc(uid)}"><i class="fa-solid fa-pen"></i></button>
+    <button class="ctrl-btn ctrl-copy" data-act="parse-item" data-uid="${esc(uid)}" title="Полный парсинг ссылок"><i class="fa-solid fa-wand-magic-sparkles"></i></button>
     <button class="ctrl-btn ctrl-del" data-act="del-item" data-uid="${esc(uid)}"><i class="fa-solid fa-trash"></i></button>`;
 
   return `<div class="panel-outer cut-tl card" data-uid="${esc(uid)}">
@@ -1285,6 +1487,7 @@ async function renderView(){
   dataView.style.display = showArticle ? "none" : "";
   artView.style.display  = showArticle ? "flex" : "none";
   if (showArticle) return renderArticle(c.article);
+  if (c.kind === "cabinet") return renderCabinetView();
 
   const modeToggle = c.badgeModes ? `
     <label class="mode-toggle" title="Показывать характеристики вместо типов эффектов">
@@ -1301,6 +1504,7 @@ async function renderView(){
 }
 
 async function renderGrid(){
+  if (catCfg().kind === "cabinet") return renderCabinet();
   const c = catCfg(), grid = $("#grid");
   grid.innerHTML = `<div class="notice">Установка соединения с базой данных…</div>`;
   let items;
@@ -1313,12 +1517,19 @@ async function renderGrid(){
   visible = items.filter(matches);
   $("#result-count").textContent = `Показано ${visible.length} из ${items.length}`;
   grid.innerHTML = visible.length
-    ? visible.map(cardHtml).join("")
+    ? visible.map(it => cardHtml(it)).join("")
     : `<div class="notice">Подходящие записи не найдены</div>`;
   mountCalcs(grid);
 }
 
-const findItem = uid => visible.find(i => uidOf(state.cat, i) === uid);
+const findItem = uid => REG.get(uid)?.it;
+const catOf    = uid => REG.get(uid)?.cat || state.cat;
+/* Перерисовать то, что сейчас на экране (сетку или кабинет) */
+async function refreshCurrent(){
+  const c = catCfg();
+  if (c.kind === "cabinet") return renderCabinetView();
+  if (c.kind === "data" && state.subtab === "data") return renderGrid();
+}
 
 /* ============================================================
    9. СТАТЬИ (rules / lore / лор снаряжения)
@@ -1358,7 +1569,7 @@ function togglePick(uid){
   else {
     const it = findItem(uid);
     if (!it) return;
-    state.picks.push({ uid, cat:state.cat, name:it.Name, origin:it.__origin, data:cleanCopy(it) });
+    state.picks.push({ uid, cat:catOf(uid), name:it.Name, origin:it.__origin, data:cleanCopy(it) });
     toast("Добавлено в сборку");
   }
   savePicks(); renderPicks();
@@ -1370,7 +1581,7 @@ function togglePick(uid){
 }
 function pickPlain(p){
   const c = CATS[p.cat];
-  return c && c.plain ? withCalcText(c.plain(p.data), p.data.Calcs, p.uid) : `=== ${p.name} ===`;
+  return c && c.plain ? stripLinkTargets(withCalcText(c.plain(p.data), p.data.Calcs, p.uid)) : `=== ${p.name} ===`;
 }
 function renderPicks(){
   $("#pick-count").textContent = state.picks.length;
@@ -1388,7 +1599,7 @@ function renderPicks(){
     return `<div class="sidebar-h2" style="color:${esc(c.color)}"><i class="fa-solid ${c.icon}"></i> ${esc(c.label)}</div>`
       + list.map(p => {
         const v = withCalcs(p.uid, p.data.Calcs, () => c.card(p.data));
-        return `<div class="pick-entry card" style="border-left-color:${esc(c.color)}">
+        return `<div class="pick-entry card" data-uid="${esc(p.uid)}" style="border-left-color:${esc(c.color)}">
           <div class="pick-top">
             <div class="pick-name" data-act="toggle-card" style="cursor:pointer;flex:1">
               <i class="fa-solid fa-chevron-down sub-icon"></i> ${esc(p.name)}</div>
@@ -1424,6 +1635,8 @@ async function loadBase(){
             + arr(cls.Talents).map(t => subBlock(t.name, t.desc, t.Color || t.color, t.level)).join("")
           : `<div class="sidebar-empty">Нет данных о способностях основы.</div>`));
     mountCalcs(box);
+    delete box.dataset.xl;
+    autolinkIn(box);
   } catch(e){
     box.innerHTML = `<div class="sidebar-empty" style="color:var(--color-red)">Ошибка загрузки основы (${esc(sys.base)}).</div>`;
   }
@@ -1462,6 +1675,8 @@ const mdField = (f, val) => `<div class="md-editor">${mdToolbar()}
     <div class="md md-preview-body">${withCalcs("draft", state.draftCalcs, () => md(val ?? ""))}</div>
   </div></div>`;
 
+/* uid записи, открытой в конструкторе (чтобы предпросмотр не ссылался на неё саму) */
+const draftUid = () => state.editId ? `${state.builderCat || state.cat}:c:${state.editId}` : null;
 function refreshPreview(ta){
   const wrap = ta.closest(".md-editor"); if (!wrap) return;
   const box = wrap.querySelector(".md-preview");
@@ -1473,6 +1688,8 @@ function refreshPreview(ta){
     const body = wrap.querySelector(".md-preview-body");
     body.innerHTML = withCalcs("draft", state.draftCalcs, () => md(ta.value));
     mountCalcs(body);
+    delete body.dataset.xl;          // содержимое новое — ссылки проставляем заново
+    autolinkIn(body, draftUid());
   }
 }
 
@@ -1629,7 +1846,7 @@ function fieldHtml(f, data){
     case "row":
       return `<div class="b-row">${f.of.map(x => `<div style="flex:${x.flex||1}">${fieldHtml(x, data)}</div>`).join("")}</div>`;
     case "text":
-      return `${lbl}<input type="text" class="cloud-input" data-f="${esc(f.k)}" placeholder="${esc(f.ph||"")}" value="${esc(val ?? "")}">`;
+      return `${lbl}<input type="text" class="cloud-input" data-f="${esc(f.k)}" ${f.link ? 'data-link="1"' : ""} placeholder="${esc(f.ph||"")}" value="${esc(val ?? "")}">`;
     case "num":
       return `${lbl}<input type="number" class="cloud-input" data-f="${esc(f.k)}" value="${esc(val ?? f.def ?? 1)}" min="1">`;
     case "md":
@@ -1665,10 +1882,14 @@ function repeatRow(f, row){
   </div>`;
 }
 const REPEAT_SPEC = {};
-function openBuilder(data=null, isPrivate=false, editId=null){
-  const c = catCfg();
+function openBuilder(data=null, isPrivate=false, editId=null, catId=state.cat){
+  const c = CATS[catId];
+  if (!c?.builder) return;
   if (!state.user) return toast("Для создания контента нужно войти");
+  state.builderCat = catId;
   state.editId = editId;
+  FP.undo = null;
+  $("#fp-undo-btn").style.display = "none";
   $("#builder-title").textContent = editId ? `Редактирование: ${c.label}` : `Создать: ${c.label}`;
   $("#bf-private").checked = !!isPrivate;
   c.builder.forEach(f => { if (f.t === "repeat") REPEAT_SPEC[f.k] = f; });
@@ -1676,6 +1897,7 @@ function openBuilder(data=null, isPrivate=false, editId=null){
   $("#builder-fields").innerHTML = c.builder.map(f => fieldHtml(f, data || {})).join("");
   $("#builderModal").classList.add("active");
   mountCalcs($("#builder-fields"));
+  $("#builder-fields").querySelectorAll(".md-preview-body").forEach(b => autolinkIn(b, draftUid()));
 }
 function collectField(f, scope){
   switch(f.t){
@@ -1711,7 +1933,7 @@ function collectField(f, scope){
 }
 function collectBuilder(){
   const scope = $("#builder-fields"), out = {};
-  catCfg().builder.forEach(f => Object.assign(out, collectField(f, scope)));
+  CATS[state.builderCat || state.cat].builder.forEach(f => Object.assign(out, collectField(f, scope)));
   // Калькуляторы: сохраняем только те, на которые остались ссылки [calc:имя] в тексте
   const calcs = {};
   for (const m of JSON.stringify(out).matchAll(CALC_TOKEN))
@@ -1720,7 +1942,7 @@ function collectBuilder(){
   return out;
 }
 async function saveEntry(){
-  const c = catCfg(), data = collectBuilder();
+  const c = CATS[state.builderCat || state.cat], data = collectBuilder();
   if (!String(data.Name || "").trim()) return toast("Название обязательно");
   const isPrivate = $("#bf-private").checked;
   const payload = { type:c.customType, data, isPrivate, updatedAt:new Date().toISOString() };
@@ -1734,7 +1956,7 @@ async function saveEntry(){
     $("#builderModal").classList.remove("active");
     state.editId = null;
     await loadCustom(true);
-    await renderGrid();
+    await refreshCurrent();
     toast("Сохранено");
   } catch(e){
     console.error(e);
@@ -2872,6 +3094,843 @@ $("#ce-code").addEventListener("keydown", e => {
 });
 
 /* ============================================================
+   12c. АВТОССЫЛКИ И ВСПЛЫВАЮЩЕЕ ОКНО
+   Названия записей из всех разделов (канон + доступный кастом)
+   находятся в тексте и становятся кликабельными — руками ничего
+   проставлять не нужно.
+   • `в обратных кавычках` — проверяется всегда, даже короткие названия;
+   • обычный текст — названия от 4 букв, только первое упоминание
+     в карточке, с поддержкой падежей («Кровотечением» → «Кровотечение»);
+     одиночное слово — только с заглавной буквы (см. plainOk).
+   Название «Рус (Eng)» ищется и целиком, и по каждой части.
+   Дополнительные варианты — поле «Синонимы» в конструкторе.
+   ============================================================ */
+const XL_MIN_PLAIN = 4;
+const XL_SKIP = "a,code,pre,h1,h2,h3,h4,h5,h6,button,input,textarea,select,.xref,.calc-host,.sub-head,.card-head";
+const xlNorm = s => String(s ?? "").toLowerCase().replace(/ё/g, "е").replace(/\s+/g, " ").trim();
+const reEsc  = s => s.replace(/[.*+?^${}()|[\]\\\/]/g, "\\$&");   // только синтаксические символы — так требует флаг u
+
+function aliasesOf(it){
+  const name = String(it.Name ?? "").trim();
+  if (!name) return [];
+  const out = new Set([name]);
+  const m = /^(.*?)\s*\(([^()]+)\)\s*$/.exec(name);
+  if (m){ if (m[1].trim()) out.add(m[1].trim()); out.add(m[2].trim()); }
+  String(it.Aliases ?? "").split(",").map(s => s.trim()).filter(Boolean).forEach(a => out.add(a));
+  return [...out].filter(a => xlNorm(a).length >= 2);
+}
+/* Русское слово от 4 букв: отрезаем до двух гласных на конце и разрешаем
+   до трёх любых букв окончания. «Горение» → Горен[а-яё]{0,3} */
+function aliasPattern(alias){
+  return alias.trim().split(/\s+/).map(w => {
+    let base = w, tail = "";
+    if (/^[а-яё]+$/i.test(w) && w.length >= 4){
+      const m = /^(.*?)([аеёиоуыэюяйь]{0,2})$/i.exec(w);
+      if (m[1].length >= 3){ base = m[1]; tail = "[а-яё]{0,3}"; }
+    }
+    return reEsc(base).replace(/[её]/gi, "[её]") + tail;
+  }).join("\\s+");
+}
+
+const XL = { canonP:null, canonRef:null, customRef:null, entries:[], byKey:new Map(), aliasText:new Map(), groups:[], re:null };
+/* Защита от ложных срабатываний в обычном тексте:
+   • название из одного слова — только если в тексте оно с заглавной («5 Потопления», но не «сила удара»);
+   • короткое название (до 5 букв) — не короче самого названия («Сил +6» не станет «Силой»). */
+function plainOk(k, found){
+  const a = XL.aliasText.get(k) || k;
+  if (!/\s/.test(a)){
+    const ch = found[0];
+    if (ch !== ch.toUpperCase() && ch === ch.toLowerCase()) return false;
+  }
+  if (a.length <= 5 && found.length < a.length) return false;
+  return true;
+}
+async function loadCanonIndex(){
+  const jobs = [];
+  for (const [catId, c] of Object.entries(CATS)){
+    if (c.kind !== "data") continue;
+    if (c.systems) Object.entries(c.systems).forEach(([sys, s]) =>
+      jobs.push(loadJson(s.list).then(l => l.map(it => ({ it:{ ...it, __sys:sys }, cat:catId, sys })))));
+    else if (c.src) jobs.push(loadJson(c.src).then(l => l.map(it => ({ it, cat:catId }))));
+  }
+  const out = [];
+  (await Promise.allSettled(jobs)).forEach(r => { if (r.status === "fulfilled") out.push(...r.value); });
+  return out;
+}
+async function getIndex(){
+  if (!XL.canonP) XL.canonP = loadCanonIndex();
+  const canon = await XL.canonP;
+  let custom = [];
+  try { custom = await loadCustom() || []; } catch {}
+  if (XL.re !== null && XL.canonRef === canon && XL.customRef === custom) return XL;
+  XL.canonRef = canon; XL.customRef = custom;
+
+  const entries = [...canon];
+  custom.forEach(it => { const cat = CAT_BY_CUSTOM[it.__type]; if (cat) entries.push({ it, cat }); });
+  const byKey = new Map(), aliasText = new Map();
+  /* Русские названия типов из фильтров («Уверенность», «Огонь»…) — синонимы статусов */
+  const TYPE_RU = Object.entries(DICT.types).filter(([k]) => k !== "None" && k !== "Other").map(([k, v]) => [xlNorm(k), v.name]);
+  entries.forEach(e => {
+    e.uid = uidOf(e.cat, e.it);
+    const al = aliasesOf(e.it);
+    if (e.cat === "statuses"){
+      const norm = al.map(xlNorm);
+      TYPE_RU.forEach(([en, ru]) => { if (norm.includes(en) && !norm.includes(xlNorm(ru))) al.push(ru); });
+    }
+    al.forEach(a => {
+      const k = xlNorm(a);
+      if (!byKey.has(k)){ byKey.set(k, []); aliasText.set(k, a); }
+      const l = byKey.get(k);
+      if (!l.some(x => x.uid === e.uid)) l.push(e);
+    });
+  });
+  const keys = [...aliasText.keys()]
+    .filter(k => k.replace(/[^\p{L}\p{N}]/gu, "").length >= XL_MIN_PLAIN)
+    .sort((a, b) => b.length - a.length);              // длинные названия — первыми
+  XL.groups = keys;
+  XL.re = keys.length
+    ? new RegExp(`(?<!\\p{L})(?:${keys.map(k => `(${aliasPattern(aliasText.get(k))})`).join("|")})(?!\\p{L})`, "giu")
+    : false;
+  XL.byKey = byKey; XL.entries = entries; XL.aliasText = aliasText;
+  return XL;
+}
+const matchKey = m => { for (let i = 1; i < m.length; i++) if (m[i] !== undefined) return XL.groups[i-1]; return null; };
+
+function makeXref(el, k, selfUid){
+  el.classList.add("xref");
+  el.dataset.act = "xref";
+  el.dataset.k = k;
+  if (selfUid) el.dataset.self = selfUid;
+  el.title = "Показать карточку";
+}
+/* Проставляет ссылки внутри root. selfUid — запись, которой принадлежит текст
+   (на саму себя она не ссылается). Повторный вызов для того же root ничего не делает. */
+async function autolinkIn(root, selfUid = null){
+  if (!root || root.dataset.xl === "1") return;
+  root.dataset.xl = "1";
+  let ix;
+  try { ix = await getIndex(); } catch(e){ console.error(e); return; }
+  if (!root.isConnected) return;
+  const usable = k => (k && ix.byKey.get(k)?.some(e => e.uid !== selfUid)) ? k : null;
+
+  /* 1) `код` — точное совпадение или та же словоформа */
+  root.querySelectorAll("code").forEach(code => {
+    if (code.closest("pre") || code.classList.contains("xref") || code.closest(".calc-host")) return;
+    /* `как в тексте::Точное название` — показываем левую часть, ссылаемся на правую */
+    const raw = code.textContent, di = raw.lastIndexOf("::");
+    const text = (di > 0 ? raw.slice(di + 2) : raw).trim();
+    if (di > 0) code.textContent = raw.slice(0, di).trim();
+    let k = usable(xlNorm(text));
+    if (!k && ix.re){
+      ix.re.lastIndex = 0;
+      const m = ix.re.exec(text);
+      if (m && m.index === 0 && m[0].length === text.length) k = usable(matchKey(m));
+    }
+    if (k) makeXref(code, k, selfUid);
+  });
+
+  /* 2) обычный текст — только первое упоминание каждой записи */
+  if (!ix.re) return;
+  const done = new Set();
+  const scopes = root.matches(".md") ? [root] : [...root.querySelectorAll(".md")];
+  scopes.forEach(scope => {
+    const walker = document.createTreeWalker(scope, NodeFilter.SHOW_TEXT, {
+      acceptNode: n => n.parentElement?.closest(XL_SKIP) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT
+    });
+    const nodes = [];
+    for (let n; (n = walker.nextNode()); ) nodes.push(n);
+    nodes.forEach(node => {
+      const text = node.nodeValue;
+      if (text.length < XL_MIN_PLAIN) return;
+      ix.re.lastIndex = 0;
+      let m, last = 0, frag = null;
+      while ((m = ix.re.exec(text))){
+        const k = usable(matchKey(m));
+        if (!k || !plainOk(k, m[0])) continue;
+        const sig = ix.byKey.get(k).map(e => e.uid).join("|");
+        if (done.has(sig)) continue;
+        done.add(sig);
+        frag = frag || document.createDocumentFragment();
+        frag.append(text.slice(last, m.index));
+        const s = document.createElement("span");
+        s.textContent = m[0];
+        makeXref(s, k, selfUid);
+        frag.append(s);
+        last = m.index + m[0].length;
+      }
+      if (frag){ frag.append(text.slice(last)); node.replaceWith(frag); }
+    });
+  });
+}
+
+/* ---- Всплывающее окно ---- */
+const POP = { stack:[], anchor:null };
+const itemSlug = it => it.__origin === "custom" ? "c:" + it.__id : String(it.Name ?? "");
+const linkFor  = e => `${location.origin}${location.pathname}#${e.cat}/${encodeURIComponent(itemSlug(e.it))}`;
+
+function closePop(){
+  $("#xref-pop").classList.remove("open");
+  POP.stack = []; POP.anchor = null;
+}
+async function openXref(el){
+  const ix = await getIndex();
+  const self = el.dataset.self || null;
+  const list = (ix.byKey.get(el.dataset.k) || []).filter(e => e.uid !== self);
+  if (!list.length) return;
+  if (!el.closest("#xref-pop")){ POP.stack = []; POP.anchor = el; }
+  POP.stack.push(list.length === 1 ? { entry:list[0] } : { choices:list, label:el.textContent });
+  renderPop();
+}
+function renderPop(){
+  const pop = $("#xref-pop"), top = POP.stack[POP.stack.length - 1];
+  if (!top) return closePop();
+  const back = POP.stack.length > 1
+    ? `<button class="xp-back" data-act="xp-back" title="Назад"><i class="fa-solid fa-arrow-left"></i></button>` : "";
+  const close = `<button class="xp-x" data-act="xp-close" title="Закрыть"><i class="fa-solid fa-xmark"></i></button>`;
+
+  if (top.choices){
+    pop.style.setProperty("--pop-color", "#7fd3e6");
+    pop.innerHTML = `<div class="xp-head">${back}<div style="min-width:0">
+        <div class="xp-cat"><i class="fa-solid fa-link"></i> Несколько совпадений</div>
+        <div class="xp-title">${esc(top.label)}</div></div>${close}</div>
+      <div class="xp-body">${top.choices.map((e, i) => {
+        const c = CATS[e.cat];
+        return `<button class="xp-choice" style="--c:${esc(c.color)}" data-act="xp-choose" data-i="${i}">
+          <i class="fa-solid ${esc(c.icon)}" style="color:${esc(c.color)}"></i>${esc(e.it.Name)}
+          <small>${esc(c.label)}${e.it.__origin === "custom" ? " · кастом" : ""}</small></button>`;
+      }).join("")}</div>`;
+  } else {
+    const e = top.entry, c = CATS[e.cat];
+    REG.set(e.uid, { it:e.it, cat:e.cat });
+    const v = withCalcs(e.uid, e.it.Calcs, () => c.card(e.it));
+    const picked = state.picks.some(p => p.uid === e.uid);
+    pop.style.setProperty("--pop-color", c.color);
+    pop.innerHTML = `<div class="xp-head">${back}<div style="min-width:0">
+        <div class="xp-cat"><i class="fa-solid ${esc(c.icon)}"></i> ${esc(c.label)}${e.it.__origin === "custom" ? ` · автор: ${esc(e.it.__creator)}` : ""}</div>
+        <div class="xp-title">${esc(v.title)}</div>${v.meta ? `<div class="xp-meta">${v.meta}</div>` : ""}</div>${close}</div>
+      <div class="xp-body">${v.level ? `<div class="level-badge">${v.level}</div>` : ""}${v.badges ? `<div class="badges">${v.badges}</div>` : ""}${v.body}</div>
+      <div class="xp-foot">
+        <button class="ctrl-btn ctrl-copy" data-act="xp-open"><i class="fa-solid fa-arrow-up-right-from-square"></i> Открыть в базе</button>
+        <button class="ctrl-btn ctrl-pick${picked ? " on" : ""}" data-act="pick" data-uid="${esc(e.uid)}">
+          <i class="fa-regular ${picked ? "fa-square-check" : "fa-square"}"></i> ${picked ? "Выбрано" : "Выбрать"}</button>
+        <button class="ctrl-btn ctrl-dl" data-act="xp-link"><i class="fa-solid fa-link"></i> Ссылка</button>
+      </div>`;
+    const body = pop.querySelector(".xp-body");
+    body.querySelectorAll(".sub-block.collapsed").forEach(b => b.classList.remove("collapsed"));  // в окне всё сразу раскрыто
+    mountCalcs(body);
+    autolinkIn(body, e.uid);
+  }
+  pop.classList.add("open");
+  pop.querySelector(".xp-body").scrollTop = 0;
+  placePop();
+}
+function placePop(){
+  const pop = $("#xref-pop");
+  if (!pop.classList.contains("open")) return;
+  if (window.innerWidth < 640){ pop.classList.add("sheet"); return; }
+  pop.classList.remove("sheet");
+  const W = window.innerWidth, H = window.innerHeight, w = Math.min(480, W - 24);
+  pop.style.width = w + "px";
+  const a = POP.anchor;
+  const r = a && a.isConnected ? a.getBoundingClientRect() : { left:(W - w) / 2, top:80, bottom:80 };
+  const h = pop.offsetHeight;
+  const left = Math.min(Math.max(12, r.left), W - w - 12);
+  let top = r.bottom + 8;
+  if (top + h > H - 12) top = (r.top - 8 - h >= 12) ? r.top - 8 - h : Math.max(12, H - 12 - h);
+  pop.style.left = left + "px";
+  pop.style.top  = top + "px";
+}
+window.addEventListener("resize", placePop);
+window.addEventListener("scroll", placePop, { passive:true });
+document.addEventListener("keydown", ev => { if (ev.key === "Escape" && $("#xref-pop").classList.contains("open")) closePop(); });
+
+/* ---- Переход к записи в базе (из окна, из кабинета, по ссылке) ---- */
+function setSource(src){
+  state.source = src;
+  [...$("#src-switch").children].forEach(x => x.classList.toggle("active", x.dataset.src === src));
+}
+async function openInBase(e){
+  closePop(); closeSidebars();
+  const custom = e.it.__origin === "custom";
+  if ((custom && state.source === "canon") || (!custom && state.source === "custom")) setSource("all");
+  if (e.sys){ state.system = e.sys; $("#system-select").value = e.sys; }
+  await setCategory(e.cat);                       // сбрасывает поиск и фильтры
+  state.search = String(e.it.Name ?? "");
+  renderFilters();
+  await renderGrid();
+  history.replaceState(null, "", "#" + e.cat + "/" + encodeURIComponent(itemSlug(e.it)));
+  const uid = e.uid || uidOf(e.cat, e.it);
+  const card = [...document.querySelectorAll("#grid .card")].find(c => c.dataset.uid === uid);
+  if (!card) return;
+  card.classList.add("expanded", "flash");
+  autolinkIn(card.querySelector(".card-body"), uid);
+  setTimeout(() => card.classList.remove("flash"), 1700);
+  card.scrollIntoView({ behavior:"smooth", block:"start" });
+}
+async function openFromHash(cat, slug){
+  const ix = await getIndex();
+  const e = ix.entries.find(x => x.cat === cat && itemSlug(x.it) === slug)
+         || ix.entries.find(x => x.cat === cat && xlNorm(x.it.Name) === xlNorm(slug));
+  if (e) await openInBase(e);
+  else toast("Запись по ссылке не найдена");
+}
+
+/* ============================================================
+   12d. ЛИЧНЫЙ КАБИНЕТ
+   ============================================================ */
+state.cab = { cat:"all", vis:"all" };
+const myItems = () => !state.user ? [] :
+  (state.customCache || []).filter(x => x.__owner === state.user.email && CAT_BY_CUSTOM[x.__type]);
+const CAT_ORDER = Object.keys(CATS);
+
+async function renderCabinetView(){
+  const creatable = Object.entries(CATS).filter(([, c]) => c.customType);
+  $("#action-bar").innerHTML = state.user ? `<div class="cab-create">
+      <select id="cab-new-cat" class="cloud-select">${creatable.map(([id, c]) =>
+        `<option value="${id}">${esc(c.label)}</option>`).join("")}</select>
+      <button class="action-btn" data-act="cab-new"><i class="fa-solid fa-plus"></i> Создать запись</button></div>` : "";
+  if (!state.user){
+    $("#filters").innerHTML = "";
+    $("#result-count").textContent = "";
+    $("#grid").innerHTML = `<div class="notice">Войдите, чтобы увидеть свои записи.<br>
+      <button class="action-btn" data-act="auth" style="margin-top:14px;display:inline-flex"><i class="fa-solid fa-user"></i> Вход</button></div>`;
+    return;
+  }
+  $("#filters").innerHTML = "";
+  $("#grid").innerHTML = `<div class="notice">Загрузка ваших записей…</div>`;
+  await loadCustom();
+  if (catCfg().kind !== "cabinet") return;
+  renderCabinetFilters();
+  renderCabinetGrid();
+}
+function renderCabinetFilters(){
+  const all = myItems();
+  const nick = localStorage.getItem("custom_nickname") || state.user.email.split("@")[0];
+  const pub = all.filter(x => !x.__private).length;
+  const counts = {};
+  all.forEach(x => { const c = CAT_BY_CUSTOM[x.__type]; counts[c] = (counts[c] || 0) + 1; });
+  const chip = (act, val, cur, label, color) => `<button class="filter-btn${cur === val ? " active" : ""}" data-act="${act}" data-val="${esc(val)}"
+      style="${cur === val ? `border-color:${color};color:${color}` : ""}">${label}</button>`;
+  const stat = (n, l) => `<div class="cab-stat"><b>${n}</b><span>${l}</span></div>`;
+  $("#filters").innerHTML = `
+    <div class="cab-head">
+      <div><div class="cab-user"><i class="fa-solid fa-id-card"></i> ${esc(nick)}</div>
+        <div class="cab-mail">${esc(state.user.email)}${state.isAdmin ? " · админ" : ""}</div></div>
+      <button class="action-btn ghost" data-act="check-links" title="Найти ссылки, цель которых удалена или переименована">
+        <i class="fa-solid fa-link-slash"></i> Проверить ссылки</button>
+      <div class="cab-stats">${stat(all.length, "Записей")}${stat(pub, "Публичных")}${stat(all.length - pub, "Приватных")}${stat(state.picks.length, "В сборке")}</div>
+    </div>
+    <div class="search-wrapper cut-tl"><div class="search-inner cut-tl">
+      <i class="fa-solid fa-magnifying-glass search-icon"></i>
+      <input type="text" id="search-input" class="search-input" value="${esc(state.search)}" placeholder="Поиск по своим записям…">
+    </div></div>
+    <div class="filter-group-title">Раздел</div>
+    <div class="type-filters">${chip("cab-cat", "all", state.cab.cat, "Все", "var(--accent-primary)")}${
+      Object.entries(CATS).filter(([, c]) => c.customType).map(([id, c]) =>
+        chip("cab-cat", id, state.cab.cat, `<i class="fa-solid ${esc(c.icon)}"></i> ${esc(c.label)} <span style="opacity:.6">${counts[id] || 0}</span>`, c.color)).join("")}</div>
+    <div class="filter-group-title">Видимость</div>
+    <div class="type-filters">${chip("cab-vis", "all", state.cab.vis, "Все", "var(--accent-primary)")}${
+      chip("cab-vis", "public", state.cab.vis, '<i class="fa-solid fa-eye"></i> Публичные', "var(--color-cyan)")}${
+      chip("cab-vis", "private", state.cab.vis, '<i class="fa-solid fa-lock"></i> Приватные', "var(--color-red)")}</div>`;
+}
+function renderCabinetGrid(){
+  if (!state.user) return;
+  const all = myItems(), q = state.search.toLowerCase();
+  const list = all.filter(x => {
+    const cat = CAT_BY_CUSTOM[x.__type];
+    if (state.cab.cat !== "all" && cat !== state.cab.cat) return false;
+    if (state.cab.vis === "public" && x.__private) return false;
+    if (state.cab.vis === "private" && !x.__private) return false;
+    if (q){
+      const c = CATS[cat];
+      if (!(String(x.Name || "") + " " + (c.plain ? c.plain(x) : "")).toLowerCase().includes(q)) return false;
+    }
+    return true;
+  }).sort((a, b) => CAT_ORDER.indexOf(CAT_BY_CUSTOM[a.__type]) - CAT_ORDER.indexOf(CAT_BY_CUSTOM[b.__type])
+                 || String(a.Name).localeCompare(String(b.Name)));
+  $("#result-count").textContent = `Показано ${list.length} из ${all.length}`;
+  $("#grid").innerHTML = list.length
+    ? list.map(x => cardHtml(x, CAT_BY_CUSTOM[x.__type], { showCat:true })).join("")
+    : `<div class="notice">${all.length ? "Ничего не найдено" : "Вы ещё ничего не создали.<br>Выберите раздел выше и нажмите «Создать запись»."}</div>`;
+  mountCalcs($("#grid"));
+}
+const renderCabinet = renderCabinetGrid;
+
+/* ============================================================
+   12e. ПОЛНЫЙ ПАРСИНГ (в конструкторе) — нечёткий поиск
+   Это ручная проверка, поэтому ищем «с запасом», как поиск YouTube:
+   • любые падежи и регистр, беглые гласные («Огня» → «Огонь»);
+   • опечатки (1 буква в коротких словах, 2 — в длинных);
+   • английские формы («Bleeding» → «Bleed»), аббревиатуры («ЭГО» = «Э.Г.О.» = «E.G.O.»);
+   • слова названия в другом порядке или через слово («силы аннулирование»);
+   • разметка посреди фразы (**жирный**, кавычки, `кривой код`), цифры вплотную («x3Тремора»);
+   • несколько подходящих записей — выбор из списка.
+   Ложные срабатывания не страшны: пользователь снимает лишние галочки.
+   Выбранное оборачивается в `…`. Если текст сам по себе не указывает
+   однозначно на выбранную запись (опечатка, несколько вариантов),
+   пишется `как в тексте::Точное название` — на сайте видно только
+   «как в тексте», а ссылка ведёт на выбранную запись.
+   ============================================================ */
+const FP = { items:[], groups:[], undo:null };
+const FP_TRIM  = /^[\s"'«»„“”‘’‚(\[*_~]+|[\s"'«»„“”‘’‚)\].,;:!?*_~]+$/g;
+/* аббревиатура с точками (Э.Г.О.) | слово | число — цифры отдельно от букв */
+const WORD_RE  = /\p{L}(?:\.\p{L})+\.?(?!\p{L})|\p{L}+(?:['’]\p{L}+)?|\p{N}+/gu;
+const GAP_OK   = /^[\s*_~"'«»„“”‘’.\-–—\/]*$/;          // что может стоять между словами одного названия
+const SENT_BREAK = /[.!?;:\n]/;                           // граница предложения — для перестановок
+const QUOTE_L  = /["'«„“‘‚]/, QUOTE_R = /["'»“”’]/;
+const RU_END = ["иями","ями","ами","ией","ого","его","ому","ему","ыми","ими","ой","ей","ий","ый","ая","яя","ое","ее",
+                "ую","юю","ом","ем","ам","ям","ах","ях","ов","ев","ию","ия","ие","ии","ью","ы","и","а","я","о","е","у","ю","ь","й"];
+const EN_END = ["ings","ing","edly","ed","es","s"];
+const LAT2CYR = { a:"а",b:"б",c:"к",d:"д",e:"э",f:"ф",g:"г",h:"х",i:"и",j:"дж",k:"к",l:"л",m:"м",n:"н",o:"о",p:"п",
+                  q:"к",r:"р",s:"с",t:"т",u:"у",v:"в",w:"в",x:"кс",y:"й",z:"з" };
+
+/* Грубая основа слова: «Кровотечением» → «кровотечени», «Спешки» → «спешк», «Bleeding» → «bleed» */
+function fpStem(w){
+  /* аббревиатуры: «Э.Г.О.», «ЭГО», «E.G.O.», «EGO» → «эго» (без отрезания окончаний) */
+  if (w.includes(".") || /^[A-ZА-ЯЁ]{2,4}$/.test(w)){
+    let s = w.replace(/\./g, "").toLowerCase().replace(/ё/g, "е");
+    if (/^[a-z]+$/.test(s)) s = [...s].map(c => LAT2CYR[c] || c).join("");
+    return s;
+  }
+  w = w.toLowerCase().replace(/ё/g, "е");
+  if (/^[а-я]+$/.test(w)){
+    /* у слов из 3 букв отрезаем только одну гласную: «Яда» → «яд», «Феи» → «фе» */
+    for (const e of RU_END)
+      if (w.endsWith(e) && w.length - e.length >= 2 && (w.length >= 4 || e.length === 1)) return w.slice(0, -e.length);
+    return w;
+  }
+  if (/^[a-z]+$/.test(w)){
+    for (const e of EN_END){
+      if (!w.endsWith(e) || w.length - e.length < 3) continue;
+      if ((e === "ed" || e === "edly") && w[w.length - e.length - 1] === "e") continue;   // «bleed», «speed» — не форма
+      if (e === "es" && !/(s|x|z|ch|sh)es$/.test(w)) return w.slice(0, -1);              // «flames» → «flame»
+      return w.slice(0, -e.length);
+    }
+    return w;
+  }
+  return w;
+}
+/* Расстояние Дамерау–Левенштейна (с перестановкой соседних букв), с ранним выходом */
+function osa(a, b, lim){
+  if (Math.abs(a.length - b.length) > lim) return lim + 1;
+  let p2 = null, p1 = Array.from({ length:b.length + 1 }, (_, j) => j);
+  for (let i = 1; i <= a.length; i++){
+    const cur = [i]; let rowMin = i;
+    for (let j = 1; j <= b.length; j++){
+      let v = Math.min(p1[j] + 1, cur[j-1] + 1, p1[j-1] + (a[i-1] === b[j-1] ? 0 : 1));
+      if (p2 && j > 1 && a[i-1] === b[j-2] && a[i-2] === b[j-1]) v = Math.min(v, p2[j-2] + 1);
+      cur.push(v); if (v < rowMin) rowMin = v;
+    }
+    if (rowMin > lim) return lim + 1;
+    p2 = p1; p1 = cur;
+  }
+  return p1[b.length];
+}
+/* Похожесть двух основ: 1 — совпали, 0 — не похожи */
+function wordSim(a, b){
+  if (a === b) return 1;
+  const L = Math.max(a.length, b.length), S = Math.min(a.length, b.length);
+  /* беглая гласная: «огон(ь)» ↔ «огн(я)», «когот(ь)» ↔ «когт(я)» */
+  if (L - S === 1 && S >= 2){
+    const lo = a.length > b.length ? a : b, sh = lo === a ? b : a;
+    for (let k = 1; k < lo.length; k++)
+      if ("оеё".includes(lo[k]) && lo.slice(0, k) + lo.slice(k + 1) === sh) return 0.9;
+  }
+  if (S <= 2) return 0;
+  /* короткие (3 буквы): «фея» ↔ «феи» — только при совпадении начала */
+  if (S === 3) return (L <= 4 && a.slice(0, 2) === b.slice(0, 2) && osa(a, b, 1) <= 1) ? 0.8 : 0;
+  const lim = L <= 5 ? 1 : 2;
+  const d = osa(a, b, lim);
+  return d <= lim ? 1 - d / (L + 1) : 0;
+}
+
+/* Модель для нечёткого поиска: названия, разбитые на основы.
+   byFirst — по первой букве первого слова; byAny — по первой букве любого слова (для перестановок) */
+let FZ = null;
+function fuzzyModel(ix){
+  if (FZ && FZ.map === ix.aliasText) return FZ;
+  const byFirst = new Map(), byAny = new Map();
+  const put = (m, f, r) => (m.get(f) || m.set(f, []).get(f)).push(r);
+  ix.aliasText.forEach((a, k) => {
+    const words = a.match(WORD_RE) || [];
+    if (!words.length) return;
+    const stems = words.map(fpStem);
+    if (stems.join("").length < 2) return;
+    const rec = { key:k, stems, n:stems.length };
+    put(byFirst, stems[0][0], rec);
+    if (rec.n >= 2) new Set(stems.map(s => s[0])).forEach(f => put(byAny, f, rec));
+  });
+  return (FZ = { map:ix.aliasText, byFirst, byAny });
+}
+function fpTokens(text){
+  const t = [];
+  for (const m of text.matchAll(WORD_RE)) t.push({ s:m.index, e:m.index + m[0].length, st:fpStem(m[0]) });
+  return t;
+}
+function fpCandidates(text, FZm, isProt){
+  const tokens = fpTokens(text), out = [];
+  const gap = (x, y) => text.slice(tokens[x].e, tokens[y].s);
+  for (let i = 0; i < tokens.length; i++){
+    const t0 = tokens[i];
+    if (isProt(t0.s, t0.e)) continue;
+
+    /* а) слова названия подряд и по порядку */
+    for (const r of FZm.byFirst.get(t0.st[0]) || []){
+      if (i + r.n > tokens.length) continue;
+      let sum = 0, ok = true;
+      for (let j = 0; j < r.n && ok; j++){
+        if (j && !GAP_OK.test(gap(i + j - 1, i + j))) ok = false;
+        else { const sim = wordSim(tokens[i+j].st, r.stems[j]); if (sim) sum += sim; else ok = false; }
+      }
+      if (!ok) continue;
+      const e = tokens[i + r.n - 1].e;
+      if (!isProt(t0.s, e)) out.push({ s:t0.s, e, key:r.key, score:sum / r.n });
+    }
+
+    /* б) все слова названия в окне из n+2 слов, в любом порядке, в пределах предложения.
+          Такие совпадения всегда «неточные» (не выше 85%) и по умолчанию не отмечены */
+    for (const r of FZm.byAny.get(t0.st[0]) || []){
+      const win = [i];
+      for (let x = i + 1; x < tokens.length && x < i + r.n + 2; x++){
+        if (SENT_BREAK.test(gap(x - 1, x)) || isProt(tokens[x].s, tokens[x].e)) break;
+        win.push(x);
+      }
+      if (win.length < r.n) continue;
+      let j0 = -1, s0 = 0;                              // первое слово окна обязано быть словом названия
+      r.stems.forEach((st, j) => { const s = wordSim(t0.st, st); if (s > s0){ s0 = s; j0 = j; } });
+      if (j0 < 0) continue;
+      const usedTok = new Set([i]);
+      let sum = s0, ok = true, maxX = i;
+      for (let j = 0; j < r.n && ok; j++){
+        if (j === j0) continue;
+        let bx = -1, bs = 0;
+        for (const x of win) if (!usedTok.has(x)){ const s = wordSim(tokens[x].st, r.stems[j]); if (s > bs){ bs = s; bx = x; } }
+        if (bx < 0) ok = false;
+        else { usedTok.add(bx); sum += bs; if (bx > maxX) maxX = bx; }
+      }
+      if (!ok) continue;
+      const e = tokens[maxX].e;
+      if (!isProt(t0.s, e)) out.push({ s:t0.s, e, key:r.key, score:Math.min(0.85, sum / r.n * 0.85), loose:true });
+    }
+  }
+  return out;
+}
+/* Кандидаты → варианты по конкретным записям (а не по названиям). Сама запись — не вариант */
+function fpVariants(ix, cands, selfUid){
+  const best = new Map();
+  cands.forEach(c => (ix.byKey.get(c.key) || []).forEach(en => {
+    if (en.uid === selfUid) return;
+    const v = best.get(en.uid), len = c.e - c.s;
+    if (!v || c.score > v.score || (c.score === v.score && len > v.e - v.s))
+      best.set(en.uid, { entry:en, s:c.s, e:c.e, score:c.score, key:c.key });
+  }));
+  return [...best.values()]
+    /* длиннее совпадение — важнее: «Аннулированием силы» → «Аннулирование силы», а не «Сила».
+       Перестановки (score ≤ 0.85) не перебивают точное совпадение той же длины */
+    .sort((a, b) => (b.e - b.s) - (a.e - a.s) || b.score - a.score || fpPrimary(b) - fpPrimary(a))
+    .slice(0, 8);
+}
+/* Совпало «настоящее» имя записи, а не пометка в скобках.
+   «Кровотечение (Bleed)» — в скобках перевод (другой алфавит) → считается именем;
+   «Devotion (Bleed)» — в скобках тип гифта → нет. */
+function fpPrimary(v){
+  const name = String(v.entry.it.Name ?? "").trim();
+  const m = /^(.*?)\s*\(([^()]+)\)\s*$/.exec(name);
+  if (!m || v.key === xlNorm(name) || v.key === xlNorm(m[1])) return 1;
+  if (v.key === xlNorm(m[2])) return /[а-яё]/i.test(m[1]) !== /[а-яё]/i.test(m[2]) ? 1 : 0;
+  return 1;                                        // синоним из поля «Синонимы» или подпись типа
+}
+
+/* То же правило, что у `кода` при просмотре: точное название или его словоформа */
+function resolveKey(ix, str){
+  const t = String(str).trim();
+  if (!t) return null;
+  if (ix.byKey.has(xlNorm(t))) return xlNorm(t);
+  if (ix.re){
+    ix.re.lastIndex = 0;
+    const m = ix.re.exec(t);
+    if (m && m.index === 0 && m[0].length === t.length) return matchKey(m);
+  }
+  return null;
+}
+/* `текст::Цель` — работает ли уже такой код */
+function resolveCode(ix, inner){
+  const i = inner.lastIndexOf("::");
+  return resolveKey(ix, i > 0 ? inner.slice(i + 2) : inner);
+}
+/* Название, по которому запись находится однозначно */
+function uniqueAlias(ix, en){
+  const al = aliasesOf(en.it);
+  return al.find(a => (ix.byKey.get(xlNorm(a)) || []).length === 1) || String(en.it.Name ?? "");
+}
+function fpRepl(ix, display, en){
+  const k = resolveKey(ix, display), list = k ? ix.byKey.get(k) : null;
+  if (list && list.length === 1 && list[0].uid === en.uid) return "`" + display + "`";
+  return "`" + display + "::" + uniqueAlias(ix, en) + "`";
+}
+/* Для копирования текстом: `Тримор::Тремор (Tremor)` → `Тримор` */
+const stripLinkTargets = s => String(s ?? "").replace(/`([^`\n]*?)::[^`\n]*`/g, "`$1`");
+
+function fpFieldLabel(el){
+  const anchor = el.closest(".md-editor") || el;
+  const prev = anchor.previousElementSibling;
+  let lbl = prev?.classList.contains("tech-text") ? prev.textContent.trim() : "Текст";
+  const entry = el.closest(".b-entry");
+  if (entry){
+    const n = entry.querySelector('[data-f="name"]')?.value?.trim();
+    const sec = entry.parentElement?.previousElementSibling?.querySelector(".tech-text")?.textContent?.trim();
+    lbl = `${sec || "Блок"}${n ? " · " + n : ""}`;
+  }
+  return lbl.replace(/\s*\(.*?\)\s*$/, "").replace(/\s*—.*$/, "");
+}
+
+function fpScan(text, ix, FZm, selfUid){
+  const items = [], prot = [];
+  const isProt = (a, b) => prot.some(([x, y]) => a < y && b > x);
+  for (const m of text.matchAll(/```[\s\S]*?```/g)) prot.push([m.index, m.index + m[0].length]);
+
+  /* 1) `код`: рабочий — пропускаем; с мусором, опечаткой или битой целью — ищем по видимому тексту */
+  for (const m of text.matchAll(/`([^`\n]+)`/g)){
+    const a = m.index, b = a + m[0].length;
+    if (isProt(a, b)) continue;
+    prot.push([a, b]);
+    if (resolveCode(ix, m[1])) continue;
+    const di = m[1].lastIndexOf("::");
+    const shown = di > 0 ? m[1].slice(0, di) : m[1];
+    const clean = shown.replace(FP_TRIM, "").replace(/[*_~]/g, "").trim();
+    if (!clean) continue;
+    const variants = fpVariants(ix, fpCandidates(clean, FZm, () => false), selfUid);
+    if (variants.length) items.push({ kind:"code", cs:a, ce:b, display:clean, broken:di > 0, variants });
+  }
+  /* 2) не трогаем: ссылки [текст](адрес), калькуляторы [calc:…], картинки [файл.png W:…], адреса, html.
+        Обычный текст в квадратных скобках — «[Спешка]» — сканируется как всё остальное */
+  for (const m of text.matchAll(/\[[^\]\n]*\]\([^)\n]*\)|https?:\/\/\S+|<[^>\n]+>/g))
+    prot.push([m.index, m.index + m[0].length]);
+  for (const m of text.matchAll(/\[\s*([^\s\]]+)[^\]\n]*\]/g))
+    if (/^calc:/i.test(m[1]) || IMG_OK.test(m[1])) prot.push([m.index, m.index + m[0].length]);
+
+  /* 3) обычный текст: самые длинные совпадения занимают место первыми,
+        всё, что с ними пересекается, становится вариантами */
+  const cands = fpCandidates(text, FZm, isProt)
+    .sort((x, y) => (y.e - y.s) - (x.e - x.s) || y.score - x.score);
+  /* место занимают сначала совпадения по порядку слов, и только потом — перестановки,
+     иначе «оружие, Слияние ЭГО» перехватит «Слияние ЭГО» */
+  const spans = [];
+  const overlaps = (c, sp) => c.s < sp.e && c.e > sp.s;
+  for (const pass of [false, true]) for (const c of cands){
+    if (!!c.loose !== pass || spans.some(sp => overlaps(c, sp))) continue;
+    if (!fpVariants(ix, [c], selfUid).length) continue;   // только ссылка на саму себя — место не занимает
+    spans.push({ s:c.s, e:c.e });
+  }
+  spans.forEach(sp => {
+    /* варианты — только те, что не залезают на соседние найденные места */
+    const mine = cands.filter(c => overlaps(c, sp) && !spans.some(o => o !== sp && overlaps(c, o)));
+    const variants = fpVariants(ix, mine, selfUid);
+    if (variants.length) items.push({ kind:"plain", variants });
+  });
+  return items;
+}
+
+/* Что именно и на что заменить. Разметка внутри фразы не ломается:
+   непарные маркеры выносятся за пределы ссылки —
+   «**Встреча с Рыдающей** жабой» → «**Встреча с `Рыдающей жабой`**» */
+function fpEdit(it){
+  const v = it.variants[it.sel];
+  if (it.kind === "code") return { a:it.cs, b:it.ce, repl:fpRepl(FP.ix, it.display, v.entry) };
+  const t = it.ta.value;
+  let a = v.s, b = v.e;
+  const slice = t.slice(a, b);
+  const stack = [];
+  for (const m of slice.matchAll(/[*_~]+/g)){
+    if (stack.length && stack[stack.length - 1] === m[0]) stack.pop(); else stack.push(m[0]);
+  }
+  let pre = "", post = "";
+  stack.forEach(r => {
+    const opened = (t.slice(0, a).split(r).length - 1) % 2 === 1;   // открыт раньше фразы → это закрывающий
+    if (opened) post += r; else pre += r;
+  });
+  const display = slice.replace(/[*_~]+/g, "").replace(/\s+/g, " ").trim();
+  if (QUOTE_L.test(t[a-1] || "") && QUOTE_R.test(t[b] || "")){ a--; b++; }
+  return { a, b, repl: pre + fpRepl(FP.ix, display, v.entry) + post };
+}
+
+/* Поля, которые сканируются: текст с Markdown + однострочные поля с пометкой data-link */
+const fpFields = () => [...$("#builder-fields").querySelectorAll(".md-editor textarea, input[data-link]")];
+
+async function forceParse(){
+  const els = fpFields();
+  if (!$("#builderModal").classList.contains("active") || !els.length) return;
+  $("#fp-body").innerHTML = `<div class="notice">Сканирование…</div>`;
+  $("#parseModal").classList.add("active");
+  const ix = await getIndex(), FZm = fuzzyModel(ix), selfUid = draftUid();
+
+  FP.ix = ix;
+  FP.items = [];
+  els.forEach(el => {
+    const where = fpFieldLabel(el);
+    fpScan(el.value, ix, FZm, selfUid).forEach(f => {
+      const top = f.variants[0];
+      const shown = f.kind === "code" ? f.display : el.value.slice(top.s, top.e);
+      const sure = f.kind === "code" ? top.score === 1 : (top.score === 1 && plainOk(top.key, shown));
+      FP.items.push({ ...f, ta:el, where, sel:0, on:sure, sure });
+    });
+  });
+  FP.items.sort((a, b) => els.indexOf(a.ta) - els.indexOf(b.ta) || fpEdit(a).a - fpEdit(b).a);
+  fpGroup();
+  fpRender();
+}
+/* Группа = запись, выбранная в варианте */
+function fpGroup(){
+  const byUid = new Map();
+  FP.items.forEach(it => {
+    const en = it.variants[it.sel].entry;
+    if (!byUid.has(en.uid)) byUid.set(en.uid, { entry:en, items:[] });
+    byUid.get(en.uid).items.push(it);
+  });
+  FP.groups = [...byUid.values()].sort((a, b) => b.items.length - a.items.length
+    || String(a.entry.it.Name).localeCompare(String(b.entry.it.Name)));
+}
+const fpPct = s => s === 1 ? "точно" : `≈${Math.round(s * 100)}%`;
+function fpRender(){
+  const body = $("#fp-body");
+  if (!FP.items.length){
+    body.innerHTML = `<div class="notice">Совпадений не найдено — всё, что можно, уже работает как ссылки.</div>`;
+    return fpSync();
+  }
+  body.innerHTML = FP.groups.map((g, gi) => {
+    const e = g.entry, c = CATS[e.cat] || { color:"#7fd3e6", label:"", icon:"fa-link" };
+    return `<div class="fp-group" style="--c:${esc(c.color)}">
+      <label class="fp-ghead"><input type="checkbox" data-fp-group="${gi}"><i class="fa-solid ${esc(c.icon)}"></i>
+        <span>${esc(e.it.Name)}</span> <span class="fp-cat">${esc(c.label)}${e.it.__origin === "custom" ? " · кастом" : ""}</span>
+        <small>${g.items.length} шт.</small></label>
+      ${g.items.map(it => {
+        const i = FP.items.indexOf(it), t = it.ta.value, v = it.variants[it.sel], ed = fpEdit(it), a = ed.a, b = ed.b;
+        const pre = t.slice(Math.max(0, a - 45), a), post = t.slice(b, b + 45);
+        const tags = [
+          it.kind === "code" ? `<span class="fp-tag code">${it.broken ? "битая ссылка" : "кривой код"}</span>` : "",
+          it.kind === "plain" && QUOTE_L.test(t[a] || "") && a < v.s ? `<span class="fp-tag quote">в кавычках</span>` : "",
+          v.score < 1 ? `<span class="fp-tag doubt">${fpPct(v.score)}</span>`
+            : (!it.sure ? `<span class="fp-tag doubt">сомнительно</span>` : "")
+        ].join("");
+        const pick = it.variants.length > 1
+          ? `<select class="cloud-select fp-var" data-fp-var="${i}">${it.variants.map((x, xi) =>
+              `<option value="${xi}" ${xi === it.sel ? "selected" : ""}>${esc(x.entry.it.Name)} · ${esc(CATS[x.entry.cat]?.label || "")}${x.entry.it.__origin === "custom" ? " (кастом)" : ""} · ${fpPct(x.score)}</option>`).join("")}</select>`
+          : "";
+        return `<div class="fp-item">
+          <input type="checkbox" data-fp-item="${i}" ${it.on ? "checked" : ""}>
+          <span class="fp-where" title="${esc(it.where)}">${esc(it.where)}</span>
+          <span class="fp-ctx">${a > 45 ? "…" : ""}${esc(pre).replace(/\n/g, " ")}<mark>${esc(t.slice(a, b))}</mark>${esc(post).replace(/\n/g, " ")}${b + 45 < t.length ? "…" : ""}${tags}
+            <span class="fp-res">→ <code>${esc(ed.repl)}</code></span>${pick}</span></div>`;
+      }).join("")}
+    </div>`;
+  }).join("");
+  fpSync();
+}
+/* Обновляем галочки групп и счётчик без перерисовки списка */
+function fpSync(){
+  document.querySelectorAll("[data-fp-group]").forEach(box => {
+    const its = FP.groups[+box.dataset.fpGroup].items, on = its.filter(x => x.on).length;
+    box.checked = on === its.length; box.indeterminate = on > 0 && on < its.length;
+  });
+  document.querySelectorAll("[data-fp-item]").forEach(box => box.checked = FP.items[+box.dataset.fpItem].on);
+  const n = FP.items.filter(x => x.on).length;
+  $("#fp-apply-label").textContent = n ? `Применить (${n})` : "Применить";
+}
+function fpToggle(box){
+  if (box.dataset.fpGroup !== undefined) FP.groups[+box.dataset.fpGroup].items.forEach(x => x.on = box.checked);
+  else FP.items[+box.dataset.fpItem].on = box.checked;
+  fpSync();
+}
+function fpChooseVariant(sel){
+  const it = FP.items[+sel.dataset.fpVar];
+  it.sel = +sel.value;
+  it.on = true;                                   // выбрал вариант руками — значит, хочет ссылку
+  const scroller = $("#parseModal"), y = scroller.scrollTop;
+  fpGroup(); fpRender();
+  scroller.scrollTop = y;
+}
+function fpSelect(mode){
+  FP.items.forEach(x => x.on = mode === "all" ? true : mode === "sure" ? x.sure : false);
+  fpSync();
+}
+function fpApply(){
+  const chosen = FP.items.filter(x => x.on);
+  if (!chosen.length) return toast("Ничего не выбрано");
+  /* снимок всех полей — для кнопки «Отменить парсинг» */
+  FP.undo = fpFields().map(el => [el, el.value]);
+  const byTa = new Map();
+  chosen.forEach(x => (byTa.get(x.ta) || byTa.set(x.ta, []).get(x.ta)).push(x));
+  let done = 0;
+  byTa.forEach((list, ta) => {
+    let v = ta.value, lastStart = Infinity;
+    list.map(fpEdit).sort((x, y) => y.a - x.a).forEach(({ a, b, repl }) => {
+      if (b > lastStart) return;                  // пересекается с уже заменённым — пропускаем
+      v = v.slice(0, a) + repl + v.slice(b);
+      lastStart = a; done++;
+    });
+    ta.value = v;
+    refreshPreview(ta);
+  });
+  $("#parseModal").classList.remove("active");
+  $("#fp-undo-btn").style.display = "";
+  toast(`Ссылок проставлено: ${done}. Не забудьте сохранить запись`);
+}
+function fpUndo(){
+  if (!FP.undo) return;
+  FP.undo.forEach(([el, val]) => { if (el.isConnected){ el.value = val; refreshPreview(el); } });
+  FP.undo = null;
+  $("#fp-undo-btn").style.display = "none";
+  toast("Парсинг отменён — текст как был");
+}
+
+/* ============================================================
+   12f. ПРОВЕРКА БИТЫХ ССЫЛОК (личный кабинет)
+   Ищет в своих записях `текст::Цель`, у которых цель больше не существует
+   (переименована, удалена, стала приватной).
+   ============================================================ */
+async function checkLinks(){
+  $("#link-body").innerHTML = `<div class="notice">Проверка…</div>`;
+  $("#linkModal").classList.add("active");
+  await loadCustom();
+  const ix = await getIndex();
+  const strings = (v, out = []) => {
+    if (typeof v === "string") out.push(v);
+    else if (Array.isArray(v)) v.forEach(x => strings(x, out));
+    else if (v && typeof v === "object")
+      Object.entries(v).forEach(([k, x]) => { if (!k.startsWith("__") && k !== "Calcs") strings(x, out); });
+    return out;
+  };
+  const rows = [];
+  myItems().forEach(it => {
+    const bad = [];
+    strings(it).forEach(s => {
+      for (const m of s.matchAll(/`([^`\n]+)`/g)){
+        const i = m[1].lastIndexOf("::");
+        if (i > 0 && !resolveKey(ix, m[1].slice(i + 2))) bad.push({ shown:m[1].slice(0, i), target:m[1].slice(i + 2) });
+      }
+    });
+    if (bad.length){
+      const cat = CAT_BY_CUSTOM[it.__type], uid = uidOf(cat, it);
+      REG.set(uid, { it, cat });
+      rows.push({ it, cat, uid, bad });
+    }
+  });
+  $("#link-body").innerHTML = !rows.length
+    ? `<div class="notice" style="color:#2ECC71"><i class="fa-solid fa-circle-check"></i> Битых ссылок нет — все цели на месте.</div>`
+    : `<div class="tool-hint">Найдено записей с битыми ссылками: ${rows.length}. «Исправить» откроет конструктор с полным парсингом —
+         он предложит новую цель для каждой битой ссылки.</div>` + rows.map(r => {
+      const c = CATS[r.cat];
+      return `<div class="fp-group" style="--c:${esc(c.color)}">
+        <div class="fp-ghead"><i class="fa-solid ${esc(c.icon)}"></i><span>${esc(r.it.Name)}</span>
+          <span class="fp-cat">${esc(c.label)}</span>
+          <button class="mini-btn" style="margin-left:auto" data-act="link-fix" data-uid="${esc(r.uid)}">Исправить</button></div>
+        ${r.bad.map(b => `<div class="fp-item" style="cursor:default"><span class="fp-ctx">«${esc(b.shown)}» → <s>${esc(b.target)}</s>
+          <span class="fp-tag doubt">цель не найдена</span></span></div>`).join("")}
+      </div>`;
+    }).join("");
+}
+
+/* ============================================================
    13. АВТОРИЗАЦИЯ И АДМИНЫ
    ============================================================ */
 /* Права админа лежат в Firestore: коллекция admins, id документа = email.
@@ -2901,7 +3960,7 @@ onAuthStateChanged(auth, async user => {
   $("#admin-tools").style.display   = state.isAdmin ? "block" : "none";
   if (user) $("#auth-nickname").value = nick;
   state.customLoaded = false;
-  if (catCfg().kind === "data" && state.subtab === "data") await renderGrid();
+  await refreshCurrent();
 });
 
 async function migrateFlags(){
@@ -2930,6 +3989,7 @@ const openSidebar = id => { closeSidebars(); $(id).classList.add("active"); $("#
 
 document.addEventListener("click", async ev => {
   if (!ev.target.closest(".ce-menu-wrap")) $("#ce-menu").hidden = true;
+  if ($("#xref-pop").classList.contains("open") && !ev.target.closest("#xref-pop") && !ev.target.closest(".xref")) closePop();
   const el = ev.target.closest("[data-act]");
   if (!el) return;
   const act = el.dataset.act, uid = el.dataset.uid;
@@ -2938,7 +3998,36 @@ document.addEventListener("click", async ev => {
     case "set-cat": await setCategory(el.dataset.cat); break;
     case "set-subtab": state.subtab = el.dataset.sub; renderSubtabs(); await renderView(); break;
 
-    case "toggle-card": el.closest(".card")?.classList.toggle("expanded"); break;
+    case "toggle-card": {
+      const card = el.closest(".card");
+      if (!card) break;
+      card.classList.toggle("expanded");
+      if (card.classList.contains("expanded")) autolinkIn(card.querySelector(".card-body"), card.dataset.uid || null);
+      break;
+    }
+
+    /* Автоссылки и всплывающее окно */
+    case "xref": ev.preventDefault(); ev.stopPropagation(); await openXref(el); break;
+    case "xp-close": closePop(); break;
+    case "xp-back": POP.stack.pop(); renderPop(); break;
+    case "xp-choose": {
+      const top = POP.stack[POP.stack.length - 1];
+      const e = top?.choices?.[+el.dataset.i];
+      if (e){ POP.stack.push({ entry:e }); renderPop(); }
+      break;
+    }
+    case "xp-open": { const e = POP.stack[POP.stack.length - 1]?.entry; if (e) await openInBase(e); break; }
+    case "xp-link": { const e = POP.stack[POP.stack.length - 1]?.entry; if (e) copyText(linkFor(e)); break; }
+
+    /* Личный кабинет */
+    case "cab-new": openBuilder(null, false, null, $("#cab-new-cat").value); break;
+    case "cab-cat": state.cab.cat = el.dataset.val; renderCabinetFilters(); renderCabinetGrid(); break;
+    case "cab-vis": state.cab.vis = el.dataset.val; renderCabinetFilters(); renderCabinetGrid(); break;
+    case "open-in-base": {
+      const r = REG.get(uid);
+      if (r) await openInBase({ it:r.it, cat:r.cat, uid, sys:r.it.__sys });
+      break;
+    }
     case "toggle-sub": el.closest(".sub-block")?.classList.toggle("collapsed"); break;
 
     case "toggle-filter": {
@@ -2950,7 +4039,7 @@ document.addEventListener("click", async ev => {
     case "clear-filter": state.filters[el.dataset.key] = new Set(); renderFilters(); await renderGrid(); break;
 
     case "pick": togglePick(uid); break;
-    case "copy-item": { const it = findItem(uid); if (it) copyText(withCalcText(catCfg().plain(it), it.Calcs, uid)); break; }
+    case "copy-item": { const it = findItem(uid); if (it) copyText(stripLinkTargets(withCalcText(CATS[catOf(uid)].plain(it), it.Calcs, uid))); break; }
     case "dl-item": { const it = findItem(uid); if (it) downloadJson([cleanCopy(it)], `${it.Name || "item"}.json`); break; }
 
     case "open-picks": openSidebar("#sb-picks"); break;
@@ -2959,7 +4048,7 @@ document.addEventListener("click", async ev => {
     case "pick-copy": { const p = state.picks.find(x => x.uid === uid); if (p) copyText(pickPlain(p)); break; }
     case "pick-remove": {
       state.picks = state.picks.filter(x => x.uid !== uid); savePicks(); renderPicks();
-      if (catCfg().kind === "data" && state.subtab === "data") await renderGrid(); break;
+      await refreshCurrent(); break;
     }
     case "picks-copy": copyText(state.picks.map(pickPlain).join("\n\n")); break;
     case "picks-export": downloadJson(state.picks.map(p => ({ category:p.cat, ...p.data })), "my-build.json"); break;
@@ -2988,20 +4077,36 @@ document.addEventListener("click", async ev => {
     case "migrate": await migrateFlags(); break;
 
     case "new-entry": openBuilder(); break;
-    case "edit-item": { const it = findItem(uid); if (it) openBuilder(cleanCopy(it), it.__private, it.__id); break; }
+    case "edit-item": { const it = findItem(uid); if (it) openBuilder(cleanCopy(it), it.__private, it.__id, catOf(uid)); break; }
     case "toggle-priv": {
       const it = findItem(uid); if (!it) break;
       try { await setDoc(doc(db, COLL, it.__id), { isPrivate: !it.__private }, { merge:true });
-            await loadCustom(true); await renderGrid(); }
+            await loadCustom(true); await refreshCurrent(); }
       catch(e){ toast("Не удалось изменить приватность"); } break;
     }
     case "del-item": {
       const it = findItem(uid); if (!it) break;
       if (!confirm(`Удалить «${it.Name}» навсегда?`)) break;
-      try { await deleteDoc(doc(db, COLL, it.__id)); await loadCustom(true); await renderGrid(); toast("Удалено"); }
+      try { await deleteDoc(doc(db, COLL, it.__id)); await loadCustom(true); await refreshCurrent(); toast("Удалено"); }
       catch(e){ toast("Ошибка удаления"); } break;
     }
     case "builder-save": await saveEntry(); break;
+    case "force-parse": await forceParse(); break;
+    case "parse-item": {
+      const it = findItem(uid); if (!it) break;
+      openBuilder(cleanCopy(it), it.__private, it.__id, catOf(uid));
+      await forceParse(); break;
+    }
+    case "fp-sel": fpSelect(el.dataset.mode); break;
+    case "fp-undo": fpUndo(); break;
+    case "check-links": await checkLinks(); break;
+    case "link-fix": {
+      const r = REG.get(uid); if (!r) break;
+      $("#linkModal").classList.remove("active");
+      openBuilder(cleanCopy(r.it), r.it.__private, r.it.__id, r.cat);
+      await forceParse(); break;
+    }
+    case "fp-apply": fpApply(); break;
     case "builder-download": {
       const d = collectBuilder();
       downloadJson([d], `${d.Name || "entry"}.json`); break;
@@ -3074,6 +4179,8 @@ document.addEventListener("input", ev => {
   }
 });
 document.addEventListener("change", async ev => {
+  if (ev.target.matches("[data-fp-item], [data-fp-group]")) fpToggle(ev.target);
+  if (ev.target.matches("[data-fp-var]")) fpChooseVariant(ev.target);
   if (ev.target.id === "system-select"){ state.system = ev.target.value; loadBase(); await renderGrid(); }
   if (ev.target.id === "json-upload") await uploadJson(ev.target);
   if (ev.target.id === "badge-mode"){
@@ -3119,18 +4226,28 @@ renderPicks();
 
 /* Диплинки: compendium.html#feats, #bestiary, #lore и т.д.
    Позволяет оставить карточки в navigation.html — просто поменяйте href. */
-function catFromHash(){
-  const h = location.hash.replace("#","");
-  return CATS[h] ? h : "classes";
+/* Ссылка на конкретную запись: #bestiary/Имя или #feats/c:<id> (кастом) */
+function parseHash(){
+  let h = location.hash.replace(/^#/, "");
+  try { h = decodeURIComponent(h); } catch {}
+  const i = h.indexOf("/");
+  const cat = i < 0 ? h : h.slice(0, i);
+  return { cat: CATS[cat] ? cat : "classes", item: i < 0 ? "" : h.slice(i + 1) };
 }
-window.addEventListener("hashchange", () => {
-  const id = catFromHash();
-  if (id !== state.cat) setCategory(id);
+window.addEventListener("hashchange", async () => {
+  const { cat, item } = parseHash();
+  if (item) await openFromHash(cat, item);
+  else if (cat !== state.cat) await setCategory(cat);
 });
 const _setCategory = setCategory;
 setCategory = async id => { await _setCategory(id); if (location.hash !== "#" + id) history.replaceState(null, "", "#" + id); };
 
-setCategory(catFromHash());
+(async () => {
+  const { cat, item } = parseHash();
+  await setCategory(cat);
+  if (item) await openFromHash(cat, item);
+  getIndex().catch(() => {});        // заранее готовим словарь автоссылок
+})();
 </script>
 </body>
 </html>
