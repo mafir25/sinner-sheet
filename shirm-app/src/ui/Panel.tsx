@@ -60,6 +60,16 @@ export function Panel({ store, screens, screenId, onPickScreen, email, active, o
   const [importAt, setImportAt] = useState<null | { x: number; y: number }>(null);
   const [q, setQ] = useState('');
   const [showRes, setShowRes] = useState(false);
+  const [sbW, setSbW] = useState(() => { try { return Number(localStorage.getItem('shirm.sidebarW')) || 420; } catch { return 420; } });
+  // ширина панели — чтобы понять, хватает ли места шапке рядом с открытым описанием
+  const panelRef = useRef<HTMLElement>(null);
+  const [panelW, setPanelW] = useState(1200);
+  useEffect(() => {
+    const el = panelRef.current; if (!el) return;
+    const ro = new ResizeObserver(([e]) => setPanelW(e.contentRect.width));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   const meta = st.meta;
   const isCreator = !!meta && !meta.isLocal && meta.creatorEmail === email;
@@ -74,24 +84,31 @@ export function Panel({ store, screens, screenId, onPickScreen, email, active, o
     n.frameId = store.frameAt(x, y);
     setEditNode(n);
   };
-  const createFrame = (x: number, y: number, w = 420, h = 300, wrap?: string[]) => {
-    const f: FrameItem = { kind: 'frame', id: uid('f'), title: 'Новая рамка', color: '#40E0D0', variant: 'frame', image: '', x, y, w, h, hidden: false };
+  /** Рамка точно по прямоугольнику; узлы, чьи центры внутри, становятся её детьми. */
+  const createFrameRect = async (r: { x: number; y: number; w: number; h: number }, onlyIds?: string[]) => {
+    const title = await promptDialog('Название рамки', 'Новая рамка');
+    if (title === null) return;
+    const f: FrameItem = { kind: 'frame', id: uid('f'), title: title.trim(), color: '#40E0D0', variant: 'frame', image: '', x: r.x, y: r.y, w: r.w, h: r.h, hidden: false };
     const ch: Item[] = [f];
-    for (const id of wrap ?? []) { const n = store.state.items[id]; if (isNode(n)) ch.push({ ...n, frameId: f.id }); }
+    for (const it of Object.values(store.state.items)) {
+      if (!isNode(it)) continue;
+      if (onlyIds && !onlyIds.includes(it.id)) continue;
+      if (it.x >= r.x && it.x <= r.x + r.w && it.y >= r.y && it.y <= r.y + r.h) ch.push({ ...it, frameId: f.id });
+    }
     store.put(ch);
     store.select([f.id]);
-    setEditFrame(f);
   };
-  const frameAroundSelection = () => {
-    const ids = store.state.selection;
-    const nodes = ids.map((id) => store.state.items[id]).filter(isNode);
+  /** Действующая область Shift-выделения (если выделение с тех пор не менялось) */
+  const marqueeRect = () => {
     const m = store.lastMarquee;
-    if (!nodes.length && !m) return;
+    return m && m.sel === store.state.selection.join('|') ? m : null;
+  };
+  const frameAroundNodes = () => {
+    const nodes = store.state.selection.map((id) => store.state.items[id]).filter(isNode);
+    if (!nodes.length) return;
     let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
     for (const n of nodes) { x0 = Math.min(x0, n.x); y0 = Math.min(y0, n.y); x1 = Math.max(x1, n.x); y1 = Math.max(y1, n.y); }
-    if (!nodes.length && m) { x0 = m.x; y0 = m.y; x1 = m.x + m.w; y1 = m.y + m.h; }
-    else { x0 -= 80; x1 += 80; y0 -= 70; y1 += 70; }
-    createFrame(x0, y0, x1 - x0, y1 - y0, nodes.map((n) => n.id));
+    void createFrameRect({ x: x0 - 80, y: y0 - 70, w: x1 - x0 + 160, h: y1 - y0 + 140 }, nodes.map((n) => n.id));
   };
   const deleteIds = async (ids: string[]) => {
     if (!ids.length) return;
@@ -121,13 +138,14 @@ export function Panel({ store, screens, screenId, onPickScreen, email, active, o
     if (t.type === 'background') {
       if (s.admin) {
         items.push({ label: 'Создать узел здесь', icon: '＋', onClick: () => createNode(t.x, t.y) });
-        items.push({ label: 'Создать рамку здесь', icon: '▭', onClick: () => createFrame(t.x - 60, t.y - 40) });
+        items.push({ label: 'Нарисовать рамку', icon: '▭', onClick: () => store.setDrawFrame(true) });
         items.push({ label: 'Быстрый импорт из базы', icon: '⇩', onClick: () => setImportAt({ x: t.x, y: t.y }) });
         if (clipboard.length) items.push({ label: `Вставить (${clipboard.filter((i) => !isLink(i)).length})`, icon: '⎘', onClick: () => paste(t) });
-        if (sel.length) {
-          items.push('divider');
-          items.push({ label: 'Рамка вокруг выделенного', icon: '▣', onClick: frameAroundSelection });
-        }
+        const mr = marqueeRect();
+        const selNodes = sel.filter((id) => isNode(s.items[id]));
+        if (mr || selNodes.length) items.push('divider');
+        if (mr) items.push({ label: 'Рамка по выделенной области', icon: '▣', onClick: () => void createFrameRect(mr) });
+        if (selNodes.length) items.push({ label: 'Рамка вокруг выделенных узлов', icon: '▢', onClick: frameAroundNodes });
       }
       if (sel.length) {
         items.push({ label: `Копировать выделенное (${sel.length})`, icon: '⧉', onClick: () => copyItems(s.items, sel) });
@@ -191,7 +209,7 @@ export function Panel({ store, screens, screenId, onPickScreen, email, active, o
       else if (mod && (key === 'v' || key === 'м')) { e.preventDefault(); const c = board.current?.viewCenter(); if (c) paste(c); }
       else if (mod && (key === 'a' || key === 'ф')) { e.preventDefault(); store.select(Object.values(s.items).filter((i) => !isLink(i)).map((i) => i.id)); }
       else if ((e.key === 'Delete' || e.key === 'Backspace') && s.admin && s.selection.length) { e.preventDefault(); deleteIds(s.selection); }
-      else if (e.key === 'Escape') { store.setLinkFrom(null); store.select([]); store.openNode(null); }
+      else if (e.key === 'Escape') { if (s.drawFrame) { store.setDrawFrame(false); return; } store.setLinkFrom(null); store.select([]); store.openNode(null); }
       else if (e.key === '/') { e.preventDefault(); document.getElementById(`search-${store.panelKey}`)?.focus(); }
       else if (key === 'f' || key === 'а') { board.current?.fitView(s.selection.length ? s.selection : undefined); }
     };
@@ -206,11 +224,16 @@ export function Panel({ store, screens, screenId, onPickScreen, email, active, o
     return g;
   }, [screens]);
 
+  // открытое описание сдвигает шапку влево; если панель узкая — описание уходит под шапку
+  const sbOpen = isNode(openNode);
+  const sbShown = Math.min(sbW, panelW * 0.88);
+  const sbCompact = panelW - sbShown < 360;
+
   const saveLabel: Record<string, string> = { idle: '', dirty: '● не сохранено', saving: '⟳ сохранение…', saved: '✓ сохранено', error: '⚠ ошибка сохранения' };
 
   return (
-    <section className={`panel${active ? ' active' : ''}`} onPointerDownCapture={onActivate}>
-      <div className="panel-head no-pan">
+    <section ref={panelRef} className={`panel${active ? ' active' : ''}`} onPointerDownCapture={onActivate}>
+      <div className={`panel-head no-pan${sbOpen ? ' sb-open' : ''}`} style={sbOpen && !sbCompact ? { right: sbShown + 8 } : undefined}>
         <select className="input screen-select" value={screenId} onChange={(e) => onPickScreen(e.target.value)} aria-label="Ширма">
           <option value="">— Выбери ширму —</option>
           {Object.entries(GROUP_LABEL).map(([g, label]) => grouped[g]?.length ? (
@@ -230,8 +253,8 @@ export function Panel({ store, screens, screenId, onPickScreen, email, active, o
             <span className={`save-state s-${st.saveState}`}>{saveLabel[st.saveState]}</span>
           </>
         )}
-        {meta?.isLocal && <span className="badge">только чтение — копируй узлы в свою ширму</span>}
-        {meta && !meta.isLocal && !admin && <span className="badge">просмотр</span>}
+        {!sbOpen && meta?.isLocal && <span className="badge">только чтение — копируй узлы в свою ширму</span>}
+        {!sbOpen && meta && !meta.isLocal && !admin && <span className="badge">просмотр</span>}
         <span className="grow" />
         <div className="search">
           <input id={`search-${store.panelKey}`} className="input" placeholder="Поиск: имя, тег, текст…  ( / )" value={q}
@@ -256,7 +279,7 @@ export function Panel({ store, screens, screenId, onPickScreen, email, active, o
         <Board ref={board} store={store} onContextMenu={onContextMenu}
           onEditNode={(id) => { const n = store.state.items[id]; if (isNode(n)) setEditNode(structuredClone(n)); }}
           onEditFrame={(id) => { const f = store.state.items[id]; if (isFrame(f)) setEditFrame(structuredClone(f)); }}
-          onLinkTarget={finishLink} onActivate={onActivate} />
+          onLinkTarget={finishLink} onActivate={onActivate} onFrameDrawn={(r) => void createFrameRect(r)} />
       ) : (
         <div className="panel-empty">
           <p>Выбери ширму в списке сверху.</p>
@@ -266,6 +289,8 @@ export function Panel({ store, screens, screenId, onPickScreen, email, active, o
 
       {isNode(openNode) && (
         <Sidebar node={openNode} items={st.items} admin={admin}
+          width={sbShown} compact={sbCompact} maxWidth={panelW * 0.88}
+          onWidth={(w, done) => { setSbW(w); if (done) { try { localStorage.setItem('shirm.sidebarW', String(Math.round(w))); } catch { /* приватный режим */ } } }}
           onClose={() => store.openNode(null)}
           onEdit={() => setEditNode(structuredClone(openNode))}
           onFocus={focus}

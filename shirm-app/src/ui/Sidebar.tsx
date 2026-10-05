@@ -38,11 +38,11 @@ export function ColorText({ text }: { text: string }) {
   return <>{parts.map((p, i) => p.c ? <span key={i} style={{ color: p.c }}>{p.t}</span> : <span key={i}>{p.t}</span>)}</>;
 }
 
-export function Sidebar({ node, items, admin, onClose, onEdit, onFocus, onToggleHidden, onCopy }: {
+export function Sidebar({ node, items, admin, width, maxWidth, compact, onWidth, onClose, onEdit, onFocus, onToggleHidden, onCopy }: {
   node: NodeItem; items: ItemMap; admin: boolean;
+  width: number; maxWidth: number; compact: boolean; onWidth: (w: number, done: boolean) => void;
   onClose: () => void; onEdit: () => void; onFocus: (id: string) => void; onToggleHidden: () => void; onCopy: () => void;
 }) {
-  const [width, setWidth] = useState(() => Number(localStorage.getItem('shirm.sidebarW')) || 420);
   const drag = useRef<number | null>(null);
   const [allOpen, setAllOpen] = useState<boolean | null>(null);
 
@@ -57,11 +57,11 @@ export function Sidebar({ node, items, admin, onClose, onEdit, onFocus, onToggle
   }, [items, node.id]);
 
   return (
-    <aside className="sidebar no-pan" style={{ width }}>
+    <aside className={`sidebar no-pan${compact ? ' compact' : ''}`} style={{ width }}>
       <div className="sidebar-resize"
         onPointerDown={(e) => { drag.current = e.clientX + width; (e.target as HTMLElement).setPointerCapture(e.pointerId); }}
-        onPointerMove={(e) => { if (drag.current !== null) setWidth(Math.min(window.innerWidth * 0.8, Math.max(280, drag.current - e.clientX))); }}
-        onPointerUp={() => { drag.current = null; localStorage.setItem('shirm.sidebarW', String(width)); }} />
+        onPointerMove={(e) => { if (drag.current !== null) onWidth(Math.min(maxWidth, Math.max(280, drag.current - e.clientX)), false); }}
+        onPointerUp={() => { drag.current = null; onWidth(width, true); }} />
       <div className="sidebar-head">
         <h2 style={{ color: node.titleColor || node.color }}>{node.title || 'Без названия'}</h2>
         <button className="icon-btn" onClick={onClose} aria-label="Закрыть">✕</button>

@@ -19,11 +19,13 @@ export type BoardState = {
   canUndo: boolean;
   canRedo: boolean;
   linkFrom: string | null;
+  /** режим рисования рамки */
+  drawFrame: boolean;
 };
 
 const initial: BoardState = {
   meta: null, items: {}, admin: false, loading: false, selection: [], openNodeId: null,
-  saveState: 'idle', canUndo: false, canRedo: false, linkFrom: null,
+  saveState: 'idle', canUndo: false, canRedo: false, linkFrom: null, drawFrame: false,
 };
 
 const SAVE_DELAY = 1200;
@@ -32,7 +34,7 @@ export class BoardStore {
   constructor(public panelKey: string) {}
   state: BoardState = initial;
   /** последняя область выделения рамкой (для «создать рамку вокруг выделенного») */
-  lastMarquee: { x: number; y: number; w: number; h: number } | null = null;
+  lastMarquee: { x: number; y: number; w: number; h: number; sel: string } | null = null;
   private listeners = new Set<() => void>();
   private undoStack: Change[][] = [];
   private redoStack: Change[][] = [];
@@ -268,6 +270,7 @@ export class BoardStore {
   }
   openNode(id: string | null) { this.set({ openNodeId: id }); }
   setLinkFrom(id: string | null) { this.set({ linkFrom: id }); }
+  setDrawFrame(v: boolean) { this.set({ drawFrame: v, linkFrom: null }); }
 
   toggleHidden(ids: string[]) {
     const all = this.state.items;

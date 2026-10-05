@@ -120,6 +120,10 @@ export function emptySection(): Section {
   return { id: uid('s'), title: '', aliases: [], body: '', children: [] };
 }
 
+/** Размер узла на доске (px в координатах мира). */
+export const NODE_BASE = 22;
+export const nodeRadius = (n: { size: number }) => (NODE_BASE * n.size) / 2;
+
 export const isNode = (i: Item | undefined): i is NodeItem => !!i && i.kind === 'node';
 export const isFrame = (i: Item | undefined): i is FrameItem => !!i && i.kind === 'frame';
 export const isLink = (i: Item | undefined): i is LinkItem => !!i && i.kind === 'link';
