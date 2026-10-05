@@ -1,14 +1,72 @@
 rules_version = '2';
-// Правила Firestore для Ширмы (custom_screens) и заметок мастера (gm_notes).
-// ВНИМАНИЕ: это не весь файл правил проекта. Блоки ниже нужно ВСТАВИТЬ в текущие правила
-// (Firebase Console → Firestore → база «default» → Rules), не удаляя правила для custom_content и др.
+// Полные правила Firestore для сайта (база «default»).
+// Как применить: Firebase Console → Firestore Database → база «default» → Rules →
+// заменить ВЕСЬ текст содержимым этого файла → Publish.
+// Всё, что здесь не описано, запрещено (в том числе коллекция sinners от удалённой системы «Тёмный мир»).
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function signedIn() { return request.auth != null; }
+    function signedIn() { return request.auth != null && request.auth.token.email != null; }
     function myEmail() { return request.auth.token.email; }
 
-    // ---------------- Ширмы
+    // Админы: документ admins/<email> (создаётся вручную в консоли) или запасной список.
+    // Тот же запасной список есть в site/auth.js — меняйте оба места вместе.
+    function isAdmin() {
+      return signedIn() && (
+        myEmail() in ['nikkitamatveev2009@gmail.com', 'pavlovichpavel03@gmail.com']
+        || exists(/databases/$(database)/documents/admins/$(myEmail()))
+      );
+    }
+
+    function isShortString(v, max) { return v is string && v.size() <= max; }
+
+    // ---------------- Администраторы
+    // Каждый может проверить только свой документ — список админов не утекает.
+    match /admins/{email} {
+      allow read: if signedIn() && myEmail() == email;
+      allow write: if false;
+    }
+
+    // ---------------- Пользовательская база (navigation.html)
+    match /custom_content/{id} {
+      function validContent(d) {
+        return d.keys().hasOnly(['type', 'data', 'isPrivate', 'updatedAt', 'creatorEmail', 'creator'])
+          && d.type in ['status', 'class', 'feat', 'gift', 'equip', 'bestiary', 'rule', 'lore']
+          && d.data is map
+          && d.isPrivate is bool
+          && (!('creator' in d) || isShortString(d.creator, 80))
+          && d.creatorEmail is string;
+      }
+      function isOwner() { return signedIn() && resource.data.creatorEmail == myEmail(); }
+
+      // публичное видят все (даже без входа), приватное — автор и админы
+      allow read: if resource.data.get('isPrivate', false) == false || isOwner() || isAdmin();
+      allow create: if signedIn()
+        && request.resource.data.creatorEmail == myEmail()
+        && validContent(request.resource.data);
+      allow update: if (isOwner() || isAdmin())
+        && request.resource.data.creatorEmail == resource.data.creatorEmail
+        && validContent(request.resource.data);
+      allow delete: if isOwner() || isAdmin();
+    }
+
+    // ---------------- Офисы (office.html)
+    // Читают участники, меняет и удаляет только создатель.
+    match /offices/{oid} {
+      allow read: if signedIn() && myEmail() in resource.data.members;
+      allow create: if signedIn()
+        && request.resource.data.creator == myEmail()
+        && request.resource.data.members is list
+        && myEmail() in request.resource.data.members;
+      allow update: if signedIn()
+        && resource.data.creator == myEmail()
+        && request.resource.data.creator == resource.data.creator
+        && request.resource.data.members is list
+        && myEmail() in request.resource.data.members;
+      allow delete: if signedIn() && resource.data.creator == myEmail();
+    }
+
+    // ---------------- Ширмы (shirm.html)
     match /custom_screens/{sid} {
       function canRead(d) {
         return d.accessLevel == 'public'

@@ -136,6 +136,8 @@
         .btn-close-modal:hover { color: #ff0044; }
 
     </style>
+    <script src="site/i18n.js"></script>
+    <script type="module" src="site/ui.js"></script>
 </head>
 <body>
 
@@ -514,7 +516,7 @@
             const container = document.getElementById('compendium');
             
             try {
-                const response = await fetch('equipment.json');
+                const response = await I18N.fetchData('equipment.json');
                 if (!response.ok) throw new Error('Файл equipment.json не найден');
                 
                 const data = await response.json();

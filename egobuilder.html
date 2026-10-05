@@ -126,6 +126,8 @@
         .status-se-desc { font-size: 0.85rem; color: var(--text-main); white-space: pre-wrap; }
 
     </style>
+    <script src="site/i18n.js"></script>
+    <script type="module" src="site/ui.js"></script>
 </head>
 <body>
 
@@ -384,7 +386,7 @@
         // Загрузка базы статусов
         async function loadStatusesDB() {
             try {
-                const res = await fetch('statuses.json');
+                const res = await I18N.fetchData('statuses.json');
                 if (res.ok) {
                     window.statusesDB = await res.json();
                     renderStatusesSidebar();

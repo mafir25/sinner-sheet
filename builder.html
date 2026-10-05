@@ -118,6 +118,8 @@
             .output-panel { position: static; max-height: none; }
         }
     </style>
+    <script src="site/i18n.js"></script>
+    <script type="module" src="site/ui.js"></script>
 </head>
 <body>
 
@@ -284,12 +286,12 @@
 
         async function loadDatabases() {
             try {
-                const resClass = await fetch('classes.json');
+                const resClass = await I18N.fetchData('classes.json');
                 if (resClass.ok) {
                     window.dbClasses = await resClass.json();
                     window.dbClasses.sort((a, b) => a.No - b.No);
                 }
-                const resFeats = await fetch('feats.json');
+                const resFeats = await I18N.fetchData('feats.json');
                 if (resFeats.ok) {
                     window.dbFeats = await resFeats.json();
                 }

@@ -163,6 +163,8 @@
         .btn-close-modal { background: transparent; border: none; color: var(--color-red); font-size: 1.5rem; cursor: pointer; transition: 0.2s; position: absolute; right: 16px; top: 16px; }
         .btn-close-modal:hover { color: #ff0044; }
     </style>
+    <script src="site/i18n.js"></script>
+    <script type="module" src="site/ui.js"></script>
 </head>
 <body data-mode="types">
 
@@ -346,7 +348,7 @@
             container.innerHTML = '<div class="loading-text" style="font-size:1rem;">Загрузка основы...</div>';
             
             try {
-                const response = await fetch(filename);
+                const response = await I18N.fetchData(filename);
                 if (!response.ok) throw new Error();
                 const baseData = await response.json();
                 
@@ -386,7 +388,7 @@
             const container = document.getElementById('compendium');
             container.innerHTML = '<div class="loading-text">Установка соединения с базой данных...</div>';
             try {
-                const response = await fetch(filename);
+                const response = await I18N.fetchData(filename);
                 if (!response.ok) throw new Error();
                 const classesData = await response.json();
                 classesData.sort((a, b) => a.No - b.No);
