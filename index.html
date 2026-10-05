@@ -38,16 +38,15 @@
         .terminal-header h1 { font-size: 3rem; color: var(--color-cyan); letter-spacing: 4px; margin-bottom: 8px; text-shadow: 0 0 10px rgba(69, 179, 203, 0.3); }
         .terminal-header p { color: var(--accent-primary); letter-spacing: 2px; }
 
-        /* Разделение на 3 колонки */
+        /* Разделение на 2 колонки */
         .hub-container { display: grid; grid-template-columns: 1fr 1.5fr; gap: 30px; width: 100%; max-width: 1400px; align-items: stretch; }
         
         .column-header { font-family: 'Oswald', sans-serif; font-size: 1.3rem; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid; letter-spacing: 1px; display: flex; align-items: center; gap: 10px; }
-        .col-tmb .column-header { color: var(--accent-primary); border-color: var(--accent-primary); }
         .col-uni .column-header { color: var(--color-office); border-color: var(--color-office); }
         .col-pmd .column-header { color: var(--color-cyan); border-color: var(--color-cyan); }
 
         /* Сетки колонок */
-        .tmb-grid, .uni-grid { display: grid; grid-template-columns: 1fr; gap: 20px; height: calc(100% - 63px); }
+        .uni-grid { display: grid; grid-template-columns: 1fr; gap: 20px; height: calc(100% - 63px); }
         .pmd-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; height: calc(100% - 63px); }
         .card-full-width { grid-column: 1 / -1; }
 
@@ -60,23 +59,6 @@
         .cut-tl { clip-path: polygon(var(--chamfer) 0, 100% 0, 100% 100%, 0 100%, 0 var(--chamfer)); }
 
         .hazard-tape { height: 10px; width: 100%; border-bottom: 1px solid; }
-
-        /* TMB Styling (Оранжевая карточка) */
-        .card-tmb .panel-outer { background-color: var(--accent-primary); }
-        .card-tmb .hazard-tape { background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--accent-primary) 10px, var(--accent-primary) 20px); border-color: var(--accent-primary); }
-        .card-tmb i { color: var(--accent-primary); font-size: 2.5rem; margin-bottom: 15px; transition: 0.3s; }
-        .card-tmb:hover:not(.disabled) .panel-outer { box-shadow: 0 0 20px rgba(217, 119, 47, 0.4); }
-        .card-tmb:hover:not(.disabled) .panel-inner { background-color: #0a0500; }
-        .card-tmb .system-title { font-size: 1.4rem; margin-bottom: 8px; color: var(--text-main); line-height: 1.2; }
-        .card-tmb .status-badge { border-color: var(--accent-primary); color: var(--accent-primary); background: rgba(217, 119, 47, 0.1); margin-top: auto; }
-
-        /* Заблокированная карточка */
-        .system-card.disabled { cursor: not-allowed; opacity: 0.6; }
-        .disabled .panel-outer { background-color: #333; }
-        .disabled .hazard-tape { background: repeating-linear-gradient(45deg, #000 0px, #000 10px, #333 10px, #333 20px); border-color: #333; }
-        .disabled i { color: #555; }
-        .disabled .system-title { color: #777; }
-        .disabled .status-badge { border-color: #555; color: #555; background: rgba(0,0,0,0.5); }
 
         /* UNI Styling (Офис - Салатовая карточка) */
         .card-office .panel-outer { background-color: var(--color-office); }
@@ -95,30 +77,6 @@
         .card-shirm:hover .panel-inner { background-color: #050a00; }
         .card-shirm .system-title { font-size: 1.4rem; margin-bottom: 6px; color: var(--text-main); line-height: 1.2; }
         .card-shirm .status-badge { border-color: var(--color-shirm); color: var(--color-shirm); background: rgba(143, 204, 42, 0.1); margin-top: auto; }
-
-        /* Выдвижное окно «Тёмный мир» */
-        .tmb-tab {
-            position: fixed; left: 0; top: 50%; transform: translateY(-50%); z-index: 90;
-            background: #000; color: var(--accent-primary); border: 1px solid var(--accent-primary); border-left: none;
-            padding: 16px 9px; cursor: pointer; font-family: 'Oswald', sans-serif; letter-spacing: 2px; font-size: 0.95rem;
-            writing-mode: vertical-rl; transform-origin: center; display: flex; align-items: center; gap: 10px;
-            transition: background 0.2s, padding 0.2s;
-        }
-        .tmb-tab i { transform: rotate(90deg); }
-        .tmb-tab:hover { background: #0a0500; padding-left: 14px; box-shadow: 0 0 15px rgba(217, 119, 47, 0.4); }
-        .tmb-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 95; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
-        .tmb-drawer {
-            position: fixed; left: 0; top: 0; bottom: 0; width: min(400px, 90vw); z-index: 100; overflow-y: auto;
-            background: var(--bg-main); border-right: 2px solid var(--accent-primary); padding: 24px 22px;
-            transform: translateX(-102%); visibility: hidden; transition: transform 0.3s ease, visibility 0.3s; box-shadow: 0 0 40px rgba(217, 119, 47, 0.15);
-        }
-        body.tmb-open .tmb-drawer { transform: none; visibility: visible; }
-        body.tmb-open .tmb-backdrop { opacity: 1; pointer-events: auto; }
-        body.tmb-open .tmb-tab { opacity: 0; pointer-events: none; }
-        .tmb-drawer .column-header { justify-content: space-between; }
-        .tmb-close { background: none; border: 1px solid var(--accent-primary); color: var(--accent-primary); width: 32px; height: 32px; cursor: pointer; font-size: 1rem; }
-        .tmb-close:hover { background: rgba(217, 119, 47, 0.15); }
-        .tmb-drawer .tmb-grid { height: auto; }
 
         /* PMD Styling (Синие карточки) */
         .card-pmd .panel-outer { background-color: var(--color-cyan); }
@@ -155,42 +113,10 @@
             .pmd-grid { grid-template-columns: 1fr; }
         }
     </style>
+    <script src="site/i18n.js"></script>
+    <script type="module" src="site/ui.js"></script>
 </head>
 <body>
-
-    <!-- ВЫДВИЖНОЕ ОКНО: TMB (Тёмный мир) -->
-    <button class="tmb-tab" id="tmbTab" aria-controls="tmbDrawer" aria-expanded="false"><i class="fa-solid fa-moon"></i> ТЁМНЫЙ МИР</button>
-    <div class="tmb-backdrop" id="tmbBackdrop"></div>
-    <aside class="tmb-drawer col-tmb" id="tmbDrawer" aria-label="Система Тёмный мир" aria-hidden="true">
-        <div class="column-header"><span><i class="fa-solid fa-moon"></i> СИСТЕМА (ТЁМНЫЙ МИР)</span><button class="tmb-close" id="tmbClose" aria-label="Закрыть"><i class="fa-solid fa-xmark"></i></button></div>
-        <div class="tmb-grid">
-            <!-- Активный Лист Персонажа TMB -->
-            <a href="sheet.html" class="system-card card-tmb">
-                <div class="panel-outer cut-tl">
-                    <div class="hazard-tape"></div>
-                    <div class="panel-inner cut-tl" style="border-top: none;">
-                        <i class="fa-solid fa-address-card"></i>
-                        <div class="system-title oswald">ДОСЬЕ АГЕНТА</div>
-                        <div class="lore-text" style="margin-bottom: 16px;">Терминал доступа к личному делу. Отслеживание здоровья, рассудка и инвентаря.</div>
-                        <div class="status-badge">ИНИЦИАЛИЗАЦИЯ ИНТЕРФЕЙСА</div>
-                    </div>
-                </div>
-            </a>
-
-            <!-- Заглушка для Вики TMB -->
-            <a href="#" class="system-card disabled card-tmb">
-                <div class="panel-outer cut-tl">
-                    <div class="hazard-tape"></div>
-                    <div class="panel-inner cut-tl" style="border-top: none;">
-                        <i class="fa-solid fa-book-skull"></i>
-                        <div class="system-title oswald">БАЗА ЗНАНИЙ (ВИКИ)</div>
-                        <div class="lore-text" style="margin-bottom: 16px;">Архив правил, механик и лора, адаптированный под систему Тёмного Мира.</div>
-                        <div class="status-badge">ДАННЫЕ ЗАСЕКРЕЧЕНЫ</div>
-                    </div>
-                </div>
-            </a>
-        </div>
-    </aside>
 
     <div class="terminal-header">
         <h1>СИСТЕМА МЕФИСТОФЕЛЬ</h1>
@@ -285,20 +211,5 @@
 
     <div class="footer-text">PROJECT MOON TTRPG FRAMEWORK // BUILD 1.5</div>
 
-    <script>
-        (function () {
-            var tab = document.getElementById('tmbTab'), drawer = document.getElementById('tmbDrawer');
-            function setOpen(v) {
-                document.body.classList.toggle('tmb-open', v);
-                tab.setAttribute('aria-expanded', String(v));
-                drawer.setAttribute('aria-hidden', String(!v));
-                if (v) document.getElementById('tmbClose').focus(); else tab.focus();
-            }
-            tab.addEventListener('click', function () { setOpen(true); });
-            document.getElementById('tmbClose').addEventListener('click', function () { setOpen(false); });
-            document.getElementById('tmbBackdrop').addEventListener('click', function () { setOpen(false); });
-            document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && document.body.classList.contains('tmb-open')) setOpen(false); });
-        })();
-    </script>
 </body>
 </html>

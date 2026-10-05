@@ -69,7 +69,7 @@ export function AccessModal({ meta, isCreator, onSave, onClose }: {
         ) : <p className="hint">Доступы может менять только создатель ширмы ({meta.creatorEmail}).</p>}
         {isCreator && meta.hasLegacyData && (
           <div className="legacy-box">
-            <p className="hint">У ширмы осталась копия в старом формате — её видит старая страница (shirm-legacy.html), и из неё игроки технически могут прочитать скрытые узлы. Когда новая Ширма будет на сайте, эту копию стоит удалить. Резервная копия для админов останется.</p>
+            <p className="hint">У ширмы осталась копия данных в старом формате. Её может прочитать любой зритель ширмы — вместе со скрытыми узлами («туман войны»). Удалите её: резервная копия для админов останется.</p>
             <button className="btn btn-danger btn-sm" onClick={async () => {
               if (!(await confirmDialog('Удалить старую копию данных?', 'Старая страница перестанет показывать эту ширму.', true))) return;
               try { await clearLegacyData(meta.id); meta.hasLegacyData = false; toast('Старая копия удалена'); } catch { toast('Не удалось удалить', 'error'); }

@@ -110,6 +110,8 @@
         .btn-close-modal:hover { color: #ff0044; }
 
     </style>
+    <script src="site/i18n.js"></script>
+    <script type="module" src="site/ui.js"></script>
 </head>
 <body>
 
@@ -305,7 +307,7 @@
             const container = document.getElementById('compendium');
             
             try {
-                const response = await fetch('statuses.json');
+                const response = await I18N.fetchData('statuses.json');
                 if (!response.ok) throw new Error('Файл statuses.json не найден');
                 
                 const statusesData = await response.json();

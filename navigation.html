@@ -7,8 +7,10 @@
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Merriweather:ital,wght@0,300;1,300;1,700&family=Oswald:wght@400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
+<script src="site/i18n.js"></script>
+<script src="site/vendor/marked.umd.js"></script>
+<script src="site/vendor/purify.min.js"></script>
+<script type="module" src="site/ui.js"></script>
 
 <style>
 :root{
@@ -494,7 +496,8 @@ textarea.ce-code{font-family:Consolas,'Courier New',monospace;font-size:.85rem;m
     <option value="bloodfiend">Кровосос</option>
   </select>
   <div class="tb-spacer"></div>
-  <span class="tb-user" id="user-info"></span>
+  <span class="tb-user notranslate" id="user-info"></span>
+  <button class="tb-btn" data-act="migrate" id="admin-tools" style="display:none" title="Администрирование: проверить записи без флага приватности"><i class="fa-solid fa-wrench"></i></button>
   <button class="tb-btn accent" data-act="auth"><i class="fa-solid fa-user"></i> <span id="auth-label">Вход</span></button>
 </div>
 
@@ -549,33 +552,6 @@ textarea.ce-code{font-family:Consolas,'Courier New',monospace;font-size:.85rem;m
     <button class="btn-close-modal" style="position:static" data-act="close-sidebars"><i class="fa-solid fa-xmark"></i></button>
   </div>
   <div id="base-body"><div class="sidebar-empty">Загрузка…</div></div>
-</div>
-
-<!-- ======== МОДАЛКА АВТОРИЗАЦИИ ======== -->
-<div class="modal-overlay" id="authModal">
-  <div class="panel-outer cut-tl modal-box narrow">
-    <div class="hazard-tape"></div>
-    <div class="panel-inner cut-tl">
-      <button class="btn-close-modal" data-act="close-modal"><i class="fa-solid fa-xmark"></i></button>
-      <div class="card-title" style="margin-bottom:18px">Панель доступа</div>
-      <div id="auth-unlogged">
-        <input type="email" id="auth-email" class="cloud-input" placeholder="Email" autocomplete="username">
-        <input type="password" id="auth-pass" class="cloud-input" placeholder="Пароль" autocomplete="current-password">
-        <button class="action-btn" style="width:100%;margin-bottom:8px" data-act="login"><i class="fa-solid fa-right-to-bracket"></i> Войти</button>
-        <button class="action-btn ghost" style="width:100%" data-act="register"><i class="fa-solid fa-user-plus"></i> Регистрация</button>
-      </div>
-      <div id="auth-logged" style="display:none">
-        <div class="tech-text" style="margin-bottom:4px">Ваш никнейм (отображается как автор)</div>
-        <input type="text" id="auth-nickname" class="cloud-input" placeholder="Никнейм…">
-        <button class="action-btn" style="width:100%;margin-bottom:14px;border-color:var(--color-yellow);color:var(--color-yellow)" data-act="save-nick"><i class="fa-solid fa-floppy-disk"></i> Сохранить никнейм</button>
-        <div id="admin-tools" style="display:none;margin-bottom:14px">
-          <div class="tech-text" style="color:var(--color-yellow);margin-bottom:6px">Администрирование</div>
-          <button class="action-btn ghost" style="width:100%" data-act="migrate"><i class="fa-solid fa-wrench"></i> Проверить записи без флага приватности</button>
-        </div>
-        <button class="action-btn ghost" style="width:100%" data-act="logout"><i class="fa-solid fa-power-off"></i> Выйти</button>
-      </div>
-    </div>
-  </div>
 </div>
 
 <!-- ======== МОДАЛКА КОНСТРУКТОРА ======== -->
@@ -741,25 +717,14 @@ Rank.label  Rank.desc  Rank.index  Rank.коррозия</pre>
 <div class="xref-pop" id="xref-pop" role="dialog" aria-modal="false"></div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut }
-  from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, getDocs, collection, deleteDoc, query, where }
+import { doc, setDoc, getDocs, collection, deleteDoc, query, where }
   from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+import { db } from "./site/firebase.js";
+import { onAuth } from "./site/auth.js";
 
 /* ============================================================
    0. ИНИЦИАЛИЗАЦИЯ
    ============================================================ */
-const firebaseConfig = {
-  apiKey: "AIzaSyDaFNBCW76UsBnziHoGveo7TcC11uAdmqs",
-  authDomain: "projectmoonchar.firebaseapp.com",
-  projectId: "projectmoonchar",
-  messagingSenderId: "516028417887",
-  appId: "1:516028417887:web:4c0404f653b09ecffb58ea"
-};
-const app  = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db   = getFirestore(app, "default");
 const COLL = "custom_content";
 
 marked.setOptions({ breaks: true, gfm: true });
@@ -1280,7 +1245,7 @@ const uidOf = (catId, it) => it.__origin === "custom"
    ============================================================ */
 async function loadJson(file){
   if (state.canonCache[file]) return state.canonCache[file];
-  const res = await fetch(file);
+  const res = await I18N.fetchData(file);
   if (!res.ok) throw new Error(`Файл ${file} не найден`);
   const data = await res.json();
   const list = (Array.isArray(data) ? data : [data]).map(x => ({ ...x, __origin:"canon" }));
@@ -1948,7 +1913,7 @@ async function saveEntry(){
   const payload = { type:c.customType, data, isPrivate, updatedAt:new Date().toISOString() };
   if (!state.editId){
     payload.creatorEmail = state.user.email;
-    payload.creator = localStorage.getItem("custom_nickname") || state.user.email.split("@")[0];
+    payload.creator = myNick();
   }
   try {
     const id = state.editId || `${c.customType}_${Date.now()}`;
@@ -3405,7 +3370,7 @@ async function renderCabinetView(){
 }
 function renderCabinetFilters(){
   const all = myItems();
-  const nick = localStorage.getItem("custom_nickname") || state.user.email.split("@")[0];
+  const nick = myNick();
   const pub = all.filter(x => !x.__private).length;
   const counts = {};
   all.forEach(x => { const c = CAT_BY_CUSTOM[x.__type]; counts[c] = (counts[c] || 0) + 1; });
@@ -3933,32 +3898,16 @@ async function checkLinks(){
 /* ============================================================
    13. АВТОРИЗАЦИЯ И АДМИНЫ
    ============================================================ */
-/* Права админа лежат в Firestore: коллекция admins, id документа = email.
-   Каждый читает только свой документ, поэтому список админов нигде не светится.
-   BOOTSTRAP — страховка от блокировки, пока документы не созданы.
-   После создания admins/<ваш email> этот массив можно удалить: реальные права
-   всё равно проверяются правилами Firestore на сервере. */
-const BOOTSTRAP_ADMINS = ["nikkitamatveev2009@gmail.com","pavlovichpavel03@gmail.com"];
+/* Вход, регистрация, никнейм и права админа — общие для всего сайта: site/auth.js + окно настроек site/ui.js. */
+const myNick = () => state.nick || (state.user?.email || "").split("@")[0];
 
-async function resolveAdmin(user){
-  if (!user) return false;
-  try {
-    const snap = await getDoc(doc(db, "admins", user.email));
-    if (snap.exists()) return true;
-  } catch { /* правила ещё не развёрнуты — падаем в запасной список */ }
-  return BOOTSTRAP_ADMINS.includes(user.email);
-}
-
-onAuthStateChanged(auth, async user => {
-  state.user = user || null;
-  state.isAdmin = await resolveAdmin(user);
-  const nick = user ? (localStorage.getItem("custom_nickname") || user.email.split("@")[0]) : "";
-  $("#user-info").textContent = user ? (state.isAdmin ? nick + " · админ" : nick) : "";
-  $("#auth-label").textContent = user ? "Профиль" : "Вход";
-  $("#auth-unlogged").style.display = user ? "none" : "block";
-  $("#auth-logged").style.display   = user ? "block" : "none";
-  $("#admin-tools").style.display   = state.isAdmin ? "block" : "none";
-  if (user) $("#auth-nickname").value = nick;
+onAuth(async a => {
+  state.user = a.user;
+  state.isAdmin = a.isAdmin;
+  state.nick = a.nick;
+  $("#user-info").textContent = a.user ? (a.isAdmin ? a.nick + " · админ" : a.nick) : "";
+  $("#auth-label").textContent = a.user ? "Профиль" : "Вход";
+  $("#admin-tools").style.display = a.isAdmin ? "" : "none";
   state.customLoaded = false;
   await refreshCurrent();
 });
@@ -4056,24 +4005,8 @@ document.addEventListener("click", async ev => {
       if (confirm("Очистить всю сборку?")){ state.picks = []; savePicks(); renderPicks(); await renderGrid(); }
       break;
 
-    case "auth": $("#authModal").classList.add("active"); break;
+    case "auth": window.SiteUI?.open("account"); break;
     case "close-modal": el.closest(".modal-overlay").classList.remove("active"); break;
-    case "login":
-      try { await signInWithEmailAndPassword(auth, $("#auth-email").value, $("#auth-pass").value);
-            $("#authModal").classList.remove("active"); }
-      catch(e){ toast("Ошибка входа"); console.error(e); } break;
-    case "register":
-      try { await createUserWithEmailAndPassword(auth, $("#auth-email").value, $("#auth-pass").value);
-            $("#authModal").classList.remove("active"); }
-      catch(e){ toast("Ошибка регистрации"); console.error(e); } break;
-    case "logout": await signOut(auth); $("#authModal").classList.remove("active"); break;
-    case "save-nick": {
-      const n = $("#auth-nickname").value.trim();
-      if (!n) return toast("Никнейм не может быть пустым");
-      localStorage.setItem("custom_nickname", n);
-      $("#user-info").textContent = state.isAdmin ? n + " · админ" : n;
-      toast("Никнейм сохранён (для новых записей)"); break;
-    }
     case "migrate": await migrateFlags(); break;
 
     case "new-entry": openBuilder(); break;
@@ -4205,7 +4138,7 @@ async function uploadJson(input){
   try {
     const list = JSON.parse(await file.text());
     if (!Array.isArray(list)) throw new Error("Ожидается массив [ {...} ]");
-    const nick = localStorage.getItem("custom_nickname") || state.user.email.split("@")[0];
+    const nick = myNick();
     for (const item of list){
       const id = `${c.customType}_${Date.now()}_${Math.floor(Math.random()*1000)}`;
       await setDoc(doc(db, COLL, id), {

@@ -129,6 +129,8 @@
 
         .creator-only { display: none; }
     </style>
+    <script src="site/i18n.js"></script>
+    <script type="module" src="site/ui.js"></script>
 </head>
 <body>
 
@@ -151,12 +153,10 @@
             <div class="hazard-tape" style="background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--color-cyan) 10px, var(--color-cyan) 20px); border-bottom-color: var(--color-cyan);"></div>
             <div class="panel-inner cut-tl" style="border-top: none;">
                 <div class="panel-title" style="color: var(--color-cyan); border-color: var(--color-cyan); text-align: center; display: block;">СЕТЬ АССОЦИАЦИЙ</div>
-                <div class="tech-text" style="color: var(--text-dim); margin-bottom: 16px; text-align: center;">Введите ваш Email для идентификации в базе Фиксеров.</div>
-                
-                <input type="email" id="auth-email" class="cloud-input" placeholder="ID Сотрудника (Email)">
-                <input type="password" id="auth-pass" class="cloud-input" placeholder="Пароль">
-                
-                <button class="modal-btn" onclick="window.loginUser()">ВОЙТИ / ЗАРЕГИСТРИРОВАТЬСЯ</button>
+                <div class="tech-text" style="color: var(--text-dim); margin-bottom: 16px; text-align: center;">Войдите в аккаунт сайта, чтобы открыть базу Фиксеров.</div>
+
+                <button class="modal-btn" onclick="window.SiteUI?.open('login')">ВОЙТИ</button>
+                <button class="modal-btn" style="margin-top: 8px;" onclick="window.SiteUI?.open('register')">РЕГИСТРАЦИЯ</button>
             </div>
         </div>
     </div>
@@ -346,21 +346,22 @@
 
     <!-- Firebase SDK (БЕЗ STORAGE) -->
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+        import { doc, setDoc, getDoc, collection, query, where, getDocs, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+        import { db } from "./site/firebase.js";
+        import { onAuth } from "./site/auth.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDaFNBCW76UsBnziHoGveo7TcC11uAdmqs",
-            authDomain: "projectmoonchar.firebaseapp.com",
-            projectId: "projectmoonchar",
-            messagingSenderId: "516028417887",
-            appId: "1:516028417887:web:4c0404f653b09ecffb58ea"
+        // Всё, что пришло из базы, выводим только через esc()/jsArg()/safeUrl() — иначе XSS.
+        const ESC_MAP = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+        const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ESC_MAP[c]);
+        const escMultiline = v => esc(v).replace(/\r?\n/g, "<br>");
+        // аргумент для inline-обработчика onclick="f(${jsArg(x)})"
+        const jsArg = v => esc(JSON.stringify(String(v ?? "")));
+        // только http(s) или относительные пути к картинкам сайта
+        const safeUrl = v => {
+            const u = String(v ?? "").trim();
+            if (/^https?:\/\/[^\s"'<>()\\]+$/i.test(u) || /^[\w\-./]+\.(png|jpe?g|gif|webp|svg|avif)$/i.test(u)) return u;
+            return "";
         };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app, "default");
 
         let currentUser = null;
         let currentOfficeId = null;
@@ -375,10 +376,10 @@
             if (type === 'loading') icon = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
             if (type === 'success') icon = '<i class="fa-solid fa-check"></i>';
             if (type === 'error') icon = '<i class="fa-solid fa-triangle-exclamation"></i>';
-            banner.innerHTML = `${icon} СИСТЕМА: ${msg}`;
+            banner.innerHTML = `${icon} <span>СИСТЕМА:</span> <span>${esc(msg)}</span>`;
         };
 
-        onAuthStateChanged(auth, (user) => {
+        onAuth(({ user }) => {
             if (user) {
                 currentUser = user;
                 document.getElementById('authModal').classList.add('hidden');
@@ -387,36 +388,14 @@
                 loadUserOffices();
                 loadQuestsDB();
             } else {
+                currentUser = null;
+                currentOfficeId = null;
+                isCreator = false;
                 document.getElementById('authModal').classList.remove('hidden');
                 document.getElementById('office-workspace').style.display = 'none';
                 window.setSystemStatus("ОЖИДАНИЕ ВХОДА СЕТЕВОГО ОПЕРАТОРА", "normal");
             }
         });
-
-        window.loginUser = async () => {
-            const e = document.getElementById('auth-email').value;
-            const p = document.getElementById('auth-pass').value;
-            if (!e || !p) return alert("Введите Email и Пароль");
-            
-            window.setSystemStatus("ПРОВЕРКА УЧЕТНЫХ ДАННЫХ...", "loading");
-            try {
-                await signInWithEmailAndPassword(auth, e, p);
-            } catch (err) {
-                if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
-                    try {
-                        window.setSystemStatus("НОВЫЙ ПОЛЬЗОВАТЕЛЬ. РЕГИСТРАЦИЯ...", "loading");
-                        await createUserWithEmailAndPassword(auth, e, p);
-                        alert("Регистрация успешна!");
-                    } catch (err2) { 
-                        window.setSystemStatus("ОШИБКА РЕГИСТРАЦИИ: " + err2.message, "error");
-                        alert(err2.message); 
-                    }
-                } else { 
-                    window.setSystemStatus("ОШИБКА АВТОРИЗАЦИИ: " + err.message, "error");
-                    alert(err.message); 
-                }
-            }
-        };
 
         window.onclick = function(event) {
             if (!event.target.closest('.dropdown')) {
@@ -440,7 +419,7 @@
                 let html = '';
                 querySnapshot.forEach((docSnap) => {
                     const data = docSnap.data();
-                    html += `<div class="dropdown-item" onclick="window.openOffice('${docSnap.id}')">${data.name}</div>`;
+                    html += `<div class="dropdown-item" onclick="window.openOffice(${jsArg(docSnap.id)})">${esc(data.name)}</div>`;
                 });
                 
                 html += `<div class="dropdown-item dropdown-create" onclick="window.createNewOffice(event)"><i class="fa-solid fa-plus"></i> СОЗДАТЬ ОФИС</div>`;
@@ -514,7 +493,8 @@
                     nameInput.readOnly = !isCreator;
                     
                     const logoArea = document.getElementById('office-logo');
-                    if (data.logoUrl) logoArea.style.backgroundImage = `url('${data.logoUrl}')`;
+                    const logo = safeUrl(data.logoUrl);
+                    if (logo) logoArea.style.backgroundImage = `url(${JSON.stringify(logo)})`;
                     else logoArea.style.backgroundImage = 'none';
                     if (isCreator) logoArea.classList.add('creator'); else logoArea.classList.remove('creator');
 
@@ -583,11 +563,13 @@
             if (!isCreator || !currentOfficeId) return;
             const url = prompt("Введите прямую ссылку на изображение логотипа (URL):", window.currentOfficeData.logoUrl || "");
             if (url !== null) {
+                if (url.trim() && !safeUrl(url)) return alert("Нужна прямая ссылка на изображение (http:// или https://)");
                 window.setSystemStatus("ОБНОВЛЕНИЕ ЛОГОТИПА...", "loading");
                 try {
-                    await updateDoc(doc(db, "offices", currentOfficeId), { logoUrl: url });
-                    document.getElementById('office-logo').style.backgroundImage = `url('${url}')`;
-                    window.currentOfficeData.logoUrl = url;
+                    const clean = safeUrl(url);
+                    await updateDoc(doc(db, "offices", currentOfficeId), { logoUrl: clean });
+                    document.getElementById('office-logo').style.backgroundImage = clean ? `url(${JSON.stringify(clean)})` : 'none';
+                    window.currentOfficeData.logoUrl = clean;
                     window.setSystemStatus("ЛОГОТИП ОБНОВЛЕН", "success");
                 } catch(e) {
                     window.setSystemStatus("ОШИБКА ОБНОВЛЕНИЯ ЛОГОТИПА", "error");
@@ -599,6 +581,7 @@
             const input = document.getElementById('new-member-email');
             const email = input.value.trim().toLowerCase();
             if (!email || !currentOfficeId || !isCreator) return;
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return alert("Некорректный email");
             
             window.setSystemStatus("ДОБАВЛЕНИЕ АГЕНТА...", "loading");
             try {
@@ -625,14 +608,14 @@
             members.forEach(email => {
                 let delBtn = '';
                 if (email !== currentUser.email) {
-                    delBtn = `<button class="btn-trash" style="opacity: 1;" onclick="window.removeMember('${email}')"><i class="fa-solid fa-trash"></i></button>`;
+                    delBtn = `<button class="btn-trash" style="opacity: 1;" onclick="window.removeMember(${jsArg(email)})"><i class="fa-solid fa-trash"></i></button>`;
                 } else {
                     delBtn = `<span class="tech-text" style="color: var(--color-yellow);">[МЕНЕДЖЕР]</span>`;
                 }
 
                 html += `
                     <div class="member-item">
-                        <span>${email}</span>
+                        <span>${esc(email)}</span>
                         ${delBtn}
                     </div>
                 `;
@@ -697,19 +680,20 @@
             
             let html = '';
             chars.forEach(c => {
-                const displayName = s.name ? c.name : '[ СЕКРЕТНО ]';
+                const displayName = s.name ? esc(c.name) : '[ СЕКРЕТНО ]';
                 const canDownload = isCreator || s.download;
                 
-                const dlBtn = canDownload ? `<i class="fa-solid fa-download btn-trash" style="position:relative; opacity:1; color: var(--color-cyan);" title="Скачать пресет" onclick="window.downloadPreset(event, '${c.id}')"></i>` : '';
-                const delBtn = isCreator ? `<i class="fa-solid fa-trash btn-trash" style="position:relative; opacity:1;" onclick="window.deleteCharacter(event, '${c.id}')"></i>` : '';
+                const dlBtn = canDownload ? `<i class="fa-solid fa-download btn-trash" style="position:relative; opacity:1; color: var(--color-cyan);" title="Скачать пресет" onclick="window.downloadPreset(event, ${jsArg(c.id)})"></i>` : '';
+                const delBtn = isCreator ? `<i class="fa-solid fa-trash btn-trash" style="position:relative; opacity:1;" onclick="window.deleteCharacter(event, ${jsArg(c.id)})"></i>` : '';
                 
                 let detailsHtml = '';
-                if (s.race) detailsHtml += `<div style="margin-bottom: 4px;"><strong style="color:var(--text-dim)">РАСА:</strong> ${c.race}</div>`;
-                if (s.class) detailsHtml += `<div style="margin-bottom: 4px;"><strong style="color:var(--text-dim)">КЛАСС:</strong> ${c.className}</div>`;
-                if (s.feats && c.feats.length > 0) detailsHtml += `<div style="margin-bottom: 4px;"><strong style="color:var(--text-dim)">ЧЕРТЫ:</strong> ${c.feats.join(', ')}</div>`;
+                if (s.race) detailsHtml += `<div style="margin-bottom: 4px;"><strong style="color:var(--text-dim)">РАСА:</strong> ${esc(c.race)}</div>`;
+                if (s.class) detailsHtml += `<div style="margin-bottom: 4px;"><strong style="color:var(--text-dim)">КЛАСС:</strong> ${esc(c.className)}</div>`;
+                const feats = Array.isArray(c.feats) ? c.feats : [];
+                if (s.feats && feats.length > 0) detailsHtml += `<div style="margin-bottom: 4px;"><strong style="color:var(--text-dim)">ЧЕРТЫ:</strong> ${esc(feats.map(f => typeof f === 'string' ? f : (f && (f.Name || f.name)) || '').join(', '))}</div>`;
                 
                 const finalDesc = c.description || (c.rawJson && c.rawJson.desc) || '';
-                if (s.desc && finalDesc) detailsHtml += `<div style="margin-bottom: 4px;"><strong style="color:var(--text-dim)">ОПИСАНИЕ:</strong> ${finalDesc}</div>`;
+                if (s.desc && finalDesc) detailsHtml += `<div style="margin-bottom: 4px;"><strong style="color:var(--text-dim)">ОПИСАНИЕ:</strong> ${escMultiline(finalDesc)}</div>`;
                 
                 if (!detailsHtml) detailsHtml = `<div style="color: var(--text-dim); font-style: italic;">Информация скрыта настройками приватности.</div>`;
 
@@ -815,13 +799,13 @@
             
             let html = '';
             sorted.forEach(n => {
-                const delBtn = isCreator ? `<button class="btn-trash" onclick="window.deleteNews('${n.id}')"><i class="fa-solid fa-trash"></i></button>` : '';
+                const delBtn = isCreator ? `<button class="btn-trash" onclick="window.deleteNews(${jsArg(n.id)})"><i class="fa-solid fa-trash"></i></button>` : '';
                 html += `
                     <div class="news-item">
                         ${delBtn}
-                        <div class="news-date">${n.date}</div>
-                        <div class="news-author">${n.author}</div>
-                        <div class="news-text">${n.text}</div>
+                        <div class="news-date">${esc(n.date)}</div>
+                        <div class="news-author">${esc(n.author)}</div>
+                        <div class="news-text">${escMultiline(n.text)}</div>
                     </div>
                 `;
             });
@@ -888,7 +872,7 @@
             
             let html = '';
             window._currentReps.forEach(r => {
-                const delBtn = isCreator ? `<button class="btn-trash" style="opacity: 1;" onclick="window.deleteReputation('${r.id}')"><i class="fa-solid fa-trash"></i></button>` : '';
+                const delBtn = isCreator ? `<button class="btn-trash" style="opacity: 1;" onclick="window.deleteReputation(${jsArg(r.id)})"><i class="fa-solid fa-trash"></i></button>` : '';
                 
                 let colorVar = 'var(--text-main)'; 
                 if (r.score < -50) colorVar = 'var(--color-red)';
@@ -906,13 +890,14 @@
                     }
                 }
 
-                const iconHtml = r.iconUrl ? `<img src="${r.iconUrl}" style="height:20px; width:20px; object-fit:contain; margin-left:8px; vertical-align:middle;" onerror="this.style.display='none'">` : '';
+                const repIcon = safeUrl(r.iconUrl);
+                const iconHtml = repIcon ? `<img src="${esc(repIcon)}" style="height:20px; width:20px; object-fit:contain; margin-left:8px; vertical-align:middle;" onerror="this.style.display='none'">` : '';
 
                 html += `
                     <div class="news-item" style="border-left-color: ${colorVar}; margin-bottom: 24px;">
                         <div style="position: absolute; right: 0; top: -5px;">${delBtn}</div>
                         <div class="news-date" style="color: ${colorVar}; font-size:1rem; display:flex; align-items:center;">
-                            ${r.name} ${iconHtml}
+                            ${esc(r.name)} ${iconHtml}
                         </div>
                         <div style="display:flex; margin-top: 6px; width: calc(100% - 20px);">
                             ${blocksHtml}
@@ -1001,7 +986,7 @@
 
         async function loadQuestsDB() {
             try {
-                const res = await fetch('quests.json');
+                const res = await I18N.fetchData('quests.json');
                 if (res.ok) {
                     const data = await res.json();
                     questsDB = data.map((q, i) => ({ ...q, id: q.id || `sys_${i}` }));
@@ -1034,14 +1019,15 @@
                     gradeQuests.forEach(q => {
                         const isChecked = activeQuests.includes(q.id) ? 'checked' : '';
                         const isCustom = q.id && !q.id.toString().startsWith('sys_');
-                        const delBtn = isCustom ? `<button class="btn-trash" style="position:relative; opacity:1;" title="Удалить кастомный квест" onclick="window.deleteCustomQuest('${q.id}')"><i class="fa-solid fa-trash"></i></button>` : '';
-                        const iconHtml = (q.Icon && q.Icon.trim() !== '') ? `<img src="${q.Icon}" style="height:20px; vertical-align:middle; margin-right:8px;" onerror="this.style.display='none'">` : '';
+                        const delBtn = isCustom ? `<button class="btn-trash" style="position:relative; opacity:1;" title="Удалить кастомный квест" onclick="window.deleteCustomQuest(${jsArg(q.id)})"><i class="fa-solid fa-trash"></i></button>` : '';
+                        const qIcon = safeUrl(q.Icon);
+                        const iconHtml = qIcon ? `<img src="${esc(qIcon)}" style="height:20px; vertical-align:middle; margin-right:8px;" onerror="this.style.display='none'">` : '';
 
                         html += `
                             <div style="display:flex; justify-content:space-between; align-items:center; padding: 6px; border-bottom: 1px dashed #222;">
                                 <label style="display:flex; align-items:center; cursor:pointer; color: var(--text-main); font-family: 'Oswald'; font-size: 1rem;">
-                                    <input type="checkbox" class="qm-checkbox" value="${q.id}" ${isChecked} style="margin-right: 12px; accent-color: var(--color-yellow);">
-                                    ${iconHtml} ${q.name}
+                                    <input type="checkbox" class="qm-checkbox" value="${esc(q.id)}" ${isChecked} style="margin-right: 12px; accent-color: var(--color-yellow);">
+                                    ${iconHtml} ${esc(q.name)}
                                 </label>
                                 ${delBtn}
                             </div>
@@ -1142,17 +1128,18 @@
 
                 filtered.forEach(q => {
                     let iconHtml = '';
-                    if (q.Icon && q.Icon.trim() !== '') {
-                        iconHtml = `&nbsp;&nbsp;&nbsp;<img src="${q.Icon}" class="quest-icon" onerror="this.style.display='none'">`;
-                        uniqueIcons.add(q.Icon);
+                    const qIcon = safeUrl(q.Icon);
+                    if (qIcon) {
+                        iconHtml = `&nbsp;&nbsp;&nbsp;<img src="${esc(qIcon)}" class="quest-icon" onerror="this.style.display='none'">`;
+                        uniqueIcons.add(qIcon);
                     }
                     
                     const isCustomMarker = (q.id && !q.id.toString().startsWith('sys_')) ? `<span style="color:var(--text-dim); font-size:0.8rem; margin-left:8px;" title="Кастомный контракт">[OFFICE]</span>` : '';
 
                     qHtml += `
                         <div class="quest-item" onclick="this.classList.toggle('open')">
-                            <div class="quest-title">${q.name}${iconHtml}${isCustomMarker}</div>
-                            <div class="quest-desc">${q.desc}</div>
+                            <div class="quest-title">${esc(q.name)}${iconHtml}${isCustomMarker}</div>
+                            <div class="quest-desc">${escMultiline(q.desc)}</div>
                         </div>
                     `;
                 });
@@ -1161,7 +1148,7 @@
 
                 let hIconsHtml = '';
                 uniqueIcons.forEach(iconSrc => {
-                    hIconsHtml += `<img src="${iconSrc}" class="quest-icon" style="margin-left:0;" onerror="this.style.display='none'">`;
+                    hIconsHtml += `<img src="${esc(iconSrc)}" class="quest-icon" style="margin-left:0;" onerror="this.style.display='none'">`;
                 });
                 headerIconsContainer.innerHTML = hIconsHtml;
             }

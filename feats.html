@@ -111,6 +111,8 @@
         .btn-close-modal { background: transparent; border: none; color: var(--color-red); font-size: 1.5rem; cursor: pointer; transition: 0.2s; position: absolute; right: 16px; top: 16px; }
         .btn-close-modal:hover { color: #ff0044; }
     </style>
+    <script src="site/i18n.js"></script>
+    <script type="module" src="site/ui.js"></script>
 </head>
 <body>
 
@@ -292,7 +294,7 @@
         async function loadFeats() {
             const container = document.getElementById('compendium');
             try {
-                const response = await fetch('feats.json');
+                const response = await I18N.fetchData('feats.json');
                 if (!response.ok) throw new Error();
                 const featsData = await response.json();
                 container.innerHTML = '';

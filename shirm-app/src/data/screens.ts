@@ -12,6 +12,12 @@ import { type AccessLevel, type Item, type ItemMap, type ScreenMeta, SCHEMA_VERS
 
 const SCREENS = 'custom_screens';
 
+/** Данные сайта на выбранном языке (site/i18n.js): Assets/<Eng|Rus>/<name> с запасными путями. */
+function fetchData(name: string, init?: RequestInit): Promise<Response> {
+  const i18n = (window as unknown as { I18N?: { fetchData(n: string, i?: RequestInit): Promise<Response> } }).I18N;
+  return i18n ? i18n.fetchData(name, init) : fetch(`/${name}`, init);
+}
+
 function toMeta(id: string, d: DocumentData): ScreenMeta {
   return {
     id,
@@ -34,7 +40,7 @@ export function canAdmin(meta: ScreenMeta | undefined, email: string | null | un
 /** Базовый мир сайта (world.json): массив ширм старого формата, только чтение. */
 export async function loadBaseWorld(): Promise<ScreenMeta[]> {
   try {
-    const res = await fetch('/world.json', { cache: 'no-cache' });
+    const res = await fetchData('world.json', { cache: 'no-cache' });
     if (!res.ok) return [];
     const arr = await res.json();
     if (!Array.isArray(arr)) return [];
@@ -189,7 +195,7 @@ export async function saveNotes(uid: string, text: string): Promise<void> {
 // ---------- Быстрый импорт из базы сайта
 export type ImportCategory = 'status' | 'class' | 'feat' | 'gift' | 'equip' | 'bestiary';
 const OFFICIAL_FILES: Record<ImportCategory, string> = {
-  status: '/statuses.json', class: '/classes.json', feat: '/feats.json', gift: '/egogifts.json', equip: '/equipment.json', bestiary: '/bestiary.json',
+  status: 'statuses.json', class: 'classes.json', feat: 'feats.json', gift: 'egogifts.json', equip: 'equipment.json', bestiary: 'bestiary.json',
 };
 const importCache = new Map<string, any[]>();
 export async function loadImportList(cat: ImportCategory, source: 'official' | 'custom', email = ''): Promise<any[]> {
@@ -197,11 +203,18 @@ export async function loadImportList(cat: ImportCategory, source: 'official' | '
   if (importCache.has(key)) return importCache.get(key)!;
   let arr: any[] = [];
   if (source === 'official') {
-    const res = await fetch(OFFICIAL_FILES[cat]);
+    const res = await fetchData(OFFICIAL_FILES[cat]);
     if (res.ok) { const j = await res.json(); arr = Array.isArray(j) ? j : []; }
   } else {
-    const snap = await getDocs(query(collection(db, 'custom_content'), where('type', '==', cat)));
-    snap.forEach((d) => { const v = d.data(); if (v && v.data && (!v.isPrivate || v.creatorEmail === email)) arr.push(v.data); });
+    // Правила Firestore отдают только публичные записи и свои — запрашиваем ровно это.
+    const coll = collection(db, 'custom_content');
+    const queries = [getDocs(query(coll, where('type', '==', cat), where('isPrivate', '==', false)))];
+    if (email) queries.push(getDocs(query(coll, where('type', '==', cat), where('creatorEmail', '==', email))));
+    const seen = new Map<string, any>();
+    for (const snap of await Promise.all(queries)) {
+      snap.forEach((d) => { const v = d.data(); if (v && v.data) seen.set(d.id, v.data); });
+    }
+    arr = [...seen.values()];
   }
   importCache.set(key, arr);
   return arr;

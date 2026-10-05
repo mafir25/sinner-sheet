@@ -10,6 +10,8 @@ import { DialogHost, Modal, confirmDialog } from './ui/dialogs';
 import { Toasts, toast } from './ui/toast';
 
 const LS = (k: string) => { try { return localStorage.getItem(k) ?? ''; } catch { return ''; } };
+const openSiteUi = (section: string) =>
+  (window as unknown as { SiteUI?: { open(s: string): void } }).SiteUI?.open(section);
 const LSset = (k: string, v: string) => { try { localStorage.setItem(k, v); } catch { /* приватный режим */ } };
 
 export function App() {
@@ -21,8 +23,8 @@ export function App() {
     return (
       <div className="splash">
         <h1>Лор-Ширма</h1>
-        <p>Чтобы открыть ширмы, войди в аккаунт в ХАБе.</p>
-        <a className="btn btn-primary" href="custom.html">Перейти ко входу</a>
+        <p>Чтобы открыть ширмы, войди в аккаунт.</p>
+        <button className="btn btn-primary" onClick={() => openSiteUi('login')}>Войти</button>
       </div>
     );
   }
@@ -74,20 +76,20 @@ function Workspace({ user }: { user: User }) {
     next[i] = id; setPicked(next); LSset(`shirm.panel${i + 1}`, id);
   };
 
-  const nick = LS('custom_nickname') || email;
+  const nick = user.displayName || LS('custom_nickname') || email;
 
   return (
     <div className="app">
       <header className="topbar">
         <nav>
           <a className="btn" href="index.html">⌂ ХАБ</a>
-          <a className="btn" href="custom.html">База (custom)</a>
+          <a className="btn" href="navigation.html">База знаний</a>
           <button className={`btn${split ? ' btn-on' : ''}`} onClick={() => { setSplit(!split); LSset('shirm.split', split ? '0' : '1'); }}>◫ Сплит-экран</button>
         </nav>
         <div className="topbar-right">
           <NotesPanel uid={user.uid} />
           <button className="btn" onClick={() => setHelp(true)}>? Управление</button>
-          <span className="user">{nick}</span>
+          <button className="btn user notranslate" title="Аккаунт и настройки" onClick={() => openSiteUi('account')}>{nick}</button>
           <button className="btn btn-primary" onClick={() => setNewOpen(true)}>＋ Новая ширма</button>
         </div>
       </header>
