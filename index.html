@@ -16,6 +16,7 @@
             --color-indigo: #40E0D0; --color-yellow: #F1C40F;
             --color-magenta: #D94285; /* Цвет Э.Г.О. */
             --color-office: #8FCC2A; /* Цвет Офиса (Gluttony) */
+            --color-shirm: #8FCC2A; /* Цвет Ширмы */
             --text-main: #E0D8C8; --text-dim: #696969;
             --border-width: 1px; --chamfer: 20px;
         }
@@ -38,7 +39,7 @@
         .terminal-header p { color: var(--accent-primary); letter-spacing: 2px; }
 
         /* Разделение на 3 колонки */
-        .hub-container { display: grid; grid-template-columns: 1fr 1fr 1.5fr; gap: 30px; width: 100%; max-width: 1400px; align-items: stretch; }
+        .hub-container { display: grid; grid-template-columns: 1fr 1.5fr; gap: 30px; width: 100%; max-width: 1400px; align-items: stretch; }
         
         .column-header { font-family: 'Oswald', sans-serif; font-size: 1.3rem; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid; letter-spacing: 1px; display: flex; align-items: center; gap: 10px; }
         .col-tmb .column-header { color: var(--accent-primary); border-color: var(--accent-primary); }
@@ -86,6 +87,39 @@
         .card-office .system-title { font-size: 1.4rem; margin-bottom: 6px; color: var(--text-main); line-height: 1.2; }
         .card-office .status-badge { border-color: var(--color-office); color: var(--color-office); background: rgba(143, 204, 42, 0.1); margin-top: auto; }
 
+        /* UNI Styling (Ширма - Зелёная карточка) */
+        .card-shirm .panel-outer { background-color: var(--color-shirm); }
+        .card-shirm .hazard-tape { background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--color-shirm) 10px, var(--color-shirm) 20px); border-color: var(--color-shirm); }
+        .card-shirm i { color: var(--color-shirm); font-size: 2.5rem; margin-bottom: 15px; transition: 0.3s; }
+        .card-shirm:hover .panel-outer { box-shadow: 0 0 15px rgba(143, 204, 42, 0.4); }
+        .card-shirm:hover .panel-inner { background-color: #050a00; }
+        .card-shirm .system-title { font-size: 1.4rem; margin-bottom: 6px; color: var(--text-main); line-height: 1.2; }
+        .card-shirm .status-badge { border-color: var(--color-shirm); color: var(--color-shirm); background: rgba(143, 204, 42, 0.1); margin-top: auto; }
+
+        /* Выдвижное окно «Тёмный мир» */
+        .tmb-tab {
+            position: fixed; left: 0; top: 50%; transform: translateY(-50%); z-index: 90;
+            background: #000; color: var(--accent-primary); border: 1px solid var(--accent-primary); border-left: none;
+            padding: 16px 9px; cursor: pointer; font-family: 'Oswald', sans-serif; letter-spacing: 2px; font-size: 0.95rem;
+            writing-mode: vertical-rl; transform-origin: center; display: flex; align-items: center; gap: 10px;
+            transition: background 0.2s, padding 0.2s;
+        }
+        .tmb-tab i { transform: rotate(90deg); }
+        .tmb-tab:hover { background: #0a0500; padding-left: 14px; box-shadow: 0 0 15px rgba(217, 119, 47, 0.4); }
+        .tmb-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 95; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
+        .tmb-drawer {
+            position: fixed; left: 0; top: 0; bottom: 0; width: min(400px, 90vw); z-index: 100; overflow-y: auto;
+            background: var(--bg-main); border-right: 2px solid var(--accent-primary); padding: 24px 22px;
+            transform: translateX(-102%); visibility: hidden; transition: transform 0.3s ease, visibility 0.3s; box-shadow: 0 0 40px rgba(217, 119, 47, 0.15);
+        }
+        body.tmb-open .tmb-drawer { transform: none; visibility: visible; }
+        body.tmb-open .tmb-backdrop { opacity: 1; pointer-events: auto; }
+        body.tmb-open .tmb-tab { opacity: 0; pointer-events: none; }
+        .tmb-drawer .column-header { justify-content: space-between; }
+        .tmb-close { background: none; border: 1px solid var(--accent-primary); color: var(--accent-primary); width: 32px; height: 32px; cursor: pointer; font-size: 1rem; }
+        .tmb-close:hover { background: rgba(217, 119, 47, 0.15); }
+        .tmb-drawer .tmb-grid { height: auto; }
+
         /* PMD Styling (Синие карточки) */
         .card-pmd .panel-outer { background-color: var(--color-cyan); }
         .card-pmd .hazard-tape { background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--color-cyan) 10px, var(--color-cyan) 20px); border-color: var(--color-cyan); }
@@ -114,8 +148,7 @@
         .footer-text { margin-top: 50px; text-align: center; width: 100%; color: #333; font-size: 0.7rem; font-family: 'Inter', sans-serif; letter-spacing: 2px; }
 
         @media (max-width: 1000px) {
-            .hub-container { grid-template-columns: 1fr 1fr; }
-            .col-pmd { grid-column: 1 / -1; }
+            .hub-container { grid-template-columns: 1fr; }
         }
         @media (max-width: 600px) {
             .hub-container { grid-template-columns: 1fr; }
@@ -125,6 +158,40 @@
 </head>
 <body>
 
+    <!-- ВЫДВИЖНОЕ ОКНО: TMB (Тёмный мир) -->
+    <button class="tmb-tab" id="tmbTab" aria-controls="tmbDrawer" aria-expanded="false"><i class="fa-solid fa-moon"></i> ТЁМНЫЙ МИР</button>
+    <div class="tmb-backdrop" id="tmbBackdrop"></div>
+    <aside class="tmb-drawer col-tmb" id="tmbDrawer" aria-label="Система Тёмный мир" aria-hidden="true">
+        <div class="column-header"><span><i class="fa-solid fa-moon"></i> СИСТЕМА (ТЁМНЫЙ МИР)</span><button class="tmb-close" id="tmbClose" aria-label="Закрыть"><i class="fa-solid fa-xmark"></i></button></div>
+        <div class="tmb-grid">
+            <!-- Активный Лист Персонажа TMB -->
+            <a href="sheet.html" class="system-card card-tmb">
+                <div class="panel-outer cut-tl">
+                    <div class="hazard-tape"></div>
+                    <div class="panel-inner cut-tl" style="border-top: none;">
+                        <i class="fa-solid fa-address-card"></i>
+                        <div class="system-title oswald">ДОСЬЕ АГЕНТА</div>
+                        <div class="lore-text" style="margin-bottom: 16px;">Терминал доступа к личному делу. Отслеживание здоровья, рассудка и инвентаря.</div>
+                        <div class="status-badge">ИНИЦИАЛИЗАЦИЯ ИНТЕРФЕЙСА</div>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Заглушка для Вики TMB -->
+            <a href="#" class="system-card disabled card-tmb">
+                <div class="panel-outer cut-tl">
+                    <div class="hazard-tape"></div>
+                    <div class="panel-inner cut-tl" style="border-top: none;">
+                        <i class="fa-solid fa-book-skull"></i>
+                        <div class="system-title oswald">БАЗА ЗНАНИЙ (ВИКИ)</div>
+                        <div class="lore-text" style="margin-bottom: 16px;">Архив правил, механик и лора, адаптированный под систему Тёмного Мира.</div>
+                        <div class="status-badge">ДАННЫЕ ЗАСЕКРЕЧЕНЫ</div>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </aside>
+
     <div class="terminal-header">
         <h1>СИСТЕМА МЕФИСТОФЕЛЬ</h1>
         <p class="oswald">ВЫБЕРИТЕ ПРОТОКОЛ СИНХРОНИЗАЦИИ</p>
@@ -133,39 +200,6 @@
 
     <div class="hub-container">
         
-        <!-- ЛЕВАЯ КОЛОНКА: TMB (Тёмный мир) -->
-        <div class="col-tmb">
-            <div class="column-header"><i class="fa-solid fa-moon"></i> СИСТЕМА (ТЁМНЫЙ МИР)</div>
-            
-            <div class="tmb-grid">
-                <!-- Активный Лист Персонажа TMB -->
-                <a href="sheet.html" class="system-card card-tmb">
-                    <div class="panel-outer cut-tl">
-                        <div class="hazard-tape"></div>
-                        <div class="panel-inner cut-tl" style="border-top: none;">
-                            <i class="fa-solid fa-address-card"></i>
-                            <div class="system-title oswald">ДОСЬЕ АГЕНТА</div>
-                            <div class="lore-text" style="margin-bottom: 16px;">Терминал доступа к личному делу. Отслеживание здоровья, рассудка и инвентаря.</div>
-                            <div class="status-badge">ИНИЦИАЛИЗАЦИЯ ИНТЕРФЕЙСА</div>
-                        </div>
-                    </div>
-                </a>
-
-                <!-- Заглушка для Вики TMB -->
-                <a href="#" class="system-card disabled card-tmb">
-                    <div class="panel-outer cut-tl">
-                        <div class="hazard-tape"></div>
-                        <div class="panel-inner cut-tl" style="border-top: none;">
-                            <i class="fa-solid fa-book-skull"></i>
-                            <div class="system-title oswald">БАЗА ЗНАНИЙ (ВИКИ)</div>
-                            <div class="lore-text" style="margin-bottom: 16px;">Архив правил, механик и лора, адаптированный под систему Тёмного Мира.</div>
-                            <div class="status-badge">ДАННЫЕ ЗАСЕКРЕЧЕНЫ</div>
-                        </div>
-                    </div>
-                </a>
-            </div>
-        </div>
-
         <!-- ЦЕНТРАЛЬНАЯ КОЛОНКА: УНИВЕРСАЛЬНЫЕ СИСТЕМЫ -->
         <div class="col-uni">
             <div class="column-header"><i class="fa-solid fa-globe"></i> УНИВЕРСАЛЬНЫЕ СИСТЕМЫ</div>
@@ -180,6 +214,19 @@
                             <div class="system-title oswald">УПРАВЛЕНИЕ ОФИСОМ</div>
                             <div class="lore-text" style="margin-bottom: 16px;">Глобальная корпоративная база. Менеджмент агентов, контрактов, репутации и новостей.</div>
                             <div class="status-badge">СИНХРОНИЗАЦИЯ ДОСТУПНА</div>
+                        </div>
+                    </div>
+                </a>
+
+                <!-- Ширма -->
+                <a href="shirm.html" class="system-card card-shirm">
+                    <div class="panel-outer cut-tl">
+                        <div class="hazard-tape"></div>
+                        <div class="panel-inner cut-tl" style="border-top: none;">
+                            <i class="fa-solid fa-diagram-project"></i>
+                            <div class="system-title oswald">ШИРМА</div>
+                            <div class="lore-text" style="margin-bottom: 16px;">Доски лора и связей. Карта Города, фракции и свои кампании с туманом войны.</div>
+                            <div class="status-badge">РАЗВЕРНУТЬ ДОСКУ</div>
                         </div>
                     </div>
                 </a>
@@ -238,5 +285,20 @@
 
     <div class="footer-text">PROJECT MOON TTRPG FRAMEWORK // BUILD 1.5</div>
 
+    <script>
+        (function () {
+            var tab = document.getElementById('tmbTab'), drawer = document.getElementById('tmbDrawer');
+            function setOpen(v) {
+                document.body.classList.toggle('tmb-open', v);
+                tab.setAttribute('aria-expanded', String(v));
+                drawer.setAttribute('aria-hidden', String(!v));
+                if (v) document.getElementById('tmbClose').focus(); else tab.focus();
+            }
+            tab.addEventListener('click', function () { setOpen(true); });
+            document.getElementById('tmbClose').addEventListener('click', function () { setOpen(false); });
+            document.getElementById('tmbBackdrop').addEventListener('click', function () { setOpen(false); });
+            document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && document.body.classList.contains('tmb-open')) setOpen(false); });
+        })();
+    </script>
 </body>
 </html>
