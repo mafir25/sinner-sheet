@@ -1,0 +1,47 @@
+rules_version = '2';
+// Правила Firestore для Ширмы (custom_screens) и заметок мастера (gm_notes).
+// ВНИМАНИЕ: это не весь файл правил проекта. Блоки ниже нужно ВСТАВИТЬ в текущие правила
+// (Firebase Console → Firestore → база «default» → Rules), не удаляя правила для custom_content и др.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function myEmail() { return request.auth.token.email; }
+
+    // ---------------- Ширмы
+    match /custom_screens/{sid} {
+      function canRead(d) {
+        return d.accessLevel == 'public'
+          || d.creatorEmail == myEmail()
+          || myEmail() in d.allowedUsers
+          || myEmail() in d.adminUsers;
+      }
+      function canAdmin(d) { return d.creatorEmail == myEmail() || myEmail() in d.adminUsers; }
+      function screen() { return get(/databases/$(database)/documents/custom_screens/$(sid)).data; }
+
+      allow read: if signedIn() && canRead(resource.data);
+      allow create: if signedIn() && request.resource.data.creatorEmail == myEmail();
+      // админы могут переименовывать и переводить формат; доступы и автора меняет только создатель
+      allow update: if signedIn() && canAdmin(resource.data)
+        && request.resource.data.creatorEmail == resource.data.creatorEmail
+        && (resource.data.creatorEmail == myEmail()
+            || !request.resource.data.diff(resource.data).affectedKeys().hasAny(['allowedUsers', 'adminUsers', 'accessLevel']));
+      allow delete: if signedIn() && resource.data.creatorEmail == myEmail();
+
+      // видимые объекты доски
+      match /items/{iid} {
+        allow read: if signedIn() && canRead(screen());
+        allow write: if signedIn() && canAdmin(screen());
+      }
+      // скрытые объекты («туман войны») — только админы ширмы
+      match /secret/{iid} {
+        allow read, write: if signedIn() && canAdmin(screen());
+      }
+    }
+
+    // ---------------- Личные заметки мастера
+    match /gm_notes/{uid} {
+      allow read, write: if signedIn() && request.auth.uid == uid;
+    }
+  }
+}
