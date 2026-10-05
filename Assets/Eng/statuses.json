@@ -1,0 +1,232 @@
+[
+  {
+    "Name": "Burn",
+    "Effect": "At the beginning of every round, they will take X fire damage based on the amount of burn stacks they have. The burn stacks will be divided by 1 / 3 of the current stack (Rounded Down). A creature may only have a maximum of 99 Burn.",
+    "SideEffects": []
+  },
+  {
+    "Name": "Bleed",
+    "Effect": "While bleeding, take an amount of necrotic damage equal to your bleed stacks when you take an action, bonus action, reaction or move, and reduce your stacks of bleed by 4. You can staunch your bleed with an action, reducing your bleed by 8 and not taking damage. A downed creature that is bleeding will lose a death save at the start of their turn. When a creature receives healing, it loses Bleed stacks equal to half of the healing. For Bloodfiends, whenever a creature dies, any bleed they have or would receive turns into `Bloodfeast::Bloodfeast`. A bleeding creature can only take damage from this effect twice per round, apart from doing reactions, which will always trigger bleed. A creature may only have a maximum of 40 Bleed.",
+    "SideEffects": []
+  },
+  {
+    "Name": "Tremor",
+    "Effect": "For every 10 stacks of tremor, Target's AC is lowered by one. Upon inflicting `Tremor Burst::Tremor Burst`, the target with Tremor must make a Constitution saving throw with DC being equal to the Tremor stack. On fail, the creature is `Staggered::Staggered`.\n\nA creature may only have a maximum of 99 Tremor. Tremor is removed after 2 consecutive rounds of not being hit.",
+    "SideEffects": []
+  },
+  {
+    "Name": "Staggered",
+    "Effect": "The target's speed is halved, it takes a −3 penalty to AC and strength and dexterity saving throws, and it can't use reactions. On its turn, it can use either an action or a bonus action, not both. The creature also gains 2 `Bind::Bind`. Attacks against this creature have advantage. Stagger is removed at the start of the second turn a creature takes after it is staggered, unless stated otherwise.",
+    "SideEffects": []
+  },
+  {
+    "Name": "Tremor Burst",
+    "Effect": "Stated in certain skills. Targets inflicted with tremor burst while at 10 or more `Tremor::Tremor` must make a Constitution saving throw with a DC equal to the Tremor stack. On failure they are affected by the `Staggered::Staggered` condition listed in base Tremor. After Tremor Burst, Tremor on a target is halved. For every Tremor Burst after the first, increase the minimum required Tremor to burst by 10, calculating the DC as if it was -10 the Tremor Stack. This decrease in effectiveness lasts for 10 minutes.",
+    "SideEffects": []
+  },
+  {
+    "Name": "Amplitude Conversion",
+    "Effect": "Upon using Amplitude Conversion, convert one type of `Tremor::Tremor` into another. All future Tremor application to a target with an altered Tremor type will become that altered type. The effects of altered tremor are applied on top of base tremor, not replacing those effects.\n\n(Ex: 10 Tremor stacks were converted to `Tremor - Chain::Tremor - Chain`, ally inflicts +2 Tremor, target is now inflicted with 12 total Tremor - Chain)",
+    "SideEffects": []
+  },
+  {
+    "Name": "Amplitude Entanglement",
+    "Effect": "Upon using Amplitude Entanglement, turn tremor into `Tremor - Superposition::Tremor - Superposition`. If the target had a unique `Tremor::Tremor` Type when this is activated, then add that unique tremor type to the Superposition.",
+    "SideEffects": []
+  },
+  {
+    "Name": "Tremor - Superposition",
+    "Effect": "Acts as a normal `Tremor::Tremor` in terms of infliction and bursting. While this tremor is active, if `Amplitude Conversion::Amplitude Conversion` is activated on self, then combine the unique tremor type with this effect.",
+    "SideEffects": []
+  },
+  {
+    "Name": "Tremor - Reverberation",
+    "Effect": "Acts as a normal `Tremor::Tremor` in terms of infliction and bursting. Upon `Tremor Burst::Tremor Burst`, deal sloth thunder damage equal to amount of Tremor on target.",
+    "SideEffects": []
+  },
+  {
+    "Name": "Tremor - Scorch",
+    "Effect": "Acts as a normal `Tremor::Tremor` in terms of infliction and bursting. Upon `Tremor Burst::Tremor Burst`, deal wrath fire damage equal to (`Burn::Burn` + Tremor) / 2 to the target.",
+    "SideEffects": []
+  },
+  {
+    "Name": "Tremor - Distribution",
+    "Effect": "You and all allied creatures in combat gain bonus to attack rolls depending of the amount of stacks of Tremor - Distribution up to stack of `Tremor::Tremor` divided by amount of allied creatures in combat(rounded down) with a maximum up to +3. In order to gain any bonuses from Tremor - Distribution, at least half of allied creatures need to have stacks of Tremor - Distribution. Stacks of Tremor - Distribution halves at the start of your next turn.",
+    "SideEffects": []
+  },
+  {
+    "Name": "Tremor - Chain",
+    "Effect": "Acts as a normal `Tremor::Tremor` in terms of infliction and Bursting. For every 10 stacks, Tremor - Chain will inflict the target with 1 `Offense Level Down::Offense Level Down` when they engage in a clash up to a max of 3.",
+    "SideEffects": []
+  },
+  {
+    "Name": "Tremor - Decay",
+    "Effect": "Acts as a normal `Tremor::Tremor` in terms of infliction and Bursting. For every 12 Tremor stacks, the creature suffers `Defense Level Down::Defense Level Down`(max 2 Defense Level Down).",
+    "SideEffects": []
+  },
+  {
+    "Name": "Rupture",
+    "Effect": "A creature that has the Rupture status is unaffected by it until they are critically hit. The creature that critically hit them can then choose to burst the rupture, causing the ruptured creature to take gluttony thunder damage equal to their amount of rupture stacks, with the damage increasing by 1.1x at 45 stacks and above. After a rupture burst, a creature loses all current rupture stacks. A creature loses half of their rupture stacks after having not taken damage for a full round. A creature may only have a maximum of 99 Rupture.",
+    "SideEffects": []
+  },
+  {
+    "Name": "Sinking",
+    "Effect": "For every 5 Sinking stacks, the inflicted creature will gain a -1 to its attack rolls, ability checks, clash rolls and saving throws. For every 10 Sinking stacks, the inflicted creature will gain a -1 to their Fixer DC. Sinking stacks will be cut in half at the end of the creatures turn (Rounded Down). If `Sinking Deluge::Sinking Deluge` is triggered, take (Sinking Stacks) psychic damage. If a creature has 45 or more sinking when Sinking Deluge is triggered, additionally deal an extra 1.1x psychic damage. A creature may only have a maximum of 99 Sinking. Their attack rolls, ability checks and saving throws can only be reduced by a maximum of -9, and their DC can only be lowered by -6 maximum.",
+    "SideEffects": []
+  },
+  {
+    "Name": "Sinking Deluge",
+    "Effect": "Stated in certain skills. Triggers the `Sinking::Sinking` on the inflicted creature.",
+    "SideEffects": []
+  },
+  {
+    "Name": "Poison",
+    "Effect": "While poisoned, take an amount of damage equal to half of your poison stacks every turn, and reduce your stacks of poison by 5. A poisoned creature with an amount of Poison stacks exceeding their constitution score has the poisoned condition. A bleeding creature makes their poison tick down by 4 each turn, rather than 5. A creature may only have a maximum of 99 Poison.",
+    "SideEffects": []
+  },
+  {
+    "Name": "Poise",
+    "Effect": "Poise decays by 1 at the end of your turn. While you have Poise, you have a higher critical hit chance, for +1 critical hit range for every 5 Poise. You may only automatically hit with these critical hits on a 16-20, regardless of any other modifiers. For every 9 Poise you have, deal +1 damage on critical hits. While you have Poise, deal +1 damage on critical hits. Poise has a maximum cap of 99.",
+    "SideEffects": []
+  },
+  {
+    "Name": "Charge",
+    "Effect": "Charge count will go down by one at the end of your turn. Used for some subclasses.\n\n**Charge Conversion**\n\nAs an action, you may consume up to 45 Charge Count, gaining 1 Charge Potency per 15 Count Consumed. When losing all of your Charge Count, retain Charge Potency for 1 minute before removing it.",
+    "SideEffects": []
+  },
+  {
+    "Name": "Protection",
+    "Effect": "Gain a +1 to AC and lower damage taken by 1 for every stack. Lose stack at turn end.",
+    "SideEffects": []
+  },
+  {
+    "Name": "Haste",
+    "Effect": "Increase initiative by 1 and movement speed by 10ft per stack of Haste. If movement speed doubles your base movement due to Haste stacks, you may ignore difficult terrain and may disengage as a free action. Haste is reduced to 0 at the end of your next turn. Only one stack of haste may benefit from `Untraceable Speed::Untraceable Speed`'s speed increase.",
+    "SideEffects": []
+  },
+  {
+    "Name": "Attack Roll Up",
+    "Effect": "Increase attack rolls by X. At the beginning of your turn, lose this effect.",
+    "SideEffects": []
+  },
+  {
+    "Name": "Damage Roll Up",
+    "Effect": "Increase damage rolls by X. At the beginning of your turn, lose this effect.\n\n*Also known as Strength.*",
+    "SideEffects": []
+  },
+  {
+    "Name": "Clash Roll Up",
+    "Effect": "Increase clash rolls by X. At the beginning of your turn, lose this effect.",
+    "SideEffects": []
+  },
+  {
+    "Name": "Offense Level Up",
+    "Effect": "Increase damage dice tier of damage dice by X. At the beginning of your turn, lose this effect.",
+    "SideEffects": []
+  },
+  {
+    "Name": "Defense Level Up",
+    "Effect": "Upon being hit, reduce the damage dice tier of the attack by X. At the beginning of your turn, lose this effect.\n\n*Also known as Endurance.*",
+    "SideEffects": []
+  },
+  {
+    "Name": "Aggro",
+    "Effect": "While you have Aggro stacks, all hostile creatures must make a Wisdom saving throw when within 10ft of you at the start of their turn. The DC for this save is equal to 10 + Number of Aggro stacks on self. On failed save, creatures must target you with their next hostile action. Hostile actions are defined by any attempt to harm or debilitate a creature. When a creature fails this save, they are immune to it for the next minute. Aggro stacks decrease by 1 at the start of the user's turn.",
+    "SideEffects": []
+  },
+  {
+    "Name": "Fragile",
+    "Effect": "Lose a -1 to AC and increase damage taken by 1 for every stack. Lose all stacks at turn end. Extra damage is applied before resistances are accounted for.",
+    "SideEffects": []
+  },
+  {
+    "Name": "Paralysis",
+    "Effect": "When rolling an attack roll, ability check, clash roll or saving throw while inflicted with paralysis stacks (different than the paralyzed base dnd condition) treat all dice in that roll as having rolled a 1, then reduce paralysis stacks by 1. Paralysis is reduced to 0 at the end of your turn. This does not trigger a critical fail.",
+    "SideEffects": []
+  },
+  {
+    "Name": "Bind",
+    "Effect": "Decrease initiative by 1 and movement speed by 10 ft. per stack. If movement speed drops to 0 due to bind, become restrained. Lose all stacks at turn end.",
+    "SideEffects": []
+  },
+  {
+    "Name": "Attack Roll Down",
+    "Effect": "Decrease attack rolls by X. At the beginning of your turn, lose this effect.",
+    "SideEffects": []
+  },
+  {
+    "Name": "Damage Roll Down",
+    "Effect": "Decrease damage rolls by X. At the beginning of your turn, lose this effect.\n\n*Also known as Feeble.*",
+    "SideEffects": []
+  },
+  {
+    "Name": "Clash Roll Down",
+    "Effect": "Decrease clash rolls by X. At the beginning of your turn, lose this effect.",
+    "SideEffects": []
+  },
+  {
+    "Name": "Offense Level Down",
+    "Effect": "Decrease damage dice tier of damage dice by X. At the beginning of your turn, lose this effect.",
+    "SideEffects": []
+  },
+  {
+    "Name": "Defense Level Down",
+    "Effect": "Upon being hit, increase the damage dice tier of the attack by X. At the beginning of your turn, lose this effect.\n\n*Also known as Disarm.*",
+    "SideEffects": []
+  },
+  {
+    "Name": "Smoke",
+    "Effect": "This effect has a maximum stack of 30. When hit, increase the damage roll of the attack by +1 for every 6 Stacks. When hit by an attack at 10+ Smoke, increase the damage dice of the attack by one. Gain a +1 to Attack Rolls for every 10 Smoke on self. At Turn End, Reduce this effect by 1.",
+    "SideEffects": []
+  },
+  {
+    "Name": "Nullify Power",
+    "Effect": "Dice rolls made by and against characters with this effect are unaffected by modifiers such as to-hit bonuses and disadvantage.",
+    "SideEffects": []
+  },
+  {
+    "Name": "Erosion",
+    "Effect": "Take 1 damage per stack at the end of your turn, then lose 1 stack. When being hit by an attack, take bonus damage equal to the amount of this status.",
+    "SideEffects": []
+  },
+  {
+    "Name": "Fairy",
+    "Effect": "Take 2 damage per stack for every dice rolled or 10 ft. of movement used. At the end of your turn, take 1 damage per stack and then halve the total amount of stacks (rounds down).",
+    "SideEffects": []
+  },
+  {
+    "Name": "Sheut Fracture",
+    "Effect": "This effect has a maximum stack of 10. Upon reaching Max Stack, Trigger `Tremor Burst::Tremor Burst` and `Sinking Deluge::Sinking Deluge` on self, and Gain 3 `Blue Sand::Blue Sand`, then remove all Sheut Fracture.",
+    "SideEffects": []
+  },
+  {
+    "Name": "Blue Sand",
+    "Effect": "This effect has a maximum stack of 3. When taking damage, gain (X - 1, Min 1) `Tremor::Tremor` or `Sinking::Sinking` (Whichever is lower). Lose X * 5 walking speed. Upon Blue Sand Expiring, Trigger `Tremor Burst::Tremor Burst` and `Sinking Deluge::Sinking Deluge` on self.",
+    "SideEffects": []
+  },
+  {
+    "Name": "Blue Sandstorm",
+    "Effect": "This effect has a maximum stack of 3. When taking damage, gain X `Tremor::Tremor` and `Sinking::Sinking`. Lose X * 10 walking speed. Gain disadvantage on attack rolls and dexterity saving throws. Upon Blue Sandstorm Expiring, Trigger `Tremor Burst::Tremor Burst` and `Sinking Deluge::Sinking Deluge` on self.",
+    "SideEffects": []
+  },
+  {
+    "Name": "Addiction",
+    "Effect": "At Turn Start, Gain (X / 2, Rounded Down) `Smoke::Smoke` and Gain (X / 3, Rounded Down) `Fragile::Fragile`. Upon reaching 10 Stacks, Expire at Turn End. If Addiction is not gained for 2 Turns, you will take (50 - (Addiction * 5)) psychic damage, then lose all Addiction. If the Sanity Variant Rule is active, take Sanity Damage instead, and any excess Sanity Damage can be inflicted as Psychic Damage.",
+    "SideEffects": []
+  },
+  {
+    "Name": "Charred Smoke",
+    "Effect": "This effect stacks up to a maximum of 4. At Turn End, if `Burn::Burn` was activated on self, Gain (Burn Lost / 3, Rounded Up, Max 10) `Smoke::Smoke` and lose 1 Charred Smoke. This effect cannot be reapplied onto creatures who already have the effect.",
+    "SideEffects": []
+  },
+  {
+    "Name": "Smoke - Overflowing",
+    "Effect": "Increase the maximum cap for `Smoke::Smoke` by (10 * X). This effect expires upon leaving a combat scenario.",
+    "SideEffects": []
+  },
+  {
+    "Name": "Courier Trunk",
+    "Effect": "At 30+ stacks...\nWhen making an attack roll, make a Constitution saving throw with DC 12 + (Stacks / 10). On a failure, take (Stacks / 3)% of your maximum HP as damage. On a success, take half of that damage. At the start of your turn, take (Stacks / 2)% of your maximum HP as damage. The user gains temporary hit points equal to (Courier Trunk)% of their maximum HP (Max 20%). Outside of combat, stacks decrease over time.",
+    "SideEffects": []
+  }
+]

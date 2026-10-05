@@ -1,0 +1,330 @@
+[
+  {
+    "Name": "Sin Enhanced Body",
+    "Need": "",
+    "Base": [
+      "Background"
+    ],
+    "desc": "You were born with a supremely powerful body for any number of reasons, such as being artificially created by a powerful Wing for a greater purpose, or you were born for this world’s undoing, this trait has been reinforced to withstand very powerful attacks from all sources. You'll gain 5 additional hit points towards your hit point maximum whenever you gain a level in your class.\n\nAdditionally, when you gain a level, your Strength, Dexterity and Constitution scores increase by 1 up to your maximums for those stats, although your Dexterity and Constitution scores can only benefit from this once. In addition, your Strength score limit is increased to 22. In addition, you gain proficiency in Constitution saving throws and the `Sin Affinity::Sin Affinity` feats. Finally, gain your choice of the `Athlete History::Athlete History`, `Beyond Fast::Beyond Fast`, or `Strong Body::Strong Body` feats."
+  },
+  {
+    "Name": "Backstreet Dweller",
+    "Need": "",
+    "Base": [
+      "Background"
+    ],
+    "desc": "You were born and raised in the backstreets, a place where crime is commonplace, and courtesy is a rare commodity. As it is, you know your way around backstreets and similar environments. You gain advantage on any and all checks meant to traverse the backstreets. Additionally, you gain advantage on perception checks to see if there are any known syndicates in the area by looking for markings or symbols."
+  },
+  {
+    "Name": "Connection to the Mephistopheles Engine",
+    "Need": "",
+    "Base": [
+      "Background"
+    ],
+    "desc": "You have been connected to an Engine which chains and contains multiple possibilities. Of which you can link yourself to not only other versions of yourself, but also abnormalities. This way you can manipulate their energy to use for E.G.O. attacks. You gain the `Sin Affinity::Sin Affinity` Feat and the `E.G.O Weapon::E.G.O Weapon` Feat. Your first E.G.O. Weapon must be based on the user's past, however every one after will be based on an abnormality, this is at the cost of not gaining any tools of the trade. You will gain a new E.G.O. Weapon every time you would gain a tool of the trade. Work with your DM to make these E.G.O. Weapons in a way that works with your character’s backstory and personality."
+  },
+  {
+    "Name": "Once Affiliated",
+    "Need": "",
+    "Base": [
+      "Background"
+    ],
+    "desc": "You gain the benefits of one extra affiliation passively (Example : If you picked lobotomy corporation remnant you can also be part of the middle and gain the benefits of both as you level up)"
+  },
+  {
+    "Name": "Workshop Connections",
+    "Need": "",
+    "Base": [
+      "Background"
+    ],
+    "desc": "Either you have worked in a workshop or you know somebody who knows somebody who knows somebody. Whatever it is you have a knack for tinkering with or being really particular with weapons that you can improve equipment that you have. Upon gaining this feat, also gain the `Workshop Enthusiast::Workshop Enthusiast` Feat. When creating a workshop weapon for yourself, you may treat it as if it had one additional augmentation point. Additionally, you have a significantly easier time consulting and working with workshops, and many may be willing to offer you a discount or at the very least be willing to strike a deal with you."
+  },
+  {
+    "Name": "Athlete History",
+    "Need": "Must have at least 15 Strength or more.",
+    "Base": [
+      "Body"
+    ],
+    "desc": "You have been born unnaturally strong, capable of destroying walls with just sheer brute force.\n\nYou will gain the following benefits:\n\n* Your Strength score increases by 1, to a maximum of 20.\n* Your damage dice for strength based attacks increase by 1 tier (1->d4->d6->d8->Etc). You gain a +1 damage bonus to your unarmed strikes.\n* If you have the Abnormally Strong feature, increase your amount of uses of that feature by 1.\n* You may use your Strength modifier instead of your Dexterity modifier when calculating your AC."
+  },
+  {
+    "Name": "Colossal Physique",
+    "Need": "Must have a 17 Strength score or more, Athlete History",
+    "Base": [
+      "Body"
+    ],
+    "desc": "The strength you now possess is capable of matching upper rank fixers and abnormalities.\n\nYou gain the following benefits:\n\n* You will count as two sizes larger for the purposes of grappling, shoving, disarming and the weight you can carry, push, drag, or lift. If you chose the Abnormally Strong Feature, instead reduce all knockback to half of its original value.\n* Your damage dice for strength based attacks increase by 1 tier (1->d4->d6->d8->Etc). You gain another +1 damage bonus to your unarmed strikes.\n* You become proficient in the Athletics skill if you were not already proficient. If you were proficient in Athletics, you gain expertise instead. Lastly, if you already possess expertise in Athletics then you can add your proficiency to all Strength checks you make.\n* Any attack roll you make which uses Strength deals twice as much damage to objects and structures.\n* You have learned to put your weight behind an attack and launch an opponent a considerable distance. Once per turn as part of a successful melee attack, you can force the creature hit to make a Strength saving throw (DC8 + your proficiency bonus + your Strength modifier). On a failure, they are knocked back a number of feet equal to your Strength modifier times 10 in a direction of your choice. If the creature collides with an unsecured object or structure, then the creature and the unsecured object or structure receive 1d6 bludgeoning damage for every 10 feet the creature had left to travel after colliding with the surface. If it was another creature, they instead both take damage equal to half of your damage roll (rounded down). If your attack was a critical hit and the target is size Medium or smaller, the creature automatically fails their saving throw and are knocked back twice the distance.\n* Whenever you make a Strength check or saving throw, you can give yourself advantage on the roll. You can do this a number of times equal to your Strength modifier, regaining all uses after taking a long rest."
+  },
+  {
+    "Name": "Beyond Fast",
+    "Need": "Must have at least 15 Dexterity or more",
+    "Base": [
+      "Body"
+    ],
+    "desc": "You have an innate speed advantage over others of your kind or have trained intensely on your agility.\n\nYou will gain the following benefits:\n\n* Your Dexterity score increased by 1, to a maximum of 20.\n* Your movement speed increases by 15 feet.\n* You have two reactions instead of one in each round of combat."
+  },
+  {
+    "Name": "Untraceable Speed",
+    "Need": "Must have a 17 Dexterity score or more, Beyond Fast",
+    "Base": [
+      "Body"
+    ],
+    "desc": "Even by the supernatural standards of the city and it's fixers, your agility is a trait that makes you just as fearsome as any other.\n\nYou will gain the following benefits:\n\n* If an action or feature increases any of your speeds, it is further increased by a number of feet equal to 5 times your Dexterity modifier (A minimum of 5ft).\n* You gain proficiency in one Dexterity skill of your choice or expertise if you were already proficient in the chosen skill. You can also add half of your proficiency bonus to all Dexterity checks you make that you weren't already proficient in.\n* You may perform the Dash action or make a Skill Check you are proficient in as a bonus action.\n* You can make one melee attack as a reaction if you moved into range of a creature or a creature enters your range. You can only do this once per creature per round."
+  },
+  {
+    "Name": "Strong Body",
+    "Need": "Must have 15 Constitution or more.",
+    "Base": [
+      "Body"
+    ],
+    "desc": "You have proven yourself to be very durable, making taking you down a very hard task.\n\nYou will gain the following benefits:\n\n* Your Constitution score increased by 1, to a maximum of 20.\n* You will now add your Constitution modifier twice when calculating hit points gained per level. If you are using the Improved Durability variant rule, add your constitution modifier thrice instead."
+  },
+  {
+    "Name": "Human Wall",
+    "Need": "You must have 17 Constitution or more, Strong Body",
+    "Base": [
+      "Body"
+    ],
+    "desc": "Your endurance is from out of this world, no matter what you're not going down in the battlefield.\n\nYou will gain the following benefits:\n\n* You have a Damage Reduction equal to your constitution modifier for all damage apart from psychic damage. If you have the abnormally durable feature, you also have advantage on Constitution saving throws.\n* When you are forcefully moved, reduce the distance moved by 15ft.\n* If you drop to 0 Hit Points and don't die outright, you can make a DC 10 Constitution saving throw. If you succeed, your Hit Points instead change to a number equal to your constitution score. Each time you use this feature after the first, the DC increases by 10. When you finish a Long Rest, the DC resets to 10."
+  },
+  {
+    "Name": "Resilient",
+    "Need": "You must have at least 15 on your Constitution score.",
+    "Base": [
+      "Body"
+    ],
+    "desc": "Your resilience is no joke, enabling you to survive much more than normal Fixers during long periods of fighting. All of your Hit Dice increase in size by one step, and as a result, your hit points increase by an amount equal to your level + 1. Whenever you gain Hit Die and hit points after you have acquired this feat, your newly gained Hit Die is treated as though it was one size larger. You can take this feat any number of times, but you cannot increase a Hit Die above d12. If you are a Kindred Bloodfiend, instead gain extra regeneration dice equal to your proficiency bonus. In addition, you may heal for double the amount rolled on your hit die during a short rest."
+  },
+  {
+    "Name": "Astute Observation",
+    "Need": "Must have at least 15 Intelligence or more.",
+    "Base": [
+      "Mind"
+    ],
+    "desc": "Your mind is sharp, calculating trajectories and speeds in the heat of battle. You will gain the following benefits:\n\n* Your Intelligence score increases by 1, to a maximum of 20.\n* When making an attack roll, you may add half of your intelligence modifier to the attack roll. When you gain this feature from abnormally smart, use both, adding your entire intelligence modifier to your attack rolls.\n* You may use your Intelligence modifier instead of your Dexterity modifier when calculating your AC."
+  },
+  {
+    "Name": "Analytical Mind",
+    "Need": "Must have a 17 Intelligence score or more, Astute Observation",
+    "Base": [
+      "Mind"
+    ],
+    "desc": "You are like a human supercomputer, no one can escape from your strikes.\n\nYou gain the following benefits:\n\n* Your critical hit range increases by 1 after you have already landed a critical hit against a creature (to a maximum of 1).\n* When you make an Intelligence check or saving throw, you can treat a d20 roll of 9 or lower as a 10.\n* You may make an Intelligence check with proficiency when hitting a creature, contesting their AC. If you pass, that attack does not roll damage, it instead simply deals maximum damage. You may only use this feature an amount of times equal to your proficiency bonus.\n* Whenever you miss a creature, add a +1 bonus to your next attack roll, to a maximum of +10. This bonus stacks and applies to the feature above, and goes away upon hitting a creature."
+  },
+  {
+    "Name": "Incredible Intuition",
+    "Need": "Must have at least 15 Wisdom or more",
+    "Base": [
+      "Mind"
+    ],
+    "desc": "You have an incredible intuition, allowing you to react much faster and predict an opponents strikes.\n\nYou will gain the following benefits:\n\n* Your Wisdom score increased by 1, to a maximum of 20.\n* You may use your Wisdom modifier instead of your Dexterity modifier when calculating your AC.\n* You have an additional reaction. If you have the abnormally wise feature, you also gain an additional `fighting style::Fighting Style` that is not the All-Terrain Athlete fighting style."
+  },
+  {
+    "Name": "Honed Psyche",
+    "Need": "Must have a 17 Wisdom score or more, Incredible Intuition",
+    "Base": [
+      "Mind"
+    ],
+    "desc": "Your mind is honed with deadly precision, allowing you to avoid danger and making your mind more resilient to mental attacks.\n\nYou will gain the following benefits:\n\n* You gain proficiency in one Wisdom skill of your choice or expertise if you were already proficient in the chosen skill. You can also add half of your proficiency bonus to all Wisdom checks you make that you weren't already proficient in.\n* You gain resistance to psychic damage and advantage on wisdom saving throws.\n* When you make a Wisdom check or saving throw, you can treat a d20 roll of 9 or lower as a 10.\n* When clashing against a creature you have clashed with before in this combat, you may add your proficiency bonus to the damage of the clash."
+  },
+  {
+    "Name": "Magnetising Charm",
+    "Need": "Must have 15 Charisma or more.",
+    "Base": [
+      "Mind"
+    ],
+    "desc": "You have a certain air about you that people tend to follow.\n\nYou will gain the following benefits:\n\n* Your Charisma score increased by 1, to a maximum of 20.\n* You may use your Charisma modifier instead of your Dexterity modifier when calculating your AC.\n* Your Fixer DC increases by 1. If you have the abnormally charismatic feature, you gain 3 extra dice to use for that feature."
+  },
+  {
+    "Name": "Overwhelming Presence",
+    "Need": "You must have 17 Charisma or more, Magnetising Charm",
+    "Base": [
+      "Mind"
+    ],
+    "desc": "Your presence makes your allies roar in raucous applause and admiration, and your enemies fall to their knees.\n\nYou will gain the following benefits:\n\n* Your Fixer DC increases by 2.\n* When you make an Charisma check or saving throw, you can treat a d20 roll of 9 or lower as a 10.\n* As an action, you may attempt to charm or frighten any creatures within 60ft of you, or 120ft of you if you are level 11 or above. Those creatures must make a wisdom saving throw, being charmed or frightened for the next minute on a failure. A creature may remake this save at the end of each of it's turns, removing the effect on a success. If a creature succeeds this save, they cannot be affected by the ability for the next hour.\n* As a bonus action, you may rally any charmed creatures within 240ft of you, letting them reroll an attack roll, ability check, damage roll, or saving throw of their choosing within the next minute. If they would get a lower roll, the higher one is taken. Subsequent rallies within the next minute give the creatures an amount of temporary hit points equal to your charisma modifier as well.\n* As a bonus action, you may exude your presence on any frightened creatures within 120ft of you, inflicting an amount of psychic damage and sinking equal to double your charisma modifier."
+  },
+  {
+    "Name": "Slam Master",
+    "Need": "Must have a Strength score of 16 or higher",
+    "Base": [
+      "Martial Arts"
+    ],
+    "desc": "You fight like a beast on the battlefield, focusing on throwing your opponents around. You gain the two following Slams:\n\n**Brute Slam.** Once per turn as part of an unarmed strike, you may make a grapple attempt against a creature. If you succeed, you may pick up the creature and slam them against a solid surface within 10 ft. of you, such as the ground or a wall, dealing another roll of your martial arts die in damage. The surface takes twice as much damage as the creature, and if it breaks the creature takes another 2d6 damage of an appropriate type.\n\n**Heavy Slam.** Whenever you take the Attack action against a creature you are currently grappling with, you may forgo an attack to violently slam the creature into the ground. You make a contested Strength (Athletics) check against the creature who contests via Strength (Athletics) or Dexterity (Acrobatics) check (Their choice). On a successful check, your opponent is driven into the earth beneath you ending your grapple early, taking bludgeoning damage equal to two rolls of your martial arts damage dice and being knocked prone. On a failure, the creature escapes from your iron grasp, causing your grapple to end early and the creature may move an additional 5 ft. away from you as part of their successful check. If you score a 20 on the Strength (Athletics) check whilst using this feature and it was a success, the creature takes bludgeoning damage equal to four rolls of your martial arts damage dice and gains disadvantage on attack rolls, ability checks, skill checks and Strength or Dexterity saving throws until the start of your next turn."
+  },
+  {
+    "Name": "Acrobatic Fighter",
+    "Need": "Must have a Dexterity score of 16 or higher",
+    "Base": [
+      "Martial Arts"
+    ],
+    "desc": "You've adopted a quick, swift and mobile `fighting style::Fighting Style`, using your environment to your advantage.\n\n* You may calculate your jump distance and height with your Dexterity score.\n* Your jump distance and height is doubled.\n* You learn to use the environment around you as a way to leverage your strikes. Whenever you make an unarmed strike while within 5 ft. of a solid surface or another object like a pole, you may use it to leverage a powerful attack against your opponent, dealing an additional damage die of your unarmed strike. If there are not any solid surfaces, you may use half your movement speed to drop to the ground on your hands, extending your legs up and making a powerful kick.\n* Once per turn, whenever you fall onto a creature, make a DC 10 Acrobatics check. On a success, you may make one unarmed strike against that creature."
+  },
+  {
+    "Name": "Protector",
+    "Need": "Must have a Dexterity or Constitution score of 16 or higher",
+    "Base": [
+      "Martial Arts"
+    ],
+    "desc": "In addition to protecting yourself, you’ve found the footwork to put yourself between an ally and an impending attack. As a bonus action for 2 light, you may gain 1 Assist Defense. While under the effects of assist defense, you gain the following benefits.\n\n* While within 15ft of an ally who is being targeted with an attack roll or within 15ft of a creature who is attacking an allied creature, you may use your reaction to clash against that attack using the mitigate option.\n* You gain 1 `Aggro::Aggro`.\n* If you choose to, creatures will have disadvantage on attacking friendly creatures within 30ft of you, and have advantage on attacks against you.\n* Assist defense remains active until the end of your next turn."
+  },
+  {
+    "Name": "Hardblood Arts",
+    "Need": "Must be a Blood Fiend",
+    "Base": [
+      "Affiliation"
+    ],
+    "desc": "You’ve become adept in controlling blood enough to form your own techniques. Upon taking this feat may choose a Hardblood Art by either following the guidelines below or by working with your DM to create one from scratch.\n\n* Scission: You attack with your weapon, increasing its size temporarily by enlarging it with hardened blood. As an action of 1 Hardblood, force all creatures within the weapon's reach+10ft cone to make a Dexterity saving throw. On Failure targets take 3x weapon damage + 3d4 Bleeding damage. On successful save, targets take half damage.\n* Thorns: You harden blood around your body to prepare for a counter attack by protruding spikes of blood at your targets. You may use a reaction when a creature lands a melee attack against you. On use, deal 1d6+Constitution modifier piercing damage + 1d4 bleeding damage + 1/2nd of your `bloodfeast::Bloodfeast` and reduce the damage by the damage done from this attack.\n* Drain: You may manipulate the wound of a creature to cause even more blood to spill. As an action for 2 Hardblood, you may cause 1 creature within 30ft of you to make a Constitution saving throw. On failure the creature takes proficiency bonus x 1d6 bleeding damage + the total bleeding damage a target took last turn. On successful save the target takes half damage.\n* Impale: You lunge forwards attempting to impale your target over your weapon. As an action you may spend up to 5 hardblood to target a creature within 15ft. You may immediately move towards them and make an attack roll. On hit you deal weapon damage + 1d4 bleeding damage to them per hardblood spent\n* Wedge: After successfully landing an attack roll, you can spend 2 Hardblood to lodge a blood clot into the wound created by your weapon. As a free action after this, you can detonate the blood clot, dealing 1d6 force damage and 3d6 `bleed::Bleed` damage. If this reduced a target to 0 hit points, the part of the body will explode. This blood clots will explode automatically after one day.\n\nYou may use your Hardblood arts a number of times equal to your constitution modifier. When activating your bloodfeast feature, gain a number of hardblood equal to every 10 blood consumed rounded down. Finally, the name of your attack is structured as (character name Hardblood arts: name of attack). Example: John Doe Hardblood Arts: Impale"
+  },
+  {
+    "Name": "Big Sibling",
+    "Need": "Must have the Middle subclass and be 19th level.",
+    "Base": [
+      "Affiliation"
+    ],
+    "desc": "You’ve reached the top of your branch of the `Middle::The Middle`. Your pride knows no bounds and you are in charge of the little siblings of the middle, as such you need to set an example. Once per long rest you may use your bonus action to grant yourself Test of the Big Sibling. While this effect is active, you take double damage from all sources. At the beginning of your next turn, you become resistant to all damage and deal an additional 2 dice of damage from all sources. Additionally, when reaching 1/3 your maximum hit points you may use one of two powerful attacks. After using one of these attacks, you may not use this feature until you complete a Long Rest.\n\n* MY HAIR COUPONS!: As an action you slam your fist into the ground causing all creatures within 60ft at a point centered on yourself to make a Dexterity saving throw or take 20d8 force damage and be knocked back 20ft. On successful save, creatures take half damage and are not knocked back.\n* Complete and Total Extermination: You may choose one target within 60ft and instantly move next to them, forcing them to make a Strength save. On failure you lift them up and throw them 20ft, before jumping 50ft into the air and slamming into the ground with a burst of purple energy. On failure the target takes 5d10+Strength modifier bludgeoning damage and 10d10 force damage and be knocked prone. If the target succeeds the initial saving throw, they instead take half of all damage. If the initial target came into contact with another creature when thrown, that creature takes half of the bludgeoning damage. Additionally, all creatures who were within 15ft of where you landed must make a Dexterity saving throw or take full force damage and be knocked prone where on success, they take half damage and are not knocked prone."
+  },
+  {
+    "Name": "Imperfect Replica",
+    "Need": "Must have the Index subclass and be 19th level.",
+    "Base": [
+      "Affiliation"
+    ],
+    "desc": "At 17th level, the index wishes to mold you into a loyal replica of an accomplished fixer. Firstly your prescript device is equipped with the ability to emit a black, ink like substance that hardens into any weapon of the user's choice that they are proficient with. This weapon may not be a ranged weapon or a weapon that requires ammunition. While your prescript device is with you, you may copy a feature a creature uses after seeing it as a reaction, however, there are some limitations. When copying a feature, you may copy the amount of attacks, physical movements, area of effect, and any tools or weapons used in the feature so long as those weapons or tools are not projectiles as your prescript device emits the weapon from itself. You may not copy any status effects that are inflicted from that feature such as bleed or rupture, only inflicting statuses that you already inflict such as from your “The Messenger” feature or conditions such as prone, stunned, incapacitated, etc. You may not copy features that require an external consumable resource such as Serums from the Claw subclass or nails from the `N-Corp::N-Corp` subclass. You may only have a number of copied features equal to your prescript level over the course of a combat. You may have one feature copied that is retained after combat ends. At the end of combat, you may replace a retained feature with another, losing the feature replaced in this way."
+  },
+  {
+    "Name": "Workshop Enthusiast",
+    "Need": "Must be a 4th level Fixer",
+    "Base": [
+      "Weapon"
+    ],
+    "desc": "Whether it be a personal connection, deep pockets, or your other personal volitions, you have been able to get in contact with workshops allowing you to get ahead of the curve in terms of getting some shiny new equipment and using them. You gain a Workshop item and may have one additional workshop item equipped at once. This may be a weapon, piece of armor, or artifact of some kind."
+  },
+  {
+    "Name": "Aimed Shots",
+    "Need": "Must have at least 15 Dexterity.",
+    "Base": [
+      "Weapon"
+    ],
+    "desc": "With your continued use of ranged weapons, you've developed a knack for aiming for vital spots. For 2 `Light::Light`, you may use any of the following features. On hit they must make a constitution saving throw. On failure they suffer one of the following effects.\n\n* Disarm: target drops an item they are holding of your choice\n* Hamstrung: target’s movement speed is halved until the end of their next turn\n* Knee Shot: target falls prone"
+  },
+  {
+    "Name": "Firearm Adept",
+    "Need": "Must have at least 16 Dexterity and be using a firearm.",
+    "Base": [
+      "Weapon"
+    ],
+    "desc": "Your hand-eye-coordination has proven you well in the field, especially with your trusty iron.\n\n* When a hostile creature moves towards you within 15ft, you may use your reaction to make a ranged weapon attack against them\n* Your firearms have their minimum ranged increased by half of their maximum range rounded down and your range on features centered around your firearm have been increased by that same distance. (Ex: pistol has a range of 30/60 normally, its new range with this feat is 45/60.)\n* When using a `Light::Light` feature using your firearms, it costs 1 less (cannot be reduced below 1)"
+  },
+  {
+    "Name": "Blade Master",
+    "Need": "Must have at least 16 Dexterity or Strength.",
+    "Base": [
+      "Weapon"
+    ],
+    "desc": "Your blade work has been perfected over the years, and it shows in your combat prowess. You have even learned a useful technique to use on all weapons to increase status infliction and automatically critically hit to trigger `Rupture::Rupture` or simply for extra damage.\n\n* While using `Clash::Clashing` - Counter against a ranged attack while using a slashing weapon, if you win the clash, you may make a ranged attack with the same attack bonus as your slashing weapon, with the same range and damage as the attack you countered.\n* All slashing weapons gain a +2 to attack rolls.\n* Gain a new `Light::Light` feature\n\n**Lacerate:** You may spend 3 light before you make an attack roll. On hit the attack is critical and applies 1.5x more burn, bleed, tremor, rupture, or sinking if it were to build any. (Minimum: +1)"
+  },
+  {
+    "Name": "Piercer",
+    "Need": "Must have at least 16 Strength or Dexterity.",
+    "Base": [
+      "Weapon"
+    ],
+    "desc": "You stab with such force as if you were trying to pierce something behind your target. You have even learned a useful technique to use on all weapons to debuff a target and hit behind them, if you have the reach.\n\n* All melee piercing weapons have +5ft reach.\n* All melee piercing weapons have a +2 to hit\n* After making the attack action on your turn and only attacking with a piercing weapon, you may make a single weapon attack as a bonus action with a piercing weapon.\n* Gain a new `Light::Light` feature\n\n**Impale:** You may spend 3 light before you make an attack. On a hit, you may inflict 1 `Bind::Bind` and 1 Paralyze, along with making an additional attack against a target behind the creature that you hit, if it is within your range."
+  },
+  {
+    "Name": "Bludgeoner",
+    "Need": "Must have at least 16 Strength.",
+    "Base": [
+      "Weapon"
+    ],
+    "desc": "You deliver some brutal swings with your weapons and punches, and with that you’ve benefited immensely in combat. You have even learned a useful technique to use on all weapons to break through defenses.\n\n* When using the Heavy Swing `Light::Light` feature, add your proficiency bonus to the damage roll if it a Bludgeoning Weapon or Unarmed Strike.\n* The Heavy Swing light feature costs 1 less light for you to use while using Bludgeoning Weapons or Unarmed Strikes.\n* Bludgeoning weapons and Unarmed Strikes deal double damage to structures.\n* Gain a new Light feature\n\n**Break:** You may spend 3 light before making an attack On a hit, deal 1d8 extra damage and force the creature to make a Constitution saving throw. On failure the target gain an amount of `Fragile::Fragile` equal to your proficiency bonus until the end of your next turn."
+  },
+  {
+    "Name": "Sole Status",
+    "Need": "",
+    "Base": [
+      "Status"
+    ],
+    "desc": "You are the only person on your team who is capable of inflicting the status that you can. You inflict a +1 to all status that you are the only person on your team capable of inflicting. This feat may be taken as a background feat or earned during a campaign at the DMs discretion. You inflict an additional +1 of this status at 10th level, and an additional +1 at 15th level."
+  },
+  {
+    "Name": "Sin Affinity",
+    "Need": "4th Level",
+    "Base": [
+      "Sin"
+    ],
+    "desc": "You have gained an understanding of Sin and how it truly feels to invoke a sin for your benefit. When taking this feat, choose a sin from the list below, this decision cannot be changed later. You gain a number of Sin usage equal to your proficiency bonus. You may spend these usages when the criteria is met. You regain all uses at the end of a long rest. After choosing a sin, you gain the feature listed with it.\n\n* Wrath I: Before rolling damage you may expend a sin charge. Afterwards you gain +1 weapon damage dice to the attack’s damage roll.\n* Lust I: After landing an attack roll you may expend a sin charge. You inflict +2 negative status infliction of a status you were inflicting on that attack.\n* Sloth I: When hit by an attack roll you may expend a sin charge, afterwards reduce incoming damage by your proficiency bonus for that turn.\n* Envy I: Before making an attack roll you may expend a sin charge. Afterwards, you may add your proficiency bonus to an attack roll an additional time.\n* Gloom I: After landing an attack you may spend 1 sin charge, target loses either a spell slot of their lowest level, 1 dice from a pool of dice they have access to (superiority dice, bardic inspiration dice, hit dice, ect.), or an amount of other resources from a pool they have access to such as Ki or `Light::Light` (sin charge pools are unaffected by this feature) equal to half of your proficiency bonus rounded down.\n* Gluttony I: After landing an attack, you may use a Sin charge. Afterwards heal a number of hit points equal to double a roll of your hit dice.\n* Pride I: As a reaction when you fail a saving throw, you may use a Sin charge. You may reroll the saving throw, taking the highest result.\n\nIn addition to the above features, any that would inflict damage or add damage causes that attack to gain a damage type of the sin that was used (Ex: longsword attack would deal 1d8 Slashing damage, however by using Wrath I its damage becomes 2d8 Wrath Slashing damage. In addition to the above features, by picking a sin, you gain a universal feature.\n\n* Sinful Strike: After landing an attack, you may choose to expend a sin charge to add +1d8 damage of a chosen sin type.\n\nWhile having a sin at your disposal, you gain a passive benefit as listed below\n\n* Wrath: +1 to damage rolls. If you would inflict burn, inflict +1.\n* Lust: +1 negative status application (negative statuses: `Rupture::Rupture`, `Bleed::Bleed`, `Sinking::Sinking`, `Tremor::Tremor`, `Burn::Burn`). If you would inflict bleed, inflict +1.\n* Sloth: +1 AC. If you would inflict Tremor, inflict +1.\n* Envy: +1 to attack rolls. If you would gain charge, gain +1.\n* Gloom: +1 to death saves. If you would inflict sinking, inflict +1\n* Gluttony: +1 to all healing. If you would inflict rupture, inflict +1\n* Pride: +1 to your Fixer DC. If you would gain poise, gain +1.\n\nWhile sin is a powerful tool to use, by taking this feat you must choose a sin to gain vulnerability to. Generally, this is a character specific choice and has no other connotation besides that. When being hit by a sin you are vulnerable to, you take double the damage. This vulnerability cannot be changed later."
+  },
+  {
+    "Name": "Advanced Sin Affinity",
+    "Need": "Must have the Sin Affinity Feat",
+    "Base": [
+      "Sin"
+    ],
+    "desc": "You have improved your understanding of Sin and allowed yourself to enhance what you already knew through tougher challenges and through an even tougher mentality. You gain an improved `Sin Affinity::Sin Affinity` based on the option you picked previously.\n\n* Wrath II: When making an attack action you may expend 2 sin charges. Afterwards you gain +1 damage dice from all sources until the end of turn (Ex: damage roll of 2d6+1d4 would then become 3d6+2d4).\n* Lust II: When taking the attack action you may expend a sin charge. You inflict +2 negative status infliction of a status you were inflicting until the end of turn. Additionally, your Lust I feature can be applied to any feature that inflicts damage, not just attack rolls.\n* Sloth II: After using Sloth I against a target, you may expend an additional sin charge to impose a Wisdom saving throw, on failure the target can only take an action or bonus action on their next turn\n* Envy II: While you have advantage on an attack roll against a creature, you may expend 1 sin charge to turn that advantage into two separate attacks. You may use this feature once per round on only one attack that has advantage.\n* Gloom II: After using your Gloom I skill, the target gains a -1d4 on their next attack roll, ability check, or saving throw. If you are using sanity variant rules, the target takes sanity damage equal to the result of this d4 roll.\n* Gluttony II: When regaining hit points from Gluttony I, you gain temporary hitpoints equal to half of the roll made for healing. Any healing you gain from Gluttony 1 that exceeds your maximum health will be converted to additional temporary hit points.\n* Pride II: After imposing a saving throw, you may spend 2 sin charges to impose disadvantage on that save.\n\nThe upgraded sins are now level 2 sins for the sake of other features. Additionally, you may pick an additional sin affinity as a level 1 sin. You may choose to activate specific levels of sin so long as you have access to it (Ex: You have Wrath II, you may choose to activate Wrath I or II when activating it).\n\nAdditionally, when using the same sin that an ally did on their turn, you begin to resonate, making any passive benefits from your chosen sins gain an additional +1 until the start of your next turn. this benefit also applies to the ally you resonate with."
+  },
+  {
+    "Name": "Mastered Sin Affinity",
+    "Need": "Must have the Advanced Sin Affinity Feat",
+    "Base": [
+      "Sin"
+    ],
+    "desc": "You have Mastered your understanding of Sin and allowed yourself to enhance what you already knew through tougher challenges and through an even tougher mentality. You gain an improved `Sin Affinity::Sin Affinity` based on the option you picked previously.\n\n* Wrath III: At the start of your turn you may spend 3 Sin Charges to enter a blinding rage that pushes your physical capabilities to their limit. All attacks you land until the end of turn are considered critical hits and bypass resistances and treat immunity as if it were resistance.\n* Lust III: At the start of your turn you may spend 3 Sin Charges to prepare yourself to inflict as much status on your next attack. The next attack you land this turn instead of applying negative status, instead doubles all negative statuses currently inflicted on that target. Additionally until the beginning of your next turn all status that would be consumed on hit or reduced at the beginning or end of turn only consumes or reduces it half of the amount it would.\n* Sloth III: At the beginning of your turn you may spend 3 sin charges to make everyone around you feel sluggish and heavy. All creatures who enter or leave a 15ft radius of you must make a Wisdom saving throw. On failure they are under the effects of slow until the end of their next turn. A creature may only make this save once per round.\n* Envy III: At the beginning of your turn you may spend 3 sin charges to take your jealousy out on the people around you. All attacks you make that have advantage may be converted to two separate attacks until the end of your turn. This may be done multiple times if you have more than once source of advantage on these attacks.\n* Gloom III: Penalty and sanity damage dice increase to 1d6. Additionally at the beginning of your turn you may spend 3 sin charges to reduce the will of everyone around you. Upon activating this feature, give all hostile creatures a -1d6 to all rolls they make until the end of their turn. Every time this penalty dice is rolled, the affected target loses an equal amount of sanity and takes an equal amount of psychic damage.\n* Gluttony III: At the start of your turn, you may spend 3 sin charges to consume all that you can to replenish yourself fully. When healing or gaining temporary hit points from gluttony features, you may roll a 1d4+1 and recover light equal to the roll. When you gain hit points from a gluttony feature with this feature active, maximise the dice and triple the healing. Additionally when gaining temporary hit points from gluttony features, you may instead heal an ally within 15ft for an amount equal to the amount of temporary hit points you would have gained.\n* Pride III: You may spend 3 sin charges to truly put yourself above your opponents. After using this feature, automatically succeed a saving throw that is imposed upon you or to cause a creature to automatically fail a saving throw that is inflicted by you.\n\nBy picking this feat, all available sins are upgraded by one tier, and you may pick an additional sin affinity (Ex: You initially chose pride, then envy, then wrath. You would now have Pride III, Envy II, and Wrath I).\n\nAdditionally, when taking this feat you may use Sinful Strike once per round without spending a sin charge. In order to gain this benefit it must be of the sin type that is currently lvl III."
+  },
+  {
+    "Name": "Shin and Mang",
+    "Need": "9th Level",
+    "Base": [
+      "Shin and Mang"
+    ],
+    "desc": "You have gained the ability to channel light and sin through your body at a constant rate to either protect or defend yourself.\n\nAs a bonus action, make a DC 10 `Light::Light` check. To make a light check, roll a 1d20 + your light modifier. On success you begin to concentrate on Shin or Mang. On failure, you do not begin concentrating.\n\n**Shin.** On success you begin to glow with a radiant light surrounding your body. While concentrating on Shin, you reduce all damage taken by one dice tier. If this would reduce the damage dice below 1d4, you take 1 damage instead. Additionally while concentrating on Shin, your AC increases by +1.\n\n**Mang.** On a success your weapon gains a glowing ring of light surrounding it. While concentrating on Mang, increase all damage dice you deal by one. Additionally gain a +1 to attack rolls and treat all damage dealt this way as if it bypasses resistances but not immunities.\n\nYou may only concentrate on either Shin or Mang, you cannot concentrate on both at once. Upon losing concentration on either Shin or Mang, you gain a level of exhaustion and your next Light check DC increases by 5 for every subsequent activation."
+  },
+  {
+    "Name": "Improved Shin and Mang",
+    "Need": "Must have the Shin and Mang feat.",
+    "Base": [
+      "Shin and Mang"
+    ],
+    "desc": "By improving your ability to use `Shin and Mang::Shin and Mang`, you have improved your overwhelming battle presence.\n\nYou may now as a bonus action you may swap between Shin or Mang. Additionally when activating Shin or Mang, you may choose to increase the activation DC by 5 or have the concentration DC become 15 or damage, whichever is higher. When channeling an additional level of the respective version initial activation of Shin or Mang is considered level 1 where every 5 you add to the DC counts as an additional level and may only have a number of additional levels equal to your proficiency bonus - 1.\n\n**Shin.** Additional levels of Shin decrease incoming damage by a number of tiers equal to the level of Shin and increase the AC benefit by +1 per level.\n\n**Mang.** Additional levels of Mang will increase your damage by a number of tiers equal to its level and an additional +1 to attack rolls for every level above level 1.\n\nUpon losing concentration on Shin or Mang, gain levels of exhaustion equal to the Shin or Mang level - 1."
+  },
+  {
+    "Name": "Mastered Shin and Mang",
+    "Need": "Must have the Improved Shin and Mang feat",
+    "Base": [
+      "Shin and Mang"
+    ],
+    "desc": "You have mastered the use of `Shin and Mang::Shin and Mang` and can use it easily during combat. From now on your light check dc increases by +3 rather than +5 whenever you wish to concentrate on further levels of either Shin or Mang to 10-13-16-19-22 etc instead of 10-15-20-25-30. Additionally your Shin or Mang level maximum is now your proficiency bonus +1, your exhaustion upon losing concentration is now equal to you Shin or Mang level -2"
+  },
+  {
+    "Name": "E.G.O Weapon",
+    "Need": "Must not have the Efflorescent E.G.O. Feat",
+    "Base": [
+      "E.G.O"
+    ],
+    "desc": "You gain access to E.G.O. Weapons and with that have the ability to create your own. These weapons are theatrical attacks are manifestations reflected by oneself through the use of abnormalities and symbolic choreography. Follow the Creating E.G.O. page to get started."
+  },
+  {
+    "Name": "Manifest E.G.O",
+    "Need": "12th level, must have a zayin personal ego from ego weapon feat",
+    "Base": [
+      "E.G.O"
+    ],
+    "desc": "You can now fully manifest your zayin weapon into a E.G.O. Your ego gains features based on said ego, work on what this does with you dm. You also gain a +2 in each stat. Ego lasts for up to 1 minute, but each turn you must deal at least 10 damage, if 2 turns pass by (doesnt need to be in a row) without dealing enough damage, your ego ends. You can use this up to your proficiency bonus per long rest."
+  },
+  {
+    "Name": "Volatile E.G.O.",
+    "Need": "Must not have the E.G.O. Weapon Feat and must only be taken after an interaction with Carmen (see distortion variant rules)",
+    "Base": [
+      "E.G.O"
+    ],
+    "desc": "Understanding oneself is half the battle, warding off Carmen is the other, and you still hear her voice. Through extreme stress and overcoming adversity, you have manifested E.G.O. that is not fully completed. There is still much to learn and even more to accomplish, however you are moving in the direction of understanding yourself through and through. Refer to the Creating E.G.O. page in the `Efflorescent E.G.O.::Efflorescent E.G.O.` section for some examples of what volatile ego should look like, however this is something that you should work on with your dm."
+  },
+  {
+    "Name": "Efflorescent E.G.O.",
+    "Need": "Must not have the E.G.O. Weapon Feat",
+    "Base": [
+      "E.G.O"
+    ],
+    "desc": "You have fully realized yourself and who you are, manifesting a perfect representation of yourself. Refer to the Creating E.G.O. page in the Efflorescent E.G.O. section for some examples of what Efflorescent E.G.O. should look like, however this is something that you should work on with your dm. In addition, you gain full immunity to the distortion phenomenon and are now fully incapable of distorting. If you gain this feat while already possessing the `Volatile E.G.O.::Volatile E.G.O.` Feat, you may replace it with another feat from the Fixer Feat list that you meet the prerequisites of."
+  }
+]

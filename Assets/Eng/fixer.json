@@ -1,0 +1,143 @@
+{
+  "Name": "Fixer",
+  "Talents": [
+    {
+      "name": "Hit Points",
+      "level": 1,
+      "desc": "**Hit Dice:** 1d10 per Fixer level\n**Hit Points at 1st Level:** 10 + Constitution modifier\n**Hit Points at Higher Levels:** 1d10 (or 6) + Constitution modifier per Fixer level after 1st",
+      "color": ""
+    },
+    {
+      "name": "Proficiencies",
+      "level": 1,
+      "desc": "**Armor:** Light armor, Medium armor, Shields\n**Weapons:** martial and simple weapons, firearms\n**Tools:** one type of musical instrument and one artisan's tools or game set\n**Saving Throws:** Wisdom, Dexterity, or Constitution and Intelligence, Strength, or Charisma\n**Skills:** Choose three from Athletics, Acrobatics, Investigation, Survival, Stealth, Persuasion, Perception, and Medicine",
+      "color": ""
+    },
+    {
+      "name": "Equipment",
+      "level": 1,
+      "desc": "You start with the following equipment, in addition to the equipment granted by your background:\n\n* Leather armor and a shield\n* (a) 1 martial weapon or (b) 2 simple weapons\n* (a) a set of throwing weapons (20 throwing knives or 10 javelins/handaxes) or (b) a longbow with 30 arrows and a quiver\n* 1 musical instrument and your selected artisan's tools or gaming set\n* If you are using starting wealth, you have 4d4 x 10 gp in funds.",
+      "color": ""
+    },
+    {
+      "name": "Table: The Fixer",
+      "level": 1,
+      "desc": "| Level | Proficiency Bonus | Workshop Weapon Augments | `Light::Light` | Features |\n|---|---|---|---|---|\n| 1st | +2 | 1 | 0 | `Fixer Grade::Fixer Grade`, Uniform, `Workshops::Workshops`, Affiliation Feature |\n| 2nd | +2 | 1 | 2 | `Abnormal Ability::Abnormal Ability`, `Fighting Style::Fighting Style`, Light |\n| 3rd | +2 | 1 | 3 | `Clashing::Clashing`, Affiliation Feature |\n| 4th | +2 | 2 | 4 | Ability Score Improvement, Light Feature |\n| 5th | +3 | 2 | 5 | Extra Attack |\n| 6th | +3 | 2 | 6 | Affiliation Feature |\n| 7th | +3 | 2 | 7 | Abnormal Ability Improvement |\n| 8th | +3 | 3 | 8 | Ability Score Improvement, Light Feature |\n| 9th | +4 | 3 | 9 | Immoral Mind, `Personal Development::Personal Development` |\n| 10th | +4 | 3 | 10 | Affiliation Feature |\n| 11th | +4 | 3 | 11 | Extra Attack |\n| 12th | +4 | 4 | 12 | Ability Score Improvement, Light Feature |\n| 13th | +5 | 4 | 13 | Affiliation Feature |\n| 14th | +5 | 4 | 14 | Abnormal Ability Improvement |\n| 15th | +5 | 4 | 15 | Never Surrounded, Personal Development |\n| 16th | +5 | 5 | 16 | Ability Score Improvement, Light Feature |\n| 17th | +6 | 5 | 17 | Affiliation Feature |\n| 18th | +6 | 5 | 18 | Recognition |\n| 19th | +6 | 5 | 19 | Ability Score Improvement, Light Feature |\n| 20th | +6 | 6 | 20 | Being of Light, Top Notch Fixer |",
+      "color": ""
+    },
+    {
+      "name": "Fixer Grade",
+      "level": 1,
+      "desc": "At 1st level, all the paperwork is done, you are officially a fixer. With this title comes organizations, companies, and other businesses that are willing to give you contracts in exchange for a job well done. These jobs can vary from saving a cat from a tree, fixing a leaky sink, or killing a king. By doing these jobs and fulfilling contracts, your Fixer grade may change. The Hana association is in charge of rankings and determining your talent based off of jobs, and as such you will need to not only repeatedly perform jobs, but also do well with them in order to progress the ranks. You are currently a Grade 9 fixer, the lowest rank. Requirements to raise through the ranks is shown below\n\n* Grade 9: –\n* Grade 8: Complete a job\n* Grade 7: Complete 3 jobs, must complete 1 Combat job\n* Grade 6: Complete 6 jobs, must complete 3 Combat jobs\n* Grade 5: Complete 10 jobs, must complete 6 Combat jobs\n* Grade 4: Complete 12 jobs, must complete 10 Combat jobs\n* Grade 3: Complete 15 jobs, Must complete 13 Combat jobs, must have killed 1 creature with a CR or level higher than your own.\n* Grade 2: Complete 20 jobs, Must complete 20 Combat jobs, must have killed 2 creatures with a CR or level higher than your own.\n* Grade 1: Complete 25 jobs, Must complete 25 Combat jobs, must have killed 3 creatures with a CR or level higher than your own.\n* Color Rank: Destroy 1 office with a minimum of 5 grade 1 fixers, Successfully raid one corporation, or kill a god, colored fixer, or distortion with a WAW or ALEPH rank or higher with the help of at most one person who matches your rank or is below.\n\nThese Criteria are at the DM’s Discretion meaning that an “Exception” can be made due to a different triumph that is equal to or greater than the requirements to move up a rank. Additionally, it is possible to move up multiple ranks at once if the requirements are met or if the `Hana Association::Hana Association` deems you worthy.",
+      "color": ""
+    },
+    {
+      "name": "Uniform",
+      "level": 1,
+      "desc": "Now that you’ve become a fixer, you’ve been granted the uniform of your particular line of work. You gain the Fixer Armor of your chosen affiliation from the Fixer Tools. If there is no listed armor for your affiliation, you instead gain an artifact of your choosing.",
+      "color": ""
+    },
+    {
+      "name": "Workshops",
+      "level": 1,
+      "desc": "At 1st level, you have gained access to workshops. Workshops allow for you to custom tailor a weapon, piece of armor, or equipment to meet your wants and needs. Use the Workshop Weapon Creation page to get started on Workshop items. Depending on your fixer grade, some workshops may see you as a potential means of advertisement and will be more willing to work with you to make a custom equipment to stand out and help you in your future endeavors. Upon reaching higher ranks, workshops will offer you more and more services for the sake of your equipment. Your workshop items will have a number of augments equal to the workshop weapon table. You may have one workshop weapon, armor, and artifact item equipped at once.",
+      "color": ""
+    },
+    {
+      "name": "Fixer Affiliation",
+      "level": 1,
+      "desc": "It is often wise to join a larger group in order to more effectively expand your skills as a Fixer. At 1st level, you may pick one of the many Affiliations listed at the bottom of this class. You gain features from these at 1st, 3rd, 6th, 10th, 13th, and 17th levels.\n\nSome of your Fixer features require your target to make a saving throw to resist the feature's effects. The saving throw DC is calculated as follows:\n\n* Fixer Ability Modifier = your strength or dexterity modifier\n* Fixer Save DC = 8 + your proficiency bonus + your strength or dexterity modifier\n* Fixer Attack Modifier = your proficiency bonus + your strength or dexterity modifier",
+      "color": ""
+    },
+    {
+      "name": "Fighting Style",
+      "level": 2,
+      "desc": "Starting at 2nd level, you adopt a particular style of fighting as your specialty. Choose one of the following options. You may choose an additional fighting style at 10th level. You can't take a Fighting Style option more than once, even if you later get to choose again.\n\n**Sharpshooter**\n\nYou gain a +2 bonus to attack rolls you make with ranged attacks.\n\n**Blind Fighting**\n\nBeing unable to see a creature doesn’t impose disadvantage on your attack rolls against it, provided the creature isn’t hidden from you.\n\n**Close-Range**\n\nYou gain a +2 to damage dealt with ranged attacks. Additionally, you no longer attack at disadvantage when you use a ranged attack within 5ft of a creature.\n\n**Strongbow**\n\nYou can use your Strength modifier, in place of Dexterity, for your attack and damage rolls with longbows and shortbows.\n\n**Dual Wielding**\n\nWhen you take the Attack action while two-weapon fighting, you can make a single additional attack with your off-hand weapon as part of your action instead of your bonus action, adding your ability modifier to the damage of this attack. You cannot attack with the offhand weapon as a bonus action when using this feature.\n\n**All Terrain Athlete**\n\nYou have a swimming speed and a climbing speed equal to your normal speed, and you gain a +1 bonus to armor class.\n\n**Dueling**\n\nWhen you are wielding a melee weapon in one hand and no other weapons, you gain a +2 bonus to damage rolls with that weapon.\n\n**Great Weapon Fighting**\n\nWhen you roll a 1 or 2 on a damage die for an attack you make with a melee weapon that you are wielding with two hands, you can reroll the die and must use the new roll, even if the new roll is a 1 or a 2. The weapon must have the two-handed or versatile property for you to gain this benefit.\n\n**Interception**\n\nWhen a creature you can see hits a target that is within 5 feet of you with an attack, you can use your reaction to reduce the damage the target takes by 1d10 + your proficiency bonus. You must be wielding a shield or a simple or melee martial weapon to use this reaction.\n\n**`Protection::Protection`**\n\nWhen a creature you can see attacks a target other than you that is within 5 feet of you, you can use your reaction to impose disadvantage on the attack roll. You must be wielding a shield or melee martial weapon.\n\n**Two Weapon Fighter**\n\nWhen you engage in two-weapon fighting, you can add your ability modifier to the damage of the second attack.\n\n**Iaijutsu**\n\nYou make the first attack of each round with your sword still sheathed. This attack is made with advantage. You may sheath your weapon as a bonus action.\n\n**Tunnel Fighter**\n\nAs a bonus action, you can enter a defensive stance that lasts until the start of your next turn. While in your defensive stance, you can make opportunity attacks without using your reaction, and you can use your reaction to make a melee attack against a creature that moves more than 5ft while within your reach.\n\n**Thrown Weapon Fighting**\n\nYou can draw a weapon that has the thrown property as part of the attack you make with the weapon. Moreover, when you hit with a ranged weapon attack using a thrown weapon, you gain a +2 bonus to the damage roll of that attack.\n\n**Gun Brawler**\n\nYour unarmed strikes can deal bludgeoning damage equal to 1d4 + your Dexterity modifier. When you make a weapon attack using a pistol you may make an unarmed strike as a bonus action. This effect also works vice versa when using an unarmed attack, allowing you to make one weapon attack with your pistol. Additionally, when using a pistol, you no longer attack at disadvantage when within 5ft of a creature.\n\n**Lancer**\n\nWhen wielding a lance you no longer suffer disadvantage on attack rolls against a creature within 5ft of you and lances may now be wielded in one hand. Additionally Lances you wield now deal 2d6 instead of 1d12.\n\n**Brawler**\n\nWhile wielding an improvised weapon, you are considered proficient. Your unarmed attacks and improvised weapon damage rolls now add your proficiency bonus to the roll.\n\n**Superior Technique**\n\nYou learn one maneuver of your choice from among those available to the Battle Master Fighter Subclass. If a maneuver you use requires your target to make a saving throw to resist the maneuver's effects, the saving throw DC equals 8 + your proficiency bonus + your Strength or Dexterity modifier (your choice.) You gain one superiority die, which is a d8 (this die is added to any superiority dice you have from another source). This die is used to fuel your maneuvers. A superiority die is expended when you use it. You regain your expended superiority dice when you finish a short or long rest.\n\n**Rider**\n\nYou gain the benefits of the Mounted Combatant feat.",
+      "color": ""
+    },
+    {
+      "name": "Abnormal Ability",
+      "level": 2,
+      "desc": "Something is up with you, nobody can really place their finger on why though. At 2nd level you may pick one of the following abnormal abilities. You will gain features from them at 2nd, 7th, and 14th levels.\n\n**Abnormally Strong**\nYou gain the powerful build feature. Additionally, when not in combat, once per long rest, or twice per long rest once you reach 14th level, may perform a great feat of strength. You may lift, push, or throw an amount of kilograms equal to your Strength Score multiplied by 100. This may also be used to break down walls, etc.\n\n**Abnormally Fast**\nYou gain +10 to all available movement speeds and a +1 to your initiative rolls.\n\n**Abnormally Durable**\nYou may reduce non-magical bludgeoning, piercing, and slashing damage by your constitution modifier.\n\n**Abnormally Smart**\nIt takes you half the time to learn any skill as it would any other person. Additionally you may add half your intelligence modifier rounded up to any check that you are not proficient in, or intelligence checks you are proficient in. Gain 1 extra `Light::Light`.\n\n**Abnormally Wise**\nYou gain proficiency in Perception and Insight. Additionally, you have advantage on perception rolls, and cannot be surprised. If you would already have immunity to being surprised, instead gain expertise in Perception. When rolling initiative, you may add your Wisdom modifier instead of your Dexterity modifier. Gain 1 extra Light.\n\n**Abnormally Awesome**\nYou gain advantage on charisma checks and saves. You may use the bardic inspiration feature from the bard class, having a number of uses equal to your proficiency bonus. The size of the dice is a 1d8. You may regain a use of this feature for 2 light. Gain 1 extra Light.",
+      "color": ""
+    },
+    {
+      "name": "Light",
+      "level": 2,
+      "desc": "At 2nd level, you’ve seen the harsh reality of the city and its tenants, along with the impending doom that fills the streets, however your glimmer of hope will continue to grow within you until it becomes a blinding, radiant light. You gain a number of Light equal to the class table + your proficiency bonus + your choice of your Wisdom, Intelligence, or Charisma modifier. After choosing between Wisdom, Intelligence, or Charisma, you cannot change this decision later. Upon gaining this feature, choose 2 of the following light techniques. You learn an additional light technique at 4th, 8th, 12th, 16th, and 19th levels.\n\n* Frightening Attack: When you hit a creature with a weapon attack, you can spend 2 light to attempt to frighten the target from the sheer pain you inflict upon them. You add a 1d8 to the attack's damage roll, and the target must make a Wisdom saving throw. On a failed save, it is frightened of you until the end of your next turn.\n* Horizontal Cleave: When you hit a creature with a melee weapon attack, you can expend 1 light to attempt to damage another creature with the same attack. Choose another creature within 5 feet of the original target and within your reach. If the attack roll would hit the second creature too, then they take your weapon damage on hit.\n* Ricochet Rounds: You may use light to have your attack ricochet to nearby targets. You may expend 1 Light before making a ranged attack roll. On hit deal an additional 1d8 damage and then target another creature within 15ft. If your original attack roll would hit the second target, deal the result of the 1d8 roll to that target.\n* Press the Offensive: For 3 Light as a bonus action, you may gain 1 `Offense Level Up::Offense Level Up` until the start of your next turn.\n* Grappling Strike: Immediately after you hit a creature with a melee attack on your turn, you can expend 1 Light and then try to grapple the target as a bonus action.\n* Skitter Away: For 1 light you may apply this to a weapon attack, after which you may move 5ft without provoking opportunity attacks.\n* Feint: You can expend 1 Light and use a bonus action on your turn to feint, choosing one creature within 5 feet of you as your target. You have advantage on your next attack roll against that creature this turn. If that attack hits, add 1d8 to the attack's damage roll.\n* Heavy Swing: When you hit a creature with a melee weapon attack, you can expend 2 light to attempt to drive the target back. You add the 1d8 to the attack's damage roll, and if the target is Large or smaller, it must make a Strength saving throw. On a failed save, you push the target up to 15 feet away from you.\n* Brace For Impact: As a bonus action for 2 light, you may reduce all damage you take by your Constitution modifier until the beginning of your next turn.\n* Piercing Shot: For 3 Light when making a ranged weapon attack, you may cause it to become a 30ft line, all creatures in that line must make a Dexterity saving throw where they take weapon damage on failure and no damage on success\n* Take Aim: You may spend 2 Light before an attack roll to add 1d8 to the total.\n\nAll light is recovered upon a long rest. Half of your light is recovered on a short rest.",
+      "color": ""
+    },
+    {
+      "name": "Clashing",
+      "level": 3,
+      "desc": "At 3rd level, you’ve learned one of the most important techniques the city could have taught you. As a reaction to being targeted by an attack and for 2 light, you may engage in a clash with that target. The clash must be declared before the attack roll is made. When engaging in the clash, you may choose one of the following kinds of clashes.\n\n* Counter: Upon winning the clash, the attack does not hit you and you may make a single weapon attack against the target assuming the target is in range of the weapon you clashed with. This attack cannot be clashed against.\n* Mitigate: Upon clashing, reduce the damage taken by the number rolled regardless if you won or lost the clash. You may pick this option as a reaction to a AoE. If you do so, you automatically fail the saving throw, do not reduce the damage, and grant full cover to creatures behind you from the center of the area of affect.\n* Stall: Upon winning the clash, the attack does not hit you and you reduce their movement speed by an amount equal to triple the damage rolled on the clash until the end of their turn. If the target made a ranged weapon attack, their movement speed is not reduced.\n\nWhen clashing against a target, you will both roll damage rolls of each of the attacks you made, in which case, whoever rolls higher damage will have won the clash. If you win a Clash - Counter and hit the follow-up attack, regain 1 light.\n\nA target who is being clashed against may spend 4 light to gain the benefits of your clash. Meaning that the clash you select can work against you if they win it at the cost of them using more resources.\n\nVariant Rule: If you are using any Sanity Variant rules. Clashes gain the following benefits.\n\n* If using Version A, on clash win, you may make a dice equal to your hit dice. Regain the result as sanity and the target loses sanity of the same value.\n* If using Version B, recover 10 sanity on clash win. On clash loss, lose 5 sanity.",
+      "color": ""
+    },
+    {
+      "name": "Ability Score Improvement",
+      "level": 4,
+      "desc": "When you reach 4th level, and again at 8th, 12th, 16th, and 19th level, you can increase one ability score of your choice by 2, or you can increase two ability scores of your choice by 1. As normal, you can't increase an ability score above 20 using this feature unless the cap has increased.\n\nAlternatively, you may take a feat from the 5e feats list or the Fixer Feats",
+      "color": ""
+    },
+    {
+      "name": "Extra Attack",
+      "level": 5,
+      "desc": "At 5th level, you can attack twice, instead of once, whenever you take the Attack action on your turn. The number of attacks increases to three when you reach 11th level in this class.",
+      "color": ""
+    },
+    {
+      "name": "Abnormal Ability Improvements",
+      "level": 7,
+      "desc": "At 7th level, you grow into yourself as a Fixer and hone in on what has made you special. Based on your previous choice, you gain one of the following benefits.\n\n**Abnormally Strong**\nYou gain a +1 to Strength to a maximum of 22. Your powerful build feature improves, allowing for you to count as 2 sizes larger. Additionally, you deal double damage to structures, constructs, and objects. When wielding a weapon that uses your strength or when making a strength based unarmed strike, increase it's dice tier by 1. (Ex: 1d4 > 1d6, ect.).\n\n**Abnormally Fast**\nYou gain a +1 to Dexterity to a maximum of 22. All available movement speeds increase by +10, you gain a +1 to your initiative rolls, and you may dash as a bonus action.\n\n**Abnormally Durable**\nYou gain a +1 to Constitution to a maximum of 22. You gain a damage threshold equal to your proficiency modifier and treat exhaustion as if it was one level less. (you can still die to exhaustion but it requires an additional level). Additionally, your hit point maximum increases by an amount equal to your level. Whenever you gain a level thereafter, your hit point maximum increases by an additional 1 hit point.\n\n**Abnormally Smart**\nYou gain a +1 to Intelligence to a maximum of 22. You gain a benefit to attack rolls equal to half of your intelligence modifier. Gain 1 extra `Light::Light`.\n\n**Abnormally Wise**\nYou gain a +1 to Wisdom to a maximum of 22. When hit by an attack or when failing a save, if you have already been targeted by that attack or been in the area of that effect in this combat, you may use a reaction to gain a bonus to your AC or respective Saving Throw equal to your proficiency bonus. The buff only applies for that attack or saving throw, and expires at the start of your turn. You may only use this feature against a unique attack or effect once in a combat. This increases to twice at 11th level. Gain 1 extra Light.\n\n**Abnormally Awesome**\nYou gain a +1 to Charisma to a maximum of 22. Your bardic inspiration die increases to 1d10, and you may use your bardic inspiration feature with no action cost. Gain 1 extra Light.",
+      "color": ""
+    },
+    {
+      "name": "Personal Development",
+      "level": 9,
+      "desc": "At 9th level, while you have learned a lot from your mentors you know that you have several talents of your own that if nurtured, can shine bright amongst all fixers. You may take any feat from the Fixer Feats page that you meet the prerequisites of. You may pick another one at 15th level.",
+      "color": ""
+    },
+    {
+      "name": "Immoral Mind",
+      "level": 9,
+      "desc": "At 9th level, you’ve been on the job for long enough to where the everyday struggle doesn’t get to you as much. You are unbothered by seeing death and carnage and as such do not feel unsettled by it. Additionally, gain evasion for the corresponding stat associated with your `Abnormal Ability::Abnormal Ability`.",
+      "color": ""
+    },
+    {
+      "name": "Abnormal Ability Perfection",
+      "level": 14,
+      "desc": "At 14th level, you have perfected what has made you stand out, now all that's left is to simply do your job. You gain the following feature based on your abnormal ability.\n\n**Abnormally Strong**\nYou gain a +1 to Strength to a maximum of 22. You may add your Strength modifier an additional time when making damage rolls with a Strength based weapon or unarmed strike using Strength, you have immunity to the restrained condition, and you have advantage on all athletics checks, and add your level to any athletics check you make.\n\n**Abnormally Fast**\nYou gain a +1 to Dexterity to a maximum of 22. All available movement speeds increase by +15 and you have a +2 to your initiative rolls. Whenever you dash, all opportunities attacks against you will automatically miss. If you make an attack roll before dashing, then opportunity attacks gain disadvantage instead.\n\n**Abnormally Durable**\nYou gain a +1 to Constitution to a maximum of 22. When you are reduced to 0 hit points, you may continue fighting while making saves. Getting hit will fail a death save. Upon failing 3 saves in this fashion, you then fall unconscious. Additionally you may add half of your Constitution modifier rounded down to death saves, and rolling a 20 or above on a death save makes you stand back up at 1 hit point.\n\n**Abnormally Smart**\nYou gain a +1 to Intelligence to a maximum of 22. At the beginning of your turn, you may make a DC 15 Intelligence check. On success you can find out a statistic of all creatures on the battlefield such as current HP, ability scores, movement speed or an explanation of one of its features, but only if they have used that feature before. Gain 2 extra `Light::Light`.\n\n**Abnormally Wise**\nYou gain a +1 to Wisdom to a maximum of 22. As a bonus action, choose a creature you can see and make a DC 15 Wisdom (Insight) to tell how the enemy will move next. If this check succeeds, the creature will have a -2 on their attack rolls against you and you will have a +2 on your attack rolls against them, until they hit you, make a contested Dexterity or Charisma (Performance) check as an action, or drop to 0 hit points. You can't do this if you are stunned, paralyzed, charmed, or frightened. You can do this twice per combat encounter. If a creature you are reading in this way moves out of your line of sight, you may still know their location until the end of your turn. Gain 2 extra Light.\n\n**Abnormally Awesome**\nYou gain a +1 to Charisma to a maximum of 22. Gain proficiency in all charisma based skills, or expertise if you already had proficiency. Your bardic inspiration die increases to 1d12, and you gain 4 more uses of it. Gain 2 extra Light.",
+      "color": ""
+    },
+    {
+      "name": "Never Surrounded",
+      "level": 15,
+      "desc": "At 15th level, you are unaffected by flanking against you.",
+      "color": ""
+    },
+    {
+      "name": "Recognition",
+      "level": 18,
+      "desc": "At 18th level, more people know your name than you know theirs. When a creature meets you for the first time, they must make a history check to see if they recognize you (DC=10). On success they know you or at least know of you in a general sense. In combat if a creature recognizes you, they have disadvantage on saving throws you impose until you take any damage or fail a save, unless the creature is of the same CR as your level, or higher. This condition only affects the creatures you wish it to.",
+      "color": ""
+    },
+    {
+      "name": "Being of Light",
+      "level": 20,
+      "desc": "At 20th level, you have been touched by the light and with that comes some benefits. Your `Abnormal Ability::Abnormal Ability` score increases by 2 and so does its maximum. Additionally, you are an icon, your image has been etched into the fabric of being. Your form cannot be affected in any way unless you allow it as the light in your body bends to nobody else.",
+      "color": ""
+    },
+    {
+      "name": "Top Notch Fixer",
+      "level": 20,
+      "desc": "At 20th level, your name is known in your community, work, and possibly across the world. With that comes the symbol of your stature and equipment you wear. You may take a singular Tools of the Trade, ignoring all prerequisites. This decision cannot be changed later.",
+      "color": ""
+    },
+    {
+      "name": "Multiclassing",
+      "level": 1,
+      "desc": "**Prerequisites.** To qualify for multiclassing into the Fixer class, you must meet these prerequisites: 13 Strength or Dexterity and 13 Constitution.\n\n**Proficiencies.** When you multiclass into the Fixer, you gain the following proficiencies: light armor, medium armor, simple weapons, and martial weapons.",
+      "color": ""
+    }
+  ]
+}

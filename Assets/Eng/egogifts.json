@@ -1,0 +1,1507 @@
+[
+  {
+    "Name": "Perversion",
+    "Type": [
+      "Charge"
+    ],
+    "Level": 1,
+    "Description": "After defeating a target, all allies recover 1 sin charge. If wrath damage was used, all allies gain 2 instead."
+  },
+  {
+    "Name": "Ashes to Ashes",
+    "Type": [
+      "Burn"
+    ],
+    "Level": 1,
+    "Description": "At the beginning of the round if all hostile creatures are inflicted with burn, inflict +2 `burn::Burn` against all hostile creatures"
+  },
+  {
+    "Name": "Phlebotomy Pack",
+    "Type": [
+      "None"
+    ],
+    "Level": 1,
+    "Description": "A number of times equal to your proficiency bonus you may regain 1d10 hit points after landing a successful attack. These usages recharge on a long rest.\n\nIf you landed an attack that deals Wrath Damage, than this healing increases to 1d10+Con Mod"
+  },
+  {
+    "Name": "Grimey Iron Stake",
+    "Type": [
+      "Bleed"
+    ],
+    "Level": 1,
+    "Description": "When using damage inflicting features that take a whole action, inflict +1 `Bleed::Bleed` and +1 `Defense Level Down::Defense Level Down`."
+  },
+  {
+    "Name": "Bloody Gadget",
+    "Type": [
+      "None"
+    ],
+    "Level": 1,
+    "Description": "At round start give a random friendly creature (self included) +1 Attack Power up. If any allies who possess Lust sin affinity are in initiative, they become the target of this artifact (if there are multiple choices at random from the selection). If the buff was granted to a creature with Lust Sin affinity, grant +2 attack power up instead of +1."
+  },
+  {
+    "Name": "Talisman Bundle",
+    "Type": [
+      "Rupture"
+    ],
+    "Level": 1,
+    "Description": "Whenever you deal 12 damage in a single instance of damage, inflict 2 `Rupture::Rupture`. If the damage type of the attack was Slashing, inflict 4 Rupture instead."
+  },
+  {
+    "Name": "Green Spirit",
+    "Type": [
+      "Tremor"
+    ],
+    "Level": 1,
+    "Description": "After dealing gluttony damage to a creature who is not stunned, or dealing damage that would also inflict tremor, randomly inflict a total of 4 damage between all hostile creatures (or abnormality parts)."
+  },
+  {
+    "Name": "Lithograph",
+    "Type": [
+      "None"
+    ],
+    "Level": 1,
+    "Description": "When stunning a creature, you regain 5% of your maximum hit points. If the feature that caused the creature to become stunned dealt gluttony damage, recover 10% instead. You may use this twice per long rest."
+  },
+  {
+    "Name": "Crown of Roses",
+    "Type": [
+      "Rupture"
+    ],
+    "Level": 1,
+    "Description": "At the start of the round, inflict 4 `rupture::Rupture` on a random hostile creature (or abnormality part). If two or more allied creatures (self included) inflict gluttony damage, or use a gluttony sin affinity feature, inflict 2 rupture to all hostile creatures at the start of the round."
+  },
+  {
+    "Name": "Sticky Muck",
+    "Type": [
+      "None"
+    ],
+    "Level": 1,
+    "Description": "When dealing piercing or gluttony damage, you may inflict the target with 1 `defense level down::Defense Level Down`. You may use this a number of times equal to your proficiency bonus per long rest."
+  },
+  {
+    "Name": "Prejudice",
+    "Type": [
+      "None"
+    ],
+    "Level": 1,
+    "Description": "At the start of combat if you are not at full hitpoints, recover 15% of your maximum hitpoints. If two or more allied creatures (self included) inflict pride damage, or use a pride sin affinity feature, the ally with the lowest hit points recovers 12% of their maximum hitpoints. Both of these features may be used once per long rest."
+  },
+  {
+    "Name": "Nixie Divergence",
+    "Type": [
+      "Tremor"
+    ],
+    "Level": 1,
+    "Description": "At the start of combat, all hostile creatures are inflicted with 4 `Tremor::Tremor`. When landing an attack that deals Envy damage, inflict +2 tremor."
+  },
+  {
+    "Name": "Voodoo Doll",
+    "Type": [
+      "None"
+    ],
+    "Level": 1,
+    "Description": "At the start of your turn, inflict 3 Envy damage to all hostile creatures. All hostile creatures at 33% hitpoints or lower gain 1 `offense level down::Offense Level Down`."
+  },
+  {
+    "Name": "Tomorrow's Fortune",
+    "Type": [
+      "None"
+    ],
+    "Level": 1,
+    "Description": "Choose an E.G.O. gift that you already possess. Tomorrow’s Fortune consumes that E.G.O. gift and then transforms it into an E.G.O. gift of one tier higher. Tomorrow's Fortune cannot be used to create Tier 4 E.G.O. gifts and cannot be used to create Tier 3 fusion E.G.O. gifts. After using Tomorrow's Fortune, it fades to stardust and disappears, being destroyed upon use."
+  },
+  {
+    "Name": "Thorny Path",
+    "Type": [
+      "Sinking"
+    ],
+    "Level": 1,
+    "Description": "Once per creature per round you may inflict +3 `sinking::Sinking` potency. If you dealt Gloom or Lust damage, you may instead inflict +5 sinking. You may use this feature 3 times per long rest."
+  },
+  {
+    "Name": "Curriculum Vitae",
+    "Type": [
+      "Charge"
+    ],
+    "Level": 1,
+    "Description": "All allied creatures who have +7 `charge::Charge` gain 1 `Haste::Haste` on their next turn."
+  },
+  {
+    "Name": "Pendant of Nostalgia",
+    "Type": [
+      "Poise"
+    ],
+    "Level": 1,
+    "Description": "At round start give a random friendly creature (self included) who can gain `Poise::Poise` +1 Poise count. If any allies who possess Pride sin affinity are in initiative, they become the target of this artifact (if there are multiple choices at random from the selection). If the Poise was granted to a creature with Pride Sin affinity, grant +2 Poise instead of +1."
+  },
+  {
+    "Name": "Broken Revolver",
+    "Type": [
+      "Rupture"
+    ],
+    "Level": 1,
+    "Description": "Creatures with `rupture::Rupture` stacks receive a -1 to attack and damage rolls."
+  },
+  {
+    "Name": "Wrist Guard",
+    "Type": [
+      "Charge"
+    ],
+    "Level": 1,
+    "Description": "At +5 `charge::Charge` gain a +1 to all attack and damage rolls. If you have Pride sin affinity, gain a +2 to attack and damage rolls instead."
+  },
+  {
+    "Name": "Headless Portrait",
+    "Type": [
+      "Sinking"
+    ],
+    "Level": 1,
+    "Description": "At the end of the round if a creature has no `sinking::Sinking` count, inflict 2 sinking. When attacking a creature who is inflicted with sinking, you may inflict 1 sinking on any creature within 10ft of the target (this applies to abnormality parts too)."
+  },
+  {
+    "Name": "Burning Intellect",
+    "Type": [
+      "Burn"
+    ],
+    "Level": 1,
+    "Description": "After defeating a creature inflicted with `burn::Burn` stacks, gain a +3 to all damage rolls until the end of your next turn."
+  },
+  {
+    "Name": "Rusted Muzzle",
+    "Type": [
+      "Bleed"
+    ],
+    "Level": 1,
+    "Description": "When inflicting 12 or more damage to a creature's hitpoints, inflict 2 `bleed::Bleed` stacks. If the attack dealt slashing damage, inflict 4 instead."
+  },
+  {
+    "Name": "Ornamental Horseshoe",
+    "Type": [
+      "Poise"
+    ],
+    "Level": 1,
+    "Description": "At round start give up to 2 random allies (not including self) 1 `Poise::Poise`."
+  },
+  {
+    "Name": "Melted Paraffin",
+    "Type": [
+      "Burn"
+    ],
+    "Level": 1,
+    "Description": "After winning a clash while being capable of inflicting burn, inflict current `burn::Burn` count / 4 rounded up to the target."
+  },
+  {
+    "Name": "Polarization",
+    "Type": [
+      "Burn"
+    ],
+    "Level": 1,
+    "Description": "While sanity is above 75%, attacks that inflict burn deal +2 additional damage."
+  },
+  {
+    "Name": "Arrested Hymn",
+    "Type": [
+      "Bleed"
+    ],
+    "Level": 1,
+    "Description": "At the start of the round if all hostile creatures are inflicted with bleed, gain haste on your next turn."
+  },
+  {
+    "Name": "Tangled Bundle",
+    "Type": [
+      "Bleed"
+    ],
+    "Level": 1,
+    "Description": "When dealing damage to a creature that you have more movement speed than with a skill that inflicts bleed, you may increase the damage by one dice tier. This feature may be used once per round."
+  },
+  {
+    "Name": "Venomous Skin",
+    "Type": [
+      "Tremor"
+    ],
+    "Level": 1,
+    "Description": "When inflicting damage against a creature with an attack that would inflict tremor, you may inflict additional tremor against the target equal to the number of attacks you have made against them with your attack action. You may use this feature once per creature per round."
+  },
+  {
+    "Name": "Bone Stake",
+    "Type": [
+      "Rupture"
+    ],
+    "Level": 1,
+    "Description": "`Rupture::Rupture` damage deals double damage against temporary hit points."
+  },
+  {
+    "Name": "Eldtree Snare",
+    "Type": [
+      "Sinking"
+    ],
+    "Level": 1,
+    "Description": "When clashing against a creature with an attack that would inflict sinking if it hit, gain a +2 to the clash check."
+  },
+  {
+    "Name": "Rags",
+    "Type": [
+      "Sinking"
+    ],
+    "Level": 1,
+    "Description": "After winning a clash with a skill that would inflict sinking, recover 5 sanity."
+  },
+  {
+    "Name": "Devil's Share",
+    "Type": [
+      "Poise"
+    ],
+    "Level": 1,
+    "Description": "At the end of your turn give the ally (user included) with the highest `poise::Poise` count +1 `haste::Haste`. If that creature has a Lust Sin affinity, grant 2 haste instead."
+  },
+  {
+    "Name": "Emerald Elytra",
+    "Type": [
+      "Poise"
+    ],
+    "Level": 1,
+    "Description": "Grant the ally with the highest speed 1 `poise::Poise`. If that ally has Envy sin affinity, grant them 2 instead."
+  },
+  {
+    "Name": "UPS System",
+    "Type": [
+      "Charge"
+    ],
+    "Level": 1,
+    "Description": "If the user is at less than 3 `charge::Charge` count at the end of their turn, they gain 3 charge count. If they have more than 3 charge count, user instead gains +1 to attack and damage rolls."
+  },
+  {
+    "Name": "Uncapped Defibrillator",
+    "Type": [
+      "Charge"
+    ],
+    "Level": 1,
+    "Description": "Whenever the user spends `charge::Charge` count, they may recover an equal amount of hitpoints and sanity. If the user is at less than 50% hit points the recovery is increased by 50%. You may use this feature a number of times equal to your proficiency bonus."
+  },
+  {
+    "Name": "Scalpel",
+    "Type": [
+      "None"
+    ],
+    "Level": 1,
+    "Description": "After dealing damage with an attack that inflicts slashing damage, gain 1 `haste::Haste`."
+  },
+  {
+    "Name": "Deceptive Accord",
+    "Type": [
+      "None"
+    ],
+    "Level": 1,
+    "Description": "If you have at least 15ft more maximum movement speed than a creature you are dealing damage to, you may deal +2 damage to that creature."
+  },
+  {
+    "Name": "Carpenter's Nail",
+    "Type": [
+      "None"
+    ],
+    "Level": 1,
+    "Description": "If the user deals piercing damage, their next attack roll deals +2 damage if the attack deals piercing damage."
+  },
+  {
+    "Name": "Burial Curse",
+    "Type": [
+      "None"
+    ],
+    "Level": 1,
+    "Description": "If this creature wins a clash with an attack that would deal bludgeoning damage, this unit gains 1 `haste::Haste`. If this unit does not deal any damage by the end of its turn, it gains 3 haste."
+  },
+  {
+    "Name": "Gemstone Osculator",
+    "Type": [
+      "Tremor"
+    ],
+    "Level": 1,
+    "Description": "When dealing damage with a feature that consumed tremor, inflict +2 `tremor::Tremor` on the target. If the target had no tremor on it before being hit, inflict +2 tremor (self included)."
+  },
+  {
+    "Name": "Cantabile",
+    "Type": [
+      "Sinking"
+    ],
+    "Level": 1,
+    "Description": "After landing a weapon attack against a target with sinking, recover `sinking::Sinking` count/5 (min 1) sanity."
+  },
+  {
+    "Name": "Layered Bandages",
+    "Type": [
+      "Bleed"
+    ],
+    "Level": 1,
+    "Description": "At the end of all allies turns, if they have `bleed::Bleed` stacks on them, they recover hit points equal to their proficiency bonus."
+  },
+  {
+    "Name": "Overused Whetstone",
+    "Type": [
+      "None"
+    ],
+    "Level": 1,
+    "Description": "When dealing damage with slashing weapons, deal +2 damage and bypass resistances to slashing damage."
+  },
+  {
+    "Name": "High-Tensility Shoes",
+    "Type": [
+      "None"
+    ],
+    "Level": 1,
+    "Description": "Piercing damage you inflict deals +2 damage. Additionally once per round if you have 3 `haste::Haste` stacks or more you may deal additional piercing damage equal to 10+haste stacks on self as bonus piercing damage. You may use this feature a number of times equal to half your proficiency bonus per long rest."
+  },
+  {
+    "Name": "Dimensional Recycle Bin",
+    "Type": [
+      "None"
+    ],
+    "Level": 1,
+    "Description": "Bludgeoning damage you deal gains +2 damage. After using your action for something different than your previous turn, increase the bludgeoning damage you deal by 1 dice tier. You may use this feature once per long rest."
+  },
+  {
+    "Name": "Hellterfly's Dream",
+    "Type": [
+      "Burn"
+    ],
+    "Level": 2,
+    "Description": "When inflicting burn to a burning target, you may inflict 1 `burn::Burn` to all hostile creatures within 15ft of the target being attacked."
+  },
+  {
+    "Name": "Wound Clerid",
+    "Type": [
+      "Bleed"
+    ],
+    "Level": 2,
+    "Description": "When you hit a creature with a skill that inflicts bleed, you may inflict +2 more."
+  },
+  {
+    "Name": "Eclipse of Scarlet Moths",
+    "Type": [
+      "None"
+    ],
+    "Level": 2,
+    "Description": "When dealing damage to a target, you may deal 1/4 of the damage (minimum of 1) to a random hostile creature. If the damage you dealt was Lust damage you may deal the additional damage to two hostile creatures. You may use this feature three times per long rest."
+  },
+  {
+    "Name": "Fiery Down",
+    "Type": [
+      "Burn"
+    ],
+    "Level": 2,
+    "Description": "When inflicting `burn::Burn` on a target with 20 or more burn stacks on them, you inflict +2 burn."
+  },
+  {
+    "Name": "Today's Expression",
+    "Type": [
+      "None"
+    ],
+    "Level": 2,
+    "Description": "After defeating a hostile creature with either sloth or bludgeoning damage, gain 1 Attack power up next turn."
+  },
+  {
+    "Name": "Blood, Sweat, and Tears",
+    "Type": [
+      "None"
+    ],
+    "Level": 2,
+    "Description": "When dealing damage to a stunned target, upgrade damage dice tier by 1. When dealing sloth damage, increase dice tier by 2."
+  },
+  {
+    "Name": "White Gossypium",
+    "Type": [
+      "Bleed"
+    ],
+    "Level": 2,
+    "Description": "When a hostile creature is inflicted with the stunned condition, instead inflict it with 20 `Bleed::Bleed` stacks and 1 `offense level down::Offense Level Down`."
+  },
+  {
+    "Name": "Grey Coat",
+    "Type": [
+      "None"
+    ],
+    "Level": 2,
+    "Description": "When dealing damage with features that target multiple creatures, increase dice tier by 2. Once per combat you may choose to recover hit points equal to the damage roll."
+  },
+  {
+    "Name": "Late-Bloomer's Tattoo",
+    "Type": [
+      "None"
+    ],
+    "Level": 2,
+    "Description": "When dealing pride damage with a feature that requires an action, gain 1 `offense level up::Offense Level Up` and 1 `defense level up::Defense Level Up` next turn."
+  },
+  {
+    "Name": "Lowest Star",
+    "Type": [
+      "None"
+    ],
+    "Level": 2,
+    "Description": "When dealing bludgeoning damage, inflict 2 fixed sanity damage per hit. If using sanity version A, all allies at 50% sanity or lower increase all damage dealt by one dice tier. If using sanity version B, all allies at 0 sanity or lower increases all damage dealt by one dice tier."
+  },
+  {
+    "Name": "Little and To-Be-Naughty Plushie",
+    "Type": [
+      "Bleed"
+    ],
+    "Level": 2,
+    "Description": "All friendly creatures (self included) who can inflict bleed increase all damage they deal by one dice tier when attacking a creature inflicted with bleed or two dice tiers if they deal pride damage. All hostile creatures inflicted with bleed decrease all damage they deal by one dice tier when attacking an allied creature."
+  },
+  {
+    "Name": "Gathering Skulls",
+    "Type": [
+      "None"
+    ],
+    "Level": 2,
+    "Description": "After defeating a target with pierce damage or pride damage, increase all piercing damage dealt next turn by 2 dice tiers for the next two turns (this does not stack with itself)."
+  },
+  {
+    "Name": "Dreaming Electric Sheep",
+    "Type": [
+      "None"
+    ],
+    "Level": 2,
+    "Description": "After defeating a creature with slashing or envy damage, increase all slashing damage you inflict by one dice tier for two turns. If two or more allies have envy sin affinity, all allies gain 1 `offense level up::Offense Level Up` and 1 `defense level up::Defense Level Up` until end of turn."
+  },
+  {
+    "Name": "Pinpoint Logic Circuit",
+    "Type": [
+      "Burn"
+    ],
+    "Level": 2,
+    "Description": "When dealing envy damage or using a feature that can inflict burn, inflict additional burn equal to your proficiency bonus."
+  },
+  {
+    "Name": "Carmilla",
+    "Type": [
+      "None"
+    ],
+    "Level": 2,
+    "Description": "At combat start, all creatures who do not have legendary actions take 20% of their health in true damage."
+  },
+  {
+    "Name": "Child within a Flask",
+    "Type": [
+      "Other"
+    ],
+    "Level": 2,
+    "Description": "All allies with sin affinity gain a single free use of Sinful Strike per sin affinity they possess."
+  },
+  {
+    "Name": "Homeward",
+    "Type": [
+      "None"
+    ],
+    "Level": 2,
+    "Description": "All participating friendly creatures recover 12% of their maximum hit points when they roll initiative."
+  },
+  {
+    "Name": "Red Order",
+    "Type": [
+      "Sinking"
+    ],
+    "Level": 2,
+    "Description": "When the user inflicts sinking on a hostile creature they gain +1 to damage rolls. This may stack up to +3 and resets at the end of their turn."
+  },
+  {
+    "Name": "Employee Card",
+    "Type": [
+      "Charge"
+    ],
+    "Level": 2,
+    "Description": "When using a feature that grants `charge::Charge` count, increase the amount of charge by +1. If that feature or attack dealt wrath damage, gain +2 instead of +1 charge count."
+  },
+  {
+    "Name": "Oscillating Bracelet",
+    "Type": [
+      "Tremor"
+    ],
+    "Level": 2,
+    "Description": "When using a feature or attack that would inflict tremor, all creatures targeted are inflicted with +1 `tremor::Tremor` at the start of their next turn. If that feature or attack dealt wrath damage, target creatures are inflicted with +2 instead of +1."
+  },
+  {
+    "Name": "Cigarette Holder",
+    "Type": [
+      "Poise"
+    ],
+    "Level": 2,
+    "Description": "All allies (self included) with poise deal +1 damage on all damage rolls. If that creature has 5 or more poise, they deal an additional +2 damage instead."
+  },
+  {
+    "Name": "Barbed Lasso",
+    "Type": [
+      "Rupture"
+    ],
+    "Level": 2,
+    "Description": "Whenever a hostile creature rolls initiative, they gain rupture equal to 1/4 their initiative result. When two or more allied creatures inflict lust damage, a random creature is inflicted with 3 `rupture::Rupture`."
+  },
+  {
+    "Name": "Stone Tomb",
+    "Type": [
+      "Poise"
+    ],
+    "Level": 2,
+    "Description": "When an allied creature (self included) gains poise, it gains +1. If an allied creature (self included) defeats a creature with sloth damage, they gain +2 `poise::Poise` at the start of their next turn."
+  },
+  {
+    "Name": "Portable Battery Socket",
+    "Type": [
+      "Charge"
+    ],
+    "Level": 2,
+    "Description": "At the start of the round, 2 randomly selected allied creatures (self included) who can gain charge gain 2 `charge::Charge` count. If two or more allied units (self included) deal sloth damage, a randomly selected ally who can use charge gains 3 charge at the beginning of their next turn."
+  },
+  {
+    "Name": "Melted Spring",
+    "Type": [
+      "Sinking"
+    ],
+    "Level": 2,
+    "Description": "All hostile creatures with 5 or more sinking gain `offense level down::Offense Level Down` and `defense level down::Defense Level Down` on their next turn. After a creature is affected by this feature, it must have 5 more sinking to be inflicted again (e.g., activation 1 = 5 `sinking::Sinking`, activation 2 = 10 sinking, etc.)"
+  },
+  {
+    "Name": "Nightvision Goggles",
+    "Type": [
+      "Charge"
+    ],
+    "Level": 2,
+    "Description": "At the beginning of all allied creatures' turns (self included) with 15 or more `charge::Charge` count may choose to spend 3 charge to gain 1 `offense level up::Offense Level Up`."
+  },
+  {
+    "Name": "Skeletal Crumbs",
+    "Type": [
+      "Sinking"
+    ],
+    "Level": 2,
+    "Description": "All friendly creatures (self included) who can inflict sinking increase all damage they deal by one dice tier when attacking a creature inflicted with sinking or two dice tiers if they deal gloom damage. All hostile creatures inflicted with sinking decrease all damage they deal by one dice tier when attacking an allied creature."
+  },
+  {
+    "Name": "Nebulizer",
+    "Type": [
+      "Poise"
+    ],
+    "Level": 2,
+    "Description": "All allied creatures (self included) start combat with 4 `poise::Poise` count."
+  },
+  {
+    "Name": "Voracious Hammer",
+    "Type": [
+      "None"
+    ],
+    "Level": 2,
+    "Description": "Gain 3 gp or equivalent currency when any allied creature (self included) defeats a creature in combat."
+  },
+  {
+    "Name": "Golden Urn",
+    "Type": [
+      "None"
+    ],
+    "Level": 2,
+    "Description": "After winning a combat encounter, all gp or equivalent currency gained from the encounter is increased by 30%."
+  },
+  {
+    "Name": "Milepost of Survival",
+    "Type": [
+      "None"
+    ],
+    "Level": 2,
+    "Description": "If an allied creature (self included) leveled up after a combat encounter or at the end of a session where this E.G.O gift was used, they gain 50gp or equivalent currency."
+  },
+  {
+    "Name": "Reverberation",
+    "Type": [
+      "Tremor"
+    ],
+    "Level": 2,
+    "Description": "All hostile creatures with 10 or more tremor on them gain 2 `bind::Bind`."
+  },
+  {
+    "Name": "Fluorescent Lamp",
+    "Type": [
+      "Rupture"
+    ],
+    "Level": 2,
+    "Description": "If a creature has `rupture::Rupture` stacks on them, grant a random ally +2 to all damage rolls. Repeat this a number of times equal to the number of hostile creatures with rupture (individual abnormality parts count as separate creatures)."
+  },
+  {
+    "Name": "Pain of Stifled Rage",
+    "Type": [
+      "Burn"
+    ],
+    "Level": 2,
+    "Description": "When inflicting burn against an already burning creature, gain 1 `haste::Haste`. If you already have haste stacks, gain 1 haste and deal +1 to all damage rolls (stacks up to +3 haste and damage increase). Damage benefits reset at the beginning of your next turn."
+  },
+  {
+    "Name": "Awe",
+    "Type": [
+      "Bleed"
+    ],
+    "Level": 2,
+    "Description": "When dealing damage to a creature with 7 or more `bleed::Bleed` stacks, increase all damage you deal against that creature by one dice tier."
+  },
+  {
+    "Name": "Sour Liquor Aroma",
+    "Type": [
+      "Tremor"
+    ],
+    "Level": 2,
+    "Description": "All features that you use that inflict tremor (including on self) gain a +2 to damage rolls."
+  },
+  {
+    "Name": "Mirror Tactile Synaesthesia",
+    "Type": [
+      "Tremor"
+    ],
+    "Level": 2,
+    "Description": "After stunning a creature, inflict 1/3 of the `tremor::Tremor` count previously on that target divided evenly amongst all other hostile creatures. If the target was stunned by `tremor burst::Tremor Burst`, the calculation of tremor is taken from before the burst. If there are no other creatures to apply the tremor to, inflict the value back onto the initial target."
+  },
+  {
+    "Name": "Smoking Gunpowder",
+    "Type": [
+      "Rupture"
+    ],
+    "Level": 2,
+    "Description": "If a feature you used inflicted a creature with rupture, gain 1 `haste::Haste`. If you possess any haste stacks and have a movement speed of 50ft or above, all features that inflict rupture increase their damage by 1 dice tier."
+  },
+  {
+    "Name": "Ragged Umbrella",
+    "Type": [
+      "Rupture"
+    ],
+    "Level": 2,
+    "Description": "When clashing against a creature while using a skill that would inflict rupture, inflict 2 `rupture::Rupture` against the target if you win the clash."
+  },
+  {
+    "Name": "Grandeur",
+    "Type": [
+      "Sinking"
+    ],
+    "Level": 2,
+    "Description": "When you inflict a creature with sinking that already has 10 or more sinking, inflict +2 `sinking::Sinking`."
+  },
+  {
+    "Name": "Old Wooden Doll",
+    "Type": [
+      "None"
+    ],
+    "Level": 2,
+    "Description": "When you land a critical hit, inflict the target with 1 `defense level down::Defense Level Down`."
+  },
+  {
+    "Name": "Patrolling Flashlight",
+    "Type": [
+      "Charge"
+    ],
+    "Level": 2,
+    "Description": "Once per turn when you consume charge, gain +1 to your next clash (stackable up to +5) and increase the damage dealt by your next attack or feature by one dice tier."
+  },
+  {
+    "Name": "Traitor's Scissors",
+    "Type": [
+      "None"
+    ],
+    "Level": 2,
+    "Description": "When clashing with an attack or feature that would deal slashing damage, gain a +2 to the clash. Additionally, any damage dealt to the target on clash win is increased by +5."
+  },
+  {
+    "Name": "Resolution",
+    "Type": [
+      "None"
+    ],
+    "Level": 2,
+    "Description": "When clashing with an attack or skill that deals slashing damage, gain a +1 to the clash and gain 1 `haste::Haste` on clash win. If any allied units (including self) are the Shi association subclass, they may choose to start combat at half hit points but gain a +3 to AC."
+  },
+  {
+    "Name": "Once, a Blessing",
+    "Type": [
+      "None"
+    ],
+    "Level": 2,
+    "Description": "When dealing damage with a piercing skill, you gain +1 to all piercing damage you deal and 1 `haste::Haste` until the end of your next turn."
+  },
+  {
+    "Name": "Torn Bandolier",
+    "Type": [
+      "None"
+    ],
+    "Level": 2,
+    "Description": "All firearms deal +2 damage and +1 clash power. Additionally, you may reload as a free action so long as the firearm lacks the stabilizing and heavy property."
+  },
+  {
+    "Name": "Compression Bandage",
+    "Type": [
+      "None"
+    ],
+    "Level": 2,
+    "Description": "When dealing bludgeoning damage, deal +3 damage. If that damage was also gloom damage, recover 3 hit points."
+  },
+  {
+    "Name": "Temporal Bridle",
+    "Type": [
+      "None"
+    ],
+    "Level": 2,
+    "Description": "Allies (including self) with features that deal bludgeoning damage deal +2 bludgeoning damage. Units who dealt damage with a blunt weapon on their last turn increase their next bludgeoning damage roll by an additional +2."
+  },
+  {
+    "Name": "Oracle",
+    "Type": [
+      "Other"
+    ],
+    "Level": 2,
+    "Description": "When dealing Sin damage, you may convert it to a different sin type after finding out if the creature you attacked is resistant to that type."
+  },
+  {
+    "Name": "Decamillennial Stewpot",
+    "Type": [
+      "Burn"
+    ],
+    "Level": 2,
+    "Description": "Features that inflict burn gain a +2 to clashes."
+  },
+  {
+    "Name": "Decamillennial Hearthflame",
+    "Type": [
+      "Burn"
+    ],
+    "Level": 2,
+    "Description": "At the end of all creatures’ turn, if it is inflicted with burn, burn procs twice and is halved twice."
+  },
+  {
+    "Name": "Millarca",
+    "Type": [
+      "Bleed"
+    ],
+    "Level": 2,
+    "Description": "Features that inflict bleed gain +2 to clash checks."
+  },
+  {
+    "Name": "Wobbling Keg",
+    "Type": [
+      "Tremor"
+    ],
+    "Level": 2,
+    "Description": "While an allied creature has 8 or more `tremor::Tremor` stacks, they gain +1 clash power. If that allied creature stuns a creature or reduces it to 0 hit points with a feature that consumes tremor stacks, it regains 1/4 of the tremor it spent."
+  },
+  {
+    "Name": "Interlocked Cogs",
+    "Type": [
+      "Tremor"
+    ],
+    "Level": 2,
+    "Description": "This gift activates when 3 or more allied creatures (self included) can inflict tremor. When `tremor burst::Tremor Burst` is inflicted on a creature for the 6th time, the target must make the saving throw with disadvantage. Additionally, inflict 1 `fragile::Fragile` when inflicting `amplitude conversion::Amplitude Conversion` or `amplitude entanglement::Amplitude Entanglement` (once per turn)."
+  },
+  {
+    "Name": "Shard of Apocalypse",
+    "Type": [
+      "Rupture"
+    ],
+    "Level": 2,
+    "Description": "When an allied creature (including self) inflicts rupture on a creature who has less than 15 `rupture::Rupture` potency, they inflict +1 rupture."
+  },
+  {
+    "Name": "Thorny Rope Cuffs",
+    "Type": [
+      "Rupture"
+    ],
+    "Level": 2,
+    "Description": "This gift activates when 3 or more allied creatures (self included) can inflict rupture. When a creature’s rupture would be consumed, instead consume 1/2 the amount."
+  },
+  {
+    "Name": "Faded Overcoat",
+    "Type": [
+      "None"
+    ],
+    "Level": 2,
+    "Description": "If there are 3 or more creatures with 25% or lower sanity in version A, or -45 in version B, all allies gain 1 attack level up."
+  },
+  {
+    "Name": "Tangled Bones",
+    "Type": [
+      "Sinking"
+    ],
+    "Level": 2,
+    "Description": "This gift activates when 3 or more allied creatures (self included) can inflict sinking. When sinking is consumed on a creature, it regains 1/3 that amount at the beginning of its next turn."
+  },
+  {
+    "Name": "Recollection of a Certain Day",
+    "Type": [
+      "Poise"
+    ],
+    "Level": 2,
+    "Description": "When an allied creature (self included) clashes with a feature or attack that gives poise, they gain a +2 to clashes and a +2 to damage rolls with those features or attacks."
+  },
+  {
+    "Name": "Angel's Cut",
+    "Type": [
+      "Poise"
+    ],
+    "Level": 2,
+    "Description": "If an allied creature (self included) would gain poise above their proficiency bonus, their next critical hit inflicts +2 damage per `poise::Poise` stack above their maximum."
+  },
+  {
+    "Name": "Miniature Telepole",
+    "Type": [
+      "Charge"
+    ],
+    "Level": 2,
+    "Description": "When an allied creature (self included) reduces a creature to 0 hit points with a feature that consumes 7 or more charge, they regain 1/4 the amount of charge spent at the end of their turn."
+  },
+  {
+    "Name": "T-1B Octagonal Bolt",
+    "Type": [
+      "Charge"
+    ],
+    "Level": 2,
+    "Description": "This gift activates when 3 or more allied creatures (self included) can gain charge. Allies without charge barrier at the end of their turn gain charge barrier. Whenever an allied creature consumes 20 `charge::Charge` count over the course of combat, increase its potency by 1 (until the end of combat, that creature’s charge counts as two per single charge spent)."
+  },
+  {
+    "Name": "Short Cane Sword",
+    "Type": [
+      "None"
+    ],
+    "Level": 2,
+    "Description": "When an allied creature (self included) wins a clash with a bludgeoning damaging attack, it gains a +2 to clash checks. If any allied units (self included) have the `Seven Association::Seven Association, South Section` Subclass, they may use this feature for slashing and piercing damage as well. Additionally, all Seven Association allies (self included) gain additional clash power equal to the number of other Seven Association allies (max +2)."
+  },
+  {
+    "Name": "Plume of Proof",
+    "Type": [
+      "Poise"
+    ],
+    "Level": 2,
+    "Description": "After an allied creature (self included) wins a clash, the creature you clashed against gains 1 `bind::Bind` at the start of their next turn. If an allied creature (self included) is of the Cinq association, they gain 1 `haste::Haste` at the beginning of their next turn as well. Additionally, if an allied Cinq association creature (self included) wins a clash against a creature with Compelled Duel, Focused Assault, or Nerve Strike, they gain 2 `poise::Poise` for each attack they land after winning the clash."
+  },
+  {
+    "Name": "Pocket Flashcards",
+    "Type": [
+      "None"
+    ],
+    "Level": 2,
+    "Description": "After an allied creature (self included) wins a clash with an attack or feature that would inflict bludgeoning damage, inflict 1 `defense level down::Defense Level Down` against that target. If the allied creature (self included) has the Dieci association subclass, the previous feature applies to slashing and piercing damage for those creatures as well. After a Dieci association member wins a clash in this way, if their next action would be different than the feature they used in the clash, they increase the damage of their next instance of damage by two dice tiers."
+  },
+  {
+    "Name": "Dimensional Perception Modifier (Bludgeoning)",
+    "Type": [
+      "None"
+    ],
+    "Level": 3,
+    "Description": "When making an attack using a different feature than the one you used last turn, gain a +1 to the damage roll.\n\nIf the feature would deal bludgeoning damage, gain an additional +1 to the damage roll."
+  },
+  {
+    "Name": "Torn Hems (Piercing)",
+    "Type": [
+      "None"
+    ],
+    "Level": 3,
+    "Description": "When dealing piercing damage for the second time on your turn, gain 2 `offense level up::Offense Level Up` at the start of your next turn.\n\nAfter using EGO, gain one offense level up at the start of your next turn."
+  },
+  {
+    "Name": "Cloudpattern Gourd Bottle (Slashing)",
+    "Type": [
+      "Bleed",
+      "Poise"
+    ],
+    "Level": 3,
+    "Description": "When dealing slashing damage, the target gains 1 `offense level down::Offense Level Down` (max 2 per turn).\n\nAt the start of your turn, Kurokomo Clan Fixers gain +1 to attack and damage rolls; when inflicting `bleed::Bleed` potency or count, gain 1 `poise::Poise` potency (max 4 per turn)."
+  },
+  {
+    "Name": "Insulator (Charge)",
+    "Type": [
+      "Charge"
+    ],
+    "Level": 3,
+    "Description": "Upon defeating an enemy after spending `charge::Charge` count on a skill, gain 1/3rd of the charge count spent, rounded down.\n\nAt the start of your turn, if at less than 3 charge count, gain +3 charge count. Then, gain +3 charge count and a +1 to damage rolls."
+  },
+  {
+    "Name": "Reminiscence (Poise)",
+    "Type": [
+      "Poise"
+    ],
+    "Level": 3,
+    "Description": "Gain a +2 to attack rolls.\n\nAt the start of your turn, gain 2 `poise::Poise`. If you have Gloom sin affinity, gain an additional 2 poise."
+  },
+  {
+    "Name": "Surging Globe (Sinking)",
+    "Type": [
+      "Sinking"
+    ],
+    "Level": 3,
+    "Description": "For this gift to activate, you and one other ally must be capable of inflicting sinking.\n\nWhen landing an attack, if the target has 5+ `sinking::Sinking` potency: If using Sanity version A, recover SP equal to the sinking potency on the target (max 5). If using Sanity version B, recover SP equal to 1/10th of the sinking potency on the target, rounded up (max 5). At the end of the initiative order: If on Sanity version A, all party members gain `offense level up::Offense Level Up` equal to the number of enemies at <25% sanity (max 3). If using Sanity version B, all party members gain offense level up equal to the number of enemies at -45 sanity (max 3)."
+  },
+  {
+    "Name": "Eerie Effigy (Rupture)",
+    "Type": [
+      "Rupture"
+    ],
+    "Level": 3,
+    "Description": "If an attack or feature would inflict rupture, additionally deal double damage against Temporary HP.\n\nWhen landing a hit, if the target has less than 15 `rupture::Rupture` potency, inflict +2 additional rupture potency on hit. If you cannot apply rupture anymore due to a feature, instead gain a +2 to attack rolls."
+  },
+  {
+    "Name": "Epicenter (Tremor)",
+    "Type": [
+      "Tremor"
+    ],
+    "Level": 3,
+    "Description": "When landing a hit after consuming `tremor::Tremor` on self, if the target does not have tremor, inflict +2 tremor.\n\nAt the start of your turn, gain a +1 to attack rolls for every 5 tremor on yourself (max 3). When defeating an enemy using a feature that consumes tremor on self, regain half of the tremor spent, rounded up."
+  },
+  {
+    "Name": "Devotion (Bleed)",
+    "Type": [
+      "Bleed"
+    ],
+    "Level": 3,
+    "Description": "For this gift to activate, you and one other ally must be capable of inflicting bleed.\n\nGain a +1 to attack rolls. Amongst allies who can inflict bleed, yourself included, the one with the highest initiative gains a +2 to attack rolls and damage rolls."
+  },
+  {
+    "Name": "Ruptured Blood Sac (Bleed)",
+    "Type": [
+      "Bleed"
+    ],
+    "Level": 3,
+    "Description": "Upon clashing and winning, activate the target’s bleed once (3 times per turn)."
+  },
+  {
+    "Name": "Secret Cookbook (Burn)",
+    "Type": [
+      "Burn"
+    ],
+    "Level": 3,
+    "Description": "For this gift to activate, you and one other ally must be capable of inflicting burn.\n\nAllies who can inflict burn gain a +1 to attack and damage rolls. Upon clashing and winning, inflict burn equal to half of the difference of you and the target’s roll, rounded up."
+  },
+  {
+    "Name": "Imposed Weight (Keywordless)",
+    "Type": [
+      "None"
+    ],
+    "Level": 3,
+    "Description": "At the end of initiative, if all allies are dead, lose health equal to your proficiency bonus and gain a +2 to attack and damage rolls next turn.\n\nIf you are below 50% of your max health, instead gain a +3 to attack and damage rolls."
+  },
+  {
+    "Name": "Clasped Sculpture (Bludgeoning)",
+    "Type": [
+      "None"
+    ],
+    "Level": 3,
+    "Description": "For this gift to activate, you must be capable of using a feature that deals bludgeoning damage.\n\nFor every attack you land after the first, add a +1 to the damage roll. This resets at the end of your turn."
+  },
+  {
+    "Name": "Keenbranch (Piercing)",
+    "Type": [
+      "None"
+    ],
+    "Level": 3,
+    "Description": "For this gift to activate, you must be capable of using a feature that deals piercing damage.\n\nGain a +1 to your roll when clashing. After winning a clash, add a +2 to the damage roll of the next attack you land. Add a +1 to damage rolls."
+  },
+  {
+    "Name": "Moment of Sentencing (Slashing)",
+    "Type": [
+      "None"
+    ],
+    "Level": 3,
+    "Description": "For this gift to activate, you must be capable of using a feature that deals slashing damage.\n\nGain a +1 to damage rolls. After winning a clash, add a +1 to your next damage roll equal to the difference of the rolls."
+  },
+  {
+    "Name": "Imitative Generator (Charge)",
+    "Type": [
+      "Charge"
+    ],
+    "Level": 3,
+    "Description": "For this gift to activate, you must have 10+ `charge::Charge` count at the start of your turn.\n\nGain a +1 to attack and damage rolls for all features that would gain or consume charge. If you have less than a +5 to the attack roll of a feature, that feature gains an additional +1 to attack and damage rolls."
+  },
+  {
+    "Name": "Finifugality (Poise)",
+    "Type": [
+      "Poise"
+    ],
+    "Level": 3,
+    "Description": "For this gift to activate, you must have 2+ `poise::Poise` at the start of your turn.\n\nGain a +1 to attack and damage rolls. If you have 4+ poise at the start of your turn, instead gain a +2 to attack and damage rolls. If you have 6+ poise, instead gain a +3 to attack and damage rolls."
+  },
+  {
+    "Name": "Distant Star (Sinking)",
+    "Type": [
+      "Sinking"
+    ],
+    "Level": 3,
+    "Description": "For this gift to activate, you must be capable of inflicting sinking.\n\nWhen landing a hit on a target with sinking, heal 3 SP at the end of your turn (max 6). If you were already at maximum sanity, instead inflict +1 `sinking::Sinking` on the target."
+  },
+  {
+    "Name": "Deathseeker (Rupture)",
+    "Type": [
+      "Rupture"
+    ],
+    "Level": 3,
+    "Description": "For this gift to activate, you must be capable of inflicting rupture.\n\nGain 2 `offense level up::Offense Level Up` and a +1 to attack and damage rolls. If using a feature that only hits once, instead gain 2 offense level up and a +2 to attack and damage rolls."
+  },
+  {
+    "Name": "Clockwork Spring (Tremor)",
+    "Type": [
+      "Tremor"
+    ],
+    "Level": 3,
+    "Description": "Skills that apply tremor (including on self) gain a +1 to attack rolls.\n\nWhen landing a hit on a target with tremor, deal additional damage equal to half of the `tremor::Tremor` on target, rounded down (max 3). If you have Pride sin affinity, the max is instead 5."
+  },
+  {
+    "Name": "Bio-venom Vial (Tremor)",
+    "Type": [
+      "Tremor"
+    ],
+    "Level": 3,
+    "Description": "After defeating a target that had tremor, deal damage of the type that defeated the target equal to half of the `tremor::Tremor` on the target to a random enemy (Once per turn)."
+  },
+  {
+    "Name": "Respite (Bleed)",
+    "Type": [
+      "Bleed"
+    ],
+    "Level": 3,
+    "Description": "For this gift to activate, you must be capable of inflicting bleed.\n\nUpon winning a clash, inflict bleed equal to the difference in the clash rolls, and gain offense level equal to that value next turn (max 3)."
+  },
+  {
+    "Name": "Ardent Flower (Burn)",
+    "Type": [
+      "Burn"
+    ],
+    "Level": 3,
+    "Description": "For this gift to activate, you must be capable of inflicting burn.\n\nUpon landing an attack on a target with a lower percentage of remaining health than `burn::Burn` potency, add a +5 to the damage roll. I.e: This effect will trigger if the target has 40 burn, and less than 40% of their maximum health."
+  },
+  {
+    "Name": "Material Interference Force Field (Charge)",
+    "Type": [
+      "Charge"
+    ],
+    "Level": 3,
+    "Description": "At the start of combat, gain 3 `charge::Charge` barrier."
+  },
+  {
+    "Name": "Broken Compass (Sinking)",
+    "Type": [
+      "Sinking"
+    ],
+    "Level": 3,
+    "Description": "At the start of combat, distribute (5 + # of enemies) `sinking::Sinking` evenly between all enemies."
+  },
+  {
+    "Name": "Bell of Truth (Tremor)",
+    "Type": [
+      "Tremor"
+    ],
+    "Level": 3,
+    "Description": "Once per turn, when bursting `tremor::Tremor` on a target, additionally inflict 1 `fragile::Fragile`."
+  },
+  {
+    "Name": "First-Aid Kit (Keywordless)",
+    "Type": [
+      "None"
+    ],
+    "Level": 3,
+    "Description": "Once per long rest, upon dropping to 25% of your maximum health, immediately heal HP equal to your hit dice times your proficiency bonus."
+  },
+  {
+    "Name": "Endorphin Kit (Poise)",
+    "Type": [
+      "Poise"
+    ],
+    "Level": 3,
+    "Description": "When gaining poise from features, gain one additional poise (once per turn).\n\nIf you have Envy sin affinity, instead gain two additional poise (once per turn)."
+  },
+  {
+    "Name": "Lightning Rod (Charge)",
+    "Type": [
+      "Charge"
+    ],
+    "Level": 3,
+    "Description": "All allies that have features mentioning `Charge::Charge` gain +3 charge at the start of combat.\n\nIf you and one other ally both have Envy sun affinity, instead gain +5 charge."
+  },
+  {
+    "Name": "Charred Disk (Burn)",
+    "Type": [
+      "Burn"
+    ],
+    "Level": 3,
+    "Description": "Upon defeating an enemy with burn, inflict half of the `burn::Burn` potency on the defeated enemy onto the enemy with the least burn potency.\n\nInflict 4 `offense level down::Offense Level Down` onto targets with burn at the start of their turn (once per creature per encounter)."
+  },
+  {
+    "Name": "Grand Welcome (Keywordless)",
+    "Type": [
+      "None"
+    ],
+    "Level": 3,
+    "Description": "At the start of combat, all allies gain +3 additional sin charges that can only be used for Pride.\n\nUpon defeating an enemy, the ally who defeated them regains +2 sin charges, up to their maximums."
+  },
+  {
+    "Name": "Special Contract (Keywordless)",
+    "Type": [
+      "None"
+    ],
+    "Level": 3,
+    "Description": "Once per encounter, upon staggering an enemy, they receive fixed damage equal to 33% of their max HP (max 50) and are inflicted with 2 `fragile::Fragile` until the end of your next turn."
+  },
+  {
+    "Name": "Midwinter Nightmare (Sinking)",
+    "Type": [
+      "Sinking"
+    ],
+    "Level": 3,
+    "Description": "When dealing HP damage to a target after landing a hit, inflict 3 `sinking::Sinking` (once per turn).\n\nIf you have Gluttony sin affinity, instead inflict 5 sinking."
+  },
+  {
+    "Name": "Disk Fragment (Keywordless)",
+    "Type": [
+      "None"
+    ],
+    "Level": 3,
+    "Description": "When an ally uses a non-gluttony EGO, all allies regain +1 sin charge, up to their maximums.\n\nIf the EGO was gluttony sin affinity, all allies instead regain +2 sin charges, up to their maximums."
+  },
+  {
+    "Name": "Four-leaf Clover (Poise)",
+    "Type": [
+      "Poise"
+    ],
+    "Level": 3,
+    "Description": "When landing a critical hit, gain 3 `poise::Poise` at the start of your next turn.\n\nIf you have Gluttony sin affinity, instead gain 5 poise."
+  },
+  {
+    "Name": "Rusted Cutting Knife (Bleed)",
+    "Type": [
+      "Bleed"
+    ],
+    "Level": 3,
+    "Description": "When inflicting bleed against an enemy who isn’t `staggered::Staggered`, inflict +1 `bleed::Bleed` potency and count.\n\nIf you have Lust sin affinity, instead inflict +3 bleed potency and +1 bleed count."
+  },
+  {
+    "Name": "Smokes and Wires (Bleed)",
+    "Type": [
+      "Bleed"
+    ],
+    "Level": 3,
+    "Description": "When inflicting bleed, inflict twice the amount. Do not include other ego gifts in this calculation.\n\nEnemies with bleed lose 10 feet of movement at the start of their turns."
+  },
+  {
+    "Name": "Illusory Hunt (Keywordless)",
+    "Type": [
+      "None"
+    ],
+    "Level": 3,
+    "Description": "You and all allies gain a +2 to damage rolls for the first turn of combat."
+  },
+  {
+    "Name": "Standard-duty Battery (Rupture)",
+    "Type": [
+      "Rupture"
+    ],
+    "Level": 3,
+    "Description": "When hitting an enemy, inflict +3 `rupture::Rupture` potency (once per turn).\n\nIf you have Envy sin affinity, instead inflict +5 rupture potency."
+  },
+  {
+    "Name": "Melted Eyeball (Tremor)",
+    "Type": [
+      "Tremor"
+    ],
+    "Level": 3,
+    "Description": "Upon triggering `tremor burst::Tremor Burst`, also inflict the target with 3 `offense level down::Offense Level Down` and `defense level down::Defense Level Down`."
+  },
+  {
+    "Name": "Thunder Branch (Rupture)",
+    "Type": [
+      "Rupture"
+    ],
+    "Level": 3,
+    "Description": "When inflicting `rupture::Rupture` potency, inflict +1 rupture potency and count."
+  },
+  {
+    "Name": "Phantom Pain (Keywordless)",
+    "Type": [
+      "None"
+    ],
+    "Level": 3,
+    "Description": "Add a +1 to damage rolls when attacking only one target.\n\nIf you and two other allies all have Gloom sin affinity, apply 2 `offense level up::Offense Level Up` to all allies at the start of their turn."
+  },
+  {
+    "Name": "Sunshower (Keywordless)",
+    "Type": [
+      "None"
+    ],
+    "Level": 3,
+    "Description": "If you and two other allies have Sloth sin affinity, or when you use a feature that targets more than one enemy, this ego gift activates.\n\nAll allies gain a +2 to attack and damage rolls at the start of their next turn."
+  },
+  {
+    "Name": "Glimpse of Flames",
+    "Type": [
+      "Burn"
+    ],
+    "Level": 4,
+    "Description": "At the end of a hostile creature’s turn after `burn::Burn` damage is resolved, reduce the stack by half an additional time. Afterwards deal (amount of burn stacks removed by this gift x 2) as wrath damage."
+  },
+  {
+    "Name": "Red-Stained Gossypium",
+    "Type": [
+      "Bleed"
+    ],
+    "Level": 4,
+    "Description": "After initiative is rolled, inflict all hostile creatures with 15 `bleed::Bleed`. At the start of a creatures turn inflict 1 `Offense Level Down::Offense Level Down` and 1 `Defense Level Down::Defense Level Down` for every 10 bleed stacks they have until the beginning of their next turn."
+  },
+  {
+    "Name": "Downpour",
+    "Type": [
+      "Tremor"
+    ],
+    "Level": 4,
+    "Description": "At the start of the round, inflict (round number x 2 `tremor::Tremor`) to all hostile creatures."
+  },
+  {
+    "Name": "Thrill",
+    "Type": [
+      "Rupture"
+    ],
+    "Level": 4,
+    "Description": "At the start of the round inflict 5 `rupture::Rupture` on all hostile creatures. At the end of a creature’s turn, it takes gluttony damage equal to rupture count on the target."
+  },
+  {
+    "Name": "Artistic Sense",
+    "Type": [
+      "Sinking"
+    ],
+    "Level": 4,
+    "Description": "When dealing damage to a creature at less than half of their maximum sanity or a creature who was dealt sanity damage this turn, increase damage dealt by one dice tier. When sinking would be consumed on a creature that doesn’t utilize sanity, deal additional damage equal to the sinking consumed as damage the creature is most vulnerable to."
+  },
+  {
+    "Name": "Clear Mirror, Calm Water",
+    "Type": [
+      "None"
+    ],
+    "Level": 4,
+    "Description": "When landing a critical hit, deal triple damage. When landing a critical hit, gain 2 `offense level up::Offense Level Up` next turn."
+  },
+  {
+    "Name": "Charge-Type Gloves",
+    "Type": [
+      "Charge"
+    ],
+    "Level": 4,
+    "Description": "Increase max `charge::Charge` count by +10. All allies start combat with +5 charge. All allies gain +2 charge count at the start of each of their turns. Friendly creature (self included) with the highest initiative gains Near-Light Superbattery.\n\nNear-Light Superbattery: When this unit spends charge, gain equal stacks of Near-Light Superbattery. Increase max Charge cap by +10. When other friendly units spend charge, this unit gains +1 charge. When consuming charge, consume double. For every 10 charge consumed by a feature, increase damage dice size by 1. If this creature dies or is reduced to 0 hitpoints, transfer Near-Light Superbattery to the friendly creature with the next highest initiative."
+  },
+  {
+    "Name": "Faith",
+    "Type": [
+      "None"
+    ],
+    "Level": 4,
+    "Description": "After landing an attack roll, fully recover a friendly creature’s sanity (self included)."
+  },
+  {
+    "Name": "Piece of Relationship",
+    "Type": [
+      "None"
+    ],
+    "Level": 4,
+    "Description": "All allies (self included) level up five times."
+  },
+  {
+    "Name": "Ancient Effigy",
+    "Type": [
+      "None"
+    ],
+    "Level": 4,
+    "Description": "At the start of combat, ally with the highest initiative (self included) gains 5 `haste::Haste` next turn. At the start of the next turn, give this buff to a different allied creature decided at random. Ancient Effigy cannot be used on the same ally multiple times in a single combat."
+  },
+  {
+    "Name": "Non-Disclosure Agreement",
+    "Type": [
+      "None"
+    ],
+    "Level": 4,
+    "Description": "At the start of combat, a random friendly creature (self included) increases all damage dealt by one dice tier. Every time the creature lands an attack roll this turn increases their damage by an additional dice tier. At the end of their turn the affected creature loses the benefits of Non-Disclosure Agreement. At the start of the next round, Non-Disclosure Agreement affects a different friendly creature. Non-Disclosure Agreement cannot be used on the same ally multiple times in a single combat."
+  },
+  {
+    "Name": "Soothe the Dead",
+    "Type": [
+      "Burn"
+    ],
+    "Level": 4,
+    "Description": "This gift only activates if 4 or more allies can inflict burn. At the start of combat, inflict 20 `burn::Burn` stacks divided amongst all hostile creatures. When attacking with a feature or weapon that inflicts burn stacks gains a +1 to attack and damage rolls and inflicts +1 burn per hit. After winning a clash, inflict the target with burn stacks equal to the number of damage dice you rolled for the clash."
+  },
+  {
+    "Name": "Bloody Mist",
+    "Type": [
+      "Bleed"
+    ],
+    "Level": 4,
+    "Description": "This gift only activates if 4 or more allies can inflict bleed. All friendly creatures (self included) inflict double `bleed::Bleed` stacks and gain a +1 to attack and damage rolls with features or weapon attacks that inflict bleed. A friendly creature (self included) with the highest initiative gains a +2 to attack and damage rolls. If the buffed ally kills a creature with damage or bleed, inflict the target’s bleed stacks on all other hostile creatures distributed evenly."
+  },
+  {
+    "Name": "Coupled Osculation",
+    "Type": [
+      "Tremor"
+    ],
+    "Level": 4,
+    "Description": "This gift only activates if 4 or more allies can inflict tremor. At the start of combat, inflict all hostile creatures with 5 `tremor::Tremor`. When a creature is inflicted with `tremor burst::Tremor Burst`, inflict them with 5 tremor and 2 `fragile::Fragile` at the beginning of their next turn. If a creature has been inflicted with tremor burst three times over the course of the round, the target creature is immediately stunned, you may only stun a creature this way once per creature per combat. When triggering `amplitude conversion::Amplitude Conversion` or `amplitude entanglement::Amplitude Entanglement`, inflict the creature with 1 fragile."
+  },
+  {
+    "Name": "Enrapturing Trance",
+    "Type": [
+      "Rupture"
+    ],
+    "Level": 4,
+    "Description": "This gift only activates if 4 or more allies can inflict rupture. When hitting an enemy with a feature or attack roll, inflict 5 `Rupture::Rupture`. When Rupture stacks drop to 0, instead you may choose to have them not deplete, this feature may be used once per creature per combat. If the target has less than 3 Rupture stacks, inflict +1 more when inflicting Rupture."
+  },
+  {
+    "Name": "Black Sheet Music",
+    "Type": [
+      "Sinking"
+    ],
+    "Level": 4,
+    "Description": "This gift only activates if 4 or more allies can inflict sinking. On Hit against an enemy with a feature or attack roll inflict 5 `Sinking::Sinking` count. At the start of the round enemies or Parts with Sinking regain (Sinking Count each enemy lost last turn / 2) Sinking stacks. On Hit with a feature or attack if the target's sanity is below 50% in version A or below 0 in version B, features and attack rolls increase damage dice by 1 tier. If target is at 25% sanity in version A or at -45 in version B, deal +50% damage instead. If the target does not have sanity, deal +1 damage for every 5 Sinking Potency on target. If target has 90+ Sinking Potency, deal double damage instead."
+  },
+  {
+    "Name": "Lucky Pouch",
+    "Type": [
+      "Poise"
+    ],
+    "Level": 4,
+    "Description": "This gift only activates if 4 or more allies can gain `Poise::Poise`. If an ally critically hit a creature last turn, all allies gain +6 poise. Whenever a friendly creature (self included) deals gloom damage, give +3 poise to all other allies with gloom sin affinity."
+  },
+  {
+    "Name": "T-1 Perpetual Motion Machine",
+    "Type": [
+      "Charge"
+    ],
+    "Level": 4,
+    "Description": "This gift only activates if 4 or more allies can gain `Charge::Charge`. All allies gain 7 Charge Barrier. All allies (self include) gain +1 to all damage rolls for every 5 charge the creature has. Each allied creature gains a +1 to attack and damage rolls equal to the number of (charge spent last turn/4) rounded down. Whenever a friendly creature spends 10 charge, they gain +1 at the start of their next turn. All friendly creatures gain a +1 to attack rolls for every 2 charge they have."
+  },
+  {
+    "Name": "Fragment of Hellfire",
+    "Type": [
+      "Burn"
+    ],
+    "Level": 4,
+    "Description": "Activates when using E.G.O features that inflict `Burn::Burn`. All E.G.O skills that inflict burn deal an additional dice of damage and then upgrade all damage dice by one dice tier. All E.G.O features inflict an additional +1 burn equal to (character level/5)+1."
+  },
+  {
+    "Name": "Fragment of Allurement",
+    "Type": [
+      "Bleed"
+    ],
+    "Level": 4,
+    "Description": "Activates when using E.G.O features that inflict bleed. All E.G.O skills that inflict bleed deal an additional dice of damage and then upgrade all damage dice by one dice tier. All E.G.O features inflict an additional +1 `bleed::Bleed` equal to (character level/5)+1."
+  },
+  {
+    "Name": "Fragment of Inertia",
+    "Type": [
+      "Tremor"
+    ],
+    "Level": 4,
+    "Description": "Activates when using E.G.O features that inflict tremor. All E.G.O skills that inflict tremor deal an additional dice of damage and then upgrade all damage dice by one dice tier. All E.G.O features inflict an additional +1 `tremor::Tremor` equal to (character level/5)+1."
+  },
+  {
+    "Name": "Fragment of Desire",
+    "Type": [
+      "Rupture"
+    ],
+    "Level": 4,
+    "Description": "Activates when using E.G.O features that inflict rupture. All E.G.O skills that inflict rupture deal an additional dice of damage and then upgrade all damage dice by one dice tier. All E.G.O features inflict an additional +1 `rupture::Rupture` equal to (character level/5)+1."
+  },
+  {
+    "Name": "Fragment of Decay",
+    "Type": [
+      "Sinking"
+    ],
+    "Level": 4,
+    "Description": "Activates when using E.G.O features that inflict sinking. All E.G.O skills that inflict sinking deal an additional dice of damage and then upgrade all damage dice by one dice tier. All E.G.O features inflict an additional +1 `sinking::Sinking` equal to (character level/5)+1."
+  },
+  {
+    "Name": "Fragment of Conceit",
+    "Type": [
+      "Poise"
+    ],
+    "Level": 4,
+    "Description": "Activates when using E.G.O features that gives `Poise::Poise`. All E.G.O skills that give poise deal an additional dice of damage and then upgrade all damage dice by one dice tier. All E.G.O features give an additional +1 poise equal to (character level/5)+1."
+  },
+  {
+    "Name": "Fragment of Friction",
+    "Type": [
+      "Charge"
+    ],
+    "Level": 4,
+    "Description": "Activates when using E.G.O features that gives `Charge::Charge`. All E.G.O skills that give Charge deal an additional dice of damage and then upgrade all damage dice by one dice tier. All E.G.O features give an additional +1 Charge equal to (character level/5)+1."
+  },
+  {
+    "Name": "Sundered Memory",
+    "Type": [
+      "None"
+    ],
+    "Level": 4,
+    "Description": "This E.G.O gift only affects the user and one other friendly creature of the users choice. All slashing features or attack rolls of the effected creatures gain a +3 to attack and damage rolls. After winning a clash against a creature using slashing damage, all remaining damage is doubled and inflicted to the target."
+  },
+  {
+    "Name": "Punctured Memory",
+    "Type": [
+      "None"
+    ],
+    "Level": 4,
+    "Description": "This E.G.O gift only affects the user and one other friendly creature of the users choice. All piercing features or attack rolls of the effected creatures gain a +3 to attack and damage rolls. After winning a clash against a creature using piercing damage, all remaining damage is doubled and inflicted to the target."
+  },
+  {
+    "Name": "Crushed Memory",
+    "Type": [
+      "None"
+    ],
+    "Level": 4,
+    "Description": "This E.G.O gift only affects the user and one other friendly creature of the users choice. All bludgeoning features or attack rolls of the effected creatures gain a +3 to attack and damage rolls. After winning a clash against a creature using bludgeoning damage, all remaining damage is doubled and inflicted to the target."
+  },
+  {
+    "Name": "Purloined Flame",
+    "Type": [
+      "Burn"
+    ],
+    "Level": 4,
+    "Description": "Gift activated if 4 or more allies are able to inflict burn. On hit against a creature with 3 or more burn and on the end of a creatures turn if they have 3 or more `burn::Burn` stacks, activate burn the burn stack (inflict damage equal to count and reduce stack by half). If a target with burn stacks was defeated, inflict their burn stacks on one of the enemies with the lowest burn stacks. At the start of a creatures turn with burn stacks, inflict 2 `offense level down::Offense Level Down`. If a target with burn stacks is defeated, friendly creatures (self included) gain +2 to damage rolls until the end of their next turn."
+  },
+  {
+    "Name": "Hemorrhagic Shock",
+    "Type": [
+      "Bleed"
+    ],
+    "Level": 4,
+    "Description": "Gift activated if 4 or more allies are able to inflict bleed. If all hostile creatures have `bleed::Bleed` stacks, they all gain 2 `Offense Level Down::Offense Level Down`. When inflicting Bleed, inflict +3 more Bleed Stacks."
+  },
+  {
+    "Name": "Omnivibro-Octovecti-Bell",
+    "Type": [
+      "Tremor"
+    ],
+    "Level": 4,
+    "Description": "Gift activated if 4 or more allies are able to inflict tremor. When consuming tremor whether it be for `tremor burst::Tremor Burst` or consuming `tremor::Tremor` on self, inflict tremor back onto the target equal to (level/4) rounded down. If the target had 0 tremor before the previous feature, inflict +3 tremor. At the start of turn, gain +1 to clash power for every 5 tremor count on yourself. When using a feature that consumes tremor count to reduce a creature to 0 hitpoints, recover 1/4th of that tremor spent (rounded up). Features that consume tremor on self deal additional damage equal to the tremor consumed."
+  },
+  {
+    "Name": "Ruin",
+    "Type": [
+      "Rupture"
+    ],
+    "Level": 4,
+    "Description": "Gift activated if 4 or more allies are able to inflict rupture. `Rupture::Rupture` damage deals double damage if the target had temporary hit points. Targets with rupture stacks gain 2 `offense level down::Offense Level Down`. When inflicting rupture onto a creature, inflict +2 rupture. If the target has less than 15 rupture, inflict +4 instead. All features and attacks that inflict rupture gain an additional +2 to attack and damage rolls."
+  },
+  {
+    "Name": "Cask Spirits",
+    "Type": [
+      "Poise"
+    ],
+    "Level": 4,
+    "Description": "Gift activated if 4 or more allies are able to gain poise. At the end of the round, 2 allies with the highest poise gain 2 `haste::Haste` and +2 to attack and damage rolls until the end of their next turn. When a friendly creature would gain poise less than 3, they gain +3 `poise::Poise`. At 20 or more poise, you may regain a usage of any one feature that recovers on a short or long rest."
+  },
+  {
+    "Name": "T-5 Perpetual Motion Machine",
+    "Type": [
+      "Charge"
+    ],
+    "Level": 4,
+    "Description": "Gift activated if 4 or more allies are able to gain charge. All allied creatures (self included) at less than 3 `charge::Charge` count, gain +5 charge at the beginning of their turn. At 5 charge count, gain 2 `haste::Haste` and a +2 to attack and damage rolls. All friendly creatures on the field gain Self Resonance Circuitry at the start of their turn. After landing an attack after using a feature that consumes charge, regain one use of a feature that recovers on a short or long rest."
+  },
+  {
+    "Name": "Lunar Memory",
+    "Type": [
+      "None"
+    ],
+    "Level": 5,
+    "Description": "All of your attacks deal damage as though the target were vulnerable. If the target is immune, instead deal normal damage."
+  }
+]

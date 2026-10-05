@@ -1,0 +1,125 @@
+[
+  {
+    "Name": "Kindred of Royalty",
+    "Talents": [
+      {
+        "name": "Royal Blood",
+        "level": 1,
+        "desc": "At 1st level, you gain proficiency in two charisma skills of your choosing, along with gaining a +2 to your charisma. Your charisma score maximum is increased to 24. When a creature hits you, you may deal an amount of psychic damage to them equal to your charisma modifier as a reaction.",
+        "color": ""
+      },
+      {
+        "name": "Bloodbag Turning",
+        "level": 3,
+        "desc": "At 3rd level, you have grasped the art of bloodbag turning incredibly quickly. You may use the bloodbag turning ability, only being able to have 1 creature turned at once. Commanding bloodbags takes a bonus action.",
+        "color": ""
+      },
+      {
+        "name": "Improved Bloodbag Turning",
+        "level": 6,
+        "desc": "At 6th level, your bloodbags may make an additional attack and they inflict +1 `Bleed::Bleed`. You may have two creatures turned at once. At 11th level, you may have as many bloodbags turned as you wish, but you may only use 2 at a time in combat. At that level, they also gain the consumption part of the Siphon ability, and any temporary hit points granted to a `Bloodbag::Bloodbag` by you are doubled.",
+        "color": ""
+      },
+      {
+        "name": "Sheer Terror",
+        "level": 10,
+        "desc": "At 10th level, you gain the `Menacing Aura::Menacing Aura` feature early. Creature have disadvantage on saves against being frightened or charmed by you. When you reach 16th level, you may deal psychic damage to all creatures frightened by you equal to twice your charisma modifier at the start of your turn.",
+        "color": ""
+      },
+      {
+        "name": "Mastered Bloodbag Turning",
+        "level": 13,
+        "desc": "At 13th level, your bloodbags may make another attack per turn, inflict +1 `Bleed::Bleed`, gain a +2 to all stats ignoring their standard caps, and their caps are increased by +1 for Physicals, +5ft for movement and +2 for hit die. You have no action cost for commanding your bloodbags. Your maximum CR for turning creatures into bloodbags is doubled.",
+        "color": ""
+      },
+      {
+        "name": "Lord of All",
+        "level": 17,
+        "desc": "At 17th level, you have reached the pinnacle of your position in the hierarchy. You may use up to 4 bloodbags in a combat at once, you may use `Menacing Aura::Menacing Aura` on every creature in a 120ft radius per use if you have the `Overwhelming Presence::Overwhelming Presence` Feat, or only on one creature, increasing the DC by 5 for that creature. If a creature rolling a save against your Menacing Aura has a CR of or under your proficiency bonus, they gain another level of fear on a failed save. If that creature was CR 1 or below, they instead gain two more levels of fear.",
+        "color": ""
+      }
+    ]
+  },
+  {
+    "Name": "Kindred of Malice",
+    "Talents": [
+      {
+        "name": "Beyond Superhuman",
+        "level": 1,
+        "desc": "At 1st level, you have much more power than a normal Bloodfiend, but at a cost. Your strength, dexterity and constitution scores increase by 2, your speed increases by 5ft, your jump distance is doubled, you gain a climbing speed equal to your walking speed and your ability score maximum is increased to 24. However, your regeneration dice are halved and the light cost for your blood manipulation is doubled. You may take a Body feat for free.",
+        "color": ""
+      },
+      {
+        "name": "Immense Strength",
+        "level": 3,
+        "desc": "At 3rd level, your strength is unmatched. Your unarmed strike damage die goes up by one tier, your strength, dexterity and constitution scores increase by 1 and as an Action you may perform a great feat of strength. You may lift, push, or throw an amount of kilograms equal to your Strength Score multiplied by 100 kilograms. This may also be used to break down walls, etc. At 7th level, this increases to an amount of kilograms equal to your Strength Score multiplied by 200 kilograms, 300 at 10th level, 400 at 14th level, and 500 at 17th level. When you gain this ability from inhuman might, you may use charges from inhuman might to use this ability.",
+        "color": ""
+      },
+      {
+        "name": "Unmatched Prowess",
+        "level": 6,
+        "desc": "At 6th level, your physical capabilities continue to increase. Your strength, dexterity and constitution all increase by 1, your movement speed increases by 10ft, the weight you can push, carry and lift is doubled, your jump distance is doubled and you gain an additional reaction. You also gain resistance to fall damage.",
+        "color": ""
+      },
+      {
+        "name": "Unstoppable Force",
+        "level": 10,
+        "desc": "At 10th level, you are practically a force of nature, being able to ignore most weak attacks. Your strength and constitution both increase by 2, the weight you can push, carry and lift is doubled, when you forcefully move a creature you move them double the distance, you are only moved half the distance when you would be forcefully moved, you gain immunity to fall damage and you gain a damage reduction equal to your constitution modifier against all damage except psychic.",
+        "color": ""
+      },
+      {
+        "name": "Blitzing Speed",
+        "level": 13,
+        "desc": "At 13th level, your speed is so immense that most creatures cannot even perceive your movements. Your dexterity increases by 2, your movement speed increases by 30ft, you gain an additional reaction, opportunity attacks have disadvantage against you, you cannot be targeted by opportunity attacks while dashing, dashing with your action now doubles your speed, rather than letting you move again, your physical ability score maximums are increased to 30, creatures must spend twice as many reactions to react to you and your jump distance is doubled.",
+        "color": ""
+      },
+      {
+        "name": "God Amongst Men",
+        "level": 17,
+        "desc": "At 17th level, your strength is so incredible that even colour grades could fall before you. Your strength, dexterity and constitution scores increase by 2, your speed is doubled, your jump distance triples, you gain an additional bonus action and free action, you may use your feat of strength ability from inhuman might as many times per long rest as you wish. Once per turn, when you hit a creature, you may choose to expend 6 light and take 5d10 damage to knock the creature a number of feet equal to your Strength score times 100 in a direction of your choice, sending them hurtling through any obstacles less durable than thick reinforced steel, such as through a building. Additionally, as full turn action, you may jump a distance equal to your movement speed multiplied by 10 towards a creature you can see, or in any direction if you are not in combat. After using this feature, you take 10d6 necrotic damage as backlash. If you enter melee range of a creature while jumping, you may make an unarmed strike against them. If this hits, it counts as a critical hit, they are sent hurtling 1000ft downwards, dealing 250 damage to any objects they hit on their way down, stopping if an object withstands the impact.",
+        "color": ""
+      }
+    ]
+  },
+  {
+    "Name": "Kindred of Rancor",
+    "Talents": [
+      {
+        "name": "Deathly Malaise",
+        "level": 1,
+        "desc": "At 1st level, your blood is like poison. You have resistance to `poison::Poison` damage. Whenever you would inflict bleed, inflict half of the bleed as poison. When using a feature that covers the opponent in your blood, such as `Blood Tidal Wave::Blood Tidal Wave` or Blood Spit, apply poison on a creature equal to a quarter of the `bloodfeast::Bloodfeast` spent. However, you do not gain the benefits of the `Superhuman::Superhuman` feature apart from the blood consumption necessary and the unarmed strike buff, and your blood techniques require double the light to use. You gain the `Resilient::Resilient` feat.",
+        "color": ""
+      },
+      {
+        "name": "Hard to Kill",
+        "level": 3,
+        "desc": "At 3rd level, your regeneration dice are replaced with a regeneration pool equal to your amount of regeneration dice multiplied by 12. You may also regenerate with no action cost at the start of your turn.",
+        "color": ""
+      },
+      {
+        "name": "Stubborn",
+        "level": 6,
+        "desc": "At 6th level, you gain the `Demonic Constitution::Demonic Constitution` feature early. When you would gain that feature, reduce the cost of regenerating a limb by 1 die and gain 2 more regeneration die.",
+        "color": ""
+      },
+      {
+        "name": "Corrosive Blood",
+        "level": 10,
+        "desc": "At 10th level, you may make your poison deal acid or necrotic damage, and it gives 1 `Defense Level Down::Defense Level Down` and 1 `Bind::Bind` to an affected creature, along with causing them to gain 4 `Bleed::Bleed` at the start of their turn. You gain another regeneration die.",
+        "color": ""
+      },
+      {
+        "name": "Body Control",
+        "level": 13,
+        "desc": "At 13th level, you've become accustomed to the idea that the individual cells within your body are, in fact, under your conscious control. You may now perform tasks that would normally be impossible for a Human. You can fit yourself through small spaces, reknit bones, and fractures in them almost instantly. You gain another 2 regeneration dice. Even after being reduced to 0 hit points and failing all of your death saves, you only fall unconscious, needing to take your healthbar in damage before you wake up with 1 hit point in an hour. If you succeed all of your death saves, you heal 1 hit point. You have advantage on death saves.",
+        "color": ""
+      },
+      {
+        "name": "Immortal",
+        "level": 17,
+        "desc": "At 17th level, you may replenish your regeneration pool by consuming `bloodfeast::Bloodfeast`, with the amount being replenished being equal to the bloodfeast consumed. You regenerate 1 HP at the start of your turn, even while unconscious, and your `Poison::Poison` now deals doubled damage.",
+        "color": ""
+      }
+    ]
+  }
+]

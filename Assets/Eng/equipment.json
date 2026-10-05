@@ -1,0 +1,2239 @@
+[
+  {
+    "Name": "Seven Section's Blade",
+    "ItemType": "Weapon",
+    "IsEGO": false,
+    "Level": 1,
+    "Rarity": "Rare",
+    "Need": "Level 1 Seven Section Associate",
+    "Stats": [
+      "Str"
+    ],
+    "Desc": "*Weapon (longsword)*\n\nDue to its construction, the scabbard is just as deadly as the blade itself, and there is a hidden compartment in the pommel where a long pointed rod can be removed from.\nYou may choose to deal Slashing, piercing, or bludgeoning damage when dealing damage with this weapon. Additionally, if you are affiliated with seven association, you gain a +1 to attack and damage rolls with this weapon. This benefit increases to +2 at 7th level, and again to +3 at 14th level."
+  },
+  {
+    "Name": "Cinq Association's Rapier",
+    "ItemType": "Weapon",
+    "IsEGO": false,
+    "Level": 1,
+    "Rarity": "Rare",
+    "Need": "Level 1 Cinq Association associate",
+    "Stats": [
+      "Str",
+      "Dex"
+    ],
+    "Desc": "*Weapon (Rapier)*\n\nAn elegantly crafted weapon for an elegant fighter.\nFor every 10ft moved in a straight line on your turn, add 1d4 piercing damage. This Benefit does not carry over between rounds (Ex: you cannot move 30ft one turn then another 30ft on the next turn for the next attack to deal 6d4 additional damage. All additional damage is a turn by turn basis). This additional damage has a max of xd4 where x is equal to your proficiency bonus. If you are not a Cinq Association affiliate, you must move 20ft for every additional 1d4. Additionally, if you are affiliated with Cinq association, you gain a +1 to attack and damage rolls with this weapon."
+  },
+  {
+    "Name": "Devyat Association Decay Knife",
+    "ItemType": "Weapon",
+    "IsEGO": false,
+    "Level": 1,
+    "Rarity": "Rare",
+    "Need": "Level 1 Devyat Association",
+    "Stats": [
+      "Str"
+    ],
+    "Desc": "*Weapon (glaive)*\n\nA large trunk containing many tools for the job, primarily used to deliver items across the city.\nThis knife deals 1d10 slashing damage and must be held in two hands. Upon hitting a target with this weapon, you will gain 1 `Courier Trunk::Courier Trunk`. You may store one items that is no bigger than 5X5 feet within the Courier Trunk. This item cannot be destroyed in any way and ill not contribute to weight."
+  },
+  {
+    "Name": "Devyat Association Decay Hammer",
+    "ItemType": "Weapon",
+    "IsEGO": false,
+    "Level": 1,
+    "Rarity": "Rare",
+    "Need": "Level 1 Devyat Association",
+    "Stats": [
+      "Str"
+    ],
+    "Desc": "*Weapon (warhammer)*\n\nA large trunk containing many tools for the job, primarily used to deliver items across the city.\nThis hammer deals 1d12 bludgeoning damage and must be held in two hands. Upon hitting a target with this weapon, you will gain 1 `Courier Trunk::Courier Trunk`. You may store one items that is no bigger than 5X5 feet within the Courier Trunk. This item cannot be destroyed in any way and ill not contribute to weight."
+  },
+  {
+    "Name": "Kurokumo Clan's Katana",
+    "ItemType": "Weapon",
+    "IsEGO": false,
+    "Level": 1,
+    "Rarity": "Rare",
+    "Need": "Level 1 Kurokumo Clan’s associate",
+    "Stats": [
+      "Str",
+      "Dex"
+    ],
+    "Desc": "*Weapon (katana)*\n\nA perfect blade, from tip to handle. You’ve never fashioned yourself on an over the top appearance, simply get results.\nCause an additional `bleed::Bleed` stack per hit and impose disadvantage on medicine checks to stop the bleeding. Recovering any amount of hit points will still stop the effect."
+  },
+  {
+    "Name": "R-Corp Rabbit Rifle and Knife",
+    "ItemType": "Weapon",
+    "IsEGO": false,
+    "Level": 1,
+    "Rarity": "Rare",
+    "Need": "Level 1 R-Corp associate",
+    "Stats": [
+      "Dex"
+    ],
+    "Desc": "*Weapon (Rifle and Knife)*\n\nA compact Rifle made to suppress even the most devastating of abominations.\nThis rifle has a range of 60/180, holds a magazine size of 20 bullets, and deals 1d10 piercing damage per hit. If used by an `R-Corp::R-Corp` associate on the Rabbit team, damage increases to 2d6 and you do not attack with disadvantage while shooting within 5ft. The Knife deals 1d6 slashing. If used by a Rabbit team member, the knife deals 1d8 slashing and 1d4 lightning damage."
+  },
+  {
+    "Name": "R-Corp Reindeer Mace",
+    "ItemType": "Weapon",
+    "IsEGO": false,
+    "Level": 1,
+    "Rarity": "Rare",
+    "Need": "Level 1 R-Corp associate",
+    "Stats": [
+      "Wis"
+    ],
+    "Desc": "*Weapon (Mace)*\n\nA mace that was specially made to increase the effects of their dampening field your suit provides.\nThis mace deals 1d8 bludgeoning damage, but grants the ability to attack at a range of 15ft. When attacking at a range, you deal 1d10 radiant damage. If used by an `R-Corp::R-Corp` associate on the Reindeer team, damage increases to 1d12 radiant damage and range increases to 30ft. Additionally, you may use your wisdom modifier for attack and damage rolls."
+  },
+  {
+    "Name": "R-Corp Rhino Hammer",
+    "ItemType": "Weapon",
+    "IsEGO": false,
+    "Level": 1,
+    "Rarity": "Rare",
+    "Need": "Level 1 R-Corp associate",
+    "Stats": [
+      "Str"
+    ],
+    "Desc": "*Weapon (Maul)*\n\nA hammer made only to be wielded by the strongest of warriors.\nThis hammer deals 1d12 bludgeoning damage, has the two handed and heavy property. If used by an `R-Corp::R-Corp` associate on the Rhino team, the weapon’s damage increases to 2d8, loses the heavy property in exchange for the reach property, and gains access to the slam feature. As an action you may cause all hostile creatures in a 15ft radius or cone to make a Dexterity save or be knocked back 10ft and knocked prone, taking 2x weapon damage on failure. On success creatures take half damage and suffer no additional effects. Any ground hit by this ability is treated as difficult terrain until fixed. You may use this slam an amount of times equal to your proficiency bonus, and it recharges on a long rest."
+  },
+  {
+    "Name": "N-Corp Oversized Nail",
+    "ItemType": "Weapon",
+    "IsEGO": false,
+    "Level": 1,
+    "Rarity": "Rare",
+    "Need": "Level 1 N-Corp affiliate with 16 Strength or 7th level fixer with 18 strength",
+    "Stats": [
+      "Str"
+    ],
+    "Desc": "*Weapon (Lance)*\n\nThis Nail is far too heavy for a normal crusader, as such it was specially made for you.\nThis Nail deals 1d10 piercing damage and has the heavy and reach property. While being used by an `N-Corp::N-Corp` Affiliate, you gain the ability to taunt all creatures who can see or hear you. As an action, once per long rest, you may cause all creatures who can see or hear you to make a Charisma saving throw or be taunted to you until they make the save at the beginning of each of their turns. While taunted, affected creatures attack with disadvantage against other friendly creatures or allow advantage on saving throws they may impose."
+  },
+  {
+    "Name": "N-Corp's Vicious Nail",
+    "ItemType": "Weapon",
+    "IsEGO": false,
+    "Level": 13,
+    "Rarity": "Rare",
+    "Need": "Must be a 13th level N-Corp",
+    "Stats": [
+      "Str",
+      "Dex"
+    ],
+    "Desc": "*Weapon (Javelin)*\n\nA large nail about as large as a longsword.\nThis elongated nail deals 1d8 piercing damage and has the finesse property. Additionally, if you are an `N-Corp::N-Corp` associate, it gains the thrown property with a range 30/45ft and the returning property. When taking this Nail as a tool of the trade, This Nail is counted as a nail for the sake of your Drive the Nail feature. You may embed the nail in somebody as usual but retrieving it as a bonus action on a successful melee attack with a bludgeoning weapon dealing 1d8 piercing damage upon retrieval this way. Finally at 17th level as an N-Corp associate, you may make a special attack with this nail. After a successful ranged attack, you may choose to make the next attack you attempt to be a dash attack. Upon performing this attack, you may immediately move 45ft towards a target and make a melee attack with advantage. On hit you deal 2x weapon damage + 3x piercing damage. You may perform this special attack twice per long rest."
+  },
+  {
+    "Name": "Shi Association's Katana",
+    "ItemType": "Weapon",
+    "IsEGO": false,
+    "Level": 7,
+    "Rarity": "Rare",
+    "Need": "Must be a 7th level Shi Association associate",
+    "Stats": [
+      "Str",
+      "Dex"
+    ],
+    "Desc": "*Weapon (Katana)*\n\nThis red blade is a symbol that many may fear, one that shows that a swift death is always around the corner.\nThis Katana deals 1d8 slashing damage and has the finesse and versatile property (1d10 slashing). If used by a `Shi Association::Shi Association` associate, every 30ft of movement you have at any given moment, you gain a +1 to attack rolls."
+  },
+  {
+    "Name": "The Middle's Chains",
+    "ItemType": "Weapon",
+    "IsEGO": false,
+    "Level": 1,
+    "Rarity": "Rare",
+    "Need": "Must be a Middle Affiliate",
+    "Stats": [
+      "Str"
+    ],
+    "Desc": "*Weapon (Chains)*\n\nThese chains are wrapped around the body, mainly the arms, to slash at the opponent being pummeled.\nInflict 1 `Bleed::Bleed` on hit, gain 1 `Offense Level Up::Offense Level Up` on clashes against targets with Vengeance or Vendetta Mark. Creatures have disadvantage on breaking free of your grapples."
+  },
+  {
+    "Name": "Hana's Adaptive Weaponry",
+    "ItemType": "Weapon",
+    "IsEGO": false,
+    "Level": 1,
+    "Rarity": "Rare",
+    "Need": "Must be a Hana Association Affiliate",
+    "Stats": [
+      "Str",
+      "Dex"
+    ],
+    "Desc": "*Weapon*\n\nA black substance that morphes into any weapon you could think of, even covering body parts.\nAll attacks you make deal 1d10 damage between slashing, piercing, or bludgeoning depending on what shape the weapon is taking on. If you are a `Hana Association::Hana Association` affiliate, you may apply one weapon property to whatever is formed such as reach, light, or any other property so long as it is not the thrown property."
+  },
+  {
+    "Name": "Sweeper Sickles",
+    "ItemType": "Weapon",
+    "IsEGO": false,
+    "Level": 1,
+    "Rarity": "Rare",
+    "Need": "Must be a Sweeper Affiliate",
+    "Stats": [
+      "Str",
+      "Dex"
+    ],
+    "Desc": "*Weapon (Sickle)*\n\nThese sickles are light and durable, making repeated strikes more effective.\nThis sickle deals 1d2 damage. If you are a sweeper, it becomes a +2 weapon."
+  },
+  {
+    "Name": "Gas Harpoon",
+    "ItemType": "Weapon",
+    "IsEGO": false,
+    "Level": 7,
+    "Rarity": "Rare",
+    "Need": "Must be a 7th level Pequod Affiliate",
+    "Stats": [
+      "Str",
+      "Dex"
+    ],
+    "Desc": "*Weapon (Harpoon)*\n\nA harpoon with a tip that generates heat the better in battle you do.\nThis harpoon deals 1d8/1d10 piercing damage with the versatile property and a throw range of 30ft with the returning property. After landing a full attack action or reducing a target to 0 hit points, the tip of the harpoon overheats and deals an additional 1d4 fire damage, inflicting `burn::Burn` stacks equal to the fire damage rolled. While overheated, you may throw it at a target as part of your attack action dealing an additional 8d6 fire damage on hit. After it is thrown while overheated, it must reheat itself to use that feature again."
+  },
+  {
+    "Name": "Vibroweld Morph Unauthorized Invention",
+    "ItemType": "Weapon",
+    "IsEGO": false,
+    "Level": 1,
+    "Rarity": "Rare",
+    "Need": "Must be a Yurodiviye associate",
+    "Stats": [
+      "Int"
+    ],
+    "Desc": "*Weapon*\n\nAn unauthorized invention you've created in your spare time using your expertise in engineering.\nThis weapon may be any base dnd weapon so long as it has the finesse property. This weapon uses your intelligence instead of Strength or Dexterity. Choose one type of alternate tremor that you cannot already inflict. When triggering `Amplitude Conversion::Amplitude Conversion` or `Amplitude Entanglement::Amplitude Entanglement`, you may choose to inflict that `Tremor::Tremor` type instead or `Tremor - Reverberation::Tremor - Reverberation`. After selecting the alternate tremor, you cannot select a new one unless you tinker with your weapon for 1 hour or during a rest. Upon triggering `Tremor Burst::Tremor Burst`, gain `Offense Level Up::Offense Level Up` until the end of your next turn."
+  },
+  {
+    "Name": "Chained Coffin",
+    "ItemType": "Weapon",
+    "IsEGO": false,
+    "Level": 13,
+    "Rarity": "Rare",
+    "Need": "Must be a 13th level Wild Hunt affiliate and a Strength of 18 or higher",
+    "Stats": [
+      "Str"
+    ],
+    "Desc": "*Weapon (Coffin)*\n\nA coffin that's been chained up. Is it to keep something in? Is it to keep something out? It doesn’t matter, just that you get ___ back.\nThis Coffin has the reach property of 15ft and deals 2d10 bludgeoning damage per hit. On hit with this weapon, the target must make a Strength save. On failure they either fall prone or are knocked 20ft away. When taking the attack action, only one of your attacks may use the Chained Coffin. Any damage that is dealt with this weapon is considered magical for the sake of overcoming resistances, treating immunity as if it were resistance. Finally, your 17th level feature changes from “Requiem” to “Lament, Mourn, and Despair”.\n\n**Lament, Mourn, and Despair**\n\nAt 17th level, your pent up rage has reached its climax, just waiting to be unleashed like a raging tempest. Target one creature within 30ft and force them to make a Strength saving throw at disadvantage. On failure they take double your weapon damage + 5d12 Magical Piercing damage + 6d12 Lightning Damage as you swing the coffin forwards as it open to show spikes on the inside as it closes around the target before you pull them in and swing your weapon at the coffin before thunder cracks and strikes the coffin. On success save, target takes only the lightning damage. Additionally, gain 1 Coffin after using “Lament, Mourn, and Despair”. Lament, Mourn, and Despair"
+  },
+  {
+    "Name": "Cursewrit Butcherblade",
+    "ItemType": "Weapon",
+    "IsEGO": false,
+    "Level": 1,
+    "Rarity": "Rare",
+    "Need": "Must be a 1st level Heishou Pack - Mao Branch associate",
+    "Stats": [
+      "Str",
+      "Dex"
+    ],
+    "Desc": "*Weapon (Greatsword)*\n\nThis greatsword with a curse written on him is never a good sign. If you see it, it'll probably is going to be the last thing you see.\nThis greatsword is considered a Finesse weapon. If used by Heishou pack - Mao branch associate, you can make an opportunity attack against an enemy if they misses an attack against you. At 7-th level, you apply +2 `Rupture::Rupture` against targets who have less initiative or slower than you. Add another +2 if target has Deathrite."
+  },
+  {
+    "Name": "Heishou Pack - Si Branch Staff",
+    "ItemType": "Weapon",
+    "IsEGO": false,
+    "Level": 1,
+    "Rarity": "Rare",
+    "Need": "Must be a 1st level Heishou Pack - Si Branch associate",
+    "Stats": [
+      "Str",
+      "Dex"
+    ],
+    "Desc": "*Weapon (Quarterstaff)*\n\nThis staff looks strange, with some purple hue and strange pattern at the end of it.\nThis quarterstaff is considered a Finesse weapon. If used by `Heishou Pack - Si Branch::Heishou Pack - Si Branch` associate, When inflicting Deathrite 【Venom】, inflict another stack of Deathrite. If you make an attack roll against target with Deathrite 【Venom】, Increase critical hit range by 1 . Upon inflicting `Rupture::Rupture`, inflict 2 extra rupture and additional 4 rupture on a critical hit."
+  },
+  {
+    "Name": "Dead Rabbits Bat",
+    "ItemType": "Weapon",
+    "IsEGO": false,
+    "Level": 1,
+    "Rarity": "Rare",
+    "Need": "Must be a 1st level Dead Rabbits Associate",
+    "Stats": [
+      "Str"
+    ],
+    "Desc": "*Weapon (Bat)*\n\nA baseball bat with nails crudely protruding from the end\nThis bat has the versatile property and deals 1d8/d10 bludgeoning damage. Every time you apply `Rupture::Rupture` with this weapon you also apply the same amount of `bleed::Bleed` on the target"
+  },
+  {
+    "Name": "Oufi Association Halberd",
+    "ItemType": "Weapon",
+    "IsEGO": false,
+    "Level": 1,
+    "Rarity": "Rare",
+    "Need": "Must be an Oufi Association Affiliate",
+    "Stats": [
+      "Str"
+    ],
+    "Desc": "*Weapon (Halberd)*\n\nA baseball bat with nails crudely protruding from the end\nYou can use the polearm master feat even if you don't have it. If you already have the feat its damage becomes a 2d6. Whenever you would Trigger `Amplitude Conversion::Amplitude Conversion` into `Tremor - Decay::Tremor - Decay`, inflict `Tremor Burst::Tremor Burst` as well."
+  },
+  {
+    "Name": "Udjat Vanguard Shotgun",
+    "ItemType": "Weapon",
+    "IsEGO": false,
+    "Level": 10,
+    "Rarity": "Rare",
+    "Need": "Level 10 Udjat",
+    "Stats": [
+      "Dex"
+    ],
+    "Desc": "*Weapon (Shotgun)*\n\nThis weapon uses dexterity for it's rolls, has a range of 50/80 ft, and deals 2d8 piercing damage. If LCA Fracture Rounds are loaded into this weapon, increase the attack roll and damage roll by +2."
+  },
+  {
+    "Name": "Tiantui Star's Blade",
+    "ItemType": "Weapon",
+    "IsEGO": false,
+    "Level": 17,
+    "Rarity": "Legendary",
+    "Need": "17th level The Thumb, Melee Variant, Shin and Mang feat",
+    "Stats": [
+      "Str"
+    ],
+    "Desc": "*Weapon (Longsword)*\n\nA longsword with barrels and a revolver chamber which can hold specialized rounds.\nThis weapon has a +2 to attack and damage rolls. This weapon inflicts 2 `tremor::Tremor` on hit.\n\nOnce per long rest when you have no uses of Tigermark rounds and are concentrating on shin or mang you can gain a number of Savage Tigermark rounds equal to your max amount of Propellant Ammunition. When you make an attack you may choose to expend a Savage Tigermark round to deal an additional 2d8 fire damage, the target then gains count of burn equal to the damage dealt. As an action you also use Savage Tigerslayer's Perfected Flurry of Blades [超絕猛虎殺擊亂斬] which lets you attack a number of times equal to your proficiency bonus. Creatures within 5ft of the target are also affected by these attacks if your attack rolls would hit normally. Inflicting 2 `burn::Burn` and 2 tremor-scorch per attack while the final attack inflicts `tremor burst::Tremor Burst` and you can choose to expend any amount of Savage Tigermark rounds on that attack. Any unexpended Savage Tigermark rounds are lost after this action."
+  },
+  {
+    "Name": "Bulletproof Vest",
+    "ItemType": "Armor",
+    "IsEGO": false,
+    "Level": 1,
+    "Rarity": "Rare",
+    "Need": "Level 1 Fixer",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Chain Mail)*\n\nStandard issue bulletproof vest. It isn’t much but it’ll get the job done.\nYour AC=14+Dexterity (up to +2) and you gain resistance to piercing damage."
+  },
+  {
+    "Name": "Liu Association's Coat",
+    "ItemType": "Armor",
+    "IsEGO": false,
+    "Level": 1,
+    "Rarity": "Rare",
+    "Need": "Level 1 Liu Association associate",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Coat)*\n\nIts material is so complex and durable, yet it protects my body from harm.\nWhile wearing this your AC=13+Dexterity. Additionally, gain resistance to slashing damage. Additionally, if you are a Liu Association associate, gain a +1 to AC. This benefit increases to +2 at 5th level, +3 at 15th level."
+  },
+  {
+    "Name": "Devyat Association Fixer Jacket",
+    "ItemType": "Armor",
+    "IsEGO": false,
+    "Level": 1,
+    "Rarity": "Rare",
+    "Need": "Level 1 Devyat Association Fixer",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Coat)*\n\nIts material is so complex and durable, yet it protects my body from harm.\nWhile wearing this your AC=14+CON (Max 16). Additionally, `Courier Trunk::Courier Trunk` Stack now gives buffs to the user. At 10+ Stack, Gain 10 feet of movement speed. At 20+ Stack, Gain +1 To attack rolls and damage rolls. At 30+ Stack, Inflict 1 `Rupture::Rupture` On Hit."
+  },
+  {
+    "Name": "Kurokumo Clan Robes",
+    "ItemType": "Armor",
+    "IsEGO": false,
+    "Level": 1,
+    "Rarity": "Rare",
+    "Need": "level 1 level Kurokumo Clan associate",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Robes)*\n\nBlack robes worn by those of the `Kurokumo Clan::Kurokumo Clan`.\nWhile wearing, your AC=12+Dexterity. Gain a +1 to AC for every bleeding hostile creature, up to a maximum of +3. Gain a +2 AC if you are bleeding. Additionally, as a bonus action, you may apply one `bleed::Bleed` stack to yourself, ending it as a bonus action."
+  },
+  {
+    "Name": "Blade Lineage Durumagi",
+    "ItemType": "Armor",
+    "IsEGO": false,
+    "Level": 1,
+    "Rarity": "Rare",
+    "Need": "Level 1 Blade Lineage Fixer",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Robes)*\n\nBlack robes worn by those of the `Blade Lineage::Blade Lineage`.\nWhile wearing these robes, your AC is equal to 12 + Dex Modifier. When a creature hits you, you gain 1 `poise::Poise` stack. `Clashing::Clashing` with a creature counts as it hitting you for this purpose. You may only gain a maximum of 5 Poise in a round with this property."
+  },
+  {
+    "Name": "K-Corp Excision Team Suit",
+    "ItemType": "Armor",
+    "IsEGO": false,
+    "Level": 13,
+    "Rarity": "Rare",
+    "Need": "13th level K-Corp affiliate",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Plate)*\n\nBy being recruited to the Excision Team, you have been granted the opportunity to be modified to wear a special suit, one that passively grants you a constant flow of ampule fluid.\nThis armor grants the wearer an AC of 18. Additionally, the user recovers their Constitution modifier in hit points every turn so long as they are conscious. Finally, in the event you go down or die outright, the suit will automatically inject you with the revival ampule. This feature will activate once per long rest."
+  },
+  {
+    "Name": "N-Corp Crusader's Armor",
+    "ItemType": "Armor",
+    "IsEGO": false,
+    "Level": 7,
+    "Rarity": "Rare",
+    "Need": "7th level N-Corp associate",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Half Plate or Plate)*\n\nThis Armor smells of blood and pungent metal, to be worn by those who annihilate all heretics.\nWhile wearing your AC=15+Dexterity up to +2 or 18 depending on if you choose either the Half Plate or Plate versions respectively. If you are an `N-Corp::N-Corp` Associate, you may use your Drive the Nail feature as a bonus action."
+  },
+  {
+    "Name": "Dead Rabbits Clothing",
+    "ItemType": "Armor",
+    "IsEGO": false,
+    "Level": 1,
+    "Rarity": "Rare",
+    "Need": "Must be a Dead Rabbits Associate",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Coat)*\n\nThe condition of the clothes and the leather mask, don't give a friendly impression of you.\nWhile wearing this armor, your AC=12+Dexterity. You have Disadvantage on any social check that is not intimidation which you roll with strength instead of charisma."
+  },
+  {
+    "Name": "Oufi Association Uniform",
+    "ItemType": "Armor",
+    "IsEGO": false,
+    "Level": 1,
+    "Rarity": "Rare",
+    "Need": "Must be an Oufi Associate",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Coat)*\n\nYour Clothes are always to be in pristine condition as to further show the weight of a contract and your presence.\nWhile wearing this armor, your AC=12+Dexterity. At the start of combat when using your Do Not Obstruct feature, you may Amplitude all `Tremor::Tremor` you apply this turn and all Tremor on the target to `Tremor - Decay::Tremor - Decay`"
+  },
+  {
+    "Name": "TingTang Gang Shirt",
+    "ItemType": "Armor",
+    "IsEGO": false,
+    "Level": 7,
+    "Rarity": "Rare",
+    "Need": "Level 7 TingTang Gang associate",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Shirt)*\n\nA Hawaii shirt made out of cloth.\nWhile wearing this shirt, roll 1d10 at the start of your turn. Your AC equals the result of the roll + 5 and + your Dexterity modifier. As a bonus action, you can use your Take the Chance feature again, but on your AC."
+  },
+  {
+    "Name": "Pequod Harpooner Overcoat",
+    "ItemType": "Armor",
+    "IsEGO": false,
+    "Level": 1,
+    "Rarity": "Rare",
+    "Need": "Must be a Pequod Crew member",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Coat)*\n\nA green button-down shirt made of thick fabric.\nWhile wearing this armor, your AC is equal to 13 + your Charisma modifier. You gain resistance to piercing damage. Additionally, you have advantage on all attack rolls that target any sea creature."
+  },
+  {
+    "Name": "Index Uniform",
+    "ItemType": "Armor",
+    "IsEGO": false,
+    "Level": 1,
+    "Rarity": "Rare",
+    "Need": "Must be an Index member",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Coat)*\n\nA uniform consisting of black formal attire, a short white cloak with a golden gorget and an `Index::The Index` badge.\nWhile wearing this armor, your AC is equal to 12 + your dexterity modifier. When fulfilling a prescript, gain 1 `Poise::Poise`. When at 9 Grace of the Prescript, gain 1 Poise at the start of your turn."
+  },
+  {
+    "Name": "E.G.O. Weapon: Penitence",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 1,
+    "Rarity": "Common",
+    "Need": "Level 1 Fixer",
+    "Stats": [
+      "Str"
+    ],
+    "Desc": "*Weapon (Warhammer)*\n\nWeapon Enchantment (+1): 1d8 (1d10) Bludgeoning, Versatile. When landing a critical hit with this weapon via a Nat 20, recover 1d10 sanity. If not using a sanity mechanic, instead gain a +1d4 to attack rolls on your next turn."
+  },
+  {
+    "Name": "E.G.O. Weapon: Soda",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 1,
+    "Rarity": "Common",
+    "Need": "Level 1 Fixer",
+    "Stats": [
+      "Dex"
+    ],
+    "Desc": "*Weapon (Pistol)*\n\nWeapon Enchantment (+1): 2d4 Piercing, Light, Range 30/90 feet, Reload (12 shots)This weapon does not require ammunition."
+  },
+  {
+    "Name": "E.G.O. Weapon: Wingbeat",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 1,
+    "Rarity": "Common",
+    "Need": "Level 1 Fixer",
+    "Stats": [
+      "Str"
+    ],
+    "Desc": "*Weapon (Mace)*\n\nWeapon Enchantment (+1): 1d8 Bludgeoning. Once per turn, when dealing damage with this weapon, you may recover HP equal to your proficiency bonus. This healing is doubled if the target has `Bleed::Bleed`."
+  },
+  {
+    "Name": "E.G.O. Weapon: Cavernous Wailing",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 1,
+    "Rarity": "Common",
+    "Need": "Level 1 Fixer",
+    "Stats": [
+      "Str"
+    ],
+    "Desc": "*Weapon (Mace)*\n\nProvided By Temp2005\nWeapon Enchantment (+1): 1d8 (1d10) Bludgeoning, Versatile. Inflict 1 `Sinking::Sinking` on a hit. When taking damage, gain 1 Blubberbubble Stack (Twice per Turn). When dealing dealing damage while having Blubberbubble Stacks, lose 1 Blubberbubble."
+  },
+  {
+    "Name": "E.G.O. Weapon: Tough",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 5,
+    "Rarity": "Uncommon",
+    "Need": "Level 5 Fixer, Wielder must be Bald",
+    "Stats": [
+      "Dex"
+    ],
+    "Desc": "*Weapon (Pistol)*\n\nWeapon Enchantment (+1): 3d4 Piercing, Light, Range 30/90 feet, Reload (12 shots). This weapon imposes a -1 to the next roll made by the target on a hit. If using a Sanity mechanic, instead deal 1d4 Sanity damage. This weapon does not require ammunition."
+  },
+  {
+    "Name": "E.G.O. Weapon: Fourth Match Flame",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 5,
+    "Rarity": "Uncommon",
+    "Need": "Level 5 Fixer, Constitution 13 or Higher",
+    "Stats": [
+      "Dex"
+    ],
+    "Desc": "*Weapon (Cannon)*\n\nWeapon Enchantment (+1): 4d8 Fire, Two-Handed, Heavy, Range 50/150 feet, Loading. This weapon inflicts 4 `Burn::Burn` on hit. This weapon can only be fired once per round. This weapon does not require ammunition."
+  },
+  {
+    "Name": "E.G.O. Weapon: Solitude",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 5,
+    "Rarity": "Uncommon",
+    "Need": "Level 5 Fixer, Charisma 13 or Higher",
+    "Stats": [
+      "Dex"
+    ],
+    "Desc": "*Weapon (Revolver)*\n\nWeapon Enchantment (+1): 4d4 Psychic, Heavy, Range 30/120 feet, Reload (6). This weapon does not require ammunition. This weapon inflicts 2 `Sinking::Sinking` on hit."
+  },
+  {
+    "Name": "E.G.O. Weapon: Red Eyes",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 5,
+    "Rarity": "Uncommon",
+    "Need": "Level 5 Fixer, Constitution 13 or Higher",
+    "Stats": [
+      "Str"
+    ],
+    "Desc": "*Weapon (Warhammer)*\n\nWeapon Enchantment (+1): 1d10 (1d12) Bludgeoning, Versatile. If the target has no `Bleed::Bleed`, this weapon inflicts 4 Bleed on hit. If the target has Bleed, deal an additional 2 damage on hit."
+  },
+  {
+    "Name": "E.G.O. Weapon: Horn",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 5,
+    "Rarity": "Uncommon",
+    "Need": "Level 5 Fixer, Wisdom 13 or Higher",
+    "Stats": [
+      "Str"
+    ],
+    "Desc": "*Weapon (Warhammer)*\n\nWeapon Enchantment (+1): 1d10 Bludgeoning. Deal an additional 1d6 damage to non-humanoid creatures."
+  },
+  {
+    "Name": "E.G.O. Weapon: Wrist Cutter",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 5,
+    "Rarity": "Uncommon",
+    "Need": "Level 5 Fixer, Constitution 13 or Higher",
+    "Stats": [
+      "Str",
+      "Dex"
+    ],
+    "Desc": "*Weapon (Dagger)*\n\nWeapon Enchantment (+1): 1d6 Psychic, Light, Finesse, Thrown (20/60). When landing an attack, you may roll a 1d4. Both you and the target gain `Bleed::Bleed` equal to the result. If you are wielding this weapon in one hand and nothing in the other, you may make an additional attack as a bonus action."
+  },
+  {
+    "Name": "E.G.O. Weapon: Regret",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 5,
+    "Rarity": "Uncommon",
+    "Need": "Level 5 Fixer, Strength 13 or Higher",
+    "Stats": [
+      "Str"
+    ],
+    "Desc": "*Weapon (Maul)*\n\nWeapon Enchantment (+1): 2d8 Bludgeoning, Two-Handed, Heavy. During an attack action, you may forgo all additional attacks to instead `burst tremor::Tremor Burst` on a hit. Otherwise, once per turn, inflict 1d4 `tremor::Tremor` on a hit."
+  },
+  {
+    "Name": "E.G.O. Weapon: Beak",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 5,
+    "Rarity": "Uncommon",
+    "Need": "Level 5 Fixer, Dexterity 13 or Higher",
+    "Stats": [
+      "Dex"
+    ],
+    "Desc": "*Weapon (Pistol)*\n\nWeapon Enchantment (+1): 2d4 Piercing, Light, Range 30/90 feet, Reload (12). This weapon does not require ammunition. Gain a +1d4 to attack AND damage rolls against a creature that dealt damage to you since your last turn."
+  },
+  {
+    "Name": "E.G.O. Weapon: Fragments from Somewhere",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 5,
+    "Rarity": "Uncommon",
+    "Need": "Level 5 Fixer, Intelligence 13 or Higher",
+    "Stats": [
+      "Int"
+    ],
+    "Desc": "*Weapon (Spear)*\n\nWeapon Enchantment (+1): 1d8 (1d10) Necrotic, Versatile, Thrown (30/120). This weapon uses your Intelligence score for attack and damage roll calculation."
+  },
+  {
+    "Name": "E.G.O. Weapon: Lantern",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 5,
+    "Rarity": "Uncommon",
+    "Need": "Level 5 Fixer, Strength 13 or Higher",
+    "Stats": [
+      "Str"
+    ],
+    "Desc": "*Weapon (Maul)*\n\nWeapon Enchantment (+1): 1d12 Bludgeoning, Heavy, Two-Handed. When attacking while hidden, this weapon automatically rolls the maximum value on damage. This weapon inflicts 2 `rupture::Rupture` on a hit, and inflicts twice as much if attacking while hidden."
+  },
+  {
+    "Name": "E.G.O. Weapon: Today's Expression",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 5,
+    "Rarity": "Uncommon",
+    "Need": "Level 5 Fixer, Charisma 13 or Higher",
+    "Stats": [
+      "Dex"
+    ],
+    "Desc": "*Weapon (Pistol)*\n\nWeapon Enchantment (+1): 2d4 Piercing, Light, Range 30/90 feet, Reload (12). This weapon does not require ammunition. When taking the attack action, roll a 1d10. Gain one of the following effects based on the result rolled until the end of the attack action.\n\n* 1-2: -4 to hit, +4 to damage.\n* 3-4: -2 to hit, +2 to damage.\n* 5-6: Nothing happens.\n* 7-8: +2 to hit, -2 to damage.\n* 9-10: +4 to hit, -4 to damage.\n\nDamage reduced by this effect cannot be reduced beyond 1."
+  },
+  {
+    "Name": "E.G.O. Weapon: Engulfing Dream",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 5,
+    "Rarity": "Uncommon",
+    "Need": "Level 5 Fixer, Intelligence 13 or Higher",
+    "Stats": [
+      "Dex"
+    ],
+    "Desc": "*Weapon (Pistol)*\n\nWeapon Enchantment (+1): 2d4 Psychic, Light, Range 30/90 feet, Reload (12). This weapon deals double damage against an incapacitated, sleeping or stunned creature."
+  },
+  {
+    "Name": "E.G.O. Weapon: Cherry Blossoms",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 5,
+    "Rarity": "Uncommon",
+    "Need": "Level 5 Fixer, Dexterity 13 or Higher",
+    "Stats": [
+      "Str",
+      "Dex"
+    ],
+    "Desc": "*Weapon (Dagger)*\n\nWeapon Enchantment (+1): 2d4 Slashing, Light, Finesse. Hitting a Charmed creature with this weapon does not remove the Charmed status."
+  },
+  {
+    "Name": "E.G.O. Weapon: SO CUTE!!!",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 5,
+    "Rarity": "Uncommon",
+    "Need": "Level 5 Fixer, Charisma 13 or Higher",
+    "Stats": [
+      "Str",
+      "Dex"
+    ],
+    "Desc": "*Weapon (Cestus)*\n\nWeapon Enchantment (+1): 1d8 Slashing, Light, Finesse, Glove."
+  },
+  {
+    "Name": "E.G.O. Weapon: Screaming Wedge",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 9,
+    "Rarity": "Rare",
+    "Need": "Level 9 Fixer, Wisdom 15 or Higher and Charisma 13 or Higher",
+    "Stats": [
+      "Dex"
+    ],
+    "Desc": "*Weapon (Crossbow)*\n\nWeapon Enchantment (+2): 2d8 Psychic, Two-Handed, Loading, Range 80/320. This weapon does not require ammunition. This weapon inflicts 3 `Sinking::Sinking` on a hit. Once per turn, on a hit, impose a Wisdom saving throw on the target. On a failure, target creature is Frightened until the end of your next turn. Gain advantage on attack rolls against Frightened creatures."
+  },
+  {
+    "Name": "E.G.O. Weapon: Life for a Daredevil",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 9,
+    "Rarity": "Rare",
+    "Need": "Level 9 Fixer, Strength or Dexterity 15 or Higher and Charisma 11 or Lower",
+    "Stats": [
+      "Str",
+      "Dex"
+    ],
+    "Desc": "*Weapon (Katana)*\n\nWeapon Enchantment (+2): 2d6 (2d8) Slashing, Versatile, Finesse. This weapon bypasses resistance to slashing, treats immunity to slashing as resistance, and cannot be reduced beyond half of the initial damage result. All damage this weapon deals is classified as Pale damage."
+  },
+  {
+    "Name": "E.G.O. Weapon: Bear Paws",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 9,
+    "Rarity": "Rare",
+    "Need": "Level 9 Fixer, Strength 15 or Higher and Charisma 13 or Higher",
+    "Stats": [
+      "Str",
+      "Dex"
+    ],
+    "Desc": "*Weapon (Cestus)*\n\nWeapon Enchantment (+2): 1d10 Slashing, Light, Finesse, Glove. Creatures grappled by you take damage equal to your weapon damage at the end of each of their turns."
+  },
+  {
+    "Name": "E.G.O. Weapon: Sanguine Desire",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 9,
+    "Rarity": "Rare",
+    "Need": "Level 9 Fixer, Dexterity 15 or Higher and Strength 13 or Higher",
+    "Stats": [
+      "Str",
+      "Dex"
+    ],
+    "Desc": "*Weapon (Handaxe)*\n\nWeapon Enchantment (+2): 3d4 Slashing, Light, Thrown 20/60 feet. This weapon inflicts 3 `Bleed::Bleed` on a hit. Gain a +1 to attack and damage rolls for every 10 bleed on the target (max 3)."
+  },
+  {
+    "Name": "E.G.O. Weapon: Syrinx",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 9,
+    "Rarity": "Rare",
+    "Need": "Level 9 Fixer, Constitution 15 or Higher and Wisdom 13 or Higher",
+    "Stats": [
+      "Dex"
+    ],
+    "Desc": "*Weapon (Crossbow)*\n\nWeapon Enchantment (+2): 3d4 Thunder, Light, Range 30 feet. This weapon does not require ammunition. When taking the attack action, once per turn, you can instead target all creatures within a 15 foot cone."
+  },
+  {
+    "Name": "E.G.O. Weapon: Harmony",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 9,
+    "Rarity": "Rare",
+    "Need": "Level 9 Fixer, Wisdom 15 or Higher and Charisma 13 or Higher",
+    "Stats": [
+      "Dex"
+    ],
+    "Desc": "*Weapon (Sniper Rifle)*\n\nWeapon Enchantment (+2): 4d10 Slashing + 4d10 Psychic, Two-Handed, Heavy, Range 50/150 feet. This weapon does not require ammunition, and can be fired once every other turn. If this weapon kills a creature, all other creatures within 5 feet of said creature must make a Wisdom saving throw or be Charmed for 1 minute. A creature can remake the Wisdom saving throw at the end of each of their turns to attempt to end the condition early."
+  },
+  {
+    "Name": "E.G.O. Weapon: Logging",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 9,
+    "Rarity": "Rare",
+    "Need": "Level 9 Fixer, Strength 15 or Higher and Constitution 13 or Higher",
+    "Stats": [
+      "Str"
+    ],
+    "Desc": "*Weapon (Greataxe)*\n\nWeapon Enchantment (+2): 2d12 Slashing, Heavy, Two-Handed. Inflict 3 `Rupture::Rupture` on a hit with this weapon. After killing a creature, gain the following effects for the next three turns:\n\n* Critical hit range is increased by 1.\n* Movement speed is increased by 15 feet.\n* Inflict 1 additional rupture on a hit with this weapon."
+  },
+  {
+    "Name": "E.G.O. Weapon: Frost Splinter",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 9,
+    "Rarity": "Rare",
+    "Need": "Level 9 Fixer, Constitution 15 or Higher and Intelligence 13 or Higher",
+    "Stats": [
+      "Str",
+      "Dex"
+    ],
+    "Desc": "*Weapon (Spear)*\n\nWeapon Enchantment (+2): 2d6 (2d8) Cold, Thrown 30/120, Versatile. When hitting a creature with this weapon, once per creature per turn, reduce their movement speed by half until the end of their next turn."
+  },
+  {
+    "Name": "E.G.O. Weapon: Grinder Mk4",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 9,
+    "Rarity": "Rare",
+    "Need": "Level 9 Fixer, Dexterity 15 or Higher and Intelligence 13 or Higher",
+    "Stats": [
+      "Str"
+    ],
+    "Desc": "*Weapon (Halberd)*\n\nWeapon Enchantment (+2): 3d4 Slashing, Heavy, Reach, Two-Handed. Gain 2 `Charge::Charge` on a hit with this weapon. At 10+ Charge, you may consume all Charge on self to make an additional number of attacks equal to every 5 charge spent on self (Max 4)."
+  },
+  {
+    "Name": "E.G.O. Weapon: Christmas",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 9,
+    "Rarity": "Rare",
+    "Need": "Level 9 Fixer, Wisdom 15 or Higher and Strength 13 or Higher",
+    "Stats": [
+      "Str"
+    ],
+    "Desc": "*Weapon (Warhammer)*\n\nWeapon Enchantment (+2): 2d8 (2d10) Bludgeoning, Versatile. Whenever taking the attack action, roll a 1d10 to determine what status this weapon inflicts:\n\n* 1-2: 2 `Bleed::Bleed`\n* 3-4: 2 `Burn::Burn`\n* 5-6: 2 `Rupture::Rupture`\n* 7-8: 2 `Sinking::Sinking`\n* 9-10: 2 `Tremor::Tremor`"
+  },
+  {
+    "Name": "E.G.O. Weapon: Our Galaxy",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 9,
+    "Rarity": "Rare",
+    "Need": "Level 9 Fixer, Charisma 15 or Higher and Intelligence 13 or Higher",
+    "Stats": [
+      "Str"
+    ],
+    "Desc": "*Weapon (Mace)*\n\nWeapon Enchantment (+2): 1d10 Bludgeoning. Once per turn, if you landed a weapon attack this turn, all allies within 15 feet of you recover HP equal to the damage that the first hit dealt. If there are no allies within 15 feet, instead inflict 3 `sinking::Sinking` on the target."
+  },
+  {
+    "Name": "E.G.O. Weapon: Laetitia",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 9,
+    "Rarity": "Rare",
+    "Need": "Level 9 Fixer, Charisma 15 or Higher and Dexterity 13 or Higher",
+    "Stats": [
+      "Dex"
+    ],
+    "Desc": "*Weapon (Hunting Rifle)*\n\nWeapon Enchantment (+2): 2d6 Piercing, Two-Handed, Range 80/320 feet, Reload (4). If there is no marked target, mark the first creature you hit with this weapon in combat. That creature has disadvantage on attack rolls against creatures other than you until it hits you with a weapon attack, in which case the mark is removed."
+  },
+  {
+    "Name": "E.G.O. Weapon: Gaze",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 9,
+    "Rarity": "Rare",
+    "Need": "Level 9 Fixer, Wisdom 15 or Higher and Constitution 13 or Higher",
+    "Stats": [
+      "Str"
+    ],
+    "Desc": "*Weapon (Halberd)*\n\nWeapon Enchantment (+2): 4d4 Slashing, Heavy, Reach, Two-Handed. You have advantage on attack rolls when surrounded by 2 or more creatures, and inflict 3 `Rupture::Rupture` on a hit with this weapon."
+  },
+  {
+    "Name": "E.G.O. Weapon: Harvest",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 9,
+    "Rarity": "Rare",
+    "Need": "Level 9 Fixer, Intelligence 15 or Higher and Wisdom 13 or Higher",
+    "Stats": [
+      "Wis"
+    ],
+    "Desc": "*Weapon (Glaive)*\n\nWeapon Enchantment (+2): 2d8 Psychic, Heavy, Reach, Two-Handed. Gain a +X to attack and damage rolls, where X is the difference between the target’s Wisdom stat and your Wisdom stat (Max 5). This modifier cannot be less than 0."
+  },
+  {
+    "Name": "E.G.O. Weapon: Pleasure",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 9,
+    "Rarity": "Rare",
+    "Need": "Level 9 Fixer, Wisdom 15 or Higher and Strength 13 or Higher",
+    "Stats": [
+      "Str"
+    ],
+    "Desc": "*Weapon (Mace)*\n\nWeapon Enchantment (+2): 3d6 Bludgeoning, Add a +1d8 to attack and damage rolls while above 50% max health. Increase to +1d10 while above 75% max health."
+  },
+  {
+    "Name": "E.G.O. Weapon: Solemn Lament - The Living",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 13,
+    "Rarity": "Very Rare",
+    "Need": "Level 13 Fixer, Wisdom 18 or Higher and Strength 16 or Higher",
+    "Stats": [
+      "Dex"
+    ],
+    "Desc": "*Weapon (Pistol)*\n\nWeapon Enchantment (+2): 3d4 Radiant, Light, Range 30/90 feet, Reload (12). This weapon does not require ammunition. This weapon inflicts 2 `Sinking::Sinking` on hit. If the target has 20+ Sinking, the next time they’re hit with this weapon, activate `Sinking Deluge::Sinking Deluge`. Consume all Sinking on target to deal additional damage equal to the amount consumed. If Solemn Lament - The Departed is also equipped, you may reload both pistols at the same time."
+  },
+  {
+    "Name": "E.G.O. Weapon: Solemn Lament - The Departed",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 13,
+    "Rarity": "Very Rare",
+    "Need": "Level 13 Fixer, Wisdom 18 or Higher and Strength 16 or Higher",
+    "Stats": [
+      "Dex"
+    ],
+    "Desc": "*Weapon (Pistol)*\n\nWeapon Enchantment (+2): 3d4 Necrotic, Light, Range 30/90 feet, Reload (12). This weapon does not require ammunition. This weapon inflicts 2 `Sinking::Sinking` on hit. If the target has 20+ Sinking, the next time they’re hit with this weapon, activate `Sinking Deluge::Sinking Deluge`. Consume all Sinking on target to deal additional damage equal to the amount consumed. If Solemn Lament - The Living is also equipped, you may reload both pistols at the same time."
+  },
+  {
+    "Name": "E.G.O. Weapon: Magic Bullet",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 13,
+    "Rarity": "Very Rare",
+    "Need": "Level 13 Fixer, Charisma 18 or Higher and Dexterity 16 or Higher",
+    "Stats": [
+      "Dex"
+    ],
+    "Desc": "*Weapon (Hunting Rifle)*\n\nWeapon Enchantment (+2): 2d10 Fire + 2d10 Necrotic, Two-Handed, Ammunition 120 foot line, Reload (1). This weapon can be used within 5 feet of a target as a melee attack, instead dealing 1d8 Bludgeoning without disadvantage on the attack roll and without consuming any ammo. This weapon inflicts 1 Dark Flame on hit. When `Burn::Burn` deals damage to a creature with Dark Flame, decrease Dark Flame by 1 to deal additional Necrotic damage equal to half of the Burn damage."
+  },
+  {
+    "Name": "E.G.O. Weapon: In the Name of Love and Hate",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 13,
+    "Rarity": "Very Rare",
+    "Need": "Level 13 Fixer, Charisma 18 or Higher and Wisdom 16 or Higher",
+    "Stats": [
+      "Int",
+      "Wis",
+      "Cha"
+    ],
+    "Desc": "*Weapon (Club)*\n\nWeapon Enchantment (+2): Variable damage, Range 30 feet. This weapon scales off of any mental stat of your choice (INT, WIS, CHA). Roll a 1d4 for each attack roll to determine the damage type and status that each hit inflicts.\n\n* 1: 2d6 Bludgeoning damage and 3 `Tremor::Tremor`.\n* 2: 2d6 Psychic damage and 3 `Sinking::Sinking`.\n* 3: 2d6 Necrotic damage and 3 `Bleed::Bleed`.\n* 4: 2d6 Force damage and 3 `Rupture::Rupture`.\n\nThis damage is classified as Pale damage."
+  },
+  {
+    "Name": "E.G.O. Weapon: Lamp",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 13,
+    "Rarity": "Very Rare",
+    "Need": "Level 13 Fixer, Wisdom 18 or Higher and Strength 16 or Higher",
+    "Stats": [
+      "Str"
+    ],
+    "Desc": "*Weapon (Maul)*\n\nWeapon Enchantment (+2): 2d12 Bludgeoning + 1d8 Fire, Heavy, Two-Handed. This weapon inflicts 3 `Burn::Burn` and 3 `Tremor::Tremor` on hit. If the target has 30+ (Sum of Burn and Tremor), on the next landed attack, trigger `Amplitude Entanglement::Amplitude Entanglement` into `Tremor - Scorch::Tremor - Scorch`, Then inflict `Tremor Burst::Tremor Burst`."
+  },
+  {
+    "Name": "E.G.O. Weapon: Green Stem",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 13,
+    "Rarity": "Very Rare",
+    "Need": "Level 13 Fixer, Intelligence 18 or Higher and Dexterity 16 or Higher",
+    "Stats": [
+      "Str"
+    ],
+    "Desc": "*Weapon (Glaive)*\n\nWeapon Enchantment (+2): 3d8 Necrotic, Reach, Two-Handed. Inflict 3 `Rupture::Rupture` on hit and reduce movement speed by 5 on hit. If the target has 0 movement speed, or is restrained, inflict twice as much Rupture on hit."
+  },
+  {
+    "Name": "E.G.O. Weapon: Hornet",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 13,
+    "Rarity": "Very Rare",
+    "Need": "Level 13 Fixer, Intelligence 18 or Higher and Constitution 16 or Higher",
+    "Stats": [
+      "Dex"
+    ],
+    "Desc": "*Weapon (Hunting Rifle)*\n\nWeapon Enchantment (+2): 5d4 Piercing, Range 80/320 feet, Two-Handed, Reload (8). This weapon does not require ammunition. For every other creature that has attacked the target since your last turn, add an additional +2 to attack and damage rolls (Max 6)."
+  },
+  {
+    "Name": "E.G.O. Weapon: Faint Aroma",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 13,
+    "Rarity": "Very Rare",
+    "Need": "Level 13 Fixer, Wisdom 18 or Higher and Constitution 16 or Higher",
+    "Stats": [
+      "Dex"
+    ],
+    "Desc": "*Weapon (Light Crossbow)*\n\nWeapon Enchantment (+2): 3d8 Psychic, Range 80/320 feet, Two-Handed, Loading. This weapon does not require ammunition. Inflict 3 `Sinking::Sinking` on a hit with this weapon."
+  },
+  {
+    "Name": "E.G.O. Weapon: Crimson Scar - Dagger",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 13,
+    "Rarity": "Very Rare",
+    "Need": "Level 13 Fixer, Dexterity 18 or Higher and Intelligence 16 or Higher",
+    "Stats": [
+      "Str",
+      "Dex"
+    ],
+    "Desc": "*Weapon (Dagger)*\n\nWeapon Enchantment (+2): 2d4 Slashing, Light, Finesse, Thrown 30/90 feet, Returning. You have 15 additional feet of movement that can only be used to move toward hostile creatures, and are unopposed by Difficult Terrain when moving toward a hostile creature. This does not stack with Crimson Scar - Pistol. Inflict 3 `Bleed::Bleed` and gain 1 `Poise::Poise` on hit. On a critical hit, inflict twice as much bleed and don’t gain Poise."
+  },
+  {
+    "Name": "E.G.O. Weapon: Crimson Scar - Pistol",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 13,
+    "Rarity": "Very Rare",
+    "Need": "Level 13 Fixer, Dexterity 18 or Higher and Intelligence 16 or Higher",
+    "Stats": [
+      "Dex"
+    ],
+    "Desc": "*Weapon (Pistol)*\n\nWeapon Enchantment (+2): 2d8 Piercing, Light, Range 30/90 feet, Reload (4). This weapon does not require ammunition. You have 15 additional feet of movement that can only be used to move toward hostile creatures, and are unopposed by Difficult Terrain when moving toward a hostile. This does not stack with Crimson Scar - Dagger. Inflict 3 `Rupture::Rupture` and gain 1 `Poise::Poise` on hit. On a critical hit, inflict twice as much Rupture and don’t gain Poise."
+  },
+  {
+    "Name": "E.G.O. Weapon: Cobalt Scar",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 13,
+    "Rarity": "Very Rare",
+    "Need": "Level 13 Fixer, Strength 18 or Higher and Charisma 16 or Higher",
+    "Stats": [
+      "Str",
+      "Dex"
+    ],
+    "Desc": "*Weapon (Cestus)*\n\nWeapon Enchantment (+2): 1d12 Slashing, Light, Finesse, Glove. Inflict 4 `bleed::Bleed` and gain 2 `Charge::Charge` on hit. When at 10+ Charge, you may spend 10 Charge to activate the target’s bleed on a hit without a saving throw to reduce the damage."
+  },
+  {
+    "Name": "E.G.O. Weapon: Spore",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 13,
+    "Rarity": "Very Rare",
+    "Need": "Level 13 Fixer, Constitution 18 or Higher and Charisma 16 or Higher",
+    "Stats": [
+      "Str",
+      "Dex"
+    ],
+    "Desc": "*Weapon (Spear)*\n\nWeapon Enchantment (+2): 2d10 (2d12) `Poison::Poison`, Versatile, Thrown 30/120 feet\n\nOnce per turn, on a hit, the target must make a Constitution saving throw or be Poisoned until the start of your next turn. A creature Poisoned this way also takes 2d6 Sanity damage at the start of its turn, and can remake the Constitution save on each of its turns to end the condition early. If not using sanity mechanic, they instead gain 1d4+1 `Sinking::Sinking` at the start of its every turn."
+  },
+  {
+    "Name": "E.G.O. Weapon: Black Swan",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 13,
+    "Rarity": "Very Rare",
+    "Need": "Level 13 Fixer, Constitution 18 or Higher and Intelligence 16 or Higher",
+    "Stats": [
+      "Str"
+    ],
+    "Desc": "*Weapon (Mace)*\n\nWeapon Enchantment (+2): 1d10 Necrotic. As a bonus action, you may lift the umbrella and open it up, maintaining a defensive stance. Until the start of your next turn, take half damage from all sources, and reflect half of the original damage back to the attacker. This feature may be used twice per combat."
+  },
+  {
+    "Name": "E.G.O. Weapon: Ecstasy",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 13,
+    "Rarity": "Very Rare",
+    "Need": "Level 13 Fixer, Dexterity 18 or Higher and Wisdom 16 or Higher",
+    "Stats": [
+      "Dex"
+    ],
+    "Desc": "*Weapon (Pistol)*\n\nWeapon Enchantment (+2): 1d10 Necrotic. As a bonus action, you may lift the umbrella and open it up, maintaining a defensive stance. Until the start of your next turn, take half damage from all sources, and reflect half of the original damage back to the attacker. This feature may be used twice per combat."
+  },
+  {
+    "Name": "E.G.O. Weapon: Heaven",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 13,
+    "Rarity": "Very Rare",
+    "Need": "Level 13 Fixer, Wisdom 18 or Higher and Constitution 16 or Higher",
+    "Stats": [
+      "Str",
+      "Dex"
+    ],
+    "Desc": "*Weapon (Spear)*\n\nWeapon Enchantment (+2): 2d10 (2d12) Piercing, Versatile, Thrown 30/120. You have advantage on attack rolls if you have only one creature within 5 feet of you. A creature with Gaze does not count as a creature in this case. Deal triple damage when attacking a creature that cannot see you."
+  },
+  {
+    "Name": "E.G.O. Weapon: The Sword Sharpened With Tears",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 13,
+    "Rarity": "Very Rare",
+    "Need": "Level 13 Fixer, Dexterity 18 or Higher and Charisma 16 or Higher",
+    "Stats": [
+      "Str",
+      "Dex"
+    ],
+    "Desc": "*Weapon (Rapier)*\n\nWeapon Enchantment (+2): 2d8 Psychic, Finesse\n\nWhile wielding this weapon, you are considered proficient even if you normally aren’t. Inflict 3 `Sinking::Sinking` on hit. Once per turn, you can make an additional number of attacks equal to your proficiency bonus with this weapon. Each attack landed this way deals 2d4 instead of 2d8. You may do this once per combat."
+  },
+  {
+    "Name": "E.G.O. Weapon: Exuviae",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 13,
+    "Rarity": "Very Rare",
+    "Need": "Level 13 Fixer, Constitution 18 or Higher and Strength 16 or Higher",
+    "Stats": [
+      "Dex"
+    ],
+    "Desc": "*Weapon (Sniper Rifle)*\n\nWeapon Enchantment (+2): 10d6+40 `Poison::Poison`, Range 80/320, Heavy, Two-Handed, Firearm. This weapon does not require ammunition, and can only be fired once every other turn. This weapon ignores resistance to Poison damage, and treats immunity as resistance. After landing an attack with this weapon, the target creature loses resistance to nonmagical damage until the end of your next turn."
+  },
+  {
+    "Name": "E.G.O. Weapon: Diffraction",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 13,
+    "Rarity": "Very Rare",
+    "Need": "Level 13 Fixer, Wisdom 18 or Higher and Constitution 16 or Higher",
+    "Stats": [
+      "Str"
+    ],
+    "Desc": "*Weapon (Mace)*\n\nWeapon Enchantment (+2): 6d4 Psychic. This weapon’s damage cannot be reduced below 10 by any means. This weapon imposes a -1d8 to the next roll the target makes after being hit. If using a sanity mechanic, instead deal 4d4 Sanity damage."
+  },
+  {
+    "Name": "E.G.O. Weapon: Bloodthirst",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 13,
+    "Rarity": "Very Rare",
+    "Need": "Level 13 Fixer, Constitution 18 or Higher and Charisma 16 or Higher",
+    "Stats": [
+      "Str",
+      "Dex"
+    ],
+    "Desc": "*Weapon (Chalice)*\n\nThis clear glass chalice is filled halfway with crimson blood that never seems to spill. It has 10 maximum Blood charges. As a bonus action immediately after dealing damage to a creature with an attack that causes bleed, you may capture their blood in the chalice, adding an amount of Blood to the chalice equal to half of the bleed inflicted. While at or below half health, you gain two additional bonus actions that may only be used for this blood collection. You may drink from the chalice as an action, and may choose to use Blood on the following effects. You may use as many of these as you wish per drink, as long as you have the Blood for them.\n\n* Sanguine Reconstitution: You may expend up to 10 Blood to roll an amount of hit dice equal to the Blood expended and heal an amount of health equal to the amount rolled. This does not consume those hit dice.\n* Red Feast: You may expend up 10 Blood to gain 5 consumed `bloodfeast::Bloodfeast` per Blood expended. This bloodfeast can be used once for abilities despite being consumed, but counts as consumed for the purposes of features that require certain amounts of consumed bloodfeast.\n* Bloodhound’s Cocktail: You may expend up to 10 Blood in order to temporarily gain a buff against the creature that the blood is sourced from, for an amount of rounds equal to the amount of Blood consumed. If you have the blood of multiple creatures in the chalice, these buffs apply separately, and for separate durations, but can be active at the same time. While this buff is active, you always know the location of the creature, you have advantage on attack rolls against that creature, you may dash in that creature’s direction as a bonus action, and you always roll maximum damage in clashes against that creature.\n* Scarlet Ichor: You may expend 10 Blood to remove a level of exhaustion and regain 1 light.\n* Lord of Night: You may expend 5 Blood to summon a Sanguine Bat. You may summon up to two of these bats maximum. You may command these bats at will."
+  },
+  {
+    "Name": "E.G.O. Weapon: Feather of Honor",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 13,
+    "Rarity": "Very Rare",
+    "Need": "Level 13 Fixer, Dexterity 18 or Higher and Constitution 16 or Higher",
+    "Stats": [
+      "Str",
+      "Dex"
+    ],
+    "Desc": "*Weapon (Dagger)*\n\nWeapon Enchantment (+2): 3d4 Fire + 3d4 Radiant, Light, Finesse, Thrown 20/60, Returning. Inflict 3 `Burn::Burn` on hit."
+  },
+  {
+    "Name": "E.G.O. Weapon: Discord",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 13,
+    "Rarity": "Very Rare",
+    "Need": "Level 13 Fixer, Strength 18 or Higher and Charisma 16 or Higher",
+    "Stats": [
+      "Str"
+    ],
+    "Desc": "*Weapon (Glaive)*\n\nWeapon Enchantment (+2): 4d6 Necrotic, Heavy, Two-Handed, Reach. While wielding the Yang item E.G.O, or anything affiliated with it, you gain advantage on all attack rolls, your weapon attacks deal triple damage and they bypass resistance to their respective damage type. This can apply to any other weapon, not just this one—so long as you have this on you."
+  },
+  {
+    "Name": "E.G.O. Weapon: Moonlight",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 13,
+    "Rarity": "Very Rare",
+    "Need": "Level 13 Fixer, Charisma 18 or Higher and Intelligence 16 or Higher",
+    "Stats": [
+      "Str"
+    ],
+    "Desc": "*Weapon (Mace)*\n\nWeapon Enchantment (+2): 3d4 Psychic. As an action, give yourself and all allies within 10 feet of you a protective barrier for three rounds. While under the protection of this barrier, you gain immunity to all necrotic, acid, and `poison::Poison` damage, and reduce all of their values to zero before calculating immunity. If you’re hit for 50 damage in a single instance of one of the aforementioned damage types, ignore all previous effects, take the full damage, and the barrier preemptively shatters. This feature can be used once per combat."
+  },
+  {
+    "Name": "E.G.O. Weapon: Amita",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 13,
+    "Rarity": "Very Rare",
+    "Need": "Level 13 Fixer, Charisma 18 or Higher and Intelligence 16 or Higher",
+    "Stats": [
+      "Str",
+      "Dex"
+    ],
+    "Desc": "*Weapon (Quaterstaff)*\n\nWeapon Enchantment (+2): 2d4 Slashing\n\nThis weapon does not consider Extra Attack, but can make a number of attacks equal to your Proficiency Bonus per attack action."
+  },
+  {
+    "Name": "E.G.O. Weapon: Hypocrisy",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 13,
+    "Rarity": "Very Rare",
+    "Need": "Level 13 Fixer, Wisdom 18 or Higher and Dexterity 16 or Higher",
+    "Stats": [
+      "Dex"
+    ],
+    "Desc": "*Weapon (Crossbow)*\n\nWeapon Enchantment (+2): 2d8 Psychic, Two-Handed, Range 80/320 feet, Loaded. This weapon does not require ammunition. On a hit, the target must succeed a Wisdom saving throw or be Charmed for 3 turns. A creature Charmed this way cannot remake the saving throw, but can be cleansed by any other method. For every hostile creature Charmed by the wielder of this weapon, the wielder gains a +1 to attack rolls (Max 4). When 5 or more creatures are Charmed by this weapon, the status cannot be removed until it naturally runs out."
+  },
+  {
+    "Name": "E.G.O. Weapon: Contempt, Awe",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 13,
+    "Rarity": "Very Rare",
+    "Need": "Level 13 Fixer, Charisma 20 or higher",
+    "Stats": [
+      "Str",
+      "Dex"
+    ],
+    "Desc": "*Weapon (Odachi)*\n\nWeapon Enchantment (+2): 1d12 piercing damage. This weapon may be wielded 1 handed with no penalty, but this does not apply when attempting to use offhand items (eg. a shield). This damage is considered magical for the purpose of overcoming resistances. On Hit, if the enemy has `Bleed::Bleed`, apply 1 Gaze to them (max 3 times per turn per enemy). At Turn End, you may choose to gain Gaze up to however much you applied that turn. At Higher levels (16, 18) Damage increases by 1d12 as well as gain access to the following benefits:\n\n* Level 16: Max gaze goes from 3 to 4 per turn per enemy. +2 Odachi becomes +3 Odachi.\n* Level 18: Max gaze goes from 4 to 5 per turn per enemy.\n\nIf the wearer has E.G.O Suit: Contempt, Awe, E.G.O Gift: `Dreadful Visora::Dreadful Visora`, and E.G.O Gift: `Veiled Disdain::Veiled Disdain`, gain access to the following special feature.\n\nShunned, Contemptful Grasp. Select a 15ft radius within 50ft of you. A massive pair of stone hands rise from the ground there, open in offering, before clasping shut in a sudden motion, crushing anyone unfortunate enough to be caught within, before crumbling into rubble and melting back into the terrain. Enemies in the radius must make a Dexterity Saving Throw against your Fixer DC + 4, or take 4d10 bludgeoning and gain Awe for this turn and the next. There is no way to make this attack non-fatal, and anyone killed by this attack is crushed into a fine red mist paste, ruining whatever they may have had on them unless it was incredibly durable. This attack may be used once per long rest.\n\nStatus Effect Description:\n\nGaze: Deal +1 damage for each stack. Upon reaching 7 stacks, lose all Gaze, immediately gain 14 Bleed, and be Awed next turn. This status only lowers when Awe activates, or when exiting combat.\n\nAwe: Fix base movement speed to 10, unless it would usually be lower. Additionally, take doubled Bleed damage when it’s triggered by any source of Gaze or Awe (eg, an attack from a [Contempt, Awe] wielder that triggers Bleed, attacking an enemy who has [Contempt, Awe], etc.). Counts as 7 stacks of Gaze. Gaze cannot be gained whilst Awed; any Gaze that would be gained, or is already applied, is immediately turned into an equal amount of Bleed. Expires on Turn End.\n\nAt Level 18, damage increases to 8d10."
+  },
+  {
+    "Name": "E.G.O. Weapon: Justitia",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 17,
+    "Rarity": "Legendary",
+    "Need": "Level 17 Fixer, Wisdom 20 or Higher and Strength 18 or Higher",
+    "Stats": [
+      "Str"
+    ],
+    "Desc": "*Weapon (Longsword)*\n\nWeapon Enchantment (+3): 6d4 (6d6) True, Versatile. All damage this weapon deals is classified as Pale damage."
+  },
+  {
+    "Name": "E.G.O. Weapon: Gold Rush",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 17,
+    "Rarity": "Legendary",
+    "Need": "Level 17 Fixer, Strength 20 or Higher and Charisma 14 or Lower",
+    "Stats": [
+      "Str",
+      "Dex"
+    ],
+    "Desc": "*Weapon (Cestus)*\n\nWeapon Enchantment (+3): 6d6 Bludgeoning, Light, Finesse, Glove. As an action, forgo all attacks in your attack action to make a singular attack. If the attack hits, add a +10 to the damage for every foregone attack, inflict `Tremor Burst::Tremor Burst`, and add a +5 to all damage rolls for the next minute for every foregone attack. While under these effects, you also gain a -1 to your Intelligence, Wisdom and Charisma modifiers for every foregone attack. This feature can be used once per combat, but the use is only expended when you hit a target."
+  },
+  {
+    "Name": "E.G.O. Weapon: Mimicry",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 17,
+    "Rarity": "Legendary",
+    "Need": "Level 17 Fixer, Strength 20 or Higher and Dexterity 18 or Higher",
+    "Stats": [
+      "Str"
+    ],
+    "Desc": "*Weapon (Longsword)*\n\nWeapon Enchantment (+3): 3d10 (3d12) Slashing, Versatile. This weapon heals the user for 25% of the damage dealt. As an action, forgo all attacks in your attack action to make a singular attack. If the attack hits, add the damage of all of your weapon attacks together as though they’d all hit. When doing this, inflict bleed equal to 1/10th of the damage dealt."
+  },
+  {
+    "Name": "E.G.O. Weapon: Da Capo",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 17,
+    "Rarity": "Legendary",
+    "Need": "Level 17 Fixer, Charisma 20 or higher, Dexterity 18 or higher, proficiency in 1 or more Musical Instruments",
+    "Stats": [
+      "Cha"
+    ],
+    "Desc": "*Weapon (Scythe)*\n\nWeapon Enchantment (+3): 3d8 Psychic, Two-Handed. This weapon scales off of the user’s Performance modifier, and being proficient in Performance also grants proficiency in this weapon. Gain 3 `Poise::Poise` on a hit. When landing a critical hit, also add the damage modifier an additional time."
+  },
+  {
+    "Name": "E.G.O. Weapon: Smile",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 17,
+    "Rarity": "Legendary",
+    "Need": "Level 17 Fixer, Strength 20 or higher, Constitution 18 or higher",
+    "Stats": [
+      "Str"
+    ],
+    "Desc": "*Weapon (Maul)*\n\nWeapon Enchantment (+3): 3d12 Acid, Heavy, Two-Handed. Gain advantage on attack rolls against targets below half health. When you kill a creature, gain this advantage against all targets for one round. As an action, you slam Smile into the ground, sending out shockwaves in all directions. All hostile creatures within 15 feet of you must succeed a Dexterity saving throw, taking 8d6 force damage on a failure of half as much on a success. Additionally, the area around you becomes Difficult Terrain for one turn, and you and all allies are immune to this Difficult Terrain."
+  },
+  {
+    "Name": "E.G.O. Weapon: [CENSORED]",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 17,
+    "Rarity": "Legendary",
+    "Need": "Level 17 Fixer, Constitution 20 or higher, Wisdom 20 or higher",
+    "Stats": [
+      "Wis"
+    ],
+    "Desc": "*Weapon (CENSORED)*\n\nWeapon Enchantment (+3): 4d10 Necrotic, Heavy. You heal for 40% of the damage that this weapon deals. This weapon scales off of your Wisdom modifier. As an action, make a single attack that targets all hostile creatures in a 15 foot line. On a hit, inflict `Amplitude Conversion::Amplitude Conversion` into `Tremor::Tremor` - Overwhelmed. Then inflict `Tremor Burst::Tremor Burst`.\n\nThis feature can be used twice per combat.\n\nTremor - Overwhelmed\n\nWhenever this creature is affected by Tremor Burst, they gain `Sinking::Sinking` and take Psychic damage equal to the Tremor potency prior to Tremor Burst. If the value of Sinking is 30+ after this resolves, target creature rolls on the Short-Term Madness table with no Saving Throw."
+  },
+  {
+    "Name": "E.G.O. Weapon: Sound of a Star",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 17,
+    "Rarity": "Legendary",
+    "Need": "Level 17 Fixer, Wisdom 20 or higher, Intelligence 18 or higher",
+    "Stats": [
+      "Wis"
+    ],
+    "Desc": "*Weapon (Thingamajig)*\n\nWeapon Enchantment (+3): 8d6 Psychic, Range 30 foot radius (centered on self), Light. Inflict 8 `sinking::Sinking` on hit. This weapon can make one attack per turn. This weapon scales off of your Wisdom modifier. When making an attack with this weapon, instead impose a Wisdom saving throw on all creatures in range against your Wisdom DC (8 + PB + WIS MOD). A successful saving throw halves the damage taken and Sinking gained."
+  },
+  {
+    "Name": "E.G.O. Weapon: Adoration",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 17,
+    "Rarity": "Legendary",
+    "Need": "Level 17 Fixer, Charisma 20 or higher, Constitution 18 or higher",
+    "Stats": [
+      "Cha"
+    ],
+    "Desc": "*Weapon (Sniper Rifle)*\n\nWeapon Enchantment (+3): 8d12 Acid, Range 60 feet. This weapon does not require ammunition, and can be fired once per turn. This weapon can scale off of your Charisma modifier. A creature hit by this weapon loses 10 feet of movement and takes 3d4 Acid damage at the start of its every turn for the next 3 turns. This effect cannot stack, but the duration can be refreshed."
+  },
+  {
+    "Name": "E.G.O. Weapon: Pink",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 17,
+    "Rarity": "Legendary",
+    "Need": "Level 17 Fixer, Intelligence 20 or Higher, Dexterity 18 or Higher",
+    "Stats": [
+      "Dex"
+    ],
+    "Desc": "*Weapon (Sniper Rifle)*\n\nWeapon Enchantment (+3): 5d10 Psychic, Two-Handed, Heavy, Range 120/600 feet, Scoped 600 feet, Reload (5). In order to fire this weapon, you must have the Prone condition, but can spend half of your movement to go prone manually."
+  },
+  {
+    "Name": "E.G.O. Weapon: Paradise Lost",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 17,
+    "Rarity": "Legendary",
+    "Need": "Level 17 Fixer, All stats must be 18 or Higher",
+    "Stats": [
+      "Str",
+      "Dex"
+    ],
+    "Desc": "*Weapon (Quaterstaff)*\n\nWeapon Enchantment (+3): 1d4 (1d6) Bludgeoning, Versatile\n\nAs an action, all hostile creatures within 25 feet of you must succeed a Dexterity saving throw. On a failure, they take 8d10 true damage, or half as much on a success. The user of this weapon recovers 50% of all damage dealt by this weapon in hitpoints. All damage this weapon deals is classified as Pale damage."
+  },
+  {
+    "Name": "E.G.O. Weapon: Twilight",
+    "ItemType": "Weapon",
+    "IsEGO": true,
+    "Level": 17,
+    "Rarity": "Legendary",
+    "Need": "Level 17 Fixer, All stats must be 20 or Higher",
+    "Stats": [
+      "Str"
+    ],
+    "Desc": "*Weapon (Greatsword)*\n\nWeapon Enchantment (+3): 2d12 Slashing + 2d12 Psychic + 2d12 Necrotic + 2d12 Force, Heavy, Two-Handed. Inflicts 4 `Burn::Burn`, 4 `Sinking::Sinking`, 4 `Bleed::Bleed`, and 4 `Rupture::Rupture` on a hit. The Force damage this weapon deals is classified as Pale damage."
+  },
+  {
+    "Name": "E.G.O. Suit: Penitence",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 1,
+    "Rarity": "Common",
+    "Need": "Level 1 Fixer",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 12 + DEX. Wearer is vulnerable to all damage classified as Pale damage. Reduce all incoming damage by 3."
+  },
+  {
+    "Name": "E.G.O. Suit: Soda",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 1,
+    "Rarity": "Common",
+    "Need": "Level 1 Fixer",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 12 + DEX. Wearer is vulnerable to all damage classified as Pale damage. Reduce all incoming damage by 3."
+  },
+  {
+    "Name": "E.G.O. Suit: Wingbeat",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 1,
+    "Rarity": "Common",
+    "Need": "Level 1 Fixer",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 12 + DEX. Wearer is vulnerable to all damage classified as Pale damage. Reduce all incoming damage by 3."
+  },
+  {
+    "Name": "E.G.O. Suit: Tough",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 1,
+    "Rarity": "Common",
+    "Need": "Level 1 Fixer, Be Bald",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 12 + DEX. Wearer is vulnerable to all damage classified as Pale damage. You're Bald. Reduce all incoming damage by 3."
+  },
+  {
+    "Name": "E.G.O. Suit: Cavernous Wailing",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 1,
+    "Rarity": "Common",
+    "Need": "Level 1 Fixer",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 14 + Dexterity Mod, However the wearer will lose 15 feet of walk speed. Reduce all incoming damage by 3."
+  },
+  {
+    "Name": "E.G.O. Suit: Fourth Match Flame",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 5,
+    "Rarity": "Uncommon",
+    "Need": "Level 5 Fixer, Constitution 13 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 12 + Dexterity Mod. Wearer gains resistance to non-magical damage and Fire damage. Wearer is vulnerable to all damage classified as Pale damage. Reduce all incoming damage by 6."
+  },
+  {
+    "Name": "E.G.O. Suit: Solitude",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 5,
+    "Rarity": "Uncommon",
+    "Need": "Level 5 Fixer, Charisma 13 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 14 + Dexterity Mod. Wearer is vulnerable to all damage classified as Pale damage. Reduce all incoming damage by 6."
+  },
+  {
+    "Name": "E.G.O. Suit: Screaming Wedge",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 5,
+    "Rarity": "Uncommon",
+    "Need": "Level 5 Fixer, Wisdom 13 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 12 + Dexterity Mod. Wearer is vulnerable to all damage classified as Pale damage. Wearer gains resistance to Psychic, Radiant, and Sanity damage (if using a Sanity mechanic). Reduce all incoming damage by 6."
+  },
+  {
+    "Name": "E.G.O. Suit: Noise",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 5,
+    "Rarity": "Uncommon",
+    "Need": "Level 5 Fixer, Wisdom 13 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 12 + Wisdom Mod. Wearer is vulnerable to all damage classified as Pale damage. Wearer gains resistance to Necrotic and Acid damage. Reduce all incoming damage by 6."
+  },
+  {
+    "Name": "E.G.O. Suit: Red Eyes",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 5,
+    "Rarity": "Uncommon",
+    "Need": "Level 5 Fixer, Constitution 13 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 14 + Dexterity Mod. Wearer is vulnerable to all damage classified as Pale damage. Reduce all incoming damage by 6."
+  },
+  {
+    "Name": "E.G.O. Suit: Horn",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 5,
+    "Rarity": "Uncommon",
+    "Need": "Level 5 Fixer, Wisdom 13 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 15 + Dexterity Mod. Wearer is vulnerable to all damage classified as Pale damage. Wearer takes 50% more damage from all Necrotic and Acid damage. Reduce all incoming damage by 6."
+  },
+  {
+    "Name": "E.G.O. Suit: Wrist Cutter",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 5,
+    "Rarity": "Uncommon",
+    "Need": "Level 5 Fixer, Constitution 13 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 12 + Dexterity Mod. Wearer is vulnerable to all damage classified as Pale damage. Wearer gains resistance to Psychic damage. Reduce all incoming damage by 6."
+  },
+  {
+    "Name": "E.G.O. Suit: Regret",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 5,
+    "Rarity": "Uncommon",
+    "Need": "Level 5 Fixer, Strength 13 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 14 + Constitution Mod. Wearer is vulnerable to all damage classified as Pale damage. Wearer takes 50% more Psychic damage. Wearer gains resistance to all nonmagical damage. Reduce all incoming damage by 6."
+  },
+  {
+    "Name": "E.G.O. Suit: Fragments from Somewhere",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 5,
+    "Rarity": "Uncommon",
+    "Need": "Level 5 Fixer, Intelligence 13 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 13 + Intelligence Mod. Wearer is vulnerable to all damage classified as Pale damage. Wearer gains resistance to Necrotic damage. Reduce all incoming damage by 6."
+  },
+  {
+    "Name": "E.G.O. Suit: Life for a Daredevil",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 5,
+    "Rarity": "Uncommon",
+    "Need": "Level 5 Fixer, Strength 13 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 14 - Charisma Mod. Wearer is vulnerable to all damage classified as Pale damage. Wearer gains resistance to nonmagical damage. Reduce all incoming damage by 6."
+  },
+  {
+    "Name": "E.G.O. Suit: Lantern",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 5,
+    "Rarity": "Uncommon",
+    "Need": "Level 5 Fixer, Charisma 13 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 14 + Strength Mod. Wearer is vulnerable to all damage classified as Pale damage. Wearer gains resistance to Radiant damage. Reduce all incoming damage by 6."
+  },
+  {
+    "Name": "E.G.O. Suit: Today's Expression",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 5,
+    "Rarity": "Uncommon",
+    "Need": "Level 5 Fixer, Charisma 13 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 15. Wearer is vulnerable to all damage classified as Pale damage. Wearer gains resistance to Psychic damage. At the start of each turn, the wearer rolls a 1d8-4 and adds the total to their AC, regardless of the result. Reduce all incoming damage by 6."
+  },
+  {
+    "Name": "E.G.O. Suit: Engulfing Dream",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 5,
+    "Rarity": "Uncommon",
+    "Need": "Level 5 Fixer, Wisdom 13 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 14 + Dexterity Mod. Wearer is vulnerable to all damage classified as Pale damage. Wearer has resistance against being put to sleep through unnatural means. Reduce all incoming damage by 6."
+  },
+  {
+    "Name": "E.G.O. Suit: Cherry Blossoms",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 5,
+    "Rarity": "Uncommon",
+    "Need": "Level 5 Fixer, Charisma 13 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 13 + Dexterity Mod. Wearer is vulnerable to all damage classified as Pale damage. Wearer gains resistance to Psychic damage. Reduce all incoming damage by 6."
+  },
+  {
+    "Name": "E.G.O. Suit: SO CUTE!!!",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 5,
+    "Rarity": "Uncommon",
+    "Need": "Level 5 Fixer, Charisma 13 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 10 + Dexterity Mod + Charisma Mod. Wearer is vulnerable to all damage classified as Pale damage. Wearer takes 50% more damage from Psychic damage. Reduce all incoming damage by 6."
+  },
+  {
+    "Name": "E.G.O. Suit: Bear Paws",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 9,
+    "Rarity": "Rare",
+    "Need": "Level 9 Fixer, Strength 15 or Higher and Charisma 13 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 15 + Dexterity Mod. Wearer takes 50% more damage from Pale damage. Reduce all incoming damage by 9."
+  },
+  {
+    "Name": "E.G.O. Suit: Syrinx",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 9,
+    "Rarity": "Rare",
+    "Need": "Level 9 Fixer, Constitution 15 or Higher and Wisdom 13 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 15 + Dexterity Mod. Wearer takes 50% more damage from Pale damage. Wearer gains resistance to Psychic, Radiant, and if the Sanity Variant Rule is applied, Sanity damage. Reduce all incoming damage by 9."
+  },
+  {
+    "Name": "E.G.O. Suit: Logging",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 9,
+    "Rarity": "Rare",
+    "Need": "Level 9 Fixer, Strength 15 or Higher and Constitution 13 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 15 + Strength Mod. Wearer takes 50% more damage from Pale damage. Reduce all incoming damage by 9."
+  },
+  {
+    "Name": "E.G.O. Suit: Frost Splinter",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 9,
+    "Rarity": "Rare",
+    "Need": "Level 9 Fixer, Constitution 15 or Higher and Intelligence 13 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 14 + Strength Mod. Wearer takes 50% more damage from Pale damage. Reduce all incoming damage by 9."
+  },
+  {
+    "Name": "E.G.O. Suit: Grinder Mk4",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 9,
+    "Rarity": "Rare",
+    "Need": "Level 9 Fixer, Dexterity 15 or Higher and Intelligence 13 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 12 + Dexterity Mod. Wearer takes 50% more damage from Pale damage. Wearer gains resistance to all nonmagical damage, as well as Lightning damage. Wearer gains a +1 to AC for every 5 `Charge::Charge` on self (Max 3). Reduce all incoming damage by 9."
+  },
+  {
+    "Name": "E.G.O. Suit: Christmas",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 9,
+    "Rarity": "Rare",
+    "Need": "Level 9 Fixer, Wisdom 15 or Higher and Strength 13 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 14 + Dexterity Mod. Wearer takes 50% more damage from Pale damage, as well as Necrotic and Acid damage. Wearer gains resistance to Psychic, Radiant, Cold, and if the Sanity Variant Rule is applied, Sanity damage. Reduce all incoming damage by 9."
+  },
+  {
+    "Name": "E.G.O. Suit: Our Galaxy",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 9,
+    "Rarity": "Rare",
+    "Need": "Level 9 Fixer, Charisma 15 or Higher and Intelligence 13 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 14 + Charisma Mod. Wearer takes 50% more damage from Pale damage. Any healing given to allies from the Our Galaxy `E.G.O Weapon::E.G.O Weapon` is doubled. Reduce all incoming damage by 9."
+  },
+  {
+    "Name": "E.G.O. Suit: Laetitia",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 9,
+    "Rarity": "Rare",
+    "Need": "Level 9 Fixer, Charisma 15 or Higher and Dexterity 13 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 15 + Dexterity Mod. Wearer takes 50% more damage from Pale damage. Reduce all incoming damage by 9."
+  },
+  {
+    "Name": "E.G.O. Suit: Solemn Lament",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 9,
+    "Rarity": "Rare",
+    "Need": "Level 9 Fixer, Dexterity 15 or Higher and Wisdom 13 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 14 + Dexterity Mod. Wearer takes 50% more damage from Pale damage. Wearer gains resistance to Necrotic and Radiant damage. Reduce all incoming damage by 9."
+  },
+  {
+    "Name": "E.G.O. Suit: Magic Bullet",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 9,
+    "Rarity": "Rare",
+    "Need": "Level 9 Fixer, Charisma 15 or Higher and Dexterity 13 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 14 + Dexterity Mod. Wearer takes 50% more damage from Pale damage. If using the Magic Bullet `E.G.O Weapon::E.G.O Weapon`, increase the damage dice of said weapon by one tier. Reduce all incoming damage by 9."
+  },
+  {
+    "Name": "E.G.O. Suit: Gaze",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 9,
+    "Rarity": "Rare",
+    "Need": "Level 9 Fixer, Wisdom 15 or Higher and Constitution 13 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 15 + Constitution Mod. Wearer takes 50% more damage from Pale damage. Gain resistance to Psychic damage while any creature that you can see can also see you. Reduce all incoming damage by 9."
+  },
+  {
+    "Name": "E.G.O. Suit: Harvest",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 9,
+    "Rarity": "Rare",
+    "Need": "Level 9 Fixer, Wisdom 15 or Higher and Intelligence 13 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 15 + Wisdom Mod. Wearer takes 50% more damage from Pale damage. Wearer gains resistance to nonmagical damage. Reduce all incoming damage by 9."
+  },
+  {
+    "Name": "E.G.O. Suit: Pleasure",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 9,
+    "Rarity": "Rare",
+    "Need": "Level 9 Fixer, Wisdom 15 or Higher and Charisma 13 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 15 + Wisdom Mod. Wearer takes 50% more damage from Pale damage. Reduce all incoming damage by 9."
+  },
+  {
+    "Name": "E.G.O. Suit: In the Name of Love and Hate",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 13,
+    "Rarity": "Very Rare",
+    "Need": "Level 13 Fixer, Charisma 18 or Higher and Wisdom 16 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 14 + Charisma Mod. Wearer is vulnerable to all damage classified as Pale damage. Wearer gains resistance to Necrotic and Acid damage. Reduce all incoming damage by 12."
+  },
+  {
+    "Name": "E.G.O. Suit: Lamp",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 13,
+    "Rarity": "Very Rare",
+    "Need": "Level 13 Fixer, Wisdom 18 or Higher and Strength 16 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 15 + Constitution Mod. Wearer takes 50% more damage from Pale damage. Wearer gains resistance to Necrotic, Acid, and Radiant damage. Reduce all incoming damage by 12."
+  },
+  {
+    "Name": "E.G.O. Suit: Green Stem",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 13,
+    "Rarity": "Very Rare",
+    "Need": "Level 13 Fixer, Intelligence 18 or Higher and Dexterity 16 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 14 + Dexterity Mod. Wearer takes 50% more damage from Pale damage. Wearer gains resistance to Necrotic, Acid, and `Poison::Poison` damage. Reduce all incoming damage by 12."
+  },
+  {
+    "Name": "E.G.O. Suit: Hornet",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 13,
+    "Rarity": "Very Rare",
+    "Need": "Level 13 Fixer, Intelligence 18 or Higher and Constitution 16 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 16 + Constitution Mod. Wearer takes 50% more damage from Pale damage. Reduce all incoming damage by 12."
+  },
+  {
+    "Name": "E.G.O. Suit: Faint Aroma",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 13,
+    "Rarity": "Very Rare",
+    "Need": "Level 13 Fixer, Wisdom 18 or Higher and Constitution 16 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 15 + Constitution Mod. Wearer takes 50% more damage from Pale and Fire damage. Wearer gains resistance to Psychic damage. Reduce all incoming damage by 12."
+  },
+  {
+    "Name": "E.G.O. Suit: Crimson Scar",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 13,
+    "Rarity": "Very Rare",
+    "Need": "Level 13 Fixer, Dexterity 18 or Higher and Intelligence 16 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 14 + Dexterity Mod. Wearer takes 50% more damage from Pale damage. Wearer gains resistance to all damage not classified as Pale damage. Increase movement speed by 15 feet while moving toward a hostile. Reduce all incoming damage by 12."
+  },
+  {
+    "Name": "E.G.O. Suit: Cobalt Scar",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 13,
+    "Rarity": "Very Rare",
+    "Need": "Level 13 Fixer, Strength 18 or Higher and Charisma 16 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 15 + Strength Mod. Wearer is vulnerable to damage classified as Pale damage. Wearer gains resistance to nonmagical damage, as well as `Poison::Poison` damage, and damages taken from `Bleed::Bleed`. Reduce all incoming damage by 12."
+  },
+  {
+    "Name": "E.G.O. Suit: Gold Rush",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 13,
+    "Rarity": "Very Rare",
+    "Need": "Level 13 Fixer, Strength 18 or Higher and Charisma 16 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 15 + Strength Mod. Wearer is vulnerable to damage classified as Pale damage. Wearer gains resistance to all nonmagical damage, as well as Force damage. Reduce all incoming damage by 12."
+  },
+  {
+    "Name": "E.G.O. Suit: Spore",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 13,
+    "Rarity": "Very Rare",
+    "Need": "Level 13 Fixer, Constitution 18 or Higher and Charisma 16 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 15 + Strength Mod. Wearer takes 50% more damage from Pale damage. Wearer gains resistance to Psychic and `Poison::Poison` damage. Reduce all incoming damage by 12."
+  },
+  {
+    "Name": "E.G.O. Suit: Black Swan",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 13,
+    "Rarity": "Very Rare",
+    "Need": "Level 13 Fixer, Constitution 18 or Higher and Intelligence 16 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 15 + Constitution Mod. Wearer takes 50% more damage from Pale damage. Wearer gains resistance to nonmagical damage, as well as `Poison::Poison` and Acid damage. Reduce all incoming damage by 12."
+  },
+  {
+    "Name": "E.G.O. Suit: Ecstasy",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 13,
+    "Rarity": "Very Rare",
+    "Need": "Level 13 Fixer, Dexterity 18 or Higher and Wisdom 16 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 16 + Dexterity Mod. Wearer takes 50% more damage from Pale damage. Reduce all incoming damage by 12."
+  },
+  {
+    "Name": "E.G.O. Suit: Heaven",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 13,
+    "Rarity": "Very Rare",
+    "Need": "Level 13 Fixer, Wisdom 18 or Higher and Heaven 16 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 15 + Dexterity Mod. Wearer takes 50% more damage from Pale damage. Wearer gains resistance to nonmagical damage. Reduce all incoming damage by 12."
+  },
+  {
+    "Name": "E.G.O. Suit: Feather of Honor",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 13,
+    "Rarity": "Very Rare",
+    "Need": "Level 13 Fixer, Charisma 18 or Higher and Dexterity 16 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 14 + Dexterity Mod. Wearer is vulnerable to all damage classified as Pale damage, and takes 50% more Necrotic and Acid damage. Wearer gains resistance to nonmagical damage, as well as Fire, `Poison::Poison`, Psychic, and Radiant damage. Reduce all incoming damage by 12."
+  },
+  {
+    "Name": "E.G.O. Suit: Discord",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 13,
+    "Rarity": "Very Rare",
+    "Need": "Level 13 Fixer, Dexterity 18 or Higher and Wisdom 16 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 14 + Dexterity Mod. Wearer takes 50% more damage from Pale damage. Wearer gains resistance to Necrotic damage. If the wearer is equipped with the Yang Tool Abnormality, double the AC bonus granted by their Dexterity modifier. Reduce all incoming damage by 12."
+  },
+  {
+    "Name": "E.G.O. Suit: Moonlight",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 13,
+    "Rarity": "Very Rare",
+    "Need": "Level 13 Fixer, Charisma 18 or Higher and Intelligence 16 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 14 + Charisma Mod. Wearer is vulnerable to all damage classified as Pale damage. Wearer gains resistance to Psychic and Necrotic damage. Reduce all incoming damage by 12."
+  },
+  {
+    "Name": "E.G.O. Suit: Hypocrisy",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 13,
+    "Rarity": "Very Rare",
+    "Need": "Level 13 Fixer, Intelligence 18 or Higher and Wisdom 16 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 14 + Wisdom Mod. Wearer takes 50% more damage from all damage classified as Pale damage, as well as Acid and Necrotic damage. Wearer gains resistance to Psychic, Radiant, and `Poison::Poison` damage. At the start of the wearer’s every turn, the wearer and all allies within 30 feet recover 6 Sanity. If the Sanity Variant Rule is not applied, instead apply a +1d6 to the first roll made by yourself and all allies (Once per creature per turn). Reduce all incoming damage by 12."
+  },
+  {
+    "Name": "E.G.O. Suit: Amita",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 13,
+    "Rarity": "Very Rare",
+    "Need": "Level 13 Fixer, Wisdom 18 or Higher and Charisma 16 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 14 + Charisma Mod. Wearer takes 50% more damage from all damage classified as Pale damage, as well as Acid and Necrotic damage. Wearer gains resistance to Psychic, Radiant, and `Poison::Poison` damage. At the start of the wearer’s every turn, the wearer and all allies within 30 feet recover 6 Sanity. If the Sanity Variant Rule is not applied, instead apply a +1d6 to the first roll made by yourself and all allies (Once per creature per turn). Reduce all incoming damage by 12."
+  },
+  {
+    "Name": "E.G.O. Suit: Contempt, Awe",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 13,
+    "Rarity": "Very Rare",
+    "Need": "Level 13 Fixer, Charisma 18 or Higher and Constitution 16 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC 10 + (Gaze on All Creature / 3, Rounded Down) + DEX Mod (Max +3 from Dex Mod)\n\n* Insipid Eyes: After `Clashing::Clashing`, both the wearer and the opponent gain 1 Gaze, then the loser of the clash gains an additional Gaze.\n* Self-Contempt: When the wearer reaches 7 Gaze, they instead gain 3 `Fragile::Fragile` for 2 turns.\n* At Level 16: When Self-Contempt is triggered, additionally instead of gaining 3 Fragile, Gain 3 `Protection::Protection`, 5 `Aggro::Aggro`, and 2 `Offense Level Down::Offense Level Down` (Max 3 times per combat)."
+  },
+  {
+    "Name": "E.G.O. Suit: Mimicry",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 17,
+    "Rarity": "Legendary",
+    "Need": "Level 17 Fixer, Strength 20 or Higher and Charisma 18 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 16 + Constitution Mod. Wearer gains resistance to all damage, except for those classified as Pale. Nonmagical damage is halved an additional time. Reduce all incoming damage by 15."
+  },
+  {
+    "Name": "E.G.O. Suit: Da Capo",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 17,
+    "Rarity": "Legendary",
+    "Need": "Level 17 Fixer, Charisma 20 or Higher, Dexterity 18 or Higher, proficiency in 1 or more Musical Instruments",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 16 + Charisma Mod. Wearer takes 50% more damage from all damage classified as Pale damage. Wearer gains resistance to all damage, except for those classified as Pale. If the wearer also wields the Da Capo E.G.O Gift, instead absorb all Psychic, Radiant, and Sanity damage. When taking one of the aforementioned damage types, instead recover HP/SP equal to the result. If gaining a debuff as an alternative to a sanity mechanic, instead gain its inverse as a buff. Reduce all incoming damage by 15."
+  },
+  {
+    "Name": "E.G.O. Suit: Paradise Lost",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 17,
+    "Rarity": "Legendary",
+    "Need": "Level 17 Fixer, All Stats 18 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 18 + Intelligence Mod or Wisdom Mod or Charisma Mod. Wearer gains resistance to all damage. Damage classified as Pale damage is halved an additional time. If the user is within 1 mile of the abnormality Whitenight, all non-Pale damage is also halved an additional time. After calculating damage taken after resistances, if the value is 5 or lower, it’s instead fully negated. If the user is within 1 mile of Whitenight, any damage lower than 10 is instead absorbed (User heals the value). Reduce all incoming damage by 15."
+  },
+  {
+    "Name": "E.G.O. Suit: Justitia",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 17,
+    "Rarity": "Legendary",
+    "Need": "Level 17 Fixer, Wisdom 20 or Higher, Constitution 18 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 16 + Constitution Mod. Wearer gains resistance to all damage. Reduce all incoming damage by 15."
+  },
+  {
+    "Name": "E.G.O. Suit: Twilight",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 17,
+    "Rarity": "Legendary",
+    "Need": "Level 17 Fixer, All Stats 20 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 18 + Strength Mod or Dexterity Mod or Constitution Mod. Wearer gains resistance to all damage. All damage not classified as Pale damage is halved an additional time. All hostile creatures within 15 feet of the wearer take 5 Necrotic damage at the start of the wearer’s turn. If the wearer also has the Twilight `E.G.O Weapon::E.G.O Weapon` and the Through the Dark Twilight E.G.O Gift, instead deal 5 `Poison::Poison`, 5 Psychic, 5 Necrotic, and 5 Force (Pale) damage. While the wearer is below half health, all damage dealt by weapon attacks is doubled. Reduce all incoming damage by 15."
+  },
+  {
+    "Name": "E.G.O. Suit: Smile",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 17,
+    "Rarity": "Legendary",
+    "Need": "Level 17 Fixer, Constitution 20 or Higher and Strength 18 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 16 + Constitution Mod. Wearer gains resistance to all damage, except those classified as Pale damage. Necrotic and Acid damage are halved an additional time. You can occupy the same space as corpses. While occupying the same space as a corpse, you may spend a bonus action to consume the corpse, destroying it and in turn healing you for 10% of your Maximum HP. Creatures of Tiny or smaller are too small to restore you, and creatures of size Huge or larger take too long to consume in combat. A short rest can be spent consuming a Huge or larger corpse, causing you to recover all of your health instead of half. Reduce all incoming damage by 15."
+  },
+  {
+    "Name": "E.G.O. Suit: Sound of a Star",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 17,
+    "Rarity": "Legendary",
+    "Need": "Level 17 Fixer, Constitution 20 or Higher and Wisdom 18 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 16 + Wisdom Mod. Wearer gains resistance to all damage, except those classified as Pale damage. At the start of the wearer’s every 3rd turn in combat, themself and all allies within 30 feet recover 4d4+4 HP, and if using a sanity mechanic, 4d4+4 SP. Reduce all incoming damage by 15."
+  },
+  {
+    "Name": "E.G.O. Suit: Pink",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 17,
+    "Rarity": "Legendary",
+    "Need": "Level 17 Fixer, Intelligence 20 or Higher and Dexterity 18 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 16 + Charisma Mod. Wearer gains resistance to all damage, except those classified as Pale damage. Psychic damage is halved an additional time. If the Pink E.G.O Gift is also equipped, the wearer increases the damage dice of the Pink `E.G.O Weapon::E.G.O Weapon` by one tier. Reduce all incoming damage by 15."
+  },
+  {
+    "Name": "E.G.O. Suit: Adoration",
+    "ItemType": "Armor",
+    "IsEGO": true,
+    "Level": 17,
+    "Rarity": "Legendary",
+    "Need": "Level 17 Fixer, Charisma 20 or Higher and Constitution 18 or Higher",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Suit)*\n\nWhile wearing this suit, the wearer has an AC equal to 16 + Charisma Mod. Wearer gains resistance to all damage, except those classified as Pale damage. All nonmagical damage, as well as Fire, Lightning, Acid, `Poison::Poison`, and Necrotic damage, are halved an additional time.When the wearer is below 20% of their maximum HP, the next time they take 10+ damage from a singular attack, they generate a barrier that makes them fully immune to all slashing, piercing, and bludgeoning damage—both magical and nonmagical—for three turns. This feature will also activate if the user is reduced to 0 HP, in which case the wearer returns to 1 HP, and are treated as though they never hit 0. This feature can only activate once per long rest. Reduce all incoming damage by 15."
+  },
+  {
+    "Name": "Venomous Skin",
+    "ItemType": "Mod",
+    "IsEGO": false,
+    "Level": 1,
+    "Rarity": "Common",
+    "Need": "",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*E.G.O. Gift (E.G.O. Gift)*\n\nWhen hitting or winning a clash, you inflict 2 stacks of tremor on the creature and if the wearer has the weapon Cavernous Wailing, then you may give 1 ally a Blubberbubble stack aswell."
+  },
+  {
+    "Name": "Bloodthirst",
+    "ItemType": "Mod",
+    "IsEGO": false,
+    "Level": 1,
+    "Rarity": "Very Rare",
+    "Need": "",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*E.G.O. Gift (E.G.O. Gift)*\n\nYour eyes turn blood red, skin going pale, as fangs and claws grow, ready to feast. Gain the following benefits.\n\n* Ancient Power. You gain a +15ft movement speed bonus, 120ft of magical darkvision, +2 Charisma and +2 Constitution. You also passively regenerate 1 HP every turn. When at 0 HP, you are instead immediately stabilised, and you regain 1 HP in 3 rounds.\n* Rending Claws. Your unarmed strikes may deal slashing or bludgeoning damage, have a base damage die of 1d10, inflict 4 `bleed::Bleed`, and have the finesse property.\n* Vampiric Bite. You may bite a grappled, incapacitated or restrained creature on the neck as an action. feasting on their blood. The bite deals 1d4 piercing damage, and an amount of necrotic damage equal to your level plus your proficiency bonus. You heal for an amount equal to the necrotic damage dealt, and gain it as consumed `bloodfeast::Bloodfeast` if you are a bloodfiend. You may deal this necrotic damage twice on consecutive turns as long as you take a full turn action to continue draining their blood.\n* Fear of Water. You have an intense phobia of water. If you come in contact with, or go near water, you become frightened of it. Very small amounts of water are just a bit disturbing and uncomfortable, but bearable, like a glass of water. If you are splashed with water by a creature, you are stunned until the end of your next turn. While stunned like this, you are counted as frightened. If a creature attempts to splash you with water again within a minute, you instead emit an ear piercing scream, deafening all creatures within 120ft of you if they fail a constitution saving throw, and giving you 4 `Defense Level Down::Defense Level Down`, 2 `Fragile::Fragile`, 2 `Offense Level Up::Offense Level Up`, and the ability to dash as a free action once per turn while moving towards a creature that splashed you. These effects last for a round, and will have their duration increased by getting splashed again, up to 1 minute total. Being submerged in water makes you take 1d6 psychic damage and gain 10 `sinking::Sinking` at the start of your turn. This sinking doesn’t begin halving until you haven’t been in contact with water for a minute."
+  },
+  {
+    "Name": "Dieci Academic Stole",
+    "ItemType": "Mod",
+    "IsEGO": false,
+    "Level": 1,
+    "Rarity": "Rare",
+    "Need": "Must be a Dieci Association associate to use this",
+    "Stats": [
+      "Int"
+    ],
+    "Desc": "*Armor (Stole)*\n\nA symbol of knowledge that enhances your strength through intellect\nYou may add your intelligence modifier to damage rolls made with unarmed strikes."
+  },
+  {
+    "Name": "Cinq's Stylish Blue Hat",
+    "ItemType": "Mod",
+    "IsEGO": false,
+    "Level": 1,
+    "Rarity": "Rare",
+    "Need": "Must be a Cinq Association associate to use this",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Hat (Hat)*\n\nWhile, yes, you are a dualist for hire, there is nothing wrong with catering to the crowd.\nYou gain proficiency in performance or expertise if you were already proficient. When fighting in the presence of others that are either allies or neutral parties of you, you may make a performance check upon landing an attack with a DC equal to your opponents Charisma score. On success you gain a 1d6 as an inspiration dice that you may apply to any attack or damage roll, skill check, or saving throw for the next minute. You may use this feature once per short or long rest."
+  },
+  {
+    "Name": "Kurokumo Clan Sheath",
+    "ItemType": "Mod",
+    "IsEGO": false,
+    "Level": 1,
+    "Rarity": "Rare",
+    "Need": "Must be a Kurokuno Clan associate to use this",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Seeth (Sheathe)*\n\nA seethe specially made for quickly drawing and seething your blade.\nWhen attacking a target after drawing your blade, those attacks allow `bleed::Bleed` stacks to exceed the maximum by the number of attacks landed."
+  },
+  {
+    "Name": "R-Corp Enhanced Battery",
+    "ItemType": "Mod",
+    "IsEGO": false,
+    "Level": 1,
+    "Rarity": "Rare",
+    "Need": "Must be a R-corp associate to use this",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Battery (Battery)*\n\nA specialized battery developed by `R-Corp::R-Corp` to increase the maximum charge capacity that can be held.\nYour charge maximum increases from 10 to 20."
+  },
+  {
+    "Name": "Bamboo Hat",
+    "ItemType": "Mod",
+    "IsEGO": false,
+    "Level": 13,
+    "Rarity": "Rare",
+    "Need": "13th level Blade Lineage associate",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Hat (Hat)*\n\nA hat worn by a legend who has since vanished\nThe roll required to maintain your poise goes from 17-20 to 15-20"
+  },
+  {
+    "Name": "Life Support Crusader Mask",
+    "ItemType": "Mod",
+    "IsEGO": false,
+    "Level": 13,
+    "Rarity": "Rare",
+    "Need": "13th level N-Corp affiliate possesses the plate version of N-Corp Crusader Armor and the Oversized Nail",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Helmet (Helmet)*\n\nYou are a behemoth of a man, and with that you’ve become the ironclad wall that protects your team. The mask has tubes with green fluid flowing through it, reminiscent of `K-Corp::K-Corp` ampule liquid.\nYou recover your constitution modifier in hit points every turn. Additionally, when being reduced to 0 hit points, you instead return to 1/4th max hit points once per long rest."
+  },
+  {
+    "Name": "Crude Nails",
+    "ItemType": "Mod",
+    "IsEGO": false,
+    "Level": 1,
+    "Rarity": "Rare",
+    "Need": "Must be a N-Corp associate to use this",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Nail (Nail)*\n\nYour nails are an immoral creation made to do the work of your just crusade.\nTargets who have nails embedded in them take 1d4 necrotic damage at the end of their turn for every nail embedded in them. If `N-Corp’s Vicious Nail::N-Corp's Vicious Nail` is embedded in them, they instead take 1d6 necrotic damage. Additionally, if using `N-Corp::N-Corp`’s Vicious Nail, it gains a 1d4 necrotic damage per traditional hit."
+  },
+  {
+    "Name": "Wound Clerid",
+    "ItemType": "Mod",
+    "IsEGO": false,
+    "Level": 7,
+    "Rarity": "Rare",
+    "Need": "7th level Fixer",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Bug (Bug)*\n\nA red bug that will hang around its user, waiting for them to spill blood.\nWhen you apply bleed, you apply 1 more bleed."
+  },
+  {
+    "Name": "Hellterfly's Dream",
+    "ItemType": "Mod",
+    "IsEGO": false,
+    "Level": 7,
+    "Rarity": "Rare",
+    "Need": "7th level Fixer",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Bug (Butterrfly)*\n\nA flaming butterfly that roosts upon its wielder or flutters around them, as if it seeks the embrace of others.\nYou may cause the target to take fire damage equal to half of the fire damage you dealt each turn at the end of their turn."
+  },
+  {
+    "Name": "Rusty Commemorative Coin",
+    "ItemType": "Mod",
+    "IsEGO": false,
+    "Level": 7,
+    "Rarity": "Rare",
+    "Need": "7th level Fixer",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Coin (Coin)*\n\nA rusted coin that is always dry to the touch.\nUpon using a feature that requires an action, you may repeat that singular action once per long rest."
+  },
+  {
+    "Name": "Portable Battery Socket",
+    "ItemType": "Mod",
+    "IsEGO": false,
+    "Level": 7,
+    "Rarity": "Rare",
+    "Need": "7th level Fixer",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Battery Socket (Battery Socket)*\n\nA battery socket that seems to spark with electricity without being plugged in.\nYou gain 2 `charge::Charge` at the beginning of every turn."
+  },
+  {
+    "Name": "Dreadful Visora",
+    "ItemType": "Mod",
+    "IsEGO": false,
+    "Level": 1,
+    "Rarity": "Uncommon",
+    "Need": "",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Battery Socket (E.G.O Gift)*\n\nA battery socket that seems to spark with electricity without being plugged in.\nLanding a Critical Hit on an enemy with Gaze applies `Bleed::Bleed` equal to the stack of Gaze, triggers it, and then adds another stack of Gaze. If this additional stack triggers (or if the target already has) Awe, additionally the creature becomes frightened next turn."
+  },
+  {
+    "Name": "Veiled Disdain",
+    "ItemType": "Mod",
+    "IsEGO": false,
+    "Level": 1,
+    "Rarity": "Uncommon",
+    "Need": "",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Battery Socket (E.G.O Gift)*\n\nA battery socket that seems to spark with electricity without being plugged in.\n`Clashing::Clashing` costs (Gaze on target + self, divided by 7, Rounded Down) less `Light::Light`. At level 16, if the target is Awed, Clashing them does not cost any Light. Upon winning a clash, apply 1 stack of Gaze. If the target is Awed, inflict one `Paralysis::Paralysis` instead. Upon losing a clash, gain 2 `Fragile::Fragile` and inflict 2 Fragile."
+  },
+  {
+    "Name": "Four Leaf Clover",
+    "ItemType": "Mod",
+    "IsEGO": false,
+    "Level": 7,
+    "Rarity": "Rare",
+    "Need": "7th level Fixer",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Four Leaf Clover (Four Leaf Clover)*\n\nA four leaf clover that seems to never wilt, you feel luckier already.\nYour crit range increases an additional time."
+  },
+  {
+    "Name": "Nebulizer",
+    "ItemType": "Mod",
+    "IsEGO": false,
+    "Level": 7,
+    "Rarity": "Rare",
+    "Need": "7th level Fixer",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Nebulizer (Nebulizer)*\n\nA Nebulizer that steadies your breathing simply by holding it.\nYou and all allies gain an improved crit range by one until they land a critical, after which this gift no longer affects them."
+  },
+  {
+    "Name": "Shadow Bamboo Hat",
+    "ItemType": "Mod",
+    "IsEGO": false,
+    "Level": 7,
+    "Rarity": "Rare",
+    "Need": "7th level Fixer",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Armor (Hat)*\n\nA strange `Bamboo Hat::Bamboo Hat`. Upon wearing it, your body feels lighter, and your movement feels faster.\nIf user has more initiative than the enemy, add +1 to attack and damage rolls per 8 initiative above the enemy(max +3) and deduct 1 to enemy's attack and damage rolls made against you per 8 initiative difference(max -3). If used by `Heishou Pack - Mao Branch::Heishou Pack - Mao Branch` associate, gain +2 to initiative rolls."
+  },
+  {
+    "Name": "Clockwork Monocle",
+    "ItemType": "Mod",
+    "IsEGO": false,
+    "Level": 7,
+    "Rarity": "Rare",
+    "Need": "7th level Fixer",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Wondrous item (Wondrous item)*\n\nThis monocle looks really expensive, but elegant. Best thing for a detective.\\\nYou can use your Wisdom modifier for Investigation and History checks instead of Intelligence. You can reconstruct something that happened up to week ago. Upon activating, you can try to see what happened here in the past. The clockwork shows a lot of possible ways, so you need to pass a DC 15 Investigation check in order to understand which one is the most likely option."
+  },
+  {
+    "Name": "Darkflame Smoking Pipe",
+    "ItemType": "Mod",
+    "IsEGO": false,
+    "Level": 1,
+    "Rarity": "Rare",
+    "Need": "",
+    "Stats": [
+      "None"
+    ],
+    "Desc": "*Wondrous item (Wondrous item)*\n\nThis smoking pipe burns a dark blue flame.\nWhile using this E.G.O gift you gain 2 Attack Power Up and 1 `Fragile::Fragile` at the start of your turn. If currently user has a reduced Defense Level, gain 5 `Poise::Poise` before attack. as a bonus action you can generate one Magic Bullet."
+  }
+]

@@ -1,0 +1,179 @@
+{
+  "Name": "Kindred Bloodfiend",
+  "Talents": [
+    {
+      "name": "Hit Points",
+      "level": 1,
+      "desc": "**Hit Dice:** 1d12 per Kindred Bloodfiend level\n**Hit Points at 1st Level:** 12 + Constitution modifier\n**Hit Points at Higher Levels:** 1d12 (or 7) + Constitution modifier per Kindred Bloodfiend level after 1st",
+      "color": ""
+    },
+    {
+      "name": "Proficiencies",
+      "level": 1,
+      "desc": "**Armor:** Light armor, Medium armor, Shields\n**Weapons:** martial and simple weapons, firearms\n**Tools:** one type of musical instrument and one artisan's tools or game set\n**Saving Throws:** Wisdom, Dexterity, or Constitution and Intelligence, Strength, or Charisma\n**Skills:** Choose three from Athletics, Acrobatics, Investigation, Survival, Stealth, Persuasion, Perception, and Medicine",
+      "color": ""
+    },
+    {
+      "name": "Equipment",
+      "level": 1,
+      "desc": "You start with the following equipment, in addition to the equipment granted by your background:\n\n* Leather armor and a shield\n* (a) 1 martial weapon or (b) 2 simple weapons\n* (a) a set of throwing weapons (20 throwing knives or 10 javelins/handaxes) or (b) a longbow with 20 arrows\n* 1 musical instrument and your selected artisan's tools or gaming set\n* If you are using starting wealth, you have 4d4 x 10 gp in funds.",
+      "color": ""
+    },
+    {
+      "name": "Table: The Kindred Bloodfiend",
+      "level": 1,
+      "desc": "| Level | Proficiency Bonus | `Light::Light` | Features |\n|---|---|---|---|\n| 1st | +2 | 0 | `Superhuman::Superhuman`, `Bloodied Weapons::Bloodied Weapons`, Affiliation Feature |\n| 2nd | +2 | 2 | `Fighting Style::Fighting Style`, Light |\n| 3rd | +2 | 3 | `Clashing::Clashing`, Affiliation Feature, `Bloodfeast::Bloodfeast` |\n| 4th | +2 | 4 | Ability Score Improvement, Light Feature, `Blood Manipulation::Blood Manipulation` |\n| 5th | +3 | 5 | Extra Attack, `Vampiric Regeneration::Vampiric Regeneration` |\n| 6th | +3 | 6 | Affiliation Feature, `Be Impaled::Be Impaled` |\n| 7th | +3 | 7 | `Abnormal Ability::Abnormal Ability` Improvement, `Evasion::Evasion` |\n| 8th | +3 | 8 | Ability Score Improvement, Light Feature, `Blood Tidal Wave::Blood Tidal Wave` |\n| 9th | +4 | 9 | `Demonic Constitution::Demonic Constitution` |\n| 10th | +4 | 10 | Siphon |\n| 11th | +4 | 11 | Extra Attack, `Bloodbag Turning::Bloodbag Turning` |\n| 12th | +4 | 12 | Ability Score Improvement, Light Feature |\n| 13th | +5 | 13 | Affiliation Feature, Improved Blood Creation |\n| 14th | +5 | 14 | Abnormal Ability Improvement, Powerful Body |\n| 15th | +5 | 15 | Never Surrounded |\n| 16th | +5 | 16 | Ability Score Improvement, Light Feature, `Menacing Aura::Menacing Aura` |\n| 17th | +6 | 17 | Affiliation Feature, `Higher Kindred::Higher Kindred` |\n| 18th | +6 | 18 | Recognition, `Bloodstep::Bloodstep` |\n| 19th | +6 | 19 | Ability Score Improvement, Light Feature |\n| 20th | +6 | 20 | Royalty |",
+      "color": ""
+    },
+    {
+      "name": "Superhuman",
+      "level": 1,
+      "desc": "At 1st level, your Strength, Dexterity and Constitution all increase by 2, your movement speed increases by 10ft, your jump distance is doubled, and your unarmed strikes deal 1D8 slashing, piercing or bludgeoning damage, which you choose upon making the attack. Instead of requiring 12 ounces of blood per day, you instead require an amount of ounces of blood per day equal to your level multiplied by 6, or 12 ounces, whichever is higher. Your regeneration ability no longer uses your hit dice, simply having a separate pool of regeneration dice.",
+      "color": ""
+    },
+    {
+      "name": "Bloodied Weapons",
+      "level": 1,
+      "desc": "At 1st Level you gain the ability to create a weapon made of hardened blood as a bonus action on your turn. When doing so, you gain 4 `Bleed::Bleed` stacks to extract the blood from yourself and create a simple or martial weapon that you are proficient with that deals its damage and inflicts 3 Bleed stacks on hit. You may enhance a weapon you already possess however, causing it to simply inflict 3 Bleed stacks. You may create a number of these weapons equal to your proficiency bonus and may cause any of them to un-enhance an enhanced weapon or cause a created weapon to be dissolved into a pool of blood as a free action.",
+      "color": ""
+    },
+    {
+      "name": "Bloodfiend Affiliation",
+      "level": 1,
+      "desc": "Each Bloodfiend may hold differing aptitudes for different parts of their skillsets. At 1st level, you may pick one of the Affiliations listed at the bottom of this class. You gain features from these at 1st, 3rd, 6th, 10th, 13th, and 17th levels.\n\nSome of your Bloodfiend features require your target to make a saving throw to resist the feature's effects. The saving throw DC is calculated as follows:\n\n* Bloodfiend Ability Modifier = your strength or dexterity modifier\n* Bloodfiend Save DC = 8 + your proficiency bonus + your strength or dexterity modifier\n* Bloodfiend Attack Modifier = your proficiency bonus + your strength or dexterity modifier",
+      "color": ""
+    },
+    {
+      "name": "Fighting Style",
+      "level": 2,
+      "desc": "Starting at 2nd level, you adopt a particular style of fighting as your specialty. Choose one of the following options. You may choose an additional fighting style at 10th level. You can't take a Fighting Style option more than once, even if you later get to choose again.\n\n**Sharpshooter**\n\nYou gain a +2 bonus to attack rolls you make with ranged attacks.\n\n**Blind Fighting**\n\nBeing unable to see a creature doesn’t impose disadvantage on your attack rolls against it, provided the creature isn’t hidden from you.\n\n**Close-Range**\n\nYou gain a +2 to damage dealt with ranged attacks. Additionally, you no longer attack at disadvantage when you use a ranged attack within 5ft of a creature.\n\n**Strongbow**\n\nYou can use your Strength modifier, in place of Dexterity, for your attack and damage rolls with longbows and shortbows.\n\n**Dual Wielding**\n\nWhen you take the Attack action while two-weapon fighting, you can make a single additional attack with your off-hand weapon as part of your action instead of your bonus action, adding your ability modifier to the damage of this attack. You cannot attack with the offhand weapon as a bonus action when using this feature.\n\n**All Terrain Athlete**\n\nYou have a swimming speed and a climbing speed equal to your normal speed, and you gain a +1 bonus to armor class.\n\n**Dueling**\n\nWhen you are wielding a melee weapon in one hand and no other weapons, you gain a +2 bonus to damage rolls with that weapon.\n\n**Great Weapon Fighting**\n\nWhen you roll a 1 or 2 on a damage die for an attack you make with a melee weapon that you are wielding with two hands, you can reroll the die and must use the new roll, even if the new roll is a 1 or a 2. The weapon must have the two-handed or versatile property for you to gain this benefit.\n\n**Interception**\n\nWhen a creature you can see hits a target that is within 5 feet of you with an attack, you can use your reaction to reduce the damage the target takes by 1d10 + your proficiency bonus. You must be wielding a shield or a simple or melee martial weapon to use this reaction.\n\n**`Protection::Protection`**\n\nWhen a creature you can see attacks a target other than you that is within 5 feet of you, you can use your reaction to impose disadvantage on the attack roll. You must be wielding a shield or melee martial weapon.\n\n**Two Weapon Fighter**\n\nWhen you engage in two-weapon fighting, you can add your ability modifier to the damage of the second attack.\n\n**Iaijutsu**\n\nYou make the first attack of each round with your sword still sheathed. This attack is made with advantage. You may sheath your weapon as a bonus action.\n\n**Tunnel Fighter**\n\nAs a bonus action, you can enter a defensive stance that lasts until the start of your next turn. While in your defensive stance, you can make opportunity attacks without using your reaction, and you can use your reaction to make a melee attack against a creature that moves more than 5ft while within your reach.\n\n**Thrown Weapon Fighting**\n\nYou can draw a weapon that has the thrown property as part of the attack you make with the weapon. Moreover, when you hit with a ranged weapon attack using a thrown weapon, you gain a +2 bonus to the damage roll of that attack.\n\n**Gun Brawler**\n\nYour unarmed strikes can deal bludgeoning damage equal to 1d4 + your Dexterity modifier. When you make a weapon attack using a pistol you may make an unarmed strike as a bonus action. This effect also works vice versa when using an unarmed attack, allowing you to make one weapon attack with your pistol. Additionally, when using a pistol, you no longer attack at disadvantage when within 5ft of a creature.\n\n**Lancer**\n\nWhen wielding a lance you no longer suffer disadvantage on attack rolls against a creature within 5ft of you and lances may now be wielded in one hand. Additionally Lances you wield now deal 2d6 instead of 1d12.\n\n**Brawler**\n\nWhile wielding an improvised weapon, you are considered proficient. Your unarmed attacks and improvised weapon damage rolls now add your proficiency bonus to the roll.\n\n**Superior Technique**\n\nYou learn one maneuver of your choice from among those available to the Battle Master Fighter Subclass. If a maneuver you use requires your target to make a saving throw to resist the maneuver's effects, the saving throw DC equals 8 + your proficiency bonus + your Strength or Dexterity modifier (your choice.) You gain one superiority die, which is a d8 (this die is added to any superiority dice you have from another source). This die is used to fuel your maneuvers. A superiority die is expended when you use it. You regain your expended superiority dice when you finish a short or long rest.\n\n**Rider**\n\nYou gain the benefits of the Mounted Combatant feat.",
+      "color": ""
+    },
+    {
+      "name": "Light",
+      "level": 2,
+      "desc": "At 2nd level, you’ve seen the harsh reality of the city and its tenants, along with the impending doom that fills the streets, however your glimmer of hope will continue to grow within you until it becomes a blinding, radiant light. You gain a number of Light equal to the class table + your proficiency bonus + your choice of your Wisdom, Intelligence, or Charisma modifier. After choosing between Wisdom, Intelligence, or Charisma, you cannot change this decision later. Upon gaining this feature, choose 2 of the following light techniques. You learn an additional light technique at 4th, 8th, 12th, 16th, and 19th levels.\n\n* Frightening Attack: When you hit a creature with a weapon attack, you can spend 2 light to attempt to frighten the target from the sheer pain you inflict upon them. You add a 1d8 to the attack's damage roll, and the target must make a Wisdom saving throw. On a failed save, it is frightened of you until the end of your next turn.\n* Horizontal Cleave: When you hit a creature with a melee weapon attack, you can expend 1 light to attempt to damage another creature with the same attack. Choose another creature within 5 feet of the original target and within your reach. If the attack roll would hit the second creature too, then they take your weapon damage on hit.\n* Ricochet Rounds: You may use light to have your attack ricochet to nearby targets. You may expend 1 Light before making a ranged attack roll. On hit deal an additional 1d8 damage and then target another creature within 15ft. If your original attack roll would hit the second target, deal the result of the 1d8 roll to that target.\n* Press the Offensive: For 3 Light as a bonus action, you may gain 1 `Offense Level Up::Offense Level Up` until the start of your next turn.\n* Grappling Strike: Immediately after you hit a creature with a melee attack on your turn, you can expend 1 Light and then try to grapple the target as a bonus action.\n* Skitter Away: For 1 light you may apply this to a weapon attack, after which you may move 5ft without provoking opportunity attacks.\n* Feint: You can expend 1 Light and use a bonus action on your turn to feint, choosing one creature within 5 feet of you as your target. You have advantage on your next attack roll against that creature this turn. If that attack hits, add 1d8 to the attack's damage roll.\n* Heavy Swing: When you hit a creature with a melee weapon attack, you can expend 2 light to attempt to drive the target back. You add the 1d8 to the attack's damage roll, and if the target is Large or smaller, it must make a Strength saving throw. On a failed save, you push the target up to 15 feet away from you.\n* Brace For Impact: As a bonus action for 2 light, you may reduce all damage you take by your Constitution modifier until the beginning of your next turn.\n* Piercing Shot: For 3 Light when making a ranged weapon attack, you may cause it to become a 30ft line, all creatures in that line must make a Dexterity saving throw where they take weapon damage on failure and no damage on success\n* Take Aim: You may spend 2 Light before an attack roll to add 1d8 to the total.\n\nAll light is recovered upon a long rest. Half of your light is recovered on a short rest.",
+      "color": ""
+    },
+    {
+      "name": "Clashing",
+      "level": 3,
+      "desc": "At 3rd level, you’ve learned one of the most important techniques the city could have taught you. As a reaction to being targeted by an attack and for 2 light, you may engage in a clash with that target. The clash must be declared before the attack roll is made. When engaging in the clash, you may choose one of the following kinds of clashes.\n\n* Counter: Upon winning the clash, you may make a single weapon attack against the target assuming the target is in range of the weapon you clashed with. This attack cannot be clashed against.\n* Mitigate: Upon clashing, reduce the damage taken by the number rolled regardless if you won or lost the clash. You may pick this option as a reaction to a AoE. If you do so, you automatically fail the saving throw, do not reduce the damage, and grant full cover to creatures behind you from the center of the area of affect.\n* Stall: Upon winning the clash, you will take no damage and reduce their movement speed by an amount equal to triple the damage rolled on the clash until the end of their turn. If the target made a ranged weapon attack, their movement speed is not reduced.\n\nWhen clashing against a target, you will both roll damage rolls of each of the attacks you made, in which case, whoever rolls higher damage will have won the clash. If you win a Clash - Counter and hit the follow-up attack, regain 1 light.\n\nA target who is being clashed against may spend 4 light to gain the benefits of your clash. Meaning that the clash you select can work against you if they win it at the cost of them using more resources.\n\nVariant Rule: If you are using any Sanity Variant rules. Clashes gain the following benefits.\n\n* If using Version A, on clash win, you may make a dice equal to your hit dice. Regain the result as sanity and the target loses sanity of the same value.\n* If using Version B, recover 10 sanity on clash win. On clash loss, lose 5 sanity.",
+      "color": ""
+    },
+    {
+      "name": "Bloodfeast",
+      "level": 3,
+      "desc": "At 3rd level you’ve indulged more heavily in your hunger for blood, and it grants you power as it stains the ground. All `bleed::Bleed` damage dealt is stored and accounted for as Bloodfeast. Bloodfeast is used to fuel other features, however, grants passive benefits to you for retaining. Once per turn at the beginning of the turn you may consume an amount of blood from the Bloodfeast equal to your Constitution modifier + Proficiency bonus. Upon consuming Bloodfeast, you may then as a free action spend 5 consumed Bloodfeast to gain one of the following benefits.\n\n* +10ft movement speed\n* +1 AC\n* +1 to attack and damage rolls\n\nAdditionally, upon consuming Bloodfeast equal to your proficiency bonus or higher, your `Bloodied Weapons::Bloodied Weapons` Bleed stacks that it inflicts on creatures is doubled (2 -> 4). Consumed Bloodfeast is reset at the beginning of a long rest. These buffs last for 1 minute, and you may only pick each of them once, apart from the speed buff, which you can choose up to 10 times. So after the third round, you would have all 3 buffs, and only be able to select the speed buff from now on until the other bonuses expire. Bloodfeast is generally blood that is around the battlefield, so as long as you are within the general vicinity of a large amount of blood or where creatures have bled, you may use it. This is up to DM discretion.",
+      "color": ""
+    },
+    {
+      "name": "Ability Score Improvement",
+      "level": 4,
+      "desc": "When you reach 4th level, and again at 6th, 8th, 10th, 12th, 16th, and 19th level, you can increase one ability score of your choice by 2, or you can increase two ability scores of your choice by 1. As normal, you can't increase an ability score above 20 using this feature unless the cap has increased.\n\nAlternatively, you may take a feat from the 5e feats list or the Fixer Feats.",
+      "color": ""
+    },
+    {
+      "name": "Blood Manipulation",
+      "level": 4,
+      "desc": "Starting at 4th level, you gain the ability to manipulate blood at will, giving you the `hardblood art::Hardblood Arts` feat and making you gain the following techniques:\n\n* Scarlet Entanglement. You may pull blood from the surrounding area, creating a net that envelops an opponent. As an action for 1 `Light::Light` and 5 `Bloodfeast::Bloodfeast`, you must choose a target within 30ft of you. The target must make a Dexterity saving throw against your Bloodfiend DC or become restrained. The creature can spend its action after being restrained to roll a Strength saving throw, breaking itself from the effect on a success.\n* Blood Sawblade. You create a wheel of blood that rotates at high speeds to use as a bladed projectile. As an attack for 1 Light and 6 Bloodfeast, you form a blood sawblade and make a ranged attack roll against a creature within 30ft. On a hit, the target takes 2d6 Slashing Damage and 3 `Bleed::Bleed`.\n\nAlternatively, you can shape the blood into a stream, slicing through everything in its path. Each creature in a 20ft line that is 5ft wide must make a Dexterity saving throw, taking 2d6 Slashing Damage on a failure, or half as much on a success.\n\n* This technique’s damage increases to 3d6 at 5th level, 4d6 at 11th level and 5d6 at 17th level. The range of each variant increases by 30ft and 20ft respectively whenever their damage increases from reaching a certain level.\n* Blood Weight. As a free action for 2 Light you can cause a creature you can see within 10 feet that has your blood on them, such as literally on them or staining their clothes, to be weighed down by your blood. For each Blood Point worth of blood on the creature their speed is reduced by 5 feet, if this reduces their speed to half it’s normal value they have disadvantage on Dexterity saves, and if it reduces their speed to 0 they automatically fail Dexterity saves. You must spend 1 Light at the start of the weighed-down creature’s turns to maintain this effect.\n\nYou may determine how many blood points a creature has on them as it is equal to how much Bloodfeast a technique that hit them cost before reductions.\n\nA creature exposed to light rain loses 5 blood points that are on them at the end of their turn, and the same amount when they are hit by a light source of water such as being splashed by a bucket of water or laying on shallow water. A creature exposed to heavy rain loses 10 blood points that are on them at the end of their turn, and the same amount when they are hit by a heavy source of water such as a wave that engulfs them. A half or fully-submerged creature cannot have blood points on it.\n\n* Blood Spit. A dirty tactic but you’ll do whatever it takes to win, even spitting blood in your enemy’s eyes to blind them. As a bonus action or once per round as a reaction to taking damage for 4 Bloodfeast, you may make a melee light attack roll against a creature within 5ft. On a hit, their face is covered in your blood for an amount of rounds equal to your Light modifier. For 3 Light as part of covering a creature’s face in blood or a reaction while a creature’s face is covered in blood, you may cause the blood to burst, dealing 4d4 piercing damage to them and making them blinded until the end of their next turn. If they were performing any kind of action when you burst the blood they must make a concentration save or fail to perform the action, the resources used to perform it not being wasted, you cannot do this while incapacitated. Once you have used this, the feature ends early.",
+      "color": ""
+    },
+    {
+      "name": "Extra Attack",
+      "level": 5,
+      "desc": "At 5th level, you can attack twice, instead of once, whenever you take the Attack action on your turn. The number of attacks increases to three when you reach 11th level in this class.",
+      "color": ""
+    },
+    {
+      "name": "Vampiric Regeneration",
+      "level": 5,
+      "desc": "At 5th level, you have a doubled pool of regeneration hit dice, and at the start of each of your turns, you 1 regain hit point if you have no more than half of your hit points left. You don't gain this benefit if you have 0 hit points. You have advantage on death saving throws, and after being stable for 1 minute, you regenerate 1 hit point.",
+      "color": ""
+    },
+    {
+      "name": "Be Impaled",
+      "level": 6,
+      "desc": "At 6th level, you may control the blood seeped into the ground to impale your targets. You may spend up to 100 unconsumed `Bloodfeast::Bloodfeast` to target all creatures of your choice within a 30ft radius of a point within 60ft of you, or a 60ft radius of you. All hostile creatures in the area must then make a dexterity saving throw or take Xd6 piercing damage and be inflicted with 10 `Bleed::Bleed` stacks. These bleed stacks do not give you bloodfeast until you attack the creature with them with a melee attack. The damage of this ability is equal to the amount of bloodfeast spent divided by 6.",
+      "color": ""
+    },
+    {
+      "name": "Inhuman Might",
+      "level": 7,
+      "desc": "At 7st level, your Strength, Dexterity and Constitution all increase by 1, your movement speed increases by 10ft and you may dash, disengage or hide as a bonus action. Additionally, as an Action you may perform a great feat of strength. You may lift, push, or throw an amount of kilograms equal to your Strength Score multiplied by 100 kilograms. This may also be used to break down walls, etc. You may use this up to your proficiency bonus amount of times per long rest, and may regain a charge by consuming 25 `bloodfeast::Bloodfeast`. At 14th level, the weight you can lift, push, or throw is doubled, and doubled again at 20th level.",
+      "color": ""
+    },
+    {
+      "name": "Evasion",
+      "level": 7,
+      "desc": "At 7th level, your instinctive agility lets you dodge out of the way of certain area effects, such as an explosion. When you are subjected to an effect that allows you to make a Dexterity saving throw to take only half damage, you instead take no damage if you succeed on the saving throw, and only half damage if you fail.",
+      "color": ""
+    },
+    {
+      "name": "Blood Tidal Wave",
+      "level": 8,
+      "desc": "At 8th level, you may make a massive amount of blood cover the battlefield. As an action for 5 `Light::Light` and an amount of `Bloodfeast::Bloodfeast` up to your level times your Light modifier, you create a tidal wave of blood from your body, roiling like a wave coming out from you. All creatures that come in contact with the wave as it expands must make a strength saving throw, taking 1d8 bludgeoning damage for every 10 Bloodfeast spent and falling prone on a failure, or taking halved damage and not falling prone on a success. If a creature is prone while in the wave's area, it must make a strength saving throw at disadvantage, being dragged with the wave's expansion on a failure. Any ground this wave passes over is considered difficult terrain and gives a creature that ends their turn in the area an amount of `Bleed::Bleed` equal to your proficiency bonus.\n\nThe radius is an amount of feet equal to twice the amount of Bloodfeast spent, to a maximum of 60 feet. If you spend Bloodfeast such that the radius would exceed 60 feet, then at the start of each of your subsequent turns, the radius expands in 60-foot increments until it matches the total radius based on the amount of Bloodfeast spent, at which point the tidal wave ends. The tidal wave remains centered on the point at which you first cast it until it ends.",
+      "color": ""
+    },
+    {
+      "name": "Demonic Constitution",
+      "level": 9,
+      "desc": "At 9th level, you may regenerate your limbs after 10 minutes passively, if you choose to. You may also spend 1 regeneration dice as a bonus action to regenerate a hand or foot, or 3 to regenerate a full limb. Any of your limbs that are held up to the stump will knit back instantly. Alternatively, as a bonus action while one of your limbs is within 60ft of you, you may shoot out a strand of blood and pull the limb back onto your stump, knitting it back instantly. You now use your full constitution modifier for determining your regeneration dice pool.",
+      "color": ""
+    },
+    {
+      "name": "Bloodbag Turning",
+      "level": 11,
+      "desc": "At 11th level, when you kill a living Humanoid of under your proficiency bonus in CR, you may choose to have them return as an undead shade of their former self, hungry for blood. They revive as a `Bloodbag::Bloodbag` after 1d4+1 Turns.\n\nYou may also create a Bloodbag from an already deceased corpse by exposing yourself to their blood (via bite or transfusion). They revive as a Bloodbag in 2d12 Turns. Bloodbags always follow your orders, and use the Bloodbag stat block.\n\nYou may only command up to 2 Bloodbags in combat at once. Commanding them takes a bonus action. If they are not commanded, they will simply take the dodge action. At your DM's discretion, you may send these Bloodbags to do tasks past this 2 Bloodbag limit, but only if you send them without you or your other party members.",
+      "color": ""
+    },
+    {
+      "name": "Improved Blood Creation",
+      "level": 13,
+      "desc": "At 13th level, with your continued experience, you’ve been able to fine tune your blood creations. Your `Bloodied Weapons::Bloodied Weapons` inflict +1 `bleed::Bleed` for every time you consume the maximum amount of `Bloodfeast::Bloodfeast` on your turn to a maximum of +2. Additionally, when using your `Be Impaled::Be Impaled` feature, you now cause all creatures who fail the saving throw to be restrained. Creatures who are restrained in this way may remake the save at the end of their turns to free themselves, taking 1d4 bleeding (necrotic) damage on failed save. Alternatively, a creature may attack the spike they are impaled on to try and destroy it. The spike has an AC of 10 and 10 hit points. Once the spike is destroyed, the target is no longer restrained.",
+      "color": ""
+    },
+    {
+      "name": "Powerful Body",
+      "level": 14,
+      "desc": "At 14th level, your Strength, Dexterity and Constitution all increase by 1, your movement speed increases by 10ft, the weight you can push, carry and lift is doubled, and you gain an additional reaction. In addition, your ability score maximum for all scores is raised by 2.",
+      "color": ""
+    },
+    {
+      "name": "Never Surrounded",
+      "level": 15,
+      "desc": "At 15th level, it takes two sources of advantage against you for hostile creatures to actually be able to utilize it.",
+      "color": ""
+    },
+    {
+      "name": "Menacing Aura",
+      "level": 16,
+      "desc": "At 16th level, you have advantage on Intimidation checks, and you may make an Intimidation checks as a bonus action. Whenever you make Intimidation Checks, you may force a target within 60ft to make a Wisdom Saving Throw against a DC equal to 8 + your Intimidation bonus. If the target fails the Save they gain the Frightened Condition for the next minute.\n\nIf a creature has already been forced to make a Save against your Menacing Aura, they get a +4 bonus to further Menacing Aura Saves for the next minute.\n\nIf you use this against a target that's already Frightened, you may increase their level of Fear by 1 if they fail the Save, or by 2 if they fail the Save by 5 or more.\n\nThis feature uses a variant frightened condition.\n\n* Frightened: The afflicted has experienced something scary that they'd rather avoid. A creature may typically resist becoming Frightened through Wisdom Saves. The effect differs depending on how much they failed the Save by:\n* Unease: The afflicted has a -2 penalty to all d20 rolls while they can see or hear the source of their Fear.\n* Fear: The afflicted has a -4 penalty to all d20 rolls while they can see or hear the source of their Terror. Additionally, they can only willingly move closer to the source by an amount equal to half of their Movement Speed each Turn, unless they spend an Attack to move up to their full Movement Speed.\n* Panic: The afflicted has a -6 penalty to all d20 rolls while they can see or hear the source of their Panic. Additionally, they must use at least half of their Movement Speed to move away from the source each Turn, unless they spend an Attack to stand their ground or spend 2 or their full Action to move up to half their Movement Speed towards the source.\n* Terror: The afflicted has a -8 penalty to all d20 rolls while they can see or hear the source of their Terror. Additionally, they must use their full Movement Speed to move away from the source each Turn, unless they spend three attacks to stand their ground.\n* Dread: The afflicted has a -10 penalty to all d20 rolls while they can see or hear the source of their Dread. Additionally, they must use their full Movement Speed to move away from the source each Turn, unless they spend their full action to stand their ground.\n* Horror: The afflicted target must make a constitution saving throw with a DC equal to your light DC. On a successful save, they go down to dread. On a failed save, they die outright of a heart attack.\n\nA Frightened creature may use a full turn action or have an ally use the Help Action on them to reduce their Fright level by 1, removing the condition completely if at the lowest level (Unease). At the start of the turn of a creature with a CR higher than your proficiency bonus, they may make a wisdom saving throw to remove 1 level of fear on a success.",
+      "color": ""
+    },
+    {
+      "name": "Higher Kindred",
+      "level": 17,
+      "desc": "At 17th level, you’ve established yourself well within your family and with that gained the benefits. You gain the `Hardblood Arts::Hardblood Arts` feature from the fixer feats list. If you already have it, then you may take the Ascended Hardblood Arts feature instead. Additionally, you may now further your bloodline by creating up to two Kindred of your own. Do note that whatever ranked kindred you are will cause your own Kindred to be ranked one below you. For example, if you are a third kindred, your kindred will be fourth kindred and so on. In order to turn somebody into a kindred, they must be a willing dying humanoid, or a recently deceased humanoid. The process of turning a creature into kindred takes up to an hour being having to give some of your own blood to the creature, and then waiting to see if their body accepts the blood. The creature you are attempting to turn must make a DC = 8 Constitution saving throw. On success they will return to life. Their new race will be blood fiend and they may choose to take the fixer class and bloodfiend affiliation if they would like. On failure the body will dissolve and coagulate the blood, turning them into a puddle of blood. Your kindred will listen to you if you command them to do something, however they still hold their own opinions and if given permission to speak freely, will. Otherwise they follow the same rules the bloodfiend race follows, treating you and all kindred above you as their parents/grandparents.",
+      "color": ""
+    },
+    {
+      "name": "Recognition",
+      "level": 18,
+      "desc": "At 18th level, more people know your name than you know theirs. When a creature meets you for the first time, they must make a DC 10 history check to see if they recognize you. On success they know you or at least know of you in a general sense. In combat if a creature recognizes you, they have disadvantage on saving throws you impose until you take any damage or fail a save, unless the creature is of the same CR as your level, or higher. This condition only affects the creatures you wish it to.",
+      "color": ""
+    },
+    {
+      "name": "Bloodstep",
+      "level": 18,
+      "desc": "At 18th level, you may use your blood for incredible mobility. You may make an air jump for 5 unconsumed or consumed `Bloodfeast::Bloodfeast`, and can choose to hover in place in the air for a round for 5 Bloodfeast. If you are falling, you may choose to not take fall damage for an amount of bloodfeast equal to the damage dice that the fall would have dealt.",
+      "color": ""
+    },
+    {
+      "name": "Royalty",
+      "level": 20,
+      "desc": "At 20th level, you have reached your pinnacle. All of your stats go up by 1, you gain proficiency in another saving throw of your choosing and your movement is increased by 10ft. You may gain expertise in two skills and you may turn any dead humanoid into a bloodbag, regardless of CR. If a creature at or under your proficiency bonus in CR fails a save against your `Menacing Aura::Menacing Aura`, they gain another level of fear. Your form cannot be affected in any way unless you allow it as the light in your body bends to nobody else.",
+      "color": ""
+    }
+  ]
+}

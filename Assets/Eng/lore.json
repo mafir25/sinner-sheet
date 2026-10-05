@@ -1,0 +1,130 @@
+[
+  {
+    "Name": "Setting",
+    "Icon": "fa-city",
+    "Sub": "The year 984, the City, 26 Corporations and the Head above them.",
+    "Tags": [
+      "setting"
+    ],
+    "Intro": "**The year is 984**, reset after all known records of the time before were lost.",
+    "Blocks": [
+      {
+        "Title": "The City",
+        "Body": "The world has been exhausted of most of its natural resources, driving people to research for alternatives — leading to the discovery of miraculous technologies known as **Singularities**.\n\nCorporations rose to claim these wonders, forming a gigantic mega-city known as... well, **\"The City\"**. 26 of these Corporations manage 26 Districts, governed by the powerful organization known as **The Head**."
+      },
+      {
+        "Title": "Backstreets and Nests",
+        "Body": "However, with the rapid advancement of technology, there came a great difference in status between the \"rich\" and \"poor\". This divide led to the separation of a District into the **Backstreets** and the **Nest**. With it came the rampant classism by those in the Nest."
+      },
+      {
+        "Title": "Who Works Here",
+        "Body": "Within the City, contract mercenaries known as **Fixers** work to earn a living through various means, as well as the more criminally orientated **Syndicates** who often clash with the former. Additionally, employees of the 26 Corporations are often tasked in bizarre, wondrous, and horrific experiments in order to keep their place in the highly competitive Nest.\n\nThe dystopian world of Project Moon is one of a society featuring advanced technology and development, suffering under an oppressive meritocracy ruled by corporate entities in an almost post-apocalyptic world. The joy of life is nowhere to be found within the average denizen of the City."
+      }
+    ]
+  },
+  {
+    "Name": "The Battle for the City",
+    "Icon": "fa-gears",
+    "Sub": "Humans against machines, and the ban that remained afterwards.",
+    "Tags": [
+      "conflict",
+      "timeline"
+    ],
+    "Intro": "An unnamed conflict that would establish the City, and subsequently the Head's rule. It was a battle between the humans and non-human entities, some of which were mechanical in nature. The non-humans were overwhelmed by the humans and were pushed out of the City into the **Outskirts** and beyond, never to be seen again.",
+    "Blocks": [
+      {
+        "Title": "Aftermath",
+        "Body": "Afterwards, the Head would establish the **Artificial Intelligence Ethics Amendment Act**, which stated that no machine or AI would have any resemblance to humans. This extended to include full-body mechanical replacements, which, while allowed to retain a human shape, must be visibly mechanical in nature."
+      }
+    ]
+  },
+  {
+    "Name": "Wings' War",
+    "Icon": "fa-feather",
+    "Sub": "The early years of the City, the birth of the Outskirts and the Perception Filter.",
+    "Tags": [
+      "conflict",
+      "timeline"
+    ],
+    "Intro": "A large scale conflict occurring in the early years of the City's founding. It involved most of the Wings. Highly advanced weapons and technologies were developed as a means of war and destruction.",
+    "Blocks": [
+      {
+        "Title": "Perception Filter",
+        "Body": "The outcome of the War would result in massive casualties to the population and the creation of the **Outskirts**, where most of the fighting took place. The **Perception Filter** would also be created as a means to visually lessen the horrors of war by reducing them to more \"toy-like\" versions."
+      }
+    ]
+  },
+  {
+    "Name": "Bloodfiend War",
+    "Icon": "fa-droplet",
+    "Sub": "The schism of Bloodfiend society.",
+    "Tags": [
+      "conflict"
+    ],
+    "Intro": "A very old conflict between two sides of Bloodfiends: those who wished to coexist alongside humans in peace, and those who saw them only as prey and cattle. No surviving written records are known of, but the testimony of the remaining Bloodfiends states that the ones who wished to coexist won.",
+    "Blocks": []
+  },
+  {
+    "Name": "The Smoke War",
+    "Icon": "fa-smog",
+    "Sub": "The fall of the old L Corp and the rise of Lobotomy Corporation.",
+    "Date": "Ended ~974",
+    "Tags": [
+      "conflict",
+      "timeline",
+      "faction"
+    ],
+    "Intro": "A major conflict that occurred between multiple Wings such as `R-Corp::R-Corp` and the Old `G-Corp::G-Corp`, with the point of conflict being the forceful dissolution of the old L-Corp. It was a pivotal moment in the City, as several Corporations would rise, fall or develop new technologies as a result. The Smoke War ended around the year 974.",
+    "Blocks": [
+      {
+        "Title": "Where the Name Comes From",
+        "Body": "The namesake of the conflict arose from the **old L Corp**, whose method of energy production would always produce endless amounts of acidic fog. The conflict started when the up-and-coming **Lobotomy Corp** revealed **Enkephalin**: advertised as a far cheaper, \"eco-friendly energy source\" — a direct contrast to the old L-Corp, who would almost always refuse to share their energy or charge high prices for it."
+      },
+      {
+        "Title": "Outcome",
+        "Body": "With the promise of mutually beneficial contracts to obtain large volumes of the new and efficient energy source, several other Wings supported Lobotomy Corporation's rise to become a Wing, with the war ending in the collapse of the old L Corp and its allies."
+      }
+    ]
+  },
+  {
+    "Name": "The White Nights and Dark Days",
+    "Icon": "fa-sun",
+    "Sub": "The pillar of Light, the hope it brought and the Distortions it left behind.",
+    "Tags": [
+      "event",
+      "timeline"
+    ],
+    "Intro": "For a decade after Lobotomy Corporation's rise to power, the City's denizens enjoyed the benefits of the far cleaner Enkephalin, which produced virtually no pollution compared to its predecessor. Life continued on as usual in the City.",
+    "Blocks": [
+      {
+        "Title": "The White Nights...",
+        "Body": "However, after that decade, the main facility of Lobotomy Corp arose from its buried site underneath the Nest, and began to beam a gigantic pillar of **Light** into the sky — light, focused through the lenses of 10 people, whose journey of overcoming their struggles formed its basis.\n\nFor once, the denizens of the City felt something that was otherwise long forgotten: hope. They were touched by the Light, and a seed was planted in their hearts: a seed of their own light, in which they would be able to forge their own stories and stronghold their own existence.\n\nAnd with this seed, maybe humanity would be able to reclaim the love that they lost.\n\nThe light shone for 7 days and 7 nights, making a significant change to the City as a whole..."
+      },
+      {
+        "Title": "...and Dark Days",
+        "Body": "...not. The light was cut off on the fourth day — leaving people blind and open to sorrow and despair. Incomplete seeds were planted as a result, and fueled by the changes the Light wrought in them, some people were overwhelmed by a change that they couldn't handle — becoming monsters fueled by their negative emotions called **Distortions**.\n\nThe first of these monsters was **The Pianist**, which emerged in District 9, wreaking havoc in the Backstreets and killing over 300,000 people before being slain by the **Black Silence**. While it was treated as a freak incident at first, more and more such monsters kept emerging all over the City, in the Backstreets, and the Nests. It wasn't until much later, long after the incident, that people started to make the connection.\n\nIn the midst of the now-derelict Nest, a massive, towering structure resembling a tree appeared."
+      }
+    ]
+  },
+  {
+    "Name": "The Library",
+    "Icon": "fa-book",
+    "Sub": "The \"tree\" in the derelict Nest, its Invitations and the second Light.",
+    "Tags": [
+      "event",
+      "timeline",
+      "faction"
+    ],
+    "Intro": "The \"tree\" was later found to be **The Library**, which was supposedly built from the main facility of Lobotomy Corp. It was known to send out **\"Invitations\"** to people — the only way of entering, as the base of the Library was surrounded by a thick fog that redirected people approaching it back out and away from the Library.",
+    "Blocks": [
+      {
+        "Title": "Invitations",
+        "Body": "Over the course of a few months, it slowly attracted more and more powerful combatants — gaining more infamy in the process and having its risk assessment raised. Most who signed Invitations entered to retrieve the \"book\" of a fallen comrade, or knowledge on L-Corp and the Light, believing it to be the source of the Distortion phenomenon."
+      },
+      {
+        "Title": "The Second Light",
+        "Body": "At some point, it released another pillar of Light into the City, and this time the Light shone for a full 7 days and 7 nights. While it did not undo the damages caused by the previous, failed attempt, it fulfilled the purpose that the previous one did not. It also restored all those who had fallen in the Library to various points in the City.\n\nShortly after, it was deemed an **\"Impurity\"** by the Head and evicted from the City. Rumors circulate regarding the reason the Head had to evict and not destroy it like other Impurities. It currently resides in the Outskirts."
+      }
+    ]
+  }
+]

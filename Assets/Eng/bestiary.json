@@ -1,0 +1,854 @@
+[
+  {
+    "Name": "Blubbering Toad",
+    "Category": [
+      "ZAYIN"
+    ],
+    "Meta": "Huge monstrosity, unaligned",
+    "ArmorClass": "16 (natural armor)",
+    "HitPoints": "126 (12d12+48)",
+    "Speed": "30 ft.",
+    "Stats": {
+      "STR": "16 (+3)",
+      "DEX": "9 (-1)",
+      "CON": "18 (+4)",
+      "INT": "10 (+0)",
+      "WIS": "16 (+3)",
+      "CHA": "6 (-2)"
+    },
+    "SavingThrows": "Str +6, Con +7",
+    "Skills": "Perception +6",
+    "Senses": "darkvision 60 ft., passive Perception 16",
+    "Languages": "—",
+    "Challenge": "5 (1,800 XP)",
+    "Traits": [
+      {
+        "name": "Abnormality",
+        "desc": "When this creature dies, it turns into a Medium egg. The egg is invulnerable but can be moved safely. The Abnormality emerges from the egg after 1d4 days."
+      },
+      {
+        "name": "Melty Eyes",
+        "desc": "This creature's Melty Eyeballs attack loses 2d12 damage while its hit points are below 66% of its maximum. While its hit points are below 33%, it can no longer use Melty Eyeballs."
+      }
+    ],
+    "Actions": [
+      {
+        "name": "Multiattack",
+        "desc": "The Blubbering Toad makes two Crying Slap attacks and one Melty Eyeballs attack."
+      },
+      {
+        "name": "Crying Slap",
+        "desc": "Melee Weapon Attack: +6 to hit, reach 15 ft., one target. Hit: 23 (1d12+3) bludgeoning damage. On hit, inflicts 5 `Sinking::Sinking`."
+      },
+      {
+        "name": "Melty Eyeballs",
+        "desc": "Melee Weapon Attack: +8 to hit, reach 20 ft., one target. Hit: 29 (3d12+3) bludgeoning damage. On hit, deals additional Gloom damage equal to the target's `Sinking::Sinking`."
+      }
+    ],
+    "Lore": "The Blubbering Toad appears as a giant, stone-gray toad with blue warts covering its back. It has two huge, bulging blue eyes that occasionally move independently of each other. It can retract its eyeballs into its body, as well as extend them out of their sockets to attack. The inside of its mouth is coated in a sticky blue substance, which holds a long, thick blue tongue coated in the same substance. Instead of croaking, it makes crying sounds that can be heard throughout the entire fight.\n\nE.G.O.: Blubbering Toad can create the following E.G.O.: W.I.P"
+  },
+  {
+    "Name": "Faelantern",
+    "Category": [
+      "TETH"
+    ],
+    "Meta": "Medium monstrosity, unaligned",
+    "ArmorClass": "19 (natural armor)",
+    "HitPoints": "84 (13d8+26)",
+    "Speed": "0 ft.",
+    "Stats": {
+      "STR": "6 (-2)",
+      "DEX": "0 (-5)",
+      "CON": "15 (+2)",
+      "INT": "18 (+4)",
+      "WIS": "18 (+4)",
+      "CHA": "5 (-3)"
+    },
+    "SavingThrows": "Wis +7",
+    "Skills": "Perception +10",
+    "Senses": "darkvision 120 ft., tremorsense 120 ft., passive Perception 20",
+    "Languages": "—",
+    "Challenge": "5 (1,800 XP)",
+    "Traits": [
+      {
+        "name": "Abnormality",
+        "desc": "When this creature dies, it turns into a Medium egg. The egg is invulnerable but can be moved safely. The Abnormality emerges from the egg after 1d4 days."
+      },
+      {
+        "name": "Charmed",
+        "desc": "At the start of the round, if the Faelantern is in its burrowed state, it inflicts 1 `Fairy::Fairy` Charm on a random hostile creature and gains 50 temporary hit points. These temporary hit points can't be gained again until the creature re-enters its burrowed state, which refreshes this use.\n\nIf it still has temporary hit points at the start of its turn, it uses its Snagged Lure action and remains in its burrowed state. If it has no temporary hit points, it enters its risen state and uses its Multiattack.\n\nFairy Charm Effect: The character becomes uncontrollable. Its movement must be directed toward the Faelantern. It is considered charmed by the Faelantern. The effect ends if the Faelantern loses all of its temporary hit points."
+      },
+      {
+        "name": "Rooted",
+        "desc": "This creature's initiative is fixed at 1. While it remains motionless, it is indistinguishable from an ordinary shrub, but it loses this disguise as soon as it attacks.\n\nAt the end of its turn, if the Faelantern is in its risen state, it enters its burrowed state."
+      }
+    ],
+    "Actions": [
+      {
+        "name": "Multiattack",
+        "desc": "The Faelantern uses Expanding Roots once, then makes two Burrowing Roots attacks."
+      },
+      {
+        "name": "Burrowing Roots",
+        "desc": "Melee Weapon Attack: +7 to hit, reach 5 ft. Hit: 6 (1d4+4) piercing damage. On hit, inflicts 4 `Bleed::Bleed` and 4 `Rupture::Rupture`."
+      },
+      {
+        "name": "Snagged Lure",
+        "desc": "The Faelantern lashes out with a large root at creatures with `Fairy::Fairy` Charm within 10 ft. of it. The range increases by 10 ft. for each unique creature with Fairy Charm. Each creature in the area must make a DC 15 Dexterity saving throw. Creatures with Fairy Charm automatically fail and lose their Fairy Charm. On a failed save, a target takes 14 (3d6+4) piercing damage and gains 5 `Bleed::Bleed` and `Rupture::Rupture`. On a successful save, it takes half as much damage and gains no statuses."
+      },
+      {
+        "name": "Expanding Roots",
+        "desc": "Each creature within 15 ft. of the Faelantern must make a DC 15 Dexterity saving throw. On a failed save, a creature is engulfed by stalks, takes 13 (2d8+4) bludgeoning damage, is restrained in place, and gains 5 `Bleed::Bleed` and `Rupture::Rupture`. A restrained creature is automatically freed if it gains `Fairy::Fairy` Charm. To free a creature from the roots, 10 damage must be dealt to them. On a successful save, a target takes half as much damage and avoids the other effects."
+      }
+    ],
+    "Lore": "The Faelantern is an ancient, leafless tree (according to the observation log, it is over 100 years old). While burrowed, only two bare branches can be seen sticking out of the ground. A small turquoise fairy is attached to the lower branch and serves as a lure. It is unknown whether it is a living creature or a puppet controlled by the branches. If the lure is destroyed, the tree partially emerges from the ground. It has a deep root system, which it uses to attack prey deceived by the lure. Countless yellow eyes peer out from the cracks at the base of the trunk and roots.\n\nE.G.O.: Faelantern can create the following E.G.O.: W.I.P"
+  },
+  {
+    "Name": "Scorched Girl",
+    "Category": [
+      "TETH"
+    ],
+    "Meta": "Medium monstrosity, unaligned",
+    "ArmorClass": "14 (natural armor)",
+    "HitPoints": "142 (19d8+57)",
+    "Speed": "25 ft.",
+    "Stats": {
+      "STR": "6 (-2)",
+      "DEX": "12 (+1)",
+      "CON": "17 (+3)",
+      "INT": "8 (-2)",
+      "WIS": "8 (-1)",
+      "CHA": "5 (-3)"
+    },
+    "SavingThrows": "Con +7",
+    "DamageResistances": "piercing and slashing from nonmagical attacks",
+    "DamageImmunities": "fire",
+    "Senses": "tremorsense 120 ft., passive Perception 10",
+    "Languages": "—",
+    "Challenge": "5 (1,800 XP)",
+    "Traits": [
+      {
+        "name": "Abnormality",
+        "desc": "When this creature dies, it turns into a Medium egg. The egg is invulnerable but can be moved safely. The Abnormality emerges from the egg after 1d4 days."
+      },
+      {
+        "name": "Ashes",
+        "desc": "Damage this creature takes is reduced by (the attacker's `Burn::Burn` / 5, rounded down, max 10). After taking damage, it inflicts 2 Burn on the attacker."
+      },
+      {
+        "name": "Embers",
+        "desc": "At the start of combat, a random creature within 120 ft. receives The Ember Mark. The Scorched Girl moves toward the marked creature. Once within 5 ft. of it, she uses The Last Match. The marked creature is unaware that it bears the mark."
+      }
+    ],
+    "Actions": [
+      {
+        "name": "The Last Match",
+        "desc": "While within 5 ft. of a creature bearing The Ember Mark, the Scorched Girl engulfs herself in flame, creating a massive explosion that strikes every creature within 30 ft. Each creature must make a DC 20 Constitution saving throw. On a failed save, a creature takes 78 (12d12) fire damage and is inflicted with `Burn::Burn` equal to 1/4 of the damage dealt."
+      }
+    ],
+    "Reactions": [
+      {
+        "name": "Broken Hope",
+        "desc": "When hit by an attack, before damage is rolled, the Scorched Girl can roll 9 (1d12+3). If the incoming damage is lower than the result, the attack is evaded, the attacking creature gains 5 `Burn::Burn`, this creature gains 1 `Haste::Haste` at the start of its next turn, and the Scorched Girl regains her reaction."
+      }
+    ],
+    "Lore": "The Scorched Girl appears as a charred figure resembling a little girl. She has white eyes, a white open mouth, two thin legs, burnt pigtails, and the scorched tip of a lit match piercing her torso.\n\nE.G.O.: Scorched Girl can create the following E.G.O.: W.I.P"
+  },
+  {
+    "Name": "Punishing Bird",
+    "Category": [
+      "TETH"
+    ],
+    "Meta": "Small monstrosity, unaligned",
+    "ArmorClass": "10 (natural armor)",
+    "HitPoints": "246 (29d6+145)",
+    "Speed": "fly 30 ft.",
+    "Stats": {
+      "STR": "8 (-1)",
+      "DEX": "10 (+0)",
+      "CON": "20 (+5)",
+      "INT": "2 (-4)",
+      "WIS": "10 (+0)",
+      "CHA": "10 (+0)"
+    },
+    "Senses": "passive Perception 10",
+    "Languages": "—",
+    "Challenge": "5 (1,800 XP)",
+    "Traits": [
+      {
+        "name": "Abnormality",
+        "desc": "When this creature dies, it turns into a Medium egg. The egg is invulnerable but can be moved safely. The Abnormality emerges from the egg after 1d4 days."
+      },
+      {
+        "name": "Low Energy",
+        "desc": "If this creature isn't hit for 1 minute, it grows tired and leaves."
+      },
+      {
+        "name": "PUNISHMENT!!!",
+        "desc": "If this creature is hit, it uses its PUNISHMENT!!! action against the attacker."
+      }
+    ],
+    "Actions": [
+      {
+        "name": "Multiattack",
+        "desc": "The Punishing Bird makes four Peck attacks."
+      },
+      {
+        "name": "Peck",
+        "desc": "Melee Weapon Attack: +5 to hit, reach 5 ft. Hit: 1 (1d4-1) piercing damage."
+      },
+      {
+        "name": "PUNISHMENT!!!",
+        "desc": "Melee Weapon Attack: +20 to hit, reach 5 ft. Hit: 209 (20d20-1) piercing damage. This damage ignores all resistances and immunities."
+      }
+    ],
+    "Lore": "The Punishing Bird is a small bird with white feathers, small wings, and a red marking on its chest. In its containment unit, it rests on a black perch. When suppressed, it turns completely red.\n\nE.G.O.: Punishing Bird can create the following E.G.O.: W.I.P"
+  },
+  {
+    "Name": "Hurting Teddy Bear",
+    "Category": [
+      "TETH"
+    ],
+    "Meta": "Medium monstrosity, unaligned",
+    "ArmorClass": "16 (natural armor)",
+    "HitPoints": "130 (20d8+40)",
+    "Speed": "30 ft.",
+    "Stats": {
+      "STR": "17 (+3)",
+      "DEX": "11 (+0)",
+      "CON": "15 (+2)",
+      "INT": "5 (-3)",
+      "WIS": "5 (-3)",
+      "CHA": "20 (+5)"
+    },
+    "SavingThrows": "Str +6, Cha +8",
+    "Senses": "darkvision 60 ft., passive Perception 7",
+    "Languages": "—",
+    "Challenge": "6 (2,300 XP)",
+    "Traits": [
+      {
+        "name": "Abnormality",
+        "desc": "When this creature dies, it turns into a Medium egg. The egg is invulnerable but can be moved safely. The Abnormality emerges from the egg after 1d4 days."
+      },
+      {
+        "name": "Grimy Iron Stake",
+        "desc": "The first attack each turn inflicts +3 `Bleed::Bleed` and 2 `Defense Level Down::Defense Level Down` for the next turn. If the target is already bleeding, it inflicts +5 Bleed instead."
+      },
+      {
+        "name": "Timid Expression of Love",
+        "desc": "On a `Clash::Clashing` win, inflicts 3 Attachment and 1 Curse on the opposing creature. On a Clash loss, inflicts only 1 Attachment. Uses An Old, Nostalgic Embrace once all hostile creatures have Attachment. This effect doesn't apply to Expression of Love and Rough Expression of Love. On hit, if the target creature has 6+ Attachment, consumes 4 Attachment and inflicts 4 Curse and Nails.\n\nAttachment Effect: Max 9 stacks. Lose X * 2 Clash Power. Lose 1 stack at the start of the turn.\n\nCurse Effect: At the start of the turn, reduce the stack by 1, then gain a random effect from the list (1d4):\n1 - 2 Attack Power Down\n2 - 2 `Damage Down::Damage Roll Down`\n3 - 1 `Offense Level Down::Offense Level Down`\n4 - 1 `Defense Level Down::Defense Level Down`\n\nNails Effect: At the start of the turn, gain X `Bleed::Bleed`, then halve the stacks (rounded down).\n\nTo Remember: At the start of combat, gains 10 Faint Embrace.\n\nFaint Embrace Effect: Max 10 stacks. Reduce incoming damage by X. At the start of the turn, gain 1 `Defense Level Up::Defense Level Up` for every 3 stacks."
+      }
+    ],
+    "Actions": [
+      {
+        "name": "Multiattack",
+        "desc": "The Hurting Teddy Bear makes two Violent Clawing attacks, then uses Expression of Love once."
+      },
+      {
+        "name": "Violent Clawing",
+        "desc": "Melee Weapon Attack: +6 to hit, reach 5 ft. Hit: 17 (4d6+3) slashing damage. On hit, inflicts 3 `Bleed::Bleed` and 2 Nails."
+      },
+      {
+        "name": "Expression of Love",
+        "desc": "Must be Clashed. The creature can move 15 ft. without provoking opportunity attacks before this action. It targets the creature with the most negative statuses. `Clash::Clashing` roll: 18 (4d4+8). On a Clash win: 13 (4d4+3) bludgeoning damage, and inflicts 4 Attachment and 2 `Fragile::Fragile` at the start of its next turn. On a Clash loss: 12 bludgeoning damage and 4 Attachment.\n\nIf the target had no negative effects before this action, replace this action in the Multiattack with Rough Expression of Love.\nIf the target had more negative statuses than this creature has Faint Embrace, use A Sad Embrace on the next turn."
+      },
+      {
+        "name": "Rough Expression of Love",
+        "desc": "Must be Clashed. The creature can move 15 ft. without provoking opportunity attacks before this action. It targets the creature affected by Expression of Love last round. `Clash::Clashing` roll: 28 (8d4+8). On a Clash win: 23 (8d4+3) bludgeoning damage, and inflicts 3 Curse and 6 Nails. On a Clash loss: 16 bludgeoning damage and 3 Curse."
+      },
+      {
+        "name": "A Sad Embrace",
+        "desc": "The creature can move 15 ft. without provoking opportunity attacks before this action. It targets the creature affected by Expression of Love last round. On hit, removes all negative effects from the target and, if the Sanity Variant Rule is active, restores its Sanity Points (SP) to maximum. After this action, it becomes `Staggered::Staggered` until the end of its next turn and gains 10 Faint Embrace at the end of its next turn."
+      }
+    ],
+    "Lore": "The Hurting Teddy Bear is a large, tattered teddy bear studded with nails. Its fur is faded and gray, covered in grime and bloodstains. The plush has no eyes, and its mouth is sewn shut. Numerous stitches can be seen all over the Abnormality's body. It has a round body, short legs, and large arms with sharp black claws.\n\nNails are driven into the Abnormality's body in various places, such as its arms, shoulders, and the top of its head. A large hole is cut into the front of its body. Inside the cavity, a heart made of yarn can be seen, pierced by nails from all sides.\n\nE.G.O.: Hurting Teddy Bear can create the following E.G.O.: W.I.P"
+  },
+  {
+    "Name": "Forsaken Murderer",
+    "Category": [
+      "TETH"
+    ],
+    "Meta": "Large monstrosity, unaligned",
+    "ArmorClass": "14 (natural armor)",
+    "HitPoints": "66 (7d10+28)",
+    "Speed": "45 ft.",
+    "Stats": {
+      "STR": "20 (+5)",
+      "DEX": "5 (-3)",
+      "CON": "18 (+4)",
+      "INT": "5 (-3)",
+      "WIS": "5 (-3)",
+      "CHA": "5 (-3)"
+    },
+    "SavingThrows": "Str +8, Con +7",
+    "Skills": "",
+    "DamageResistances": "slashing and piercing from nonmagical attacks",
+    "DamageImmunities": "bludgeoning",
+    "ConditionImmunities": "charmed, stunned, diseased, frightened",
+    "Senses": "darkvision 60 ft., passive Perception 7",
+    "Languages": "—",
+    "Challenge": "7 (2,900 XP)",
+    "Traits": [
+      {
+        "name": "Abnormality",
+        "desc": "When this creature dies, it turns into a Medium egg. The egg is invulnerable but can be moved safely. The Abnormality emerges from the egg after 1d4 days."
+      },
+      {
+        "name": "Chained Wrath",
+        "desc": "When hit by an attack, the Forsaken Murderer gains 1 `Bind::Bind`. It doesn't lose Bind stacks at the start of its turn. If it has more than 10 Bind at the start of its turn, it can consume all of its Bind and gain 1 `Offense Level Up::Offense Level Up` and 1 `Defense Level Down::Defense Level Down` for every 5 Bind consumed."
+      },
+      {
+        "name": "Fear",
+        "desc": "The Forsaken Murderer takes a -1 penalty to attack rolls and gains a +1 bonus to damage rolls for each type of negative effect on it. `Bind::Bind` doesn't count."
+      }
+    ],
+    "Actions": [
+      {
+        "name": "Multiattack",
+        "desc": "The Forsaken Murderer makes three Metallic Banging attacks."
+      },
+      {
+        "name": "Metallic Banging",
+        "desc": "Melee Weapon Attack: +8 to hit, reach 5 ft., one target. Hit: 12 (2d6+5) bludgeoning damage. On hit, inflicts 3 `Tremor::Tremor`, 1 `Bind::Bind`, and 1 `Paralysis::Paralysis` at the start of the target's next turn. If the target has 20+ Tremor, triggers `Tremor Burst::Tremor Burst`."
+      }
+    ],
+    "Lore": "The Forsaken Murderer appears as an emaciated man with gray, sickly pale skin and a bald head with sparse tufts of hair. He wears a cream-colored straitjacket fastened with many black straps. In containment, he is usually seen staring unblinkingly straight at the floor, trembling with heavy breaths. Upon breaching, his head turns into a solid, cone-like metal shell.\n\nE.G.O.: Forsaken Murderer can create the following E.G.O.: W.I.P"
+  },
+  {
+    "Name": "Sleeping Bag of a Bygone Day",
+    "Category": [
+      "TETH"
+    ],
+    "Meta": "Large monstrosity, unaligned",
+    "ArmorClass": "18 (natural armor)",
+    "HitPoints": "157 (21d10+42)",
+    "Speed": "30 ft.",
+    "Stats": {
+      "STR": "16 (+3)",
+      "DEX": "10 (+0)",
+      "CON": "15 (+2)",
+      "INT": "5 (-3)",
+      "WIS": "10 (+0)",
+      "CHA": "5 (-3)"
+    },
+    "SavingThrows": "Con +5",
+    "Skills": "",
+    "ConditionImmunities": "charmed, stunned, diseased, frightened",
+    "Senses": "darkvision 60 ft., passive Perception 7",
+    "Languages": "—",
+    "Challenge": "7 (2,900 XP)",
+    "Traits": [
+      {
+        "name": "Abnormality",
+        "desc": "When this creature dies, it turns into a Medium egg. The egg is invulnerable but can be moved safely. The Abnormality emerges from the egg after 1d4 days."
+      },
+      {
+        "name": "Oxygen Supply",
+        "desc": "At the start of combat, the Sleeping Bag gains 20 `Poise::Poise`. When it loses Poise, it loses only half of its current stacks (maximum 10) rather than all of them."
+      },
+      {
+        "name": "That's... MINE!",
+        "desc": "When it hits a creature that has `Poise::Poise`, the Sleeping Bag can force it to make a DC 13 Constitution saving throw. On a failed save, it absorbs all of the target's Poise. On a successful save, it absorbs half (minimum 1)."
+      }
+    ],
+    "Actions": [
+      {
+        "name": "Multiattack",
+        "desc": "The Sleeping Bag of a Bygone Day makes three Maul attacks."
+      },
+      {
+        "name": "Maul",
+        "desc": "Melee Weapon Attack: +6 to hit, reach 15 ft., one target. Hit: 10 (2d6+3) piercing damage. On hit, gains 3 `Poise::Poise`."
+      },
+      {
+        "name": "Labored Breathing",
+        "desc": "Melee Weapon Attack: +6 to hit, reach 15 ft., one target. Hit: 10 (2d6+3) piercing damage. On hit, gains 3 `Poise::Poise`."
+      }
+    ],
+    "LegendaryActions": [
+      {
+        "name": "Breath (1/3 Turns)",
+        "desc": "Can be used only once every 3 turns. The Sleeping Bag releases some of its oxygen, which seeps into the lungs of the Sinners and empowers them. Every other creature gains 6 `Poise::Poise`."
+      }
+    ],
+    "Lore": "The Sleeping Bag of a Bygone Day consists of two parts. The first is a large, skeletal creature with an elongated rib cage, the lower part of which juts forward to form a red bony spiral. The top of the rib cage is connected to a black spinal cord topped with a massive, completely black human skull that glows red from its openings. Blood constantly oozes from the skull's eye sockets. The second part is a dark, ghostly humanoid figure with red eyes, wearing a T-shirt and shorts, standing inside the skeleton's cavity.\n\nE.G.O.: Sleeping Bag of a Bygone Day can create the following E.G.O.: W.I.P"
+  },
+  {
+    "Name": "Spiral of Contempt",
+    "Category": [
+      "WAW"
+    ],
+    "Meta": "Huge monstrosity, unaligned",
+    "ArmorClass": "17 (natural armor)",
+    "HitPoints": "283 (27d12+108)",
+    "Speed": "45 ft.",
+    "Stats": {
+      "STR": "13 (+1)",
+      "DEX": "8 (-1)",
+      "CON": "19 (+4)",
+      "INT": "12 (+1)",
+      "WIS": "25 (+7)",
+      "CHA": "5 (-3)"
+    },
+    "SavingThrows": "Con +9, Wis +12",
+    "Skills": "Perception +17",
+    "DamageResistances": "bludgeoning and slashing from nonmagical attacks",
+    "DamageImmunities": "necrotic",
+    "ConditionImmunities": "charmed, paralyzed, grappled",
+    "Senses": "passive Perception 27",
+    "Languages": "—",
+    "Challenge": "16 (15,000 XP)",
+    "Traits": [
+      {
+        "name": "Abnormality",
+        "desc": "When this creature dies, it turns into a Medium egg. The egg is invulnerable but can be moved safely. The Abnormality emerges from the egg after 1d4 days."
+      },
+      {
+        "name": "Compounded Contempt",
+        "desc": "The Spiral of Contempt gains +1 to Wrath/Lust/Sloth/Gluttony/Gloom damage for every 10 stacks of `Burn::Burn`/`Bleed::Bleed`/`Tremor::Tremor`/`Rupture::Rupture`/`Sinking::Sinking` on itself, respectively (maximum +3 for each type). On a critical hit enhanced by `Poise::Poise`, it gains +1 to Pride damage for the next round (max +3). When hit by an attack that used `Charge::Charge`, it gains +1 to Envy damage for the next round (max +3)."
+      },
+      {
+        "name": "Contempt and Gaze (3/Round)",
+        "desc": "When the Spiral takes damage, the attacker gains 1 Gaze.\n\nGaze: +1 damage per stack. At 7 stacks: gain 14 `Bleed::Bleed` and Contempt.\nContempt: At the start of the turn, gain 2 `Offense Level Down::Offense Level Down`. This creature can't gain Gaze."
+      }
+    ],
+    "Actions": [
+      {
+        "name": "Multiattack",
+        "desc": "The Spiral of Contempt makes three It Shall Penetrate attacks, then one It Shall Be Insidious."
+      },
+      {
+        "name": "It Shall Penetrate",
+        "desc": "Melee Weapon Attack: +12 to hit, reach 50 ft., one target. Hit: 14 (2d6+7) piercing damage, and inflicts 4 `Bleed::Bleed`."
+      },
+      {
+        "name": "It Shall Be Insidious",
+        "desc": "The Spiral raises its hands to the sky, conjuring a bloody substance above a target it can see. The target must make a DC 20 Dexterity saving throw. On a failed save, the blood pours down and bursts into spikes that pierce the skin, dealing 26 (4d12) piercing damage and inflicting 8 `Bleed::Bleed`, 2 `Fragile::Fragile`, and 2 `Bind::Bind` at the start of the target's next turn. On a successful save, the target takes half as much damage and half the effects."
+      },
+      {
+        "name": "It Shall Grasp",
+        "desc": "The Spiral sinks into the floor, releasing three giant pairs of hands toward three targets within 60 ft. Each target must make a DC 12 Strength saving throw to break free. On a failed save, a target takes 44 (8d10) bludgeoning damage, gains 3 Grasp, and is held by the hands. The hands have 40 HP; if they are destroyed, the held creature loses all of its Grasp.\n\nGrasp: Maximum 3 stacks. The creature is considered restrained. At the start of its turn, if the stack is 1, the creature takes psychic damage equal to 30% of its maximum HP. At the end of its turn, Grasp is reduced by 1. It can't go below 1."
+      },
+      {
+        "name": "And it Shall Contempt All (3/Day)",
+        "desc": "Requires at least one creature with Grasp, or the Spiral's hit points to be below 30%. A swirling pool of blood appears on the floor, from which golden spikes erupt, piercing everyone standing on it. Each creature must make a DC 22 Dexterity saving throw. On a failed save, a creature takes 78 (12d12) piercing damage and 20 `Bleed::Bleed`, and also loses all of its Gaze. Creatures with Grasp automatically fail the saving throw. On a successful save, half damage and 10 Bleed."
+      }
+    ],
+    "Lore": "The Spiral of Contempt is a mass of twisted golden branches that roughly follows the shape of a human figure above the waist and tapers into a cone below. Two branches extend from its back, forming \"wings\" of a sort. A large, blood-red stone sits in the center of its \"head\". Its hands, made of solid black stone, are raised upward, and blood pours continuously from its cupped palms. Spikes of the same black stone as its hands are also found where the upper and lower halves of its body meet.\n\nE.G.O.: Spiral of Contempt can create the following E.G.O.: W.I.P"
+  },
+  {
+    "Name": "Nosferatu",
+    "Category": [
+      "WAW"
+    ],
+    "Meta": "Medium monstrosity, lawful evil",
+    "ArmorClass": "22 (natural armor)",
+    "HitPoints": "220 (21d8+126)",
+    "Speed": "40 ft.",
+    "Stats": {
+      "STR": "13 (+1)",
+      "DEX": "19 (+4)",
+      "CON": "22 (+6)",
+      "INT": "16 (+3)",
+      "WIS": "18 (+4)",
+      "CHA": "22 (+6)"
+    },
+    "SavingThrows": "Dex +10, Con +12, Cha +12",
+    "Skills": "Deception +12, Intimidation +18, Perception +10, Persuasion +18, Survival +16",
+    "DamageResistances": "bludgeoning and slashing from nonmagical attacks",
+    "DamageImmunities": "necrotic",
+    "ConditionImmunities": "charmed, paralyzed",
+    "Senses": "darkvision 120 ft., passive Perception 20",
+    "Languages": "—",
+    "Challenge": "17 (18,000 XP)",
+    "Traits": [
+      {
+        "name": "Abnormality",
+        "desc": "When this creature dies, it turns into a Medium egg. The egg is invulnerable but can be moved safely. The Abnormality emerges from the egg after 1d4 days."
+      },
+      {
+        "name": "Ancient Power",
+        "desc": "Nosferatu gains +15 ft. of speed, 120 ft. of magical darkvision, +2 Charisma, and +2 Constitution. It also passively regains 15 HP every turn (all bonuses are already included in its statistics)."
+      },
+      {
+        "name": "Lord of Bloodfiends",
+        "desc": "Nosferatu gains bonuses based on the total amount of `Bloodfeast::Bloodfeast` consumed by all characters in the battle:\n- For every 50 Bloodfeast consumed: +1 to `Bleed::Bleed` inflicted.\n- For every 100: +1 to attack and damage rolls.\n- For every 250: +1 `Offense Level Up::Offense Level Up` at the start of its turn."
+      },
+      {
+        "name": "Shapeshifting",
+        "desc": "When Nosferatu's HP drops to 110, it transforms into a demon-like creature covered in eyes. Its size becomes Large, its Strength increases by +8 (to 21), its Dexterity drops by -11 (to 8), and its Intelligence, Wisdom, and Charisma decrease by 8 (to 8, 10, and 12, respectively). Its Noble Repose attacks are replaced with Bloodfiendish Claw."
+      }
+    ],
+    "Actions": [
+      {
+        "name": "Multiattack",
+        "desc": "Nosferatu makes two Noble Repose attacks or four Bloodfiendish Claw attacks (only after transforming)."
+      },
+      {
+        "name": "Noble Repose",
+        "desc": "Ranged Weapon Attack: +10 to hit, range 60/80 ft., one target. Hit: 17 (2d12+4) piercing damage plus 6 (1d12) necrotic damage. Inflicts `Bleed::Bleed` equal to the necrotic damage and gives Nosferatu 2 Blood Charges."
+      },
+      {
+        "name": "Bloodfiendish Claw",
+        "desc": "Melee Weapon Attack: +11 to hit, reach 5 ft., one target. Hit: 15 (4d4+5) slashing damage, inflicts 5 `Bleed::Bleed`, heals Nosferatu for 10 HP, and gives it 1 Blood `Charge::Charge`."
+      },
+      {
+        "name": "Lust for Blood (Recharge 5-6)",
+        "desc": "Only while Nosferatu has fewer than 4 Blood Charges. Must be Clashed. Nosferatu Clashes with the nearest creature with the lowest health. On a `Clash::Clashing` win, every creature within 45 ft., including the target, is set upon by a swarm of bats, taking 24 (4d8+6) necrotic damage and 5 `Bleed::Bleed`. For each creature hit, Nosferatu gains 2 Blood Charges. On a Clash loss, the ability is canceled and Nosferatu gains Fear of Water.\n\nFear of Water: At the start of its turn, Nosferatu loses 5% of its maximum HP and gains +1 `Offense Level Up::Offense Level Up`, 2 `Haste::Haste`, and 5 Bleed."
+      },
+      {
+        "name": "Bloodhound's Cocktail",
+        "desc": "Nosferatu can spend up to 10 Blood Charges to gain a temporary buff against a creature whose blood is held in its goblet. The buff lasts a number of rounds equal to the number of charges spent. Buffs from different creatures stack. While the buff is active, Nosferatu knows the target's location, has advantage on attack rolls against it, can Dash toward it as a bonus action, and always deals maximum damage in Clashes with it."
+      },
+      {
+        "name": "Sanguine Reconstitution",
+        "desc": "Nosferatu spends up to 10 Blood Charges to heal Xd8+6 HP and consume an amount of `Bloodfeast::Bloodfeast` equal to the amount healed."
+      },
+      {
+        "name": "Lord of Night",
+        "desc": "Nosferatu spends 5 Blood Charges to summon one Sanguine Bat. It can have up to four such bats at once."
+      }
+    ],
+    "Lore": "Nosferatu appears as a humanoid vampire in a white shirt, a dark vest, a red bow tie, and a crimson cloak, with red-and-white pantaloons and tall, dark lace-up boots. He has pointed ears, red eyes, and dark auburn hair with red streaks. In his right hand he holds a glass goblet filled with a red liquid. After transforming, he becomes a large crimson beast with jagged wings, a long tail, and many red eyes covering his face, wings, and arms.\n\nE.G.O.: Nosferatu can create the following E.G.O.: W.I.P"
+  },
+  {
+    "Name": "Backstreet Rat",
+    "Category": [
+      "City"
+    ],
+    "Meta": "Medium humanoid, chaotic",
+    "ArmorClass": "13 (leather armor)",
+    "HitPoints": "11 (2d8+2)",
+    "Speed": "30 ft.",
+    "Stats": {
+      "STR": "8 (-1)",
+      "DEX": "13 (+1)",
+      "CON": "12 (+1)",
+      "INT": "10 (+0)",
+      "WIS": "8 (-1)",
+      "CHA": "7 (-2)"
+    },
+    "SavingThrows": "",
+    "Skills": "",
+    "Senses": "passive Perception 8",
+    "Languages": "—",
+    "Challenge": "1/4 (50 XP)",
+    "Traits": [],
+    "Actions": [
+      {
+        "name": "Multiattack",
+        "desc": "The Backstreet Rat makes two Gut Knife attacks."
+      },
+      {
+        "name": "Gut Knife",
+        "desc": "Melee Weapon Attack: +3 to hit, reach 5 ft., one target. Hit: 3 (1d4+1) slashing damage. On hit, inflicts 1 `Bleed::Bleed`."
+      }
+    ],
+    "Lore": "Rats are low-level street thugs who inhabit the Backstreets. Made up of people who failed to achieve their dreams and focus only on surviving day to day, Rat groups are too disorganized to be considered proper Syndicates and are not affiliated with any major faction."
+  },
+  {
+    "Name": "Backstreet Rat Pack Leader",
+    "Category": [
+      "City"
+    ],
+    "Meta": "Medium humanoid, chaotic",
+    "ArmorClass": "15 (leather armor)",
+    "HitPoints": "52 (8d8+2)",
+    "Speed": "30 ft.",
+    "Stats": {
+      "STR": "10 (+0)",
+      "DEX": "15 (+2)",
+      "CON": "14 (+2)",
+      "INT": "10 (+0)",
+      "WIS": "10 (+0)",
+      "CHA": "11 (+0)"
+    },
+    "SavingThrows": "",
+    "Skills": "",
+    "Senses": "passive Perception 10",
+    "Languages": "—",
+    "Challenge": "1 (200 XP)",
+    "Traits": [],
+    "Actions": [
+      {
+        "name": "Multiattack",
+        "desc": "The Backstreet Rat Pack Leader makes two Shortsword attacks."
+      },
+      {
+        "name": "Shortsword",
+        "desc": "Melee Weapon Attack: +4 to hit, reach 5 ft., one target. Hit: 5 (1d6+2) slashing damage. On hit, inflicts 1 `Bleed::Bleed`."
+      }
+    ],
+    "Lore": "Rats are low-level street thugs who inhabit the Backstreets. Made up of people who failed to achieve their dreams and focus only on surviving day to day, Rat groups are too disorganized to be considered proper Syndicates and are not affiliated with any major faction."
+  },
+  {
+    "Name": "Little Brother of the Middle",
+    "Category": [
+      "City"
+    ],
+    "Meta": "Medium humanoid, chaotic evil",
+    "ArmorClass": "18 (Unarmored Defense)",
+    "HitPoints": "160 (14d8+90)",
+    "Speed": "30 ft.",
+    "Stats": {
+      "STR": "18 (+4)",
+      "DEX": "16 (+3)",
+      "CON": "16 (+3)",
+      "INT": "9 (-1)",
+      "WIS": "12 (+1)",
+      "CHA": "14 (+2)"
+    },
+    "SavingThrows": "Str +7, Con +6",
+    "Skills": "Athletics +7",
+    "Senses": "passive Perception 11",
+    "Languages": "—",
+    "Challenge": "7 (2,900 XP)",
+    "Traits": [
+      {
+        "name": "Grudge",
+        "desc": "This creature can gain stacks of Grudge in the following ways:\n- +1 Grudge when this creature is hit by a hostile creature.\n- +1 Grudge when an allied creature is hit by a hostile creature.\n- If a hostile creature was marked with a Vengeance/Vendetta Mark when it hit you or an ally, +1 Grudge.\n\nMax stacks: 15. Deals +(X / 2, rounded down) damage to enemies with a Vendetta or Vengeance Mark. Stacks are lost at the end of combat."
+      },
+      {
+        "name": "Write 'em all Down",
+        "desc": "When a hostile creature deals damage to you or an ally you can see, it gains a Vengeance Mark. While the target is marked, `Clash::Clashing` rolls against it are increased by one dice tier.\n\nMax Vengeance Mark stacks: 1. The creature that inflicted it gains +1 dice tier in Clashes against this creature. This effect is replaced by a Vendetta Mark."
+      },
+      {
+        "name": "Little Vengeance",
+        "desc": "When it loses a `Clash::Clashing`, this creature gains 1 `Offense Level Up::Offense Level Up` at the start of its next turn. It can gain this benefit only once per turn."
+      },
+      {
+        "name": "Middle Augment Tattoo",
+        "desc": "Max stacks: 3. Increases the bludgeoning damage die by 1 tier per stack. If the damage is Envy bludgeoning, it additionally adds +1 to damage rolls per stack. Stacks are lost at the end of combat."
+      },
+      {
+        "name": "Equipment: The Middle's Chains",
+        "desc": "Grants +1 to attack and damage rolls against a creature with a Vengeance Mark."
+      }
+    ],
+    "Actions": [
+      {
+        "name": "Multiattack",
+        "desc": "The Little Brother of the Middle makes three attacks: one Right in the Solar Plexus and two Skull Bursting. It can attempt to grapple a creature in place of one of the attacks."
+      },
+      {
+        "name": "Skull Bursting",
+        "desc": "Melee Weapon Attack: +7 to hit, reach 5 ft., one target. Hit: 10 (1d10+5) Envy bludgeoning damage. On hit, inflicts 1 `Fragile::Fragile` and 3 `Bleed::Bleed`."
+      },
+      {
+        "name": "Right in the Solar Plexus",
+        "desc": "Melee Weapon Attack: +9 to hit, reach 5 ft., one target. Hit: 9 (1d8+5) Envy bludgeoning damage. On hit, inflicts 1 `Paralysis::Paralysis`."
+      }
+    ],
+    "Reactions": [
+      {
+        "name": "I will get you back for this, man.",
+        "desc": "When this creature or an ally within 5 ft. of it is hit by an enemy, the Little Brother can make an opportunity attack against the attacker. It can spend 5 Grudge stacks as part of this reaction to make an additional attack."
+      }
+    ],
+    "Lore": "Like the other four Fingers, the `Middle::The Middle` is a major Syndicate with a unique culture and code that all of its members follow fanatically. Members operate in an extremely close-knit \"family\" structure, maintaining tight fraternal bonds. Reflecting these ties, everyone in the Middle addresses one another as \"Brothers\", \"Sisters\", or \"kin\"."
+  },
+  {
+    "Name": "The Roach Emperor",
+    "Category": [
+      "City"
+    ],
+    "Meta": "Large monstrosity, chaotic evil",
+    "ArmorClass": "26 (natural armor)",
+    "HitPoints": "725 (50d10+186)",
+    "Speed": "45 ft.",
+    "Stats": {
+      "STR": "25 (+7)",
+      "DEX": "15 (+2)",
+      "CON": "28 (+9)",
+      "INT": "6 (-2)",
+      "WIS": "17 (+3)",
+      "CHA": "6 (-2)"
+    },
+    "SavingThrows": "Str +14, Con +16",
+    "Skills": "Animal Handling +17, Perception +17, Survival +17",
+    "DamageResistances": "bludgeoning, piercing, and slashing from nonmagical attacks",
+    "ConditionImmunities": "blinded, charmed, deafened, diseased, frightened, grappled, paralyzed, petrified, poisoned, prone, restrained, unconscious, sleep, exhaustion",
+    "Senses": "passive Perception 27",
+    "Languages": "Common",
+    "Challenge": "30 (50,000 XP)",
+    "Traits": [
+      {
+        "name": "The Emperor's Blood",
+        "desc": "Takes 50% less damage from negative status effects. Takes -1 to attack and damage rolls for every 20% of its missing health. When it hits with an attack, it inflicts 5 stacks of one random effect from the list: `Burn::Burn`, `Bleed::Bleed`, `Tremor::Tremor`, `Rupture::Rupture`, `Sinking::Sinking`."
+      },
+      {
+        "name": "The Emperor's Subjects",
+        "desc": "At the start of combat, gains 50 Protecting Pests [Roaches]. At the start of each of its turns, starting from the second, it loses 3 Protecting Pests. When a negative status effect is inflicted on it, the effect is removed, and it loses a number of Protecting Pests equal to the removed effect (maximum 25 per turn). At the start of its turn, if it has no Protecting Pests left, it becomes `Staggered::Staggered` and takes double damage from all attacks until the start of its next turn, after which it restores all of its Protecting Pests.\n\nProtecting Pests [Roaches]: Max 50. Grant (X * 6) temporary hit points and a (X / 5, rounded up) bonus to AC at the start of each turn."
+      }
+    ],
+    "Actions": [
+      {
+        "name": "Multiattack",
+        "desc": "The Roach Emperor uses The Emperor's Devouring once, then makes two The Emperor's Fist attacks and two The Emperor's Whip attacks."
+      },
+      {
+        "name": "The Emperor's Fist",
+        "desc": "Melee Weapon Attack: +16 to hit, reach 10 ft., one target. Hit: 26 (3d12+7) bludgeoning damage. On hit, inflicts 3 Hurting Pests [Roaches]."
+      },
+      {
+        "name": "The Emperor's Whip",
+        "desc": "Melee Weapon Attack: +11 to hit, reach 30 ft., one target. Hit: 23 (4d10+1) slashing damage. On hit, inflicts 3 Hurting Pests [Roaches]."
+      },
+      {
+        "name": "The Emperor's Devouring",
+        "desc": "Must be Clashed. The Roach Emperor opens its enormous jaw, targeting a creature within 30 ft. It loses 40 `Clash::Clashing` Power. On a Clash win, it deals 91 (13d12+7) bludgeoning damage, absorbs all of the target's positive status effects until the start of its next turn, and halves the target's Hurting Pests. On a Clash loss, it deals half damage and absorbs no effects, but still halves the Hurting Pests."
+      },
+      {
+        "name": "The Emperor's Flogging (Recharge 5-6)",
+        "desc": "The Roach Emperor lashes out with its claws in a 30 by 15 ft. area in front of it. Each creature in that area must make a DC 26 Constitution saving throw. On a failed save, a creature takes 100 (14d12+9) piercing damage and 5 Hurting Pests. On a successful save, half damage and no Pests."
+      },
+      {
+        "name": "March of Roaches (Recharge 5-6)",
+        "desc": "The Roach Emperor unleashes roaches in every direction. Each creature within 120 ft. must make a DC 26 Dexterity saving throw. On a failed save, a creature takes 85 (17d8+9) necrotic damage and (damage taken / 10) Hurting Pests. On a successful save, half damage and no Pests."
+      },
+      {
+        "name": "Son, don't forget to go for the heart. (1/Day)",
+        "desc": "Only while its health is below 20%. Must be Clashed. Loses 90 `Clash::Clashing` Power. The Roach Emperor forms a giant claw to pierce the enemy's heart. The attack has a range of 60 ft.; before using it, the Roach Emperor can move up to 120 ft. On a Clash win, it deals 210 (60d6) piercing damage and inflicts 10 Hurting Pests. On a Clash loss, it deals 0 damage and becomes `Staggered::Staggered` until the end of its next turn."
+      }
+    ],
+    "Reactions": [
+      {
+        "name": "The Emperor's Shield",
+        "desc": "In response to an attack, the Roach Emperor can force a chosen creature to deal half damage to it until the start of its next turn."
+      }
+    ],
+    "Lore": "Let the swarm teem. Let the blackest plague spread. March. March. Devour. Multiply. Devour. Erase. Erase. Regenerate. March. Disgust. Disregard. Contempt. Isolation. A familiar silence, all of it. Invade. Infest. Invade. Infest. Flourish. Chaotic, indifferent... Devouring. Feasting. Indulgence. And one day... You will wake from your nightmare and realize that the creeping death has been following you relentlessly.\n\nUnique Status Effects:\nHurting Pests [Roaches]: Max 50. At the start of its turn, the creature takes necrotic damage equal to the number of stacks. The stacks don't decrease until the Roach Emperor is defeated."
+  },
+  {
+    "Name": "K Corp. Checkpoint Staff",
+    "Category": [
+      "City"
+    ],
+    "Meta": "Medium humanoid, lawful evil",
+    "ArmorClass": "18 (K Corp. armor, shield)",
+    "HitPoints": "30 (4d8+12)",
+    "Speed": "30 ft.",
+    "Stats": {
+      "STR": "14 (+2)",
+      "DEX": "7 (-2)",
+      "CON": "16 (+3)",
+      "INT": "10 (+0)",
+      "WIS": "10 (+0)",
+      "CHA": "8 (-1)"
+    },
+    "SavingThrows": "",
+    "Skills": "",
+    "Senses": "passive Perception 10",
+    "Languages": "—",
+    "Challenge": "2 (450 XP)",
+    "Traits": [
+      {
+        "name": "HP Bullets",
+        "desc": "The K Corp. Checkpoint Staff regains 15 hit points at the start of its turn. It dies only if it starts its turn at 0 hit points and doesn't regenerate."
+      }
+    ],
+    "Actions": [
+      {
+        "name": "Multiattack",
+        "desc": "The Checkpoint Staff makes two K Corp. Baton attacks."
+      },
+      {
+        "name": "K Corp. Baton",
+        "desc": "Melee Weapon Attack: +4 to hit, reach 5 ft., one target. Hit: 5 (1d6+2) bludgeoning damage. On hit, inflicts 3 `Tremor::Tremor`."
+      },
+      {
+        "name": "Shield Bash",
+        "desc": "Melee Weapon Attack: +4 to hit, reach 20 ft., one target. Hit: 6 (1d8+2) bludgeoning damage. On hit, triggers `Tremor Burst::Tremor Burst`."
+      }
+    ],
+    "Lore": ""
+  },
+  {
+    "Name": "K Corp. Class 1 Staff",
+    "Category": [
+      "City"
+    ],
+    "Meta": "Medium humanoid, lawful evil",
+    "ArmorClass": "16 (K Corp. suit)",
+    "HitPoints": "59 (7d8+28)",
+    "Speed": "30 ft.",
+    "Stats": {
+      "STR": "16 (+3)",
+      "DEX": "8 (-1)",
+      "CON": "18 (+4)",
+      "INT": "10 (+0)",
+      "WIS": "12 (+1)",
+      "CHA": "8 (-1)"
+    },
+    "SavingThrows": "",
+    "Skills": "",
+    "Senses": "passive Perception 11",
+    "Languages": "—",
+    "Challenge": "3 (700 XP)",
+    "Traits": [
+      {
+        "name": "Arresting!",
+        "desc": "If both K Corp. Baton attacks hit in the same turn, triggers `Tremor Burst::Tremor Burst` on the target."
+      },
+      {
+        "name": "HP Bullets",
+        "desc": "The K Corp. Class 1 Staff regains 15 hit points at the start of its turn. It dies only if it starts its turn at 0 hit points and doesn't regenerate."
+      }
+    ],
+    "Actions": [
+      {
+        "name": "Multiattack",
+        "desc": "The K Corp. Class 1 Staff makes two K Corp. Baton attacks."
+      },
+      {
+        "name": "K Corp. Baton",
+        "desc": "Melee Weapon Attack: +5 to hit, reach 5 ft., one target. Hit: 6 (1d6+3) bludgeoning damage. On hit, inflicts 3 `Tremor::Tremor`."
+      }
+    ],
+    "Lore": ""
+  },
+  {
+    "Name": "Bloodbag",
+    "Category": [
+      "Distortions"
+    ],
+    "Meta": "Medium undead, chaotic evil",
+    "ArmorClass": "13 + Dex (Unarmored Defense)",
+    "HitPoints": "? (X + PBd8 + ?)",
+    "Speed": "25 ft., 35 ft. at summoner's 6th level, 45 ft. at 17th level",
+    "Stats": {
+      "STR": "7+X+PB (+4)",
+      "DEX": "5+X+PB (+3)",
+      "CON": "6+X+PB (+3)",
+      "INT": "3 (-1)",
+      "WIS": "6 (+1)",
+      "CHA": "5 (+2)"
+    },
+    "SavingThrows": "Con",
+    "Skills": "",
+    "Senses": "darkvision 60 ft., passive Perception 8",
+    "Languages": "understands the languages it knew in life with difficulty, but can't communicate properly due to its low intelligence",
+    "Challenge": "? (? XP)",
+    "Traits": [
+      {
+        "name": "Limited Potential",
+        "desc": "A Bloodbag has a minimum cap of 14 for Str, Dex, and Con, a speed of 25 ft., and 5 Hit Dice. If the creature had lower scores in life, the Bloodbag can still reach these minimums. Otherwise, a Bloodbag can be no stronger than the original creature, gaining an additional +1 Hit Die, +2 to Str, Dex, and Con, and +5 ft. of speed. For example, a creature with 6 Hit Dice, Str, Dex, and Con scores of 13, and a speed of 30 ft. would have a cap of 7 Hit Dice, 15 for Str, Dex, and Con, and a speed of 35 ft. This is an upper cap, not fixed values."
+      },
+      {
+        "name": "Thirst for Blood",
+        "desc": "When attacking a Bleeding creature, the Bloodbag heals for an amount equal to its summoner's Charisma modifier. If there is a Bleeding creature within 60 ft. but the Bloodbag hasn't hit it, the Bloodbag gains 2 `Fragile::Fragile`, 2 `Defense Level Down::Defense Level Down`, and 1 `Haste::Haste` until it hits that creature. A hit removes these effects until the end of the round."
+      }
+    ],
+    "Actions": [
+      {
+        "name": "Multiattack",
+        "desc": "This creature can make 2 attacks. It can replace these attacks with grapples or shoves as normal attacks."
+      },
+      {
+        "name": "Claw",
+        "desc": "Melee Weapon Attack: +? to hit, 1d8+? slashing damage, inflicts 1 `Bleed::Bleed`."
+      }
+    ],
+    "Lore": "Summon: Some abilities use X as a placeholder. X is the summoner's Charisma modifier. Bloodbags use their summoner's proficiency bonus.\n\nPeople bitten directly by Bloodfiends turn into either their Kindred or a Bloodbag, depending on the Bloodfiend's choice. When turning people into Bloodbags, Bloodfiends can decide how long the process takes, with higher-ranking Kindred able to grant a longer reprieve. Some Bloodfiends can also create Bloodbags from fresh corpses, as was seen with the Crimson Night. Bloodfiends are also capable of both puppeteering victims by manipulating the blood in their veins and creating crystalline growths out of blood."
+  }
+]
