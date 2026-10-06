@@ -3,28 +3,167 @@ rules_version = '2';
 // Как применить: Firebase Console → Firestore Database → база «default» → Rules →
 // заменить ВЕСЬ текст содержимым этого файла → Publish.
 // Всё, что здесь не описано, запрещено (в том числе коллекция sinners от удалённой системы «Тёмный мир»).
+// Роли: Кодер (email ниже) → Гл-Админ → Админ. Подробности — README, раздел «Администрирование».
 service cloud.firestore {
   match /databases/{database}/documents {
 
     function signedIn() { return request.auth != null && request.auth.token.email != null; }
     function myEmail() { return request.auth.token.email; }
-
-    // Админы: документ admins/<email> (создаётся вручную в консоли) или запасной список.
-    // Тот же запасной список есть в site/auth.js — меняйте оба места вместе.
-    function isAdmin() {
-      return signedIn() && (
-        myEmail() in ['nikkitamatveev2009@gmail.com', 'pavlovichpavel03@gmail.com']
-        || exists(/databases/$(database)/documents/admins/$(myEmail()))
-      );
-    }
-
     function isShortString(v, max) { return v is string && v.size() <= max; }
 
-    // ---------------- Администраторы
-    // Каждый может проверить только свой документ — список админов не утекает.
+    // ================= Роли (site/auth.js, admin.html) =================
+    // Кодер — владелец сайта, задан email-ом. Тот же список — CODER_EMAILS в site/auth.js; меняйте оба места.
+    function isCoder() { return signedIn() && myEmail().lower() in ['nikkitamatveev2009@gmail.com']; }
+    // roles/<uid> = { role: 'headadmin' | 'admin', perms: { canon: [группы], moderate, monitor, ban }, … }
+    function roleData() {
+      return signedIn() && exists(/databases/$(database)/documents/roles/$(request.auth.uid))
+        ? get(/databases/$(database)/documents/roles/$(request.auth.uid)).data
+        : { 'role': '', 'perms': {} };
+    }
+    function isHead() { return isCoder() || roleData().role == 'headadmin'; }
+    function isStaff() { return isCoder() || roleData().role in ['headadmin', 'admin']; }
+    // Право Админа (Гл-Админ и Кодер имеют все права)
+    function can(perm) {
+      let r = roleData();
+      return isCoder() || r.role == 'headadmin' || (r.role == 'admin' && r.perms.get(perm, false) == true);
+    }
+    function canCanon(group) {
+      let r = roleData();
+      return isCoder() || r.role == 'headadmin' || (r.role == 'admin' && group in r.perms.get('canon', []));
+    }
+    // Блокировка: bans/<uid>. Без until — навсегда. Кодера заблокировать нельзя.
+    function banPath() { return /databases/$(database)/documents/bans/$(request.auth.uid); }
+    function notBanned() {
+      return signedIn() && (isCoder() || !exists(banPath())
+        || (get(banPath()).data.get('until', null) != null && get(banPath()).data.until < request.time));
+    }
+
+    match /roles/{uid} {
+      function validRole(d) {
+        return d.keys().hasOnly(['role', 'perms', 'nick', 'grantedBy', 'grantedByNick', 'updatedAt'])
+          && d.role in ['headadmin', 'admin']
+          && d.perms is map
+          && d.perms.keys().hasOnly(['canon', 'moderate', 'monitor', 'ban'])
+          && d.perms.get('canon', []) is list
+          && d.perms.get('canon', []).toSet().hasOnly(['characters', 'items', 'mechanics', 'world', 'articles', 'builder'])
+          && d.perms.get('moderate', false) is bool
+          && d.perms.get('monitor', false) is bool
+          && d.perms.get('ban', false) is bool
+          && isShortString(d.get('nick', ''), 40)
+          && d.grantedBy == request.auth.uid
+          && isShortString(d.get('grantedByNick', ''), 40)
+          && d.updatedAt == request.time;
+      }
+      // Гл-Админ управляет только Админами (не собой, не другими Гл-Админами); Кодер — всеми.
+      function headManages(d) { return isHead() && d.role == 'admin' && uid != request.auth.uid; }
+
+      allow read: if signedIn() && (request.auth.uid == uid || isHead() || can('monitor'));
+      allow create: if validRole(request.resource.data) && (isCoder() || headManages(request.resource.data));
+      allow update: if validRole(request.resource.data)
+        && (isCoder() || (headManages(resource.data) && headManages(request.resource.data)));
+      allow delete: if isCoder() || headManages(resource.data);
+    }
+
+    // Старая схема админов (admins/<email>) больше не действует — права только через roles/.
     match /admins/{email} {
-      allow read: if signedIn() && myEmail() == email;
-      allow write: if false;
+      allow read, write: if false;
+    }
+
+    // ================= Блокировки =================
+    match /bans/{uid} {
+      function validBan(d) {
+        return d.keys().hasOnly(['nick', 'reason', 'until', 'by', 'byNick', 'at'])
+          && isShortString(d.get('nick', ''), 40)
+          && isShortString(d.get('reason', ''), 500)
+          && (d.get('until', null) == null || d.until is timestamp)
+          && d.by == request.auth.uid
+          && isShortString(d.get('byNick', ''), 40)
+          && d.at == request.time;
+      }
+      // Себя заблокировать нельзя; сотрудника с ролью может заблокировать только Кодер.
+      function mayBan() {
+        return can('ban') && uid != request.auth.uid
+          && (isCoder() || !exists(/databases/$(database)/documents/roles/$(uid)));
+      }
+      allow read: if signedIn() && (request.auth.uid == uid || can('ban') || can('monitor'));
+      allow create, update: if mayBan() && validBan(request.resource.data);
+      allow delete: if can('ban');
+    }
+
+    // ================= Активность (мониторинг) =================
+    match /presence/{uid} {
+      function validPresence(d) {
+        return d.keys().hasOnly(['nick', 'email', 'page', 'lastSeen', 'firstSeen'])
+          && isShortString(d.get('nick', ''), 40)
+          && d.email == myEmail()
+          && isShortString(d.get('page', ''), 80)
+          && d.lastSeen == request.time;
+      }
+      allow read: if can('monitor') || can('ban');
+      allow create: if signedIn() && request.auth.uid == uid && validPresence(request.resource.data)
+        && request.resource.data.firstSeen == request.time;
+      allow update: if signedIn() && request.auth.uid == uid && validPresence(request.resource.data)
+        && request.resource.data.get('firstSeen', null) == resource.data.get('firstSeen', null);
+      allow delete: if isCoder();
+    }
+
+    // ================= Журнал действий =================
+    // Записи добавляют сотрудники (вместе с самим действием, одной пачкой). Менять нельзя, чистить может Кодер.
+    match /audit/{id} {
+      allow read: if can('monitor');
+      allow create: if isStaff()
+        && request.resource.data.keys().hasOnly(['at', 'uid', 'nick', 'action', 'target', 'details'])
+        && request.resource.data.at == request.time
+        && request.resource.data.uid == request.auth.uid
+        && isShortString(request.resource.data.get('nick', ''), 40)
+        && isShortString(request.resource.data.action, 60)
+        && isShortString(request.resource.data.get('target', ''), 300)
+        && isShortString(request.resource.data.get('details', ''), 60000);
+      allow update: if false;
+      allow delete: if isCoder();
+    }
+
+    // ================= Каноничные данные =================
+    // canon/<Rus|Eng>__<группа>__<файл> — манифест; canon/<…>/chunks/<NNN> — куски текста файла.
+    // Читают все (сайт грузит канон отсюда, при ошибке — из Assets/). Пишут Админы с правом на группу.
+    // version растёт ровно на 1 — два одновременных сохранения не затрут друг друга.
+    match /canon/{fid} {
+      function validManifest(d) {
+        return d.keys().hasOnly(['lang', 'group', 'name', 'version', 'chunks', 'size', 'updatedAt', 'updatedBy', 'updatedByNick', 'note'])
+          && d.lang in ['Rus', 'Eng']
+          && d.group in ['characters', 'items', 'mechanics', 'world', 'articles', 'builder']
+          && d.name is string && d.name.matches('[A-Za-z0-9_.-]{1,80}')
+          && fid == d.lang + '__' + d.group + '__' + d.name
+          && d.version is int
+          && d.chunks is int && d.chunks >= 1 && d.chunks <= 40
+          && d.size is int
+          && d.updatedAt == request.time
+          && d.updatedBy == request.auth.uid
+          && isShortString(d.get('updatedByNick', ''), 40)
+          && isShortString(d.get('note', ''), 300);
+      }
+      allow read: if true;
+      allow create: if validManifest(request.resource.data) && request.resource.data.version == 1
+        && canCanon(request.resource.data.group) && notBanned();
+      allow update: if validManifest(request.resource.data)
+        && request.resource.data.version == resource.data.version + 1
+        && request.resource.data.group == resource.data.group
+        && canCanon(resource.data.group) && notBanned();
+      allow delete: if canCanon(resource.data.group) && notBanned();
+
+      match /chunks/{cid} {
+        function manifestPath() { return /databases/$(database)/documents/canon/$(fid); }
+        // Куски пишутся одной пачкой с манифестом: при сохранении смотрим новый манифест, при удалении файла — старый.
+        function fileGroup() {
+          return existsAfter(manifestPath()) ? getAfter(manifestPath()).data.group : get(manifestPath()).data.group;
+        }
+        allow read: if true;
+        allow create, update: if canCanon(fileGroup()) && notBanned()
+          && request.resource.data.keys().hasOnly(['data', 'v'])
+          && request.resource.data.data is string
+          && request.resource.data.v == getAfter(manifestPath()).data.version;
+        allow delete: if canCanon(fileGroup()) && notBanned();
+      }
     }
 
     // ---------------- Пользовательская база (navigation.html)
@@ -39,15 +178,17 @@ service cloud.firestore {
       }
       function isOwner() { return signedIn() && resource.data.creatorEmail == myEmail(); }
 
-      // публичное видят все (даже без входа), приватное — автор и админы
-      allow read: if resource.data.get('isPrivate', false) == false || isOwner() || isAdmin();
-      allow create: if signedIn()
+      // публичное видят все (даже без входа), приватное — автор и Админы с правом модерации.
+      // Именно isPrivate == false, а не .get('isPrivate', false): с .get() запрос без фильтра проходил
+      // и отдавал чужие приватные записи. Записи без флага видят автор и модераторы (Модерация → «Проставить флаг»).
+      allow read: if resource.data.isPrivate == false || isOwner() || can('moderate');
+      allow create: if signedIn() && notBanned()
         && request.resource.data.creatorEmail == myEmail()
         && validContent(request.resource.data);
-      allow update: if (isOwner() || isAdmin())
+      allow update: if ((isOwner() && notBanned()) || can('moderate'))
         && request.resource.data.creatorEmail == resource.data.creatorEmail
         && validContent(request.resource.data);
-      allow delete: if isOwner() || isAdmin();
+      allow delete: if isOwner() || can('moderate');
     }
 
     // ---------------- Реестр ников (site/auth.js)
@@ -60,9 +201,9 @@ service cloud.firestore {
           && isShortString(d.nick, 40) && d.nick.size() > 0;
       }
       allow read: if signedIn();
-      allow create: if signedIn() && validNick(request.resource.data)
+      allow create: if signedIn() && notBanned() && validNick(request.resource.data)
         && getAfter(/databases/$(database)/documents/users/$(request.auth.uid)).data.nickId == nid;
-      allow update: if signedIn() && resource.data.uid == request.auth.uid && validNick(request.resource.data);
+      allow update: if signedIn() && notBanned() && resource.data.uid == request.auth.uid && validNick(request.resource.data);
       allow delete: if signedIn() && resource.data.uid == request.auth.uid;
     }
     match /users/{uid} {
@@ -109,19 +250,20 @@ service cloud.firestore {
           && n.get('members', []).toSet().difference(o.get('members', []).toSet()).size() == 0;
       }
 
-      // resource == null — офис удалён: слушатель получает «документа нет», а не ошибку доступа
-      allow read: if signedIn() && (resource == null || isMemberOf(resource.data));
-      allow create: if signedIn()
+      // resource == null — офис удалён: слушатель получает «документа нет», а не ошибку доступа.
+      // Гл-Админ видит все офисы и может удалить любой.
+      allow read: if signedIn() && (resource == null || isMemberOf(resource.data) || isHead());
+      allow create: if signedIn() && notBanned()
         && request.resource.data.creator == myEmail()
         && request.resource.data.creatorUid == request.auth.uid
         && request.resource.data.memberUids is list
         && request.auth.uid in request.resource.data.memberUids;
-      allow update: if signedIn() && (
+      allow update: if signedIn() && notBanned() && (
         (isCreatorOf(resource.data) && request.resource.data.memberUids is list
           && creatorKept(request.resource.data, resource.data))
         || (!isCreatorOf(resource.data) && isMemberOf(resource.data) && onlySelf(request.resource.data, resource.data))
       );
-      allow delete: if signedIn() && isCreatorOf(resource.data);
+      allow delete: if signedIn() && (isCreatorOf(resource.data) || isHead());
 
       // Досье агентов. Создатель офиса управляет всеми; участник может добавить своё досье
       // и обновлять досье, привязанные к нему (ownerUid), но не переназначать их.
@@ -133,15 +275,16 @@ service cloud.firestore {
             && d.get('ownerUid', '') is string
             && d.get('presetJson', '') is string && d.get('presetJson', '').size() < 600000;
         }
-        allow read: if signedIn() && isMemberOf(office());
-        allow create: if signedIn() && validAgent(request.resource.data) && (
+        allow read: if signedIn() && (isHead() || isMemberOf(office()));
+        allow create: if signedIn() && notBanned() && validAgent(request.resource.data) && (
           isCreatorOf(office())
           || (isMemberOf(office()) && request.resource.data.ownerUid == request.auth.uid));
-        allow update: if signedIn() && validAgent(request.resource.data) && (
+        allow update: if signedIn() && notBanned() && validAgent(request.resource.data) && (
           isCreatorOf(office())
           || (isMemberOf(office()) && resource.data.ownerUid == request.auth.uid
               && request.resource.data.ownerUid == request.auth.uid));
-        allow delete: if signedIn() && isCreatorOf(office());
+        // офис мог быть уже удалён (Гл-Админ удаляет досье после офиса)
+        allow delete: if signedIn() && (isHead() || isCreatorOf(office()));
       }
     }
 
@@ -156,23 +299,27 @@ service cloud.firestore {
       function canAdmin(d) { return d.creatorEmail == myEmail() || myEmail() in d.adminUsers; }
       function screen() { return get(/databases/$(database)/documents/custom_screens/$(sid)).data; }
 
-      allow read: if signedIn() && canRead(resource.data);
-      allow create: if signedIn() && request.resource.data.creatorEmail == myEmail();
+      // Гл-Админ видит все Ширмы (вместе с «туманом войны») и может удалить любую.
+      allow read: if signedIn() && (canRead(resource.data) || isHead());
+      allow create: if signedIn() && notBanned() && request.resource.data.creatorEmail == myEmail();
       // админы могут переименовывать и переводить формат; доступы и автора меняет только создатель
-      allow update: if signedIn() && canAdmin(resource.data)
+      allow update: if signedIn() && notBanned() && canAdmin(resource.data)
         && request.resource.data.creatorEmail == resource.data.creatorEmail
         && (resource.data.creatorEmail == myEmail()
             || !request.resource.data.diff(resource.data).affectedKeys().hasAny(['allowedUsers', 'adminUsers', 'accessLevel']));
-      allow delete: if signedIn() && resource.data.creatorEmail == myEmail();
+      allow delete: if signedIn() && (resource.data.creatorEmail == myEmail() || isHead());
 
       // видимые объекты доски
       match /items/{iid} {
-        allow read: if signedIn() && canRead(screen());
-        allow write: if signedIn() && canAdmin(screen());
+        allow read: if signedIn() && (isHead() || canRead(screen()));
+        allow write: if signedIn() && notBanned() && canAdmin(screen());
+        allow delete: if signedIn() && isHead();
       }
-      // скрытые объекты («туман войны») — только админы ширмы
+      // скрытые объекты («туман войны») — только админы ширмы (и Гл-Админ сайта)
       match /secret/{iid} {
-        allow read, write: if signedIn() && canAdmin(screen());
+        allow read: if signedIn() && (isHead() || canAdmin(screen()));
+        allow write: if signedIn() && notBanned() && canAdmin(screen());
+        allow delete: if signedIn() && isHead();
       }
     }
 

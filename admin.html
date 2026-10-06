@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <title>Администрация / Administration</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Oswald:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-main: #070707; --bg-panel: #000; --bg-field: #111; --line: #222; --line-2: #333;
+            --accent: #C7243A; --accent-muted: #6b1420;
+            --cyan: #45B3CB; --green: #8FCC2A; --yellow: #F1C40F; --orange: #D9772F; --red: #C7243A;
+            --text-main: #E0D8C8; --text-dim: #8a8a8a;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        [hidden] { display: none !important; }
+        body {
+            background: var(--bg-main); color: var(--text-main); font-family: 'Inter', sans-serif; font-size: 14px;
+            min-height: 100vh; padding: 0 20px 80px;
+            background-image: linear-gradient(rgba(7,7,7,0.88), rgba(7,7,7,0.88)), repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.02) 2px, rgba(255,255,255,0.02) 4px);
+            overflow-x: hidden;
+        }
+        h1, h2, h3, .oswald { font-family: 'Oswald', sans-serif; text-transform: uppercase; font-weight: 500; letter-spacing: 1px; }
+        h2 { font-size: 1.15rem; color: var(--cyan); margin-bottom: 12px; }
+        h3 { font-size: .95rem; color: var(--text-dim); margin: 18px 0 8px; }
+        button, input, select, textarea { font: inherit; color: inherit; }
+        :focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+        a { color: var(--cyan); }
+        .muted { color: var(--text-dim); }
+        .small { font-size: .8rem; }
+        .mono { font-family: ui-monospace, Consolas, monospace; font-size: .8rem; }
+        .wrap { width: 100%; max-width: 1500px; margin: 0 auto; }
+
+        /* ---------- Шапка ---------- */
+        .topbar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 0; border-bottom: 1px solid var(--accent-muted); margin-bottom: 16px; }
+        .title { color: var(--accent); font-size: clamp(1.1rem, 3vw, 1.7rem); flex: 1 1 260px; text-shadow: 0 0 10px rgba(199,36,58,.4); }
+        .who { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .role-badge { padding: 3px 8px; border: 1px solid; font: 500 .8rem 'Oswald', sans-serif; text-transform: uppercase; letter-spacing: 1px; white-space: nowrap; }
+        .role-coder { color: var(--yellow); border-color: var(--yellow); }
+        .role-headadmin { color: var(--accent); border-color: var(--accent); }
+        .role-admin { color: var(--cyan); border-color: var(--cyan); }
+
+        .btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: var(--bg-main); border: 1px solid var(--cyan); color: var(--cyan);
+            font: 500 .82rem 'Oswald', sans-serif; text-transform: uppercase; letter-spacing: .5px; cursor: pointer; text-decoration: none; white-space: nowrap; transition: .15s; }
+        .btn:hover:not(:disabled) { background: var(--cyan); color: #000; }
+        .btn:disabled { opacity: .4; cursor: not-allowed; }
+        .btn.red { border-color: var(--red); color: var(--red); } .btn.red:hover:not(:disabled) { background: var(--red); color: #000; }
+        .btn.green { border-color: var(--green); color: var(--green); } .btn.green:hover:not(:disabled) { background: var(--green); color: #000; }
+        .btn.yellow { border-color: var(--yellow); color: var(--yellow); } .btn.yellow:hover:not(:disabled) { background: var(--yellow); color: #000; }
+        .btn.ghost { border-color: var(--line-2); color: var(--text-dim); } .btn.ghost:hover:not(:disabled) { border-color: var(--text-main); color: var(--text-main); background: transparent; }
+        .btn.sm { padding: 3px 8px; font-size: .75rem; }
+
+        /* ---------- Вкладки ---------- */
+        .tabs { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 16px; border-bottom: 1px solid var(--line); }
+        .tab { padding: 8px 14px; background: none; border: 1px solid transparent; border-bottom: none; color: var(--text-dim); cursor: pointer;
+            font: 500 .9rem 'Oswald', sans-serif; text-transform: uppercase; letter-spacing: 1px; display: inline-flex; gap: 6px; align-items: center; }
+        .tab:hover { color: var(--text-main); }
+        .tab[aria-selected=true] { color: var(--cyan); border-color: var(--line); background: var(--bg-panel); margin-bottom: -1px; }
+
+        .panel { background: var(--bg-panel); border: 1px solid var(--line); padding: 16px; }
+        .notice { padding: 14px; border: 1px dashed var(--line-2); color: var(--text-dim); line-height: 1.5; }
+        .notice.err { border-color: var(--red); color: var(--red); }
+        .notice.warn { border-color: var(--yellow); color: var(--yellow); }
+        .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+        .row.between { justify-content: space-between; }
+        .spacer { flex: 1; }
+        .field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+        .field > span { font-size: .78rem; color: var(--green); }
+        .in, select.in, textarea.in { background: var(--bg-field); border: 1px solid var(--line-2); padding: 7px 9px; color: var(--text-main); min-width: 0; width: 100%; }
+        .in:focus { outline: none; border-color: var(--cyan); }
+        textarea.in { resize: vertical; line-height: 1.45; }
+        textarea.code { font-family: ui-monospace, Consolas, monospace; font-size: .8rem; white-space: pre; tab-size: 2; }
+        .check { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; user-select: none; }
+        .check input { accent-color: var(--cyan); width: 16px; height: 16px; }
+
+        /* ---------- Обзор ---------- */
+        .stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(170px, 100%), 1fr)); gap: 10px; margin-bottom: 16px; }
+        .stat { border: 1px solid var(--line); padding: 12px; background: var(--bg-main); }
+        .stat b { display: block; font: 500 1.7rem 'Oswald', sans-serif; color: var(--text-main); }
+        .stat span { color: var(--text-dim); font-size: .8rem; }
+        .chips { display: flex; gap: 4px; flex-wrap: wrap; }
+        .chip { padding: 2px 7px; border: 1px solid var(--line-2); font-size: .74rem; color: var(--text-dim); white-space: nowrap; }
+        .chip.on { border-color: var(--green); color: var(--green); }
+        .chip.cyan { border-color: var(--cyan); color: var(--cyan); }
+        .chip.red { border-color: var(--red); color: var(--red); }
+        .chip.yellow { border-color: var(--yellow); color: var(--yellow); }
+
+        /* ---------- Таблицы ---------- */
+        .table-wrap { overflow-x: auto; border: 1px solid var(--line); }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { text-align: left; padding: 7px 9px; border-bottom: 1px solid var(--line); vertical-align: top; }
+        th { font: 500 .78rem 'Oswald', sans-serif; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); background: #0b0b0b; position: sticky; top: 0; }
+        tr:hover td { background: rgba(69,179,203,.04); }
+        td .row { flex-wrap: nowrap; }
+        .ellipsis { max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        /* ---------- Канон ---------- */
+        .canon { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 14px; }
+        .files { border: 1px solid var(--line); max-height: 75vh; overflow-y: auto; }
+        .file-group { padding: 8px 10px; font: 500 .8rem 'Oswald', sans-serif; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); background: #0b0b0b; border-bottom: 1px solid var(--line); }
+        .file { display: flex; justify-content: space-between; gap: 6px; width: 100%; padding: 7px 10px; background: none; border: none; border-bottom: 1px solid var(--line); cursor: pointer; text-align: left; }
+        .file:hover { background: rgba(69,179,203,.06); }
+        .file[aria-current=true] { background: rgba(69,179,203,.14); color: var(--cyan); }
+        .file:disabled { opacity: .45; cursor: not-allowed; }
+        .editor { display: grid; grid-template-columns: minmax(0, 280px) minmax(0, 1fr); gap: 12px; margin-top: 12px; }
+        .entries { border: 1px solid var(--line); max-height: 65vh; overflow-y: auto; }
+        .entry { display: flex; gap: 6px; align-items: baseline; width: 100%; padding: 6px 9px; background: none; border: none; border-bottom: 1px solid var(--line); cursor: pointer; text-align: left; }
+        .entry:hover { background: rgba(69,179,203,.06); }
+        .entry[aria-current=true] { background: rgba(69,179,203,.14); color: var(--cyan); }
+        .entry .idx { color: var(--text-dim); font-size: .72rem; min-width: 26px; }
+        .entry.changed::after { content: '●'; color: var(--yellow); margin-left: auto; font-size: .7rem; }
+        .crumbs { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; font-size: .85rem; }
+        .crumbs button { background: none; border: none; color: var(--cyan); cursor: pointer; padding: 0; text-decoration: underline; }
+        .form { display: grid; gap: 10px; }
+        .form .field textarea { min-height: 38px; }
+        .dirty-bar { position: sticky; bottom: 0; z-index: 5; margin-top: 12px; padding: 10px; background: #0d0d0d; border: 1px solid var(--yellow); }
+
+        /* ---------- Окно ---------- */
+        .modal-ov { position: fixed; inset: 0; z-index: 8000; background: rgba(0,0,0,.78); display: flex; align-items: center; justify-content: center; padding: 16px; }
+        .modal { width: min(900px, 100%); max-height: calc(100vh - 32px); overflow: auto; background: var(--bg-main); border: 1px solid var(--cyan); padding: 16px; }
+        .modal-head { display: flex; justify-content: space-between; gap: 10px; align-items: center; margin-bottom: 12px; }
+        pre.json { background: var(--bg-field); border: 1px solid var(--line); padding: 10px; overflow: auto; max-height: 60vh; font-size: .78rem; white-space: pre-wrap; word-break: break-word; }
+
+        .toast-box { position: fixed; right: 16px; bottom: 16px; z-index: 9500; display: flex; flex-direction: column; gap: 6px; max-width: min(420px, calc(100vw - 32px)); }
+        .toast { padding: 10px 14px; background: #000; border: 1px solid var(--cyan); color: var(--text-main); box-shadow: 0 4px 16px rgba(0,0,0,.7); }
+        .toast.err { border-color: var(--red); } .toast.ok { border-color: var(--green); }
+
+        @media (max-width: 900px) {
+            body { padding: 0 12px 70px; }
+            .canon, .editor { grid-template-columns: minmax(0, 1fr); }
+            .files, .entries { max-height: 40vh; }
+            .ellipsis { max-width: 160px; }
+        }
+    </style>
+
+    <script src="site/i18n.js"></script>
+    <script type="module" src="site/ui.js"></script>
+    <script type="module" src="site/admin.js"></script>
+</head>
+<body>
+<div class="wrap">
+    <header class="topbar">
+        <a class="btn ghost" href="index.html"><i class="fa-solid fa-house"></i> На главную</a>
+        <h1 class="title">Терминал администрации</h1>
+        <div class="who" id="who"></div>
+    </header>
+
+    <nav class="tabs" id="tabs" role="tablist" hidden></nav>
+    <main id="view"><div class="notice">Загрузка…</div></main>
+</div>
+<div class="toast-box" id="toasts" aria-live="polite"></div>
+</body>
+</html>

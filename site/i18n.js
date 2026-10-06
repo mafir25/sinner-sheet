@@ -4,7 +4,10 @@
    Что делает:
    1. Хранит выбранный язык (localStorage 'site.lang', по умолчанию русский). Выбор — в окне настроек (site/ui.js).
    2. Отдаёт данные на нужном языке: I18N.fetchData('feats.json') ищет файл по цепочке
-        Assets/<Eng|Rus>/characters/feats.json → Assets/Rus/characters/feats.json
+        Firestore canon/Eng__characters__feats.json → Assets/Eng/characters/feats.json →
+        Firestore canon/Rus__characters__feats.json → Assets/Rus/characters/feats.json
+      Каноничные данные хранятся в Firestore (коллекция canon, правит админ-панель admin.html);
+      файлы в Assets/ — запасной вариант, если файл ещё не перенесён или Firestore недоступен.
       Папку (группу) файла знает таблица DATA_GROUPS ниже. Поэтому английский world.json достаточно
       положить в Assets/Eng/world/world.json — он подхватится сам.
    3. В английском режиме переводит интерфейс: подгружает словарь site/i18n-en.js и заменяет
@@ -36,25 +39,163 @@
     'lore.json': 'world', 'bestiary.json': 'world', 'world.json': 'world',
     'Builder_classes.json': 'builder', 'Builder_feats.json': 'builder', 'Builder_races.json': 'builder',
   };
-  function candidates(name) {
+  // Статьи и прочие файлы вне таблицы запрашиваются сразу с папкой: fetchData('articles/equipment-lore.html').
+  var CANON_EXTRA = ['articles/equipment-lore.html'];
+  function relOf(name) {
     name = String(name).replace(/^\/+/, '');
-    var rel = DATA_GROUPS[name] ? DATA_GROUPS[name] + '/' + name : name;
-    var list = ['Assets/' + LANGS[lang].dir + '/' + rel];
-    if (lang !== 'ru') list.push('Assets/Rus/' + rel);
-    return list;
+    return DATA_GROUPS[name] ? DATA_GROUPS[name] + '/' + name : name;
   }
-  async function fetchData(name, init) {
-    var last = null;
-    var urls = candidates(name);
-    for (var i = 0; i < urls.length; i++) {
+  function langDirs() { return lang !== 'ru' ? [LANGS[lang].dir, 'Rus'] : ['Rus']; }
+  function candidates(name) {
+    var rel = relOf(name);
+    return langDirs().map(function (d) { return 'Assets/' + d + '/' + rel; });
+  }
+
+  /* ---------------- Канон из Firestore ----------------
+     canon/<Rus|Eng>__<группа>__<файл>        — { version, chunks, … } (манифест)
+     canon/<…>/chunks/000, 001…               — { data: кусок текста файла, v: версия }
+     Файл режется на куски, потому что документ Firestore не больше 1 МБ (world.json — 1.5 МБ).
+     Читается через REST без SDK и без входа (правила: canon читают все). Текст кэшируется в Cache Storage
+     по версии, поэтому повторный заход стоит одно чтение манифеста. Любая ошибка — берём файл из Assets/.
+     Отключить для отладки: ?canon=off (запоминается) / ?canon=on. */
+  var CANON_GROUPS = ['characters', 'items', 'mechanics', 'world', 'articles', 'builder'];
+  var CANON_KEY = 'canon.off';
+  var canonOff = false;
+  try {
+    var cq = new URLSearchParams(location.search).get('canon');
+    if (cq === 'off') localStorage.setItem(CANON_KEY, '1');
+    if (cq === 'on') localStorage.removeItem(CANON_KEY);
+    canonOff = localStorage.getItem(CANON_KEY) === '1';
+  } catch (e) { /* ignore */ }
+
+  function canonId(dir, rel) {
+    var m = /^([a-z]+)\/([A-Za-z0-9_.-]+)$/.exec(rel);
+    if (!m || CANON_GROUPS.indexOf(m[1]) < 0) return null;
+    return dir + '__' + m[1] + '__' + m[2];
+  }
+
+  var SCRIPT_BASE = (document.currentScript && document.currentScript.src || '').replace(/i18n\.js(\?.*)?$/, '')
+    || new URL('site/', location.href).href;
+  var restBase = null;
+  function rest() {
+    if (!restBase) {
+      restBase = import(SCRIPT_BASE + 'firebase-config.js').then(function (m) {
+        var host = m.EMULATOR ? 'http://' + m.EMULATOR.host + ':' + m.EMULATOR.firestore : 'https://firestore.googleapis.com';
+        return {
+          url: host + '/v1/projects/' + m.firebaseConfig.projectId + '/databases/' +
+            encodeURIComponent(m.FIRESTORE_DB) + '/documents/canon/',
+          key: m.firebaseConfig.apiKey,
+        };
+      });
+    }
+    return restBase;
+  }
+  function restVal(v) {
+    if (!v) return undefined;
+    if ('stringValue' in v) return v.stringValue;
+    if ('integerValue' in v) return Number(v.integerValue);
+    if ('doubleValue' in v) return v.doubleValue;
+    return undefined;
+  }
+  async function restGet(path, query) {
+    var r = await rest();
+    var res = await fetch(r.url + path + '?key=' + encodeURIComponent(r.key) + (query || ''), { cache: 'no-store' });
+    if (res.status === 404) return null;
+    if (!res.ok) throw new Error('canon ' + res.status);
+    return res.json();
+  }
+
+  var MANIFEST_TTL = 30000;
+  var manifests = {};
+  async function canonManifest(id, fresh) {
+    var now = Date.now(), memo = manifests[id];
+    if (!fresh && memo && now - memo.t < MANIFEST_TTL) return memo.m;
+    if (!fresh) {
       try {
-        var res = await fetch(urls[i], init);
+        var ss = JSON.parse(sessionStorage.getItem('canon.m.' + id) || 'null');
+        if (ss && now - ss.t < MANIFEST_TTL && ss.t <= now) { manifests[id] = ss; return ss.m; }
+      } catch (e) { /* ignore */ }
+    }
+    var d = await restGet(encodeURIComponent(id));
+    var m = d ? { version: restVal(d.fields.version), chunks: restVal(d.fields.chunks) } : null;
+    manifests[id] = { m: m, t: now };
+    try { sessionStorage.setItem('canon.m.' + id, JSON.stringify(manifests[id])); } catch (e) { /* ignore */ }
+    return m;
+  }
+  async function canonChunks(id, m) {
+    var d = await restGet(encodeURIComponent(id) + '/chunks', '&pageSize=100');
+    var docs = ((d && d.documents) || []).map(function (x) {
+      return { n: x.name.split('/').pop(), data: restVal(x.fields.data), v: restVal(x.fields.v) };
+    }).sort(function (a, b) { return a.n < b.n ? -1 : 1; });
+    if (docs.length < m.chunks) return null;
+    var parts = [];
+    for (var i = 0; i < m.chunks; i++) {
+      if (docs[i].v !== m.version || typeof docs[i].data !== 'string') return null; // файл сейчас сохраняют
+      parts.push(docs[i].data);
+    }
+    return parts.join('');
+  }
+  var CACHE = 'canon-v1';
+  var cacheUrl = function (id, v) { return new URL('__canon/' + id + '?v=' + v, location.href).toString(); };
+  async function cacheGet(id, v) {
+    try { var c = await caches.open(CACHE); var r = await c.match(cacheUrl(id, v)); return r ? r.text() : null; }
+    catch (e) { return null; }
+  }
+  async function cachePut(id, v, text) {
+    try {
+      var c = await caches.open(CACHE);
+      var keys = await c.keys();
+      await Promise.all(keys.filter(function (k) { return k.url.indexOf('/__canon/' + id + '?') >= 0; })
+        .map(function (k) { return c.delete(k); }));
+      await c.put(cacheUrl(id, v), new Response(text));
+    } catch (e) { /* нет Cache Storage (http, приватный режим) — просто без кэша */ }
+  }
+  var MIME = { json: 'application/json', html: 'text/html', txt: 'text/plain' };
+  /** Текст каноничного файла из Firestore или null, если файл туда не перенесён. */
+  async function canonText(id, fresh) {
+    for (var attempt = 0; attempt < 2; attempt++) {
+      var m = await canonManifest(id, fresh || attempt > 0);
+      if (!m) return null;
+      var hit = await cacheGet(id, m.version);
+      if (hit != null) return hit;
+      var text = await canonChunks(id, m);
+      if (text != null) { cachePut(id, m.version, text); return text; }
+    }
+    throw new Error('canon: файл ' + id + ' сохраняется, попробуйте позже');
+  }
+  async function canonResponse(dir, rel, init) {
+    var id = canonEnabled() ? canonId(dir, rel) : null;
+    if (!id) return null;
+    try {
+      var text = await canonText(id, init && (init.cache === 'no-cache' || init.cache === 'reload' || init.cache === 'no-store'));
+      if (text == null) return null;
+      var ext = rel.split('.').pop().toLowerCase();
+      return new Response(text, { status: 200, headers: { 'Content-Type': (MIME[ext] || 'text/plain') + '; charset=utf-8', 'X-Canon': id } });
+    } catch (e) {
+      console.warn('Канон из Firestore недоступен, беру файл из Assets/', e);
+      return null;
+    }
+  }
+  function canonEnabled() { return !canonOff && typeof fetch === 'function' && location.protocol !== 'file:'; }
+
+  async function fetchData(name, init) {
+    var rel = relOf(name), dirs = langDirs(), last = null;
+    for (var i = 0; i < dirs.length; i++) {
+      var c = await canonResponse(dirs[i], rel, init);
+      if (c) return c;
+      try {
+        var res = await fetch('Assets/' + dirs[i] + '/' + rel, init);
         if (res.ok) return res;
         last = res;
       } catch (e) { last = e; }
     }
     if (last instanceof Response) return last;
     throw last || new Error('Not found: ' + name);
+  }
+  /** Все каноничные файлы (пути внутри Assets/<язык>/) — список для админ-панели. */
+  function canonFiles() {
+    var list = Object.keys(DATA_GROUPS).map(function (n) { return DATA_GROUPS[n] + '/' + n; });
+    return list.concat(CANON_EXTRA.filter(function (r) { return list.indexOf(r) < 0; }));
   }
 
   /* ---------------- Словарь ---------------- */
@@ -223,14 +364,13 @@
     dataUrl: function (name) { return candidates(name)[0]; },
     dataGroups: DATA_GROUPS,
     fetchData: fetchData,
+    canon: { files: canonFiles, groups: CANON_GROUPS, id: canonId, get enabled() { return canonEnabled(); } },
     register: register,
     start: start,
   };
 
   // Словарь грузим синхронно, пока страница ещё парсится, — так нет «мигания» русского текста.
   if (lang !== 'ru') {
-    var me = document.currentScript && document.currentScript.src;
-    var base = me ? me.replace(/i18n\.js(\?.*)?$/, '') : 'site/';
-    document.write('<script src="' + base + 'i18n-' + lang + '.js"><\/script>');
+    document.write('<script src="' + SCRIPT_BASE + 'i18n-' + lang + '.js"><\/script>');
   }
 })();

@@ -3,7 +3,7 @@
 // Страницы открывают его так: window.SiteUI.open('account') — или слушают вход через onAuth из site/auth.js.
 import {
   onAuth, login, register, logout, setNickname, lockRemainingMs, attemptsLeft,
-  MAX_ATTEMPTS, WINDOW_MS, MIN_PASSWORD, NICK_MAX,
+  MAX_ATTEMPTS, WINDOW_MS, MIN_PASSWORD, NICK_MAX, ROLES,
 } from './auth.js';
 
 const I18N = window.I18N || { lang: 'ru', langs: { ru: { label: 'Русский' } }, setLang() {}, t: (s) => s };
@@ -135,8 +135,10 @@ function renderAccount() {
       <input id="su-nick" class="su-in-f" maxlength="${NICK_MAX}" autocomplete="nickname">
       <div class="su-msg"></div>
       <button class="su-btn" type="button" data-su="nick">Сохранить никнейм</button>
+      ${state.isStaff ? '<a class="su-btn" href="admin.html" style="display:block;text-align:center;text-decoration:none;box-sizing:border-box">Админ-панель</a>' : ''}
       <button class="su-btn su-red" type="button" data-su="logout">Выйти</button>`;
-    box.querySelector('.su-mail').textContent = state.user.email + (state.isAdmin ? ` · ${t('админ')}` : '');
+    box.querySelector('.su-mail').textContent = state.user.email + (state.role ? ` · ${t(ROLES[state.role])}` : '');
+    if (state.banned) setMsg('Аккаунт заблокирован: создавать и менять что-либо на сайте нельзя', 'err');
     box.querySelector('#su-nick').value = state.nick;
     if (state.nickStatus === 'taken') setMsg('Этот никнейм уже занят другим аккаунтом — выберите другой, иначе вас не найдут по нику', 'err');
     else if (state.nickStatus === 'none') setMsg('Задайте никнейм — по нему вас добавляют в Офис', 'err');
