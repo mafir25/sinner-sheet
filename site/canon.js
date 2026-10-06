@@ -1,18 +1,14 @@
 // Каноничные данные в Firestore — запись и чтение для админ-панели (admin.html).
 // Сайт читает канон сам, через site/i18n.js (REST, кэш по версии, запасной файл из Assets/).
-//
-//   canon/<Rus|Eng>__<группа>__<файл>   — манифест { lang, group, name, version, chunks, size, updatedAt, updatedBy, … }
-//   canon/<…>/chunks/000, 001, …        — { data: кусок текста файла, v: версия }
-//
-// Документ Firestore не больше 1 МБ, поэтому файл режется на куски по CHUNK_CHARS символов
-// (≤ 3 байта UTF-8 на символ → кусок ≤ 840 КБ). Сохранение — одна пачка (writeBatch): куски + манифест + запись
-// в журнал, поэтому читатель видит либо старую версию, либо новую целиком. Правила требуют version = старая + 1.
+// Формат хранения и нарезка на куски — site/canon-core.js (общий с Ширмой).
+// Сохранение — одна пачка (writeBatch): куски + манифест + запись в журнал, поэтому читатель видит
+// либо старую версию, либо новую целиком.
 import {
   collection, doc, getDoc, getDocs, writeBatch, serverTimestamp,
 } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 import { db, auth } from './firebase.js';
+import { canonWrite, joinChunks, auditEntry } from './canon-core.js';
 
-const CHUNK_CHARS = 280_000;
 export const LANG_DIRS = { Rus: 'Русский', Eng: 'English' };
 export const GROUP_NAMES = {
   characters: 'Персонажи', items: 'Предметы', mechanics: 'Механики',
@@ -28,20 +24,6 @@ export function canonFiles() {
 }
 export const fileId = (lang, rel) => window.I18N.canon.id(lang, rel);
 export const isJson = (rel) => /\.json$/i.test(rel);
-
-function splitText(text) {
-  const parts = [];
-  for (let i = 0; i < text.length;) {
-    let end = Math.min(text.length, i + CHUNK_CHARS);
-    // не разрываем суррогатную пару (эмодзи и т. п.)
-    if (end < text.length && /[\uD800-\uDBFF]/.test(text[end - 1])) end--;
-    parts.push(text.slice(i, end));
-    i = end;
-  }
-  return parts.length ? parts : [''];
-}
-const chunkId = (i) => String(i).padStart(3, '0');
-const byteSize = (s) => new TextEncoder().encode(s).length;
 
 /** Манифест файла в Firestore или null. */
 export async function getManifest(lang, rel) {
@@ -64,10 +46,8 @@ export async function loadCanon(lang, rel) {
     const m = await getManifest(lang, rel);
     if (!m) return null;
     const snap = await getDocs(collection(db, 'canon', id, 'chunks'));
-    const docs = snap.docs.map((d) => ({ n: d.id, ...d.data() })).sort((a, b) => (a.n < b.n ? -1 : 1));
-    if (docs.length >= m.chunks && docs.slice(0, m.chunks).every((d) => d.v === m.version)) {
-      return { manifest: m, text: docs.slice(0, m.chunks).map((d) => d.data).join('') };
-    }
+    const text = joinChunks(m, snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+    if (text != null) return { manifest: m, text };
     await new Promise((r) => setTimeout(r, 400)); // файл как раз сохраняют — подождём
   }
   throw new Error('Файл сейчас сохраняется кем-то ещё — попробуйте ещё раз');
@@ -85,11 +65,8 @@ export function normalizeText(rel, text) {
   return JSON.stringify(JSON.parse(text)); // компактно — меньше кусков и чтений
 }
 
-function auditDoc(batch, { action, target, details, nick }) {
-  batch.set(doc(collection(db, 'audit')), {
-    at: serverTimestamp(), uid: auth.currentUser.uid, nick: String(nick || '').slice(0, 40),
-    action, target: String(target || '').slice(0, 300), details: String(details || '').slice(0, 60000),
-  });
+function auditDoc(batch, entry) {
+  batch.set(doc(collection(db, 'audit')), { ...auditEntry({ uid: auth.currentUser.uid, ...entry }), at: serverTimestamp() });
 }
 
 /**
@@ -102,7 +79,6 @@ export async function saveCanon(lang, rel, text, { baseVersion = 0, note = '', n
   if (!user) throw new Error('Вы не вошли в аккаунт');
   const id = fileId(lang, rel);
   if (!id) throw new Error(`Файл ${rel} не может быть каноном`);
-  const [group, name] = rel.split('/');
   const body = normalizeText(rel, text);
 
   const current = await getManifest(lang, rel);
@@ -112,22 +88,18 @@ export async function saveCanon(lang, rel, text, { baseVersion = 0, note = '', n
     e.code = 'canon/conflict';
     throw e;
   }
-  const parts = splitText(body);
-  const version = curVersion + 1;
+  const w = canonWrite({ lang, rel, text: body, current, uid: user.uid, nick, note });
   const batch = writeBatch(db);
-  parts.forEach((data, i) => batch.set(doc(db, 'canon', id, 'chunks', chunkId(i)), { data, v: version }));
-  for (let i = parts.length; i < (current?.chunks || 0); i++) batch.delete(doc(db, 'canon', id, 'chunks', chunkId(i)));
-  batch.set(doc(db, 'canon', id), {
-    lang, group, name, version, chunks: parts.length, size: byteSize(body),
-    updatedAt: serverTimestamp(), updatedBy: user.uid, updatedByNick: String(nick).slice(0, 40), note: String(note).slice(0, 300),
-  });
+  w.chunks.forEach(([cid, data]) => batch.set(doc(db, 'canon', id, 'chunks', cid), data));
+  w.stale.forEach((cid) => batch.delete(doc(db, 'canon', id, 'chunks', cid)));
+  batch.set(doc(db, 'canon', id), { ...w.manifest, updatedAt: serverTimestamp() });
   auditDoc(batch, {
-    nick, action: audit.action || (current ? 'canon.save' : 'canon.import'), target: `${lang}/${rel} v${version}`,
+    nick, action: audit.action || (current ? 'canon.save' : 'canon.import'), target: `${lang}/${rel} v${w.version}`,
     details: audit.details || note,
   });
   await batch.commit();
   try { sessionStorage.removeItem('canon.m.' + id); } catch { /* ignore */ }
-  return { version, chunks: parts.length, size: byteSize(body) };
+  return { version: w.version, chunks: w.manifest.chunks, size: w.manifest.size };
 }
 
 /** Убрать файл из Firestore — сайт снова будет брать его из Assets/. */

@@ -543,6 +543,8 @@ function renderEditor() {
         </div>
       </div>
       ${rel.startsWith('builder/') || BUILDER_LINKED.includes(rel) ? `<div class="notice warn small" style="margin-top:10px">${esc(T(BUILDER_NOTE))}</div>` : ''}
+      ${rel === 'world/world.json' ? `<div class="notice small" style="margin-top:10px">${esc(T('Карту базового мира удобнее править прямо в Ширме: откройте ширму из группы «Базовый мир» — у кого есть право на раздел «Мир», появится кнопка «Опубликовать в канон».'))}
+        <a href="shirm.html" style="margin-left:6px">${esc(T('Открыть Ширму'))}</a></div>` : ''}
       ${CS.source === 'none' ? `<div class="notice" style="margin-top:10px">${esc(T('Файла на этом языке нет — сайт показывает русскую версию. Нажмите «Копия русской», чтобы начать перевод.'))}</div>` : ''}
       <div class="${isList() ? 'editor' : ''}" style="margin-top:12px">
         ${isList() ? '<div id="en-side"></div>' : ''}

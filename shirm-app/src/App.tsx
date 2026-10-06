@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { onAuthStateChanged, type User } from 'firebase/auth';
 import { auth } from './data/firebase';
+import { canEditCanon } from './data/canon';
 import { type ListedScreen, createScreen, deleteScreen, listScreens, loadBaseWorld, updateScreen } from './data/screens';
 import { BoardStore } from './state/boardStore';
 import { Panel } from './ui/Panel';
@@ -44,13 +45,14 @@ function Workspace({ user }: { user: User }) {
 
   const refresh = useCallback(async () => {
     const [base, mine] = await Promise.all([
-      loadBaseWorld(),
+      // базовый мир правят Админы с правом на раздел канона «Мир»
+      canEditCanon(user, 'world').then((edit) => loadBaseWorld(edit)),
       listScreens(email).catch((e) => { console.error(e); toast('Не удалось загрузить ширмы из базы', 'error'); return [] as ListedScreen[]; }),
     ]);
     const all = [...base.map((b) => ({ ...b, group: 'base' as const })), ...mine];
     setScreens(all);
     return all;
-  }, [email]);
+  }, [email, user]);
 
   useEffect(() => { void refresh(); }, [refresh]);
 
@@ -72,6 +74,9 @@ function Workspace({ user }: { user: User }) {
   }, [stores]);
 
   const pick = (i: number, id: string) => {
+    const s = stores[i];
+    if (s.state.meta?.isLocal && s.hasUnsaved
+      && !window.confirm('В базовом мире есть неопубликованные правки. Уйти и отбросить их?')) return;
     const next: [string, string] = [...picked] as [string, string];
     next[i] = id; setPicked(next); LSset(`shirm.panel${i + 1}`, id);
   };

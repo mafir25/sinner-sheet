@@ -6,7 +6,9 @@ import {
   collection, deleteDoc, doc, getDoc, getDocs, onSnapshot, query, setDoc, where, writeBatch,
   type DocumentData, type QueryDocumentSnapshot,
 } from 'firebase/firestore';
+import type { User } from 'firebase/auth';
 import { db } from './firebase';
+import { WORLD_REL, langDir, loadCanonFile, saveCanonFile } from './canon';
 import { migrateV1, type V1Graph } from '../model/migrate';
 import { type AccessLevel, type Item, type ItemMap, type ScreenMeta, SCHEMA_VERSION, parseItem } from '../model/schema';
 
@@ -33,31 +35,78 @@ function toMeta(id: string, d: DocumentData): ScreenMeta {
 }
 
 export function canAdmin(meta: ScreenMeta | undefined, email: string | null | undefined): boolean {
-  if (!meta || meta.isLocal || !email) return false;
+  if (meta?.isLocal) return !!meta.canonEdit;
+  if (!meta || !email) return false;
   return meta.creatorEmail === email || meta.adminUsers.includes(email);
 }
 
-/** Базовый мир сайта (world.json): массив ширм старого формата, только чтение. */
-export async function loadBaseWorld(): Promise<ScreenMeta[]> {
+/**
+ * Базовый мир сайта (world.json, канон): массив ширм.
+ * Формат ширмы: старый { id, name, graphData } или новый { id, name, schemaVersion: 2, items: [...] } —
+ * в новом её записывает Ширма при публикации правок (publishBaseScreen).
+ */
+type BaseEntry = { id?: string; name?: string; schemaVersion?: number; items?: unknown[]; graphData?: V1Graph; [k: string]: unknown };
+
+function baseItems(s: BaseEntry): ItemMap {
+  if (s.schemaVersion !== SCHEMA_VERSION || !Array.isArray(s.items)) return migrateV1(s.graphData);
+  const out: ItemMap = {};
+  for (const raw of s.items) { const it = parseItem(raw); if (it) out[it.id] = it; }
+  return out;
+}
+const baseIdOf = (s: BaseEntry, i: number) => String(s.id ?? i);
+
+export async function loadBaseWorld(canonEdit = false): Promise<ScreenMeta[]> {
   try {
     const res = await fetchData('world.json', { cache: 'no-cache' });
     if (!res.ok) return [];
     const arr = await res.json();
     if (!Array.isArray(arr)) return [];
-    return arr.map((s: { id?: string; name?: string; graphData?: V1Graph }, i: number) => ({
-      id: `base:${s.id ?? i}`,
+    return arr.map((s: BaseEntry, i: number) => ({
+      id: `base:${baseIdOf(s, i)}`,
       name: s.name ?? `Мир ${i + 1}`,
       creatorEmail: '',
       accessLevel: 'public' as AccessLevel,
       allowedUsers: [], adminUsers: [],
       schemaVersion: SCHEMA_VERSION,
       isLocal: true,
-      localItems: migrateV1(s.graphData),
+      localItems: baseItems(s),
+      baseId: baseIdOf(s, i),
+      baseRaw: JSON.stringify(s),
+      canonEdit,
     }));
   } catch (e) {
     console.warn('world.json не загрузился', e);
     return [];
   }
+}
+
+/**
+ * Опубликовать правки ширмы базового мира в канон: свежий world.json, в нём заменяется только эта ширма.
+ * Если её успел изменить кто-то другой — ошибка с code 'canon/conflict' (force — записать поверх).
+ */
+export async function publishBaseScreen(user: User, meta: ScreenMeta, items: ItemMap,
+  { note = '', force = false } = {}): Promise<number> {
+  const lang = langDir();
+  const file = await loadCanonFile(lang, WORLD_REL);
+  if (file.text == null) throw new Error('world.json не найден');
+  const arr: BaseEntry[] = JSON.parse(file.text);
+  const idx = arr.findIndex((s, i) => baseIdOf(s, i) === meta.baseId);
+  if (idx < 0) throw new Error('Этой ширмы больше нет в world.json — обновите страницу');
+  if (!force && meta.baseRaw && JSON.stringify(arr[idx]) !== meta.baseRaw) {
+    const e = new Error(`Эту ширму уже изменил ${file.current?.updatedByNick || 'другой админ'}.`) as Error & { code?: string };
+    e.code = 'canon/conflict';
+    throw e;
+  }
+  const { graphData: _old, ...rest } = arr[idx];
+  const entry: BaseEntry = { ...rest, id: meta.baseId, name: meta.name, schemaVersion: SCHEMA_VERSION,
+    items: JSON.parse(JSON.stringify(Object.values(items))) };
+  arr[idx] = entry;
+  const version = await saveCanonFile(user, lang, WORLD_REL, JSON.stringify(arr), file.current, {
+    note, nick: user.displayName || '', details: { note, screen: meta.name, items: Object.keys(items).length },
+  });
+  meta.baseRaw = JSON.stringify(entry);
+  meta.localItems = structuredClone(items);
+  return version;
 }
 
 export type ScreenGroup = 'base' | 'mine' | 'admin' | 'friends' | 'public';

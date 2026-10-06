@@ -97,10 +97,15 @@ export type ScreenMeta = {
   allowedUsers: string[];
   adminUsers: string[];
   schemaVersion: number;
-  /** базовый мир из world.json — только чтение */
+  /** базовый мир из world.json (канон): правят только Админы с правом на раздел «Мир» */
   isLocal?: boolean;
   /** для базового мира: items уже внутри */
   localItems?: ItemMap;
+  /** для базового мира: id ширмы внутри world.json и её исходный JSON (чтобы заметить чужие правки) */
+  baseId?: string;
+  baseRaw?: string;
+  /** для базового мира: текущий пользователь может править канон */
+  canonEdit?: boolean;
   /** старый формат (v1), если ширма ещё не переведена */
   legacyGraph?: unknown;
   /** у переведённой ширмы ещё лежит старая копия graphData */

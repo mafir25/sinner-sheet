@@ -8,6 +8,7 @@ import {
   doc, getDoc, setDoc, updateDoc, runTransaction, serverTimestamp,
 } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 import { auth, db } from './firebase.js';
+import { CODER_EMAILS, CANON_GROUPS } from './access-config.js';
 
 /* ---------------- Ограничение попыток ввода пароля ----------------
    Не больше MAX_ATTEMPTS неудачных попыток входа/регистрации за WINDOW_MS в этом браузере.
@@ -203,13 +204,13 @@ async function ensureRegistered(user) {
 }
 
 /* ---------------- Роли и права ----------------
-   Кодер — владелец сайта: задан email-ом в CODER_EMAILS (тот же список — в firestore.rules, меняйте оба места).
+   Кодер — владелец сайта: задан email-ом в CODER_EMAILS (site/access-config.js; тот же список — в firestore.rules).
      Все права; только он назначает и снимает Гл-Админов.
    Гл-Админ — roles/<uid> { role: 'headadmin' }: все права, видит скрытое (приватные записи, все Ширмы и Офисы),
      назначает Админов и выбирает их права. Кодера и других Гл-Админов трогать не может.
    Админ — roles/<uid> { role: 'admin', perms }: только выданные права (PERMS).
    Реальные права проверяет сервер (firestore.rules); здесь — только интерфейс. */
-export const CODER_EMAILS = ['nikkitamatveev2009@gmail.com'];
+export { CODER_EMAILS, CANON_GROUPS };
 export const ROLES = { coder: 'Кодер', headadmin: 'Гл-Админ', admin: 'Админ' };
 export const PERMS = {
   canon: 'Редактирование канона',
@@ -217,9 +218,6 @@ export const PERMS = {
   monitor: 'Мониторинг и журнал',
   ban: 'Блокировка пользователей',
 };
-// Группы канона (папки Assets/<язык>/…) — право canon выдаётся списком групп.
-export const CANON_GROUPS = (window.I18N && window.I18N.canon && window.I18N.canon.groups)
-  || ['characters', 'items', 'mechanics', 'world', 'articles', 'builder'];
 
 const isCoderUser = (user) => !!user?.email && CODER_EMAILS.includes(user.email.toLowerCase());
 const fullPerms = () => ({ canon: [...CANON_GROUPS], moderate: true, monitor: true, ban: true });
