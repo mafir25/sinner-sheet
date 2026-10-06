@@ -109,7 +109,7 @@ function modal(title, bodyHtml, { wide = false } = {}) {
   const ov = document.createElement('div');
   ov.className = 'modal-ov';
   ov.innerHTML = `<div class="modal" role="dialog" aria-modal="true" style="${wide ? 'width:min(1200px,100%)' : ''}">
-    <div class="modal-head"><h2 style="margin:0">${esc(title)}</h2><button class="btn ghost sm" data-x>✕</button></div>
+    <div class="modal-head"><h2 style="margin:0" class="notranslate">${esc(title)}</h2><button class="btn ghost sm" data-x>✕</button></div>
     <div class="modal-body">${bodyHtml}</div></div>`;
   document.body.appendChild(ov);
   const close = () => { ov.remove(); document.removeEventListener('keydown', onKey); };
@@ -176,9 +176,13 @@ async function openTab(id, { push = true } = {}) {
   currentTab = tab.id;
   if (push && location.hash !== '#' + tab.id) history.replaceState(null, '', '#' + tab.id);
   renderTabs();
-  view().innerHTML = '<div class="notice">Загрузка…</div>';
-  try { await tab.render(view()); }
-  catch (e) { console.error(e); view().innerHTML = `<div class="notice err">${esc(T(errText(e)))}</div>`; }
+  // Каждая вкладка рисуется в свой контейнер: если её данные придут после перехода на другую вкладку,
+  // они попадут в уже снятый со страницы контейнер и ничего не испортят.
+  const box = document.createElement('div');
+  box.innerHTML = '<div class="notice">Загрузка…</div>';
+  view().replaceChildren(box);
+  try { await tab.render(box); }
+  catch (e) { console.error(e); box.innerHTML = `<div class="notice err">${esc(T(errText(e)))}</div>`; }
 }
 
 $('#tabs').addEventListener('click', (e) => {
@@ -296,8 +300,8 @@ async function renderAccess(v) {
       </div>
       <p class="muted small" style="margin-top:8px">${S.role === 'coder'
         ? 'Вы можете назначать Гл-Админов и Админов.' : 'Гл-Админ назначает Админов и выбирает их права; Гл-Админов назначает Кодер.'}
-        Искать можно по <b>нику</b> (если человек задал его в ⚙ Настройках), по <b>email</b> (если он заходил на сайт после обновления)
-        или по <b>ID аккаунта</b> — его человек видит, открыв admin.html, а Кодер — в Firebase Console → Authentication (столбец User UID).</p>
+      </p>
+      <p class="muted small" style="margin-top:4px">Искать можно по нику (если человек задал его в ⚙ Настройках), по email (если он заходил на сайт после обновления) или по ID аккаунта — его человек видит, открыв admin.html, а Кодер — в Firebase Console → Authentication (столбец User UID).</p>
     </div>
     <div class="panel">
       <h2>Сотрудники</h2>
@@ -476,9 +480,8 @@ async function renderCanon(v) {
           ${files.some((f) => canCanon(S, f.group)) ? '<button class="btn sm yellow" id="cn-import-all"><i class="fa-solid fa-cloud-arrow-up"></i> Перенести всё из Assets</button>' : ''}
         </div>
       </div>
-      <p class="muted small" style="margin-top:8px">Сайт читает канон из Firestore (коллекция <span class="mono">canon</span>); если файла там нет
-        или Firestore недоступен — из папки <span class="mono">Assets/</span> репозитория. Правки видны всем сразу после сохранения.
-        Чтобы перенести правки обратно в репозиторий: <span class="mono">node scripts/canon-pull.mjs</span>.</p>
+      <p class="muted small" style="margin-top:8px">Сайт читает канон из Firestore (коллекция canon); если файла там нет или Firestore недоступен — из папки Assets/ репозитория. Правки видны всем сразу после сохранения.</p>
+      <p class="muted small">Чтобы перенести правки обратно в репозиторий: <span class="mono notranslate">node scripts/canon-pull.mjs</span></p>
     </div>
     <div class="canon">
       <div class="files" id="cn-files">
@@ -526,19 +529,28 @@ async function importAll() {
   openTab('canon');
 }
 
+let loadSeq = 0;
 async function openFile(lang, rel) {
+  const seq = ++loadSeq;   // быстрый клик по другому файлу: ответ для этого файла станет устаревшим
   Object.assign(CS, { sel: { lang, rel }, manifest: null, source: null, data: undefined, key: null, apply: null,
-    view: 'fields', search: '', dirty: false, changes: new Map() });
+    view: 'fields', search: '', note: '', dirty: false, changes: new Map() });
   $$('#cn-files .file').forEach((b) => b.setAttribute('aria-current', String(b.dataset.lang === lang && b.dataset.rel === rel)));
   const ed = $('#cn-editor');
+  if (!ed) return;
   ed.innerHTML = '<div class="notice">Загрузка файла…</div>';
+  let manifest = null, source, text;
   try {
     const c = await Canon.loadCanon(lang, rel);
-    let text = c?.text;
-    if (c) { CS.manifest = c.manifest; CS.source = 'canon'; }
-    else { text = await Canon.loadStatic(lang, rel); CS.source = text == null ? 'none' : 'static'; }
-    setWorking(text ?? (Canon.isJson(rel) ? '[]' : ''));
-  } catch (e) { ed.innerHTML = `<div class="notice err">${esc(T(errText(e)))}</div>`; return; }
+    if (c) { manifest = c.manifest; source = 'canon'; text = c.text; }
+    else { text = await Canon.loadStatic(lang, rel); source = text == null ? 'none' : 'static'; }
+  } catch (e) {
+    if (seq === loadSeq) ed.innerHTML = `<div class="notice err">${esc(T(errText(e)))}</div>`;
+    return;
+  }
+  if (seq !== loadSeq || !ed.isConnected) return;   // пока грузили, открыли другой файл или ушли с вкладки
+  Object.assign(CS, { manifest, source });
+  try { setWorking(text ?? (Canon.isJson(rel) ? '[]' : '')); }
+  catch (e) { ed.innerHTML = `<div class="notice err">${esc(T('Некорректный JSON'))}: ${esc(e.message)}</div>`; return; }
   renderEditor();
 }
 
@@ -628,6 +640,7 @@ function markChanged(key, label, before, after) {
 /* ---- Список записей ---- */
 function renderList() {
   const side = $('#en-side');
+  if (!side) return;
   const q = CS.search.trim().toLowerCase();
   const rows = CS.data.map((v, i) => [v, i]).filter(([v, i]) => !q || labelOf(v, i).toLowerCase().includes(q));
   side.innerHTML = `
@@ -684,6 +697,7 @@ function listAction(act) {
 function renderPane() {
   const pane = $('#en-pane');
   CS.apply = null;
+  if (!pane) return;
   if (isList() && (CS.key == null || !(CS.key in CS.data))) { pane.innerHTML = '<div class="notice">Выберите запись.</div>'; return; }
   const schema = schemaOf(), value = entryOf(), json = Canon.isJson(CS.sel.rel);
   const canFields = !!schema && value && typeof value === 'object' && !Array.isArray(value);
@@ -739,10 +753,11 @@ function renderDirtyBar() {
     <div class="row" style="margin-bottom:8px"><b class="oswald" style="color:var(--yellow)">${esc(T('Несохранённые изменения'))}: ${CS.changes.size}</b>
       <span class="muted small notranslate ellipsis" style="max-width:none;flex:1">${esc(list.slice(0, 8).join(' · '))}${list.length > 8 ? ' …' : ''}</span></div>
     <div class="row">
-      <input class="in" id="sv-note" maxlength="300" placeholder="${esc(T('Комментарий к правке (попадёт в журнал)'))}" style="flex:1;min-width:200px">
+      <input class="in" id="sv-note" maxlength="300" placeholder="${esc(T('Комментарий к правке (попадёт в журнал)'))}" style="flex:1;min-width:200px" value="${esc(CS.note || '')}">
       <button class="btn sm ghost" id="sv-discard">Отменить всё</button>
       <button class="btn sm green" id="sv-save"><i class="fa-solid fa-cloud-arrow-up"></i> Сохранить в Firestore</button>
     </div></div>`;
+  $('#sv-note', box).oninput = (e) => { CS.note = e.target.value; };
   $('#sv-discard', box).onclick = () => { if (confirm(T('Отменить все несохранённые изменения?'))) { CS.dirty = false; openFile(CS.sel.lang, CS.sel.rel); } };
   $('#sv-save', box).onclick = saveFile;
 }
@@ -763,7 +778,7 @@ async function saveFile() {
     });
     toast(`${T('Сохранено')}: v${r.version} (${kb(r.size)})`, 'ok');
     CS.dirty = false;
-    await renderCanon(view());
+    await openTab('canon', { push: false });
   } catch (e) {
     $('#sv-save').disabled = false;
     if (e.code === 'canon/conflict') toast(e.message, 'err'); else fail(e, 'Не удалось сохранить');

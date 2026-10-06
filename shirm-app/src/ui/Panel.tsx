@@ -316,7 +316,7 @@ export function Panel({ store, screens, screenId, onPickScreen, email, active, o
       ) : (
         <div className="panel-empty">
           <p>Выбери ширму в списке сверху.</p>
-          <p className="hint">Базовый мир — справочник по лору (только чтение). Узлы из него можно копировать в свои ширмы.</p>
+          <p className="hint">Базовый мир — справочник по лору. Узлы из него можно копировать в свои ширмы; править его могут только Админы канона раздела «Мир».</p>
         </div>
       )}
 
