@@ -4,586 +4,416 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Конструктор Персонажа / Character Builder</title>
-    
+
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Merriweather:ital,wght@0,300;1,300;1,700&family=Oswald:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <style>
         :root {
             --bg-main: #070707; --bg-panel: #000000; --accent-primary: #D9772F; --accent-muted: #8B5A2B;
-            --color-cyan: #45B3CB; --color-red: #C7243A; --color-yellow: #F1C40F;
+            --color-cyan: #45B3CB; --color-red: #C7243A; --color-yellow: #F1C40F; --color-magenta: #D94285;
             --text-main: #E0D8C8; --text-dim: #696969;
             --border-width: 1px; --chamfer: 14px;
         }
-
         * { box-sizing: border-box; margin: 0; padding: 0; }
-
         body {
             background-color: var(--bg-main); color: var(--text-main); font-family: 'Inter', sans-serif;
-            min-height: 100vh; padding: 60px 20px 40px 20px; display: flex; flex-direction: column; align-items: center;
+            min-height: 100vh; padding: 60px 20px 60px 20px; display: flex; flex-direction: column; align-items: center;
             background-image: linear-gradient(rgba(7,7,7,0.8), rgba(7,7,7,0.8)), repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.02) 2px, rgba(255,255,255,0.02) 4px);
             overflow-x: hidden;
         }
-
+        body.modal-open { overflow: hidden; }
         h1, h2, h3, h4, .oswald { font-family: 'Oswald', sans-serif; text-transform: uppercase; }
-        .tech-text { font-family: 'Inter', sans-serif; color: var(--accent-primary); font-size: 0.8rem; }
+        .tech-text { font-family: 'Inter', sans-serif; color: var(--accent-primary); font-size: 0.8rem; margin-bottom: 4px; }
+        [hidden] { display: none !important; }
 
-        /* Навигация (левая и правая) */
-        .top-nav-btn { position: fixed; top: 10px; left: 20px; padding: 6px 12px; font-size: 0.8rem; border-color: var(--color-cyan); color: var(--color-cyan); font-family: 'Oswald', sans-serif; z-index: 100; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; border: 1px solid var(--color-cyan); cursor: pointer; text-transform: uppercase; transition: 0.2s; }
+        /* Навигация */
+        .top-nav-btn { position: fixed; top: 10px; left: 20px; padding: 6px 12px; font-size: 0.8rem; color: var(--color-cyan); font-family: 'Oswald', sans-serif; z-index: 100; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; border: 1px solid var(--color-cyan); cursor: pointer; text-transform: uppercase; transition: 0.2s; }
         .top-nav-btn:hover { background-color: var(--color-cyan); color: #000; }
-        
         .right-nav-container { position: fixed; top: 10px; right: 20px; z-index: 100; display: flex; gap: 10px; }
-        .nav-btn-2 { padding: 6px 12px; font-size: 0.8rem; border: 1px solid var(--color-yellow); color: var(--color-yellow); font-family: 'Oswald', sans-serif; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; cursor: pointer; text-transform: uppercase; transition: 0.2s; }
-        .nav-btn-2:hover { background-color: var(--color-yellow); color: #000; }
-        
-        .nav-btn-3 { padding: 6px 12px; font-size: 0.8rem; border: 1px solid var(--color-red); color: var(--color-red); font-family: 'Oswald', sans-serif; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; cursor: pointer; text-transform: uppercase; transition: 0.2s; }
-        .nav-btn-3:hover { background-color: var(--color-red); color: #000; }
+        .nav-btn { padding: 6px 12px; font-size: 0.8rem; border: 1px solid var(--c); color: var(--c); font-family: 'Oswald', sans-serif; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; cursor: pointer; text-transform: uppercase; transition: 0.2s; }
+        .nav-btn:hover { background-color: var(--c); color: #000; }
 
-        .header-bar { width: 100%; max-width: 1400px; display: flex; justify-content: center; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--accent-muted); padding-bottom: 10px; margin-top: 10px; }
+        .header-bar { width: 100%; max-width: 1500px; display: flex; justify-content: center; align-items: center; margin-bottom: 14px; border-bottom: 1px solid var(--accent-muted); padding-bottom: 10px; margin-top: 10px; }
         .header-title { color: var(--accent-primary); font-size: 1.5rem; letter-spacing: 2px; text-align: center; }
 
-        /* Лейаут Конструктора */
-        .builder-container { display: grid; grid-template-columns: 1fr 1.5fr; gap: 30px; width: 100%; max-width: 1400px; align-items: start; }
-        
-        /* Панели */
-        .panel-outer { background-color: var(--accent-primary); padding: var(--border-width); position: relative; display: flex; flex-direction: column; }
-        .panel-inner { background-color: var(--bg-panel); padding: 20px; height: 100%; display: flex; flex-direction: column; }
+        /* Панель инструментов */
+        .toolbar { width: 100%; max-width: 1500px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 16px; }
+        .tool-btn { position: relative; overflow: hidden; background: transparent; border: 1px solid var(--c, var(--color-cyan)); color: var(--c, var(--color-cyan)); padding: 6px 12px; font-family: 'Oswald'; font-size: 0.85rem; cursor: pointer; text-transform: uppercase; display: inline-flex; align-items: center; gap: 6px; transition: 0.2s; }
+        .tool-btn:hover { background: var(--c, var(--color-cyan)); color: #000; }
+        .tool-btn input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+        .view-toggle { display: inline-flex; margin-left: auto; border: 1px solid #333; }
+        .view-toggle button { background: #000; border: none; color: var(--text-dim); padding: 6px 12px; font-family: 'Oswald'; cursor: pointer; text-transform: uppercase; font-size: 0.85rem; }
+        .view-toggle button[aria-pressed=true] { background: var(--accent-primary); color: #000; }
+        .custom-status { font-size: 0.75rem; color: var(--text-dim); }
+        .custom-status.ok { color: #8FCC2A; } .custom-status.error { color: var(--color-red); }
+        .pending-btn { border-color: var(--color-yellow); color: var(--color-yellow); animation: flash 1.4s infinite; --c: var(--color-yellow); }
+
+        /* Лейаут */
+        .builder-container { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); gap: 24px; width: 100%; max-width: 1500px; align-items: start; }
+        .col { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+        .panel-outer { background-color: var(--pc, var(--accent-primary)); padding: var(--border-width); position: relative; display: flex; flex-direction: column; }
+        .panel-inner { background-color: var(--bg-panel); padding: 18px; height: 100%; display: flex; flex-direction: column; }
         .cut-tl { clip-path: polygon(var(--chamfer) 0, 100% 0, 100% 100%, 0 100%, 0 var(--chamfer)); }
-        .hazard-tape { height: 6px; background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--accent-muted) 10px, var(--accent-muted) 20px); border-bottom: 1px solid var(--accent-primary); }
+        .hazard-tape { height: 6px; background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--pc-muted, var(--accent-muted)) 10px, var(--pc-muted, var(--accent-muted)) 20px); border-bottom: 1px solid var(--pc, var(--accent-primary)); }
+        .panel-title { font-family: 'Oswald'; text-transform: uppercase; color: var(--pc, var(--accent-primary)); font-size: 1.15rem; letter-spacing: 1px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .panel-title small { color: var(--text-dim); font-family: 'Inter'; text-transform: none; font-size: 0.75rem; letter-spacing: 0; }
 
-        .form-group { margin-bottom: 16px; }
-        .form-group label { display: block; font-family: 'Oswald', sans-serif; color: var(--color-cyan); margin-bottom: 6px; font-size: 1.1rem; text-transform: uppercase; }
-        
-        .cloud-input, .cloud-select { width: 100%; background: #111; border: 1px solid #333; color: var(--text-main); padding: 10px; outline: none; font-family: 'Inter'; font-size: 0.95rem; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; }
+        .form-grid .wide { grid-column: 1 / -1; }
+        .form-group label, .mini-label { display: block; font-family: 'Oswald', sans-serif; color: var(--color-cyan); margin-bottom: 5px; font-size: 0.95rem; text-transform: uppercase; }
+        .form-group { margin-bottom: 4px; }
+        .cloud-input, .cloud-select { width: 100%; background: #111; border: 1px solid #333; color: var(--text-main); padding: 9px; outline: none; font-family: 'Inter'; font-size: 0.92rem; }
         .cloud-input:focus, .cloud-select:focus { border-color: var(--color-cyan); }
-        
-        /* Загрузка файлов */
-        .file-upload-row { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
-        .file-upload-btn { flex: 1; min-width: 200px; background: transparent; border: 1px dashed var(--text-dim); color: var(--text-dim); padding: 8px; font-family: 'Oswald'; font-size: 0.8rem; cursor: pointer; text-align: center; transition: 0.2s; position: relative; }
-        .file-upload-btn:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
-        .file-upload-btn input[type="file"] { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+        .cloud-select.small { width: auto; padding: 5px 8px; font-size: 0.85rem; }
+        textarea.cloud-input { resize: vertical; min-height: 70px; }
+        .lvl-row { display: flex; gap: 6px; }
+        .lvl-row input { text-align: center; font-family: 'Oswald'; font-size: 1.1rem; }
+        .lvl-row button, .stat-step button { background: #222; border: 1px solid #444; color: #fff; width: 36px; cursor: pointer; font-family: 'Oswald'; font-size: 1.1rem; }
+        .lvl-row button:hover, .stat-step button:hover { background: var(--accent-primary); border-color: var(--accent-primary); color: #000; }
+        .opts { display: flex; gap: 16px; flex-wrap: wrap; font-size: 0.85rem; color: var(--text-dim); }
+        .opts label { display: flex; gap: 6px; align-items: center; cursor: pointer; }
+        .opts input { accent-color: var(--accent-primary); }
 
-        .import-preset-btn { border: 1px solid var(--color-cyan); color: var(--color-cyan); border-style: solid; }
-        .import-preset-btn:hover { background-color: var(--color-cyan); color: #000; }
+        .btn-mini { background: transparent; border: 1px solid #555; color: var(--text-main); padding: 4px 9px; font-family: 'Oswald'; font-size: 0.8rem; cursor: pointer; text-transform: uppercase; transition: 0.15s; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; }
+        .btn-mini:hover { border-color: var(--color-cyan); color: var(--color-cyan); }
+        .btn-mini.accent { border-color: var(--accent-primary); color: var(--accent-primary); }
+        .btn-mini.accent:hover { background: var(--accent-primary); color: #000; }
+        .btn-mini.red { border-color: var(--color-red); color: var(--color-red); }
+        .btn-mini.red:hover { background: var(--color-red); color: #000; }
+        .seg { background: #000; border: 1px solid #333; color: var(--text-dim); padding: 4px 10px; font-family: 'Oswald'; font-size: 0.8rem; cursor: pointer; text-transform: uppercase; }
+        .seg.on { border-color: var(--accent-primary); color: var(--accent-primary); background: rgba(217,119,47,0.1); }
 
-        /* Список черт (Редизайн выбора) */
-        .feats-list-container { max-height: 350px; overflow-y: auto; border: 1px solid #333; background: #0a0a0a; padding: 10px; margin-top: 8px; }
-        .feats-list-container::-webkit-scrollbar { width: 6px; }
-        .feats-list-container::-webkit-scrollbar-thumb { background: var(--accent-primary); }
-        
-        .feat-item { display: flex; flex-direction: column; gap: 4px; padding: 10px; border: 1px solid #333; margin-bottom: 8px; cursor: pointer; transition: all 0.2s; background: rgba(0,0,0,0.5); border-radius: 2px; }
-        .feat-item:last-child { margin-bottom: 0; }
-        .feat-item:hover { border-color: var(--accent-primary); }
-        .feat-item.selected { background-color: var(--accent-primary); border-color: var(--accent-primary); }
-        
-        .feat-item-title { font-family: 'Oswald', sans-serif; font-size: 1rem; color: var(--text-main); transition: color 0.2s; }
-        .feat-need { color: var(--color-red); font-size: 0.75rem; font-family: 'Oswald'; text-transform: uppercase; transition: color 0.2s; }
-        
-        /* Инверсия цвета при выделении черты */
-        .feat-item.selected .feat-item-title, .feat-item.selected .feat-need { color: #000 !important; }
-        
-        .search-feats { margin-bottom: 8px; }
+        /* Характеристики */
+        .stat-tools { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+        .stat-tools .mini-label { margin: 0; }
+        .pb-left { font-family: 'Oswald'; color: #8FCC2A; }
+        .pb-left.bad { color: var(--color-red); }
+        .stat-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+        .stat-card { border: 1px solid #333; background: #0a0a0a; padding: 8px 6px; text-align: center; display: flex; flex-direction: column; gap: 4px; align-items: center; }
+        .stat-k { font-family: 'Oswald'; color: var(--color-cyan); letter-spacing: 1px; }
+        .stat-in { width: 100%; background: #111; border: 1px solid #333; color: var(--text-main); text-align: center; padding: 4px 2px; font-family: 'Oswald'; font-size: 1rem; }
+        .stat-step { display: flex; width: 100%; }
+        .stat-step button { width: 22px; font-size: 0.9rem; flex: none; }
+        .stat-step input { min-width: 0; -moz-appearance: textfield; }
+        .stat-step input::-webkit-inner-spin-button { -webkit-appearance: none; }
+        .stat-total { font-family: 'Oswald'; font-size: 1.7rem; line-height: 1; cursor: help; }
+        .stat-bonus { font-size: 0.8rem; color: #8FCC2A; margin-left: 2px; vertical-align: top; }
+        .stat-mod { font-family: 'Oswald'; color: var(--accent-primary); font-size: 1.05rem; }
+        .stat-max { font-size: 0.65rem; color: var(--text-dim); }
+        .derived { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+        .derived > div { border: 1px solid #222; padding: 6px; text-align: center; display: flex; flex-direction: column; gap: 2px; }
+        .derived span { font-size: 0.68rem; color: var(--text-dim); text-transform: uppercase; }
+        .derived b { font-family: 'Oswald'; font-size: 1.15rem; font-weight: 500; }
+        .derived small { font-size: 0.65rem; color: var(--color-cyan); }
+        .res-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+        .res-card { border: 1px solid #333; padding: 10px; background: #0a0a0a; }
+        .res-card.hp { border-color: rgba(199,36,58,0.6); } .res-card.sp { border-color: rgba(69,179,203,0.6); }
+        .res-head { display: flex; justify-content: space-between; align-items: baseline; font-family: 'Oswald'; text-transform: uppercase; }
+        .res-val { font-size: 1.8rem; }
+        .res-card.hp .res-val { color: var(--color-red); } .res-card.sp .res-val { color: var(--color-cyan); }
+        .res-formula { font-size: 0.75rem; color: var(--text-dim); margin-bottom: 8px; }
+        .res-ctrl { display: flex; gap: 6px; flex-wrap: wrap; }
+        .res-warn { font-size: 0.75rem; color: var(--color-yellow); margin-top: 6px; }
+        .roll-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+        .chip { background: #111; border: 1px solid #444; color: var(--text-main); font-size: 0.72rem; padding: 2px 6px; cursor: pointer; font-family: 'Oswald'; }
+        .chip:hover { border-color: var(--accent-primary); }
+        .chip.empty { color: var(--text-dim); border-style: dashed; }
+        .roll-log { margin-top: 10px; font-size: 0.75rem; color: var(--text-dim); }
+        .roll-log summary { cursor: pointer; font-family: 'Oswald'; text-transform: uppercase; }
+        .roll-log div { padding: 2px 0; border-bottom: 1px dashed #1c1c1c; font-family: monospace; }
 
-        /* Вывод персонажа (Правая панель) */
+        /* Слоты */
+        .slot-group { margin-bottom: 18px; }
+        .group-title { font-family: 'Oswald'; text-transform: uppercase; color: var(--text-main); font-size: 0.95rem; letter-spacing: 1px; border-bottom: 1px solid #222; padding-bottom: 4px; margin-bottom: 10px; }
+        .group-count { color: var(--text-dim); font-size: 0.8rem; margin-left: 6px; }
+        .view-cubes .group-items { display: flex; flex-wrap: wrap; gap: 26px 22px; padding: 14px 14px 0 2px; }
+        .view-rows .group-items { display: flex; flex-direction: column; gap: 8px; }
+
+        /* Кубы: передняя грань + верх и бок псевдоэлементами */
+        .cube { --d: 12px; position: relative; width: 116px; height: 116px; cursor: pointer; outline: none; transition: transform 0.15s; }
+        .cube .cube-face { position: absolute; inset: 0; border: 1px solid var(--c); background: linear-gradient(160deg, color-mix(in srgb, var(--c) 30%, #0b0b0b), color-mix(in srgb, var(--c) 10%, #050505)); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; padding: 8px 6px; text-align: center; overflow: hidden; z-index: 1; }
+        .cube::before { content: ''; position: absolute; left: 0; bottom: 100%; width: 100%; height: var(--d); background: color-mix(in srgb, var(--c) 55%, #000); border: 1px solid var(--c); border-bottom: none; transform-origin: bottom left; transform: skewX(-45deg); }
+        .cube::after { content: ''; position: absolute; left: 100%; top: 0; width: var(--d); height: 100%; background: color-mix(in srgb, var(--c) 28%, #000); border: 1px solid var(--c); border-left: none; transform-origin: top left; transform: skewY(-45deg); }
+        .cube:hover, .cube:focus-visible { transform: translate(-2px, -2px); }
+        .cube:hover .cube-face, .cube:focus-visible .cube-face { box-shadow: 0 0 16px color-mix(in srgb, var(--c) 45%, transparent) inset; }
+        .cube.empty .cube-face { background: color-mix(in srgb, var(--c) 7%, #050505); border-style: dashed; }
+        .cube.empty::before { background: color-mix(in srgb, var(--c) 18%, #000); border-style: dashed; }
+        .cube.empty::after { background: color-mix(in srgb, var(--c) 10%, #000); border-style: dashed; }
+        .cube.empty .cube-name { color: color-mix(in srgb, var(--c) 70%, #888); font-size: 0.78rem; }
+        .cube.locked { opacity: 0.45; cursor: help; }
+        .cube.granted .cube-face { border-style: double; border-width: 3px; }
+        .cube-ico { color: var(--c); font-size: 1.15rem; }
+        .cube-name { font-family: 'Oswald'; font-size: 0.86rem; line-height: 1.15; color: var(--text-main); word-break: break-word; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+        .cube-sub { font-size: 0.62rem; color: var(--text-dim); line-height: 1.1; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .cube .lvl { position: absolute; bottom: 3px; right: 5px; font-size: 0.6rem; color: var(--c); font-family: 'Oswald'; }
+        .badge-pend, .badge-warn, .badge-dm { position: absolute; top: 4px; font-family: 'Oswald'; font-size: 0.7rem; line-height: 1; padding: 2px 5px; z-index: 2; cursor: help; }
+        .badge-pend { left: 4px; background: var(--color-yellow); color: #000; cursor: pointer; }
+        .badge-warn { right: 4px; background: var(--color-red); color: #000; }
+        .badge-dm { right: 4px; background: #000; border: 1px solid var(--color-yellow); color: var(--color-yellow); }
+        .badge-warn + .badge-dm { right: 26px; }
+        .slot.pending .cube-face { animation: pulse 1.4s infinite; }
+        .slot.warn .cube-face { border-color: var(--color-red); }
+        .slot.custom .cube-face { outline: 1px dashed var(--color-yellow); outline-offset: 3px; }
+        .cube.add .cube-face { border-style: dashed; }
+        @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(241,196,15,0); } 50% { box-shadow: 0 0 14px 3px rgba(241,196,15,0.55); } }
+        @keyframes flash { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+
+        /* Строки */
+        .row { border: 1px solid #2a2a2a; border-left: 3px solid var(--c, #444); background: rgba(255,255,255,0.015); padding: 8px 10px; }
+        .row.empty { border-style: dashed; border-left-style: solid; }
+        .row.pending { animation: pulse 1.4s infinite; }
+        .row.warn { border-color: var(--color-red); }
+        .row-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; position: relative; }
+        .row-head > i { color: var(--c); width: 16px; text-align: center; }
+        .row-label { font-size: 0.72rem; color: var(--text-dim); text-transform: uppercase; font-family: 'Oswald'; }
+        .row-name { font-family: 'Oswald'; font-size: 1rem; color: var(--c, var(--text-main)); }
+        .row .lvl { font-size: 0.7rem; color: var(--c); font-family: 'Oswald'; }
+        .row .badge-pend, .row .badge-warn, .row .badge-dm { position: static; }
+        .row-act { margin-left: auto; display: flex; gap: 6px; }
+        .row-desc { font-size: 0.85rem; line-height: 1.5; margin-top: 6px; max-height: 7.5em; overflow: hidden; position: relative; cursor: pointer; }
+        .row-desc::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 2em; background: linear-gradient(transparent, #000); }
+        .row-desc.open { max-height: none; }
+        .row-desc.open::after, .row.empty .row-desc::after { display: none; }
+        .row-empty { color: var(--text-dim); font-size: 0.85rem; }
+        .row-why { font-size: 0.78rem; color: var(--color-yellow); margin: 4px 0; }
+
+        /* Markdown */
+        .md p { margin-bottom: 6px; } .md ul, .md ol { margin: 4px 0 6px 20px; } .md li { margin-bottom: 3px; }
+        .md table { border-collapse: collapse; font-size: 0.78rem; margin: 6px 0; display: block; overflow-x: auto; }
+        .md td, .md th { border: 1px solid #333; padding: 2px 6px; }
+        .md h4, .detail-body h4 { font-family: 'Oswald'; color: var(--accent-primary); margin: 10px 0 4px; font-weight: 500; }
+        .lvl-inline { font-size: 0.75rem; color: var(--text-dim); }
+        .lnk { color: var(--color-cyan); border-bottom: 1px dotted var(--color-cyan); cursor: pointer; }
+        .need { font-size: 0.8rem; color: var(--color-red); font-family: 'Oswald'; text-transform: uppercase; margin-bottom: 4px; }
+        .req { font-size: 0.8rem; margin-bottom: 3px; }
+        .req.bad { color: var(--color-red); } .req.unk { color: var(--color-yellow); }
+        .src-badge { display: inline-block; font-size: 0.72rem; padding: 2px 6px; margin-bottom: 6px; border: 1px solid var(--color-yellow); color: var(--color-yellow); }
+        .picked { font-size: 0.82rem; color: #8FCC2A; margin-bottom: 6px; border-left: 2px solid #8FCC2A; padding-left: 8px; }
+        .hint { font-size: 0.8rem; color: var(--text-dim); margin: 6px 0; }
+
+        /* Досье */
         .output-panel { position: sticky; top: 60px; max-height: calc(100vh - 80px); overflow-y: auto; }
-        .output-panel::-webkit-scrollbar { width: 6px; }
-        .output-panel::-webkit-scrollbar-thumb { background: var(--color-cyan); }
-        
-        .output-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--color-cyan); padding-bottom: 10px; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
-        .char-name-display { font-size: 2rem; color: var(--text-main); font-family: 'Oswald'; text-transform: uppercase; }
-        .char-meta-display { font-size: 1rem; color: var(--color-cyan); font-family: 'Oswald'; }
-        
-        .btn-group { display: flex; gap: 8px; }
-        .copy-btn { background: transparent; border: 1px solid var(--color-cyan); color: var(--color-cyan); padding: 6px 12px; font-family: 'Oswald'; cursor: pointer; transition: 0.2s; font-size: 0.9rem; text-transform: uppercase; }
-        .copy-btn:hover:not(:disabled) { background: var(--color-cyan); color: #000; }
-        
-        .export-preset-btn { border-color: var(--color-yellow); color: var(--color-yellow); }
-        .export-preset-btn:hover:not(:disabled) { background: var(--color-yellow); color: #000; }
-        .copy-btn:disabled { border-color: #333; color: #555; cursor: not-allowed; }
-
-        .block-title { font-size: 1.4rem; color: var(--accent-primary); border-bottom: 1px solid #333; margin-top: 24px; margin-bottom: 12px; padding-bottom: 4px; font-family: 'Oswald', sans-serif; text-transform: uppercase; }
-        
-        /* Копируемые элементы вывода */
-        .trait-entry { margin-bottom: 16px; border-left: 2px solid var(--text-dim); padding-left: 12px; cursor: pointer; position: relative; transition: background-color 0.2s; padding-block: 6px; }
+        .output-panel::-webkit-scrollbar, .modal-box::-webkit-scrollbar { width: 6px; }
+        .output-panel::-webkit-scrollbar-thumb, .modal-box::-webkit-scrollbar-thumb { background: var(--color-cyan); }
+        .output-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid var(--color-cyan); padding-bottom: 10px; margin-bottom: 14px; gap: 10px; }
+        .char-name-display { font-size: 1.8rem; color: var(--text-main); font-family: 'Oswald'; text-transform: uppercase; word-break: break-word; }
+        .char-meta-display { font-size: 0.95rem; color: var(--color-cyan); font-family: 'Oswald'; }
+        .sheet-stats { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin-bottom: 8px; }
+        .ss { border: 1px solid #333; text-align: center; padding: 4px; }
+        .ss-k { font-size: 0.7rem; color: var(--color-cyan); font-family: 'Oswald'; }
+        .ss-v { font-family: 'Oswald'; font-size: 1.3rem; }
+        .ss-m { font-size: 0.8rem; color: var(--accent-primary); }
+        .sheet-line { font-size: 0.85rem; line-height: 1.7; color: var(--text-dim); }
+        .sheet-line b { color: var(--text-main); font-family: 'Oswald'; font-weight: 500; }
+        .dm-warn { margin-top: 12px; border: 1px solid var(--color-yellow); background: rgba(241,196,15,0.05); padding: 10px; font-size: 0.8rem; line-height: 1.5; }
+        .dm-warn-t { color: var(--color-yellow); font-family: 'Oswald'; text-transform: uppercase; margin-bottom: 4px; }
+        .block-title { font-size: 1.25rem; color: var(--accent-primary); border-bottom: 1px solid #333; margin-top: 22px; margin-bottom: 10px; padding-bottom: 4px; font-family: 'Oswald', sans-serif; text-transform: uppercase; }
+        .trait-entry { margin-bottom: 14px; border-left: 2px solid var(--text-dim); padding-left: 12px; cursor: pointer; position: relative; transition: background-color 0.2s; padding-block: 6px; }
         .trait-entry:hover { background-color: rgba(255,255,255,0.05); }
-        .trait-name { font-size: 1.1rem; color: var(--color-yellow); font-family: 'Oswald', sans-serif; margin-bottom: 4px; }
-        .trait-req { color: var(--color-red); font-size: 0.8rem; font-family: 'Oswald', sans-serif; text-transform: uppercase; margin-bottom: 4px; }
-        .trait-desc { font-size: 0.9rem; color: var(--text-main); line-height: 1.5; white-space: pre-wrap; }
+        .trait-name { font-size: 1.05rem; color: var(--color-yellow); font-family: 'Oswald', sans-serif; margin-bottom: 4px; }
+        .trait-desc { font-size: 0.88rem; color: var(--text-main); line-height: 1.5; }
+        .trait-desc > p, .trait-desc .md p { margin-bottom: 6px; }
+        .trait-desc ul { margin: 4px 0 6px 20px; }
+        .trait-desc table { border-collapse: collapse; font-size: 0.75rem; display: block; overflow-x: auto; }
+        .trait-desc td, .trait-desc th { border: 1px solid #333; padding: 2px 5px; }
+        .trait-entry .copy-msg { color: var(--color-cyan); font-size: 0.75rem; position: absolute; bottom: 4px; right: 10px; opacity: 0; transition: opacity 0.2s; font-family: 'Oswald', sans-serif; pointer-events: none; }
+        .note { font-size: 0.82rem; color: var(--text-dim); margin-bottom: 4px; }
+        .status-se { border-left: 2px solid var(--color-yellow); padding: 6px 10px; margin-top: 8px; }
 
-        .trait-entry .copy-msg { text-align: right; color: var(--color-cyan); font-size: 0.75rem; position: absolute; bottom: 4px; right: 10px; opacity: 0; transition: opacity 0.2s; font-family: 'Oswald', sans-serif; pointer-events: none; }
+        /* Поповер выбора, подсказка, модальное окно */
+        .choice-pop { position: fixed; z-index: 3000; background: #050505; border: 1px solid var(--color-yellow); box-shadow: 0 8px 30px rgba(0,0,0,0.9), 0 0 18px rgba(241,196,15,0.25); padding: 10px 12px; max-height: 70vh; overflow-y: auto; animation: popIn 0.18s ease-out; }
+        @keyframes popIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: none; } }
+        .pop-title { font-family: 'Oswald'; color: var(--color-yellow); text-transform: uppercase; font-size: 0.9rem; margin-bottom: 8px; }
+        .cp { padding: 6px 0; border-top: 1px dashed #222; }
+        .cp:first-of-type { border-top: none; }
+        .cp-label { font-size: 0.8rem; color: var(--text-main); margin-bottom: 5px; font-family: 'Oswald'; text-transform: uppercase; }
+        .cp-src { color: var(--text-dim); text-transform: none; font-family: 'Inter'; font-size: 0.72rem; }
+        .cp-pending .cp-label { color: var(--color-yellow); }
+        .cp-opts { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+        .cp-opt { background: #111; border: 1px solid #444; color: var(--text-main); padding: 4px 8px; font-size: 0.78rem; cursor: pointer; font-family: 'Inter'; }
+        .cp-opt:hover { border-color: var(--color-yellow); }
+        .cp-opt.on { background: var(--color-yellow); border-color: var(--color-yellow); color: #000; }
+        .cp-opt.dis { opacity: 0.4; cursor: not-allowed; }
+        .cp-hint { font-size: 0.72rem; color: var(--text-dim); }
+        .tip { position: fixed; z-index: 4000; background: #111; border: 1px solid #444; color: var(--text-main); font-size: 0.75rem; padding: 6px 8px; white-space: pre-line; pointer-events: none; line-height: 1.4; }
 
-        /* Адаптивность */
-        @media (max-width: 900px) {
+        .modal { position: fixed; inset: 0; z-index: 2500; background: rgba(0,0,0,0.75); backdrop-filter: blur(3px); display: flex; align-items: center; justify-content: center; padding: 16px; }
+        .modal-box { width: min(760px, 100%); max-height: calc(100vh - 32px); overflow-y: auto; background: #070707; border: 1px solid var(--color-cyan); box-shadow: 0 10px 40px rgba(0,0,0,0.8); }
+        .modal-head { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid #222; position: sticky; top: 0; background: #070707; z-index: 2; }
+        .modal-head h3 { font-weight: 500; color: var(--color-cyan); font-size: 1.2rem; }
+        .modal-x { background: none; border: 1px solid #333; color: #aaa; width: 32px; height: 32px; cursor: pointer; font-size: 16px; }
+        .modal-x:hover { color: var(--color-red); border-color: var(--color-red); }
+        .modal-body { padding: 14px 16px; font-size: 0.9rem; line-height: 1.5; }
+        .modal-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; align-items: center; }
+        .detail-sub { font-family: 'Oswald'; text-transform: uppercase; font-size: 0.85rem; margin-bottom: 8px; }
+        .detail-choices { border: 1px solid rgba(241,196,15,0.5); padding: 8px 10px; margin-bottom: 12px; background: rgba(241,196,15,0.03); }
+        .picker-tools { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; position: sticky; top: 56px; background: #070707; padding: 4px 0; z-index: 1; }
+        .chk { display: flex; gap: 6px; align-items: center; font-size: 0.8rem; color: var(--text-dim); white-space: nowrap; cursor: pointer; }
+        .picker-list { display: flex; flex-direction: column; gap: 6px; }
+        .pick { border: 1px solid #2a2a2a; padding: 8px 10px; cursor: pointer; transition: 0.15s; position: relative; }
+        .pick:hover { border-color: var(--accent-primary); background: rgba(217,119,47,0.05); }
+        .pick.bad { opacity: 0.6; cursor: default; }
+        .pick.custom { border-style: dashed; border-color: rgba(241,196,15,0.5); }
+        .pick-head { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+        .pick-name { font-family: 'Oswald'; font-size: 1rem; }
+        .pick-sub { font-size: 0.75rem; color: var(--color-cyan); }
+        .pick .badge-dm { position: static; }
+        .pick-why { font-size: 0.75rem; color: var(--color-yellow); margin-top: 3px; }
+        .pick.bad .pick-why { color: var(--color-red); }
+        .pick-desc { margin-top: 4px; font-size: 0.82rem; }
+        .pick-desc summary { cursor: pointer; color: var(--text-dim); font-size: 0.75rem; }
+        .tabs-mini { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 8px; }
+        .asi-opts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .asi-card { border: 1px solid #333; padding: 10px; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+        .asi-t { font-family: 'Oswald'; text-transform: uppercase; color: var(--accent-primary); }
+        .ego-top { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+        .ego-edit { display: grid; grid-template-columns: 1.1fr 1fr; gap: 16px; }
+        .ego-prev { border-left: 1px solid #222; padding-left: 14px; }
+        .ego-prev-name { font-family: 'Oswald'; font-size: 1.3rem; text-transform: uppercase; }
+        .toast { position: fixed; bottom: 70px; left: 50%; transform: translateX(-50%) translateY(20px); background: #000; border: 1px solid var(--accent-primary); color: var(--text-main); padding: 8px 16px; font-size: 0.85rem; opacity: 0; pointer-events: none; transition: 0.25s; z-index: 5000; max-width: 90vw; }
+        .toast.show { opacity: 1; transform: translateX(-50%); }
+
+        @media (max-width: 1100px) {
             .builder-container { grid-template-columns: 1fr; }
             .output-panel { position: static; max-height: none; }
         }
+        @media (max-width: 640px) {
+            body { padding: 56px 10px 60px; }
+            .right-nav-container .nav-txt { display: none; }
+            .form-grid { grid-template-columns: 1fr; }
+            .stat-grid, .derived { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+            .res-grid, .asi-opts, .ego-edit { grid-template-columns: 1fr; }
+            .cube { width: 96px; height: 96px; --d: 9px; }
+            .view-cubes .group-items { gap: 20px 16px; }
+            .view-toggle { margin-left: 0; }
+        }
     </style>
     <script src="site/i18n.js"></script>
+    <script src="site/vendor/marked.umd.js"></script>
+    <script src="site/vendor/purify.min.js"></script>
+    <script src="site/ego-core.js"></script>
     <script type="module" src="site/ui.js"></script>
+    <script type="module" src="site/builder.js"></script>
 </head>
 <body>
 
-    <!-- Навигация -->
     <a href="index.html" class="top-nav-btn"><i class="fa-solid fa-house"></i> ХАБ</a>
-    
     <div class="right-nav-container">
-        <a href="grimoire.html" class="nav-btn-2"><i class="fa-solid fa-book-journal-whills"></i> ГРИМУАР</a>
-        <a href="feats.html" class="nav-btn-3"><i class="fa-solid fa-dumbbell"></i> БАЗА ЧЕРТ</a>
+        <a href="egobuilder.html" class="nav-btn" style="--c: var(--color-magenta)"><i class="fa-solid fa-gem"></i> <span class="nav-txt">КОНСТРУКТОР Э.Г.О.</span></a>
+        <a href="grimoire.html" class="nav-btn" style="--c: var(--color-yellow)"><i class="fa-solid fa-book-journal-whills"></i> <span class="nav-txt">ГРИМУАР</span></a>
+        <a href="feats.html" class="nav-btn" style="--c: var(--color-red)"><i class="fa-solid fa-dumbbell"></i> <span class="nav-txt">БАЗА ЧЕРТ</span></a>
     </div>
 
     <div class="header-bar">
         <div class="header-title oswald">СИСТЕМА СБОРКИ ПЕРСОНАЖА (CHARACTER BUILDER)</div>
     </div>
 
+    <div class="toolbar">
+        <label class="tool-btn" style="--c: var(--color-cyan)"><i class="fa-solid fa-download"></i> ЗАГРУЗИТЬ ПРЕСЕТ<input type="file" id="preset-in" accept=".json"></label>
+        <button class="tool-btn" id="btn-export" style="--c: var(--color-yellow)"><i class="fa-solid fa-file-export"></i> СКАЧАТЬ ПРЕСЕТ</button>
+        <button class="tool-btn" id="btn-copy" style="--c: var(--color-cyan)"><i class="fa-regular fa-copy"></i> КОПИРОВАТЬ ДОСЬЕ</button>
+        <label class="tool-btn" style="--c: #B0B0B0" data-tip="Класс, черта, предмет, дар Э.Г.О. или Э.Г.О. в формате JSON. Такие объекты помечаются как «на усмотрение ДМ-а»."><i class="fa-solid fa-upload"></i> СВОЙ JSON<input type="file" id="custom-in" accept=".json"></label>
+        <button class="tool-btn" id="btn-new" style="--c: var(--color-red)"><i class="fa-solid fa-rotate-left"></i> НОВЫЙ</button>
+        <button class="tool-btn pending-btn" id="pending-btn" hidden></button>
+        <span class="custom-status" id="custom-status"></span>
+        <div class="view-toggle" role="group" aria-label="Вид слотов">
+            <button data-view="cubes" aria-pressed="true"><i class="fa-solid fa-cubes"></i> КУБЫ</button>
+            <button data-view="rows" aria-pressed="false"><i class="fa-solid fa-list"></i> СТРОКИ</button>
+        </div>
+    </div>
+
     <div class="builder-container">
-        
-        <!-- ЛЕВАЯ ПАНЕЛЬ: ВВОД ДАННЫХ -->
-        <div class="panel-outer cut-tl">
-            <div class="hazard-tape"></div>
-            <div class="panel-inner cut-tl" style="border-top: none;">
-                
-                <div class="file-upload-row">
-                    <div class="file-upload-btn import-preset-btn">
-                        <i class="fa-solid fa-download"></i> ЗАГРУЗИТЬ ПРЕСЕТ ПЕРСОНАЖА
-                        <input type="file" accept=".json" onchange="window.loadPreset(event)">
-                    </div>
-                    <div class="file-upload-btn">
-                        <i class="fa-solid fa-upload"></i> ЗАГРУЗИТЬ КАСТОМНЫЙ КЛАСС
-                        <input type="file" accept=".json" onchange="window.loadCustomClass(event)">
-                    </div>
-                    <div class="file-upload-btn">
-                        <i class="fa-solid fa-upload"></i> ЗАГРУЗИТЬ КАСТОМНУЮ ЧЕРТУ
-                        <input type="file" accept=".json" onchange="window.loadCustomFeat(event)">
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label>ИМЯ ПЕРСОНАЖА</label>
-                    <input type="text" id="char-name" class="cloud-input" placeholder="Введите имя..." oninput="window.updateOutput()">
-                </div>
-
-                <div class="form-group">
-                    <label>РАСА</label>
-                    <select id="char-race" class="cloud-select" onchange="window.updateOutput()">
-                        <option value="">-- Выберите Расу --</option>
-                        <option value="human">Человек (Human)</option>
-                        <option value="bloodfiend">Кровавый Демон (Bloodfiend)</option>
-                        <option value="half_distortion">Полу-Искажение (Half-Distortion)</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label>АРХЕТИП (КЛАСС)</label>
-                    <select id="char-class" class="cloud-select" onchange="window.updateOutput()">
-                        <option value="">-- Базовый Фиксер (Без Архетипа) --</option>
-                        <!-- Подгружается из JSON -->
-                    </select>
-                </div>
-
-                <!-- ПОЛЕ: Описание персонажа -->
-                <div class="form-group">
-                    <label>ОПИСАНИЕ / ИСТОРИЯ</label>
-                    <!-- ДОБАВЛЕН oninput ДЛЯ МГНОВЕННОГО ОБНОВЛЕНИЯ -->
-                    <textarea id="char-desc" class="cloud-input" placeholder="Краткая информация о персонаже (выводится в Офисе)..." oninput="window.updateOutput()" style="min-height: 80px; resize: vertical;"></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label>ЧЕРТЫ (FEATS)</label>
-                    <input type="text" id="feat-search" class="cloud-input search-feats" placeholder="Поиск черты..." onkeyup="window.filterFeatChecklist()">
-                    <div class="feats-list-container" id="feats-checklist">
-                        <!-- Подгружается из JSON -->
+        <div class="col">
+            <!-- ОСНОВА -->
+            <div class="panel-outer cut-tl">
+                <div class="hazard-tape"></div>
+                <div class="panel-inner cut-tl">
+                    <div class="panel-title"><i class="fa-solid fa-id-card"></i> ОСНОВА</div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="char-name">ИМЯ ПЕРСОНАЖА</label>
+                            <input type="text" id="char-name" class="cloud-input" maxlength="120" placeholder="Введите имя...">
+                        </div>
+                        <div class="form-group">
+                            <label for="char-level">УРОВЕНЬ</label>
+                            <div class="lvl-row"><button id="lvl-down" aria-label="-1">−</button><input type="number" id="char-level" class="cloud-input" min="1" max="20" value="1"><button id="lvl-up" aria-label="+1">+</button></div>
+                        </div>
+                        <div class="form-group">
+                            <label for="char-race">РАСА</label>
+                            <select id="char-race" class="cloud-select"></select>
+                        </div>
+                        <div class="form-group">
+                            <label for="char-base">ОСНОВНОЙ КЛАСС</label>
+                            <select id="char-base" class="cloud-select"></select>
+                        </div>
+                        <div class="form-group wide">
+                            <label for="char-arch">ПРИНАДЛЕЖНОСТЬ (АРХЕТИП)</label>
+                            <select id="char-arch" class="cloud-select"></select>
+                        </div>
+                        <div class="form-group wide">
+                            <label for="char-desc">ОПИСАНИЕ / ИСТОРИЯ</label>
+                            <textarea id="char-desc" class="cloud-input" maxlength="8000" placeholder="Краткая информация о персонаже (выводится в Офисе)..."></textarea>
+                        </div>
+                        <div class="opts wide">
+                            <label><input type="checkbox" id="opt-durability"> Повышенная живучесть (кость хитов ×2)</label>
+                            <label><input type="checkbox" id="opt-sanity" checked> Рассудок (SP) — вариант А</label>
+                        </div>
                     </div>
                 </div>
+            </div>
 
+            <!-- ХАРАКТЕРИСТИКИ И БРОСКИ -->
+            <div class="panel-outer cut-tl" style="--pc: var(--color-cyan); --pc-muted: #1f5866;">
+                <div class="hazard-tape"></div>
+                <div class="panel-inner cut-tl">
+                    <div class="panel-title"><i class="fa-solid fa-dice-d20"></i> ХАРАКТЕРИСТИКИ И БРОСКИ <small>наведите на итог, чтобы увидеть источники прибавок</small></div>
+                    <div id="stats-panel"></div>
+                </div>
+            </div>
+
+            <!-- СЛОТЫ -->
+            <div class="panel-outer cut-tl" style="--pc: var(--color-yellow); --pc-muted: #6b5807;">
+                <div class="hazard-tape"></div>
+                <div class="panel-inner cut-tl">
+                    <div class="panel-title"><i class="fa-solid fa-cubes-stacked"></i> ВЫБОР ПО СЛОТАМ <small>только то, что положено по правилам</small></div>
+                    <div id="slots"></div>
+                </div>
+            </div>
+
+            <!-- ВНЕ СЛОТОВ -->
+            <div class="panel-outer cut-tl" style="--pc: #B0B0B0; --pc-muted: #444;">
+                <div class="hazard-tape"></div>
+                <div class="panel-inner cut-tl">
+                    <div class="panel-title"><i class="fa-solid fa-triangle-exclamation"></i> ВНЕ СЛОТОВ <small>сверх лимитов, без выполненных требований или пользовательское — на усмотрение ДМ-а</small></div>
+                    <div id="extras"></div>
+                </div>
             </div>
         </div>
 
-        <!-- ПРАВАЯ ПАНЕЛЬ: ВЫВОД ПЕРСОНАЖА -->
-        <div class="panel-outer cut-tl output-panel">
-            <div class="hazard-tape" style="background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--color-cyan) 10px, var(--color-cyan) 20px); border-bottom: 1px solid var(--color-cyan);"></div>
-            <div class="panel-inner cut-tl" style="border-top: none;" id="output-area">
-                
+        <!-- ДОСЬЕ -->
+        <div class="panel-outer cut-tl output-panel" style="--pc: var(--color-cyan); --pc-muted: var(--color-cyan);">
+            <div class="hazard-tape"></div>
+            <div class="panel-inner cut-tl" id="output-area">
                 <div class="output-header">
                     <div>
                         <div class="char-name-display" id="out-name">БЕЗ ИМЕНИ</div>
                         <div class="char-meta-display" id="out-meta">Раса не выбрана | Фиксер</div>
                     </div>
-                    <div class="btn-group">
-                        <button class="copy-btn export-preset-btn" id="export-preset-btn" onclick="window.exportPreset()"><i class="fa-solid fa-file-export"></i> СКАЧАТЬ ПРЕСЕТ</button>
-                        <button class="copy-btn" onclick="window.copyCharacter()"><i class="fa-regular fa-copy"></i> КОПИРОВАТЬ ВСЁ</button>
-                    </div>
                 </div>
-
-                <div id="out-content">
-                    <div style="color: var(--text-dim); text-align: center; margin-top: 50px; font-family: 'Oswald'; font-size: 1.2rem;">
-                        ЗАПОЛНИТЕ ДАННЫЕ В ЛЕВОЙ ПАНЕЛИ ДЛЯ ГЕНЕРАЦИИ ДОСЬЕ
-                    </div>
-                </div>
-
+                <div id="out-content"></div>
             </div>
         </div>
-
     </div>
 
-    <script>
-        window.dbClasses = [];
-        window.dbFeats = [];
-        window.selectedFeats = new Set(); 
-
-        const fixerBaseTraits = [
-            { name: "Хиты (Hit Points)", desc: "Кость хитов: 1d10 за уровень.\nХиты на 1-м уровне: 10 + мод. ТЕЛ.\nНа следующих: 1d10 (или 6) + мод. ТЕЛ." },
-            { name: "Владения (Proficiencies)", desc: "Броня: Легкая, Средняя, Щиты.\nОружие: Простое, Боевое, Огнестрельное.\nСпасброски: Мудрость, Ловкость или Телосложение И Интеллект, Сила или Харизма.\nНавыки: Выберите 3 (Атлетика, Акробатика, Расследование, Выживание, Скрытность, Убеждение, Проницательность, Медицина)." },
-            { name: "Ранг Фиксера (Fixer Grade)", desc: "По мере выполнения контрактов ранг повышается от 9 до 1 (Цветной). Ассоциация Хана следит за рейтингами." },
-            { name: "Униформа и Мастерские", desc: "Униформа Принадлежности (или артефакт). Доступ к мастерским для улучшения снаряжения. Количество слотов зависит от уровня." },
-            { name: "Сложность способностей", desc: "СЛ Фиксера = 8 + ПБ + модификатор СИЛ/ЛОВ.\nМод. Атаки = ПБ + модификатор СИЛ/ЛОВ." },
-            { name: "Боевой стиль (Fighting Style)", desc: "На 2-м уровне выберите стиль боя (Меткий стрелок, Слепой бой, Дуэлянт, Парное оружие и т.д.). Второй стиль на 10-м уровне." },
-            { name: "Аномальная способность (Abnormal Ability)", desc: "На 2-м уровне выберите особенность (Сильный, Быстрый, Прочный, Умный, Мудрый, Потрясающий). Улучшается на 7 и 14 уровнях." },
-            { name: "Свет (Light)", desc: "Запас Света = Уровень Фиксера + ПБ + мод. ИНТ/МУД/ХАР. Изучите техники Света (Устрашающая атака, Рикошет, Усиление натиска и т.д.)." },
-            { name: "Столкновения (Clashing)", desc: "Реакцией за 2 Света вступите в Столкновение (Контрудар, Смягчение, Затягивание). Бросок урона против броска урона врага." },
-            { name: "Дополнительная атака", desc: "На 5-м уровне (2 атаки), на 11-м уровне (3 атаки)." },
-            { name: "Личностное развитие", desc: "На 9 и 15 уровнях возьмите любую черту Фиксера, требованиям которой соответствуете." },
-            { name: "Аморальный разум", desc: "На 9-м уровне: Иммунитет к стрессу от жестокости. Уклонение (Evasion) для стата Аномальной Способности." },
-            { name: "Никогда не окружен", desc: "На 15-м уровне: Иммунитет к заходу во фланг (flanking)." },
-            { name: "Признание", desc: "На 18-м уровне: Враги, узнавшие вас (СЛ 10 История), получают помеху на спасы от ваших умений." },
-            { name: "Существо Света", desc: "На 20-м уровне: Аномальный стат и его макс. увеличены на 2. Форму нельзя изменить против воли." }
-        ];
-
-        const raceData = {
-            "human": {
-                name: "Человек (Human)",
-                traits: [
-                    { name: "Характеристики", desc: "Увеличьте значение каждой характеристики на 1." },
-                    { name: "Возраст и Мировоззрение", desc: "Люди достигают совершеннолетия к 20 годам и живут меньше века. Не имеют склонности к определенному мировоззрению." },
-                    { name: "Размер и Скорость", desc: "Размер: Средний (Medium). Базовая скорость ходьбы: 30 футов." },
-                    { name: "Языки", desc: "Общий язык и один дополнительный на ваш выбор." }
-                ]
-            },
-            "bloodfiend": {
-                name: "Кровавый Демон (Bloodfiend)",
-                traits: [
-                    { name: "Физиология", desc: "Бледная кожа, красные глаза. Бессмертны от старости. Склонны к Законопослушному Злому мировоззрению (Lawful Evil). Размер Средний." },
-                    { name: "Характеристики и Скорость", desc: "+1 к Силе, Ловкости и Телосложению. Скорость: 35 футов." },
-                    { name: "Мощное телосложение", desc: "Значительно сильнее людей. Вы получаете черту Powerful Build." },
-                    { name: "Клыки (Fangs)", desc: "Ваш укус — природное оружие, наносящее 1d4 + модификатор СИЛ или ЛОВ колющего урона." },
-                    { name: "Жажда крови (Bloodthirst)", desc: "Вам необходимо потреблять 12 унций человеческой крови в день для когнитивной стабильности. Если не пить 3 дня — спасбросок Мудрости от краткосрочного безумия. Через неделю — от долгосрочного. Кровь животных заменяет человеческую по курсу 48 к 12 унциям, но спасает максимум на неделю. Семья более 10 сородичей снимает помеху со спасбросков безумия." },
-                    { name: "Регенерация", desc: "Бонусным действием можно тратить Кости Хитов для лечения. Макс. за раз: половина модификатора ТЕЛ (округленно вниз) + ПБ. Не работает при голоде. За каждую потраченную кость нужно выпить 1 доп. унцию крови в этот день." },
-                    { name: "Ранг сородича (Kindred Ranking)", desc: "Вы подчиняетесь сородичу, который вас обратил (ваш ранг на 1 ниже его). Приказы высших сородичей — закон (провал спасброска МУД означает Испуг). Нанесение вреда высшему сородичу мгновенно вызывает Испуг и Оглушение, если только вы не страдаете от безумия из-за голода по его вине. На 17-м уровне вы можете обратить до 2-х людей." },
-                    { name: "Языки", desc: "Общий язык и один дополнительный на ваш выбор." }
-                ]
-            },
-            "half_distortion": {
-                name: "Полу-Искажение (Half-Distortion)",
-                traits: [
-                    { name: "Физиология", desc: "Сохраняют черты оригинальной расы, но имеют метафизические признаки (обычно отражающие травму или грех). Увеличенный срок жизни (до х2 от оригинала). Размер оригинальной расы." },
-                    { name: "Характеристики и Скорость", desc: "+1 к Силе ИЛИ Ловкости, +1 к Телосложению, +1 к Мудрости. Скорость: 30 футов." },
-                    { name: "Искаженный (Distorted)", desc: "Выберите 1 расовую черту вашей оригинальной расы (если это Человек — используйте черту Вариантного Человека). Этот выбор нельзя изменить." },
-                    { name: "Искушение (Temptation)", desc: "Вы поддались искушению Кармен. Вы получаете черту Сродство с Грехом (Sin Affinity) для греха, из-за которого исказились. Однако вы получаете уязвимость (х2 урон) к противоположному Греху (тому, от чего вы пытались сбежать)." },
-                    { name: "Аномалия (Anomaly)", desc: "Вы чувствуете присутствие других искажений или аномалий. Преимущество на проверки Восприятия и Расследования для их идентификации." },
-                    { name: "Языки", desc: "Общий язык и один дополнительный на ваш выбор." }
-                ]
-            }
-        };
-
-        async function loadDatabases() {
-            try {
-                const resClass = await I18N.fetchData('classes.json');
-                if (resClass.ok) {
-                    window.dbClasses = await resClass.json();
-                    window.dbClasses.sort((a, b) => a.No - b.No);
-                }
-                const resFeats = await I18N.fetchData('feats.json');
-                if (resFeats.ok) {
-                    window.dbFeats = await resFeats.json();
-                }
-                renderDropdowns();
-            } catch (e) {
-                console.error("Ошибка загрузки стандартных баз:", e);
-            }
-        }
-
-        function renderDropdowns() {
-            const classSelect = document.getElementById('char-class');
-            const currentClass = classSelect.value;
-            let classHtml = '<option value="">-- Базовый Фиксер (Без Архетипа) --</option>';
-            window.dbClasses.forEach((cls, i) => {
-                classHtml += `<option value="${i}">[${cls.No}] ${cls.Name}</option>`;
-            });
-            classSelect.innerHTML = classHtml;
-            classSelect.value = currentClass;
-
-            const featsContainer = document.getElementById('feats-checklist');
-            let featsHtml = '';
-            window.dbFeats.forEach((feat, i) => {
-                const safeName = feat.Name ? feat.Name.replace(/"/g, '&quot;') : 'Без названия';
-                const isSelected = window.selectedFeats.has(i);
-                const activeClass = isSelected ? 'selected' : '';
-                featsHtml += `
-                    <div class="feat-item ${activeClass}" onclick="window.toggleFeat(this, ${i})">
-                        <span class="feat-item-title">${safeName}</span>
-                        ${feat.Need && feat.Need !== 'null' ? `<div class="feat-need">Требование: ${feat.Need}</div>` : ''}
-                    </div>
-                `;
-            });
-            featsContainer.innerHTML = featsHtml;
-        }
-
-        window.toggleFeat = (el, index) => {
-            if (window.selectedFeats.has(index)) {
-                window.selectedFeats.delete(index);
-                el.classList.remove('selected');
-            } else {
-                window.selectedFeats.add(index);
-                el.classList.add('selected');
-            }
-            window.updateOutput();
-        };
-
-        window.loadCustomClass = (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                try {
-                    const data = JSON.parse(event.target.result);
-                    if (Array.isArray(data)) {
-                        data.forEach(d => d.isCustom = true);
-                        window.dbClasses = window.dbClasses.concat(data);
-                    } else {
-                        data.isCustom = true;
-                        window.dbClasses.push(data);
-                    }
-                    renderDropdowns();
-                    alert("Кастомный класс успешно загружен!");
-                } catch (err) {
-                    alert("Ошибка чтения JSON файла.");
-                }
-            };
-            reader.readAsText(file);
-        };
-
-        window.loadCustomFeat = (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                try {
-                    const data = JSON.parse(event.target.result);
-                    if (Array.isArray(data)) {
-                        data.forEach(d => d.isCustom = true);
-                        window.dbFeats = window.dbFeats.concat(data);
-                    } else {
-                        data.isCustom = true;
-                        window.dbFeats.push(data);
-                    }
-                    renderDropdowns();
-                    alert("Кастомная черта успешно загружена!");
-                } catch (err) {
-                    alert("Ошибка чтения JSON файла.");
-                }
-            };
-            reader.readAsText(file);
-        };
-
-        window.filterFeatChecklist = () => {
-            const query = document.getElementById('feat-search').value.toLowerCase();
-            const items = document.querySelectorAll('.feat-item');
-            items.forEach(item => {
-                const title = item.querySelector('.feat-item-title').textContent.toLowerCase();
-                if (title.includes(query)) {
-                    item.style.display = 'flex';
-                } else {
-                    item.style.display = 'none';
-                }
-            });
-        };
-
-        window.copyTrait = (el) => {
-            const name = el.querySelector('.trait-name').innerText;
-            let req = el.querySelector('.trait-req');
-            let sub = el.querySelector('.tech-text');
-            const desc = el.querySelector('.trait-desc').innerText;
-            
-            let textToCopy = `${name}\n`;
-            if (sub) textToCopy += `${sub.innerText}\n`;
-            if (req) textToCopy += `${req.innerText}\n`;
-            textToCopy += desc;
-            
-            navigator.clipboard.writeText(textToCopy).then(() => {
-                const msg = el.querySelector('.copy-msg');
-                msg.style.opacity = '1';
-                setTimeout(() => msg.style.opacity = '0', 1500);
-            }).catch(err => {
-                console.error('Ошибка копирования:', err);
-            });
-        };
-
-        function createOutputBlock(title, desc, req = null, color = 'var(--color-yellow)', subtitle = null) {
-            let reqHtml = req && req !== 'null' ? `<div class="trait-req">ТРЕБОВАНИЯ: ${req}</div>` : '';
-            let subHtml = subtitle ? `<div class="tech-text" style="margin-bottom:4px;">${subtitle}</div>` : '';
-            return `
-                <div class="trait-entry" style="border-left-color: ${color};" onclick="window.copyTrait(this)">
-                    <div class="trait-name" style="color: ${color};">${title}</div>
-                    ${subHtml}
-                    ${reqHtml}
-                    <div class="trait-desc">${desc}</div>
-                    <div class="copy-msg">Скопировано!</div>
-                </div>
-            `;
-        }
-
-        window.updateOutput = () => {
-            const name = document.getElementById('char-name').value || "БЕЗ ИМЕНИ";
-            const raceKey = document.getElementById('char-race').value;
-            const classIndex = document.getElementById('char-class').value;
-            const descText = document.getElementById('char-desc').value.trim(); // Чтение описания
-            
-            let isCustomContent = false; 
-
-            document.getElementById('out-name').textContent = name;
-            let metaString = (raceKey ? raceData[raceKey].name : "Раса не выбрана") + " | Фиксер";
-            
-            let archetype = null;
-            if (classIndex !== "") {
-                archetype = window.dbClasses[classIndex];
-                metaString += ` / ${archetype.Name}`;
-                if (archetype.isCustom) isCustomContent = true;
-            }
-            document.getElementById('out-meta').textContent = metaString;
-
-            let outputHtml = '';
-
-            // ОТРИСОВКА ОПИСАНИЯ
-            if (descText) {
-                outputHtml += `<div class="block-title" style="color: var(--text-dim); border-color: #333;">БАЗОВАЯ ИНФОРМАЦИЯ</div>`;
-                outputHtml += createOutputBlock("Биография и Описание", descText, null, 'var(--text-dim)');
-            }
-
-            if (raceKey) {
-                outputHtml += `<div class="block-title" style="color: var(--color-red); border-color: var(--color-red);">Особенности Расы: ${raceData[raceKey].name}</div>`;
-                raceData[raceKey].traits.forEach(t => {
-                    outputHtml += createOutputBlock(t.name, t.desc, null, 'var(--color-red)');
-                });
-            }
-
-            outputHtml += `<div class="block-title" style="color: var(--color-cyan); border-color: var(--color-cyan);">Базовый Класс: Фиксер</div>`;
-            fixerBaseTraits.forEach(t => {
-                outputHtml += createOutputBlock(t.name, t.desc, null, 'var(--color-cyan)');
-            });
-
-            if (archetype && archetype.Talents) {
-                outputHtml += `<div class="block-title" style="color: var(--accent-primary); border-color: var(--accent-primary);">Архетип: ${archetype.Name}</div>`;
-                archetype.Talents.forEach(t => {
-                    const tColor = t.Color || t.color || 'var(--accent-primary)';
-                    outputHtml += createOutputBlock(t.name, t.desc, null, tColor, `Уровень: ${t.level}`);
-                });
-            }
-
-            if (window.selectedFeats.size > 0) {
-                outputHtml += `<div class="block-title" style="color: var(--color-yellow); border-color: var(--color-yellow);">Выбранные Черты</div>`;
-                window.selectedFeats.forEach(i => {
-                    const feat = window.dbFeats[i];
-                    if(feat) {
-                        if (feat.isCustom) isCustomContent = true;
-                        let baseStr = feat.Base ? feat.Base.join(', ') : '';
-                        outputHtml += createOutputBlock(feat.Name, feat.desc, feat.Need, 'var(--color-yellow)', baseStr ? `Категория: ${baseStr}` : null);
-                    }
-                });
-            }
-
-            if (outputHtml === '') {
-                outputHtml = `<div style="color: var(--text-dim); text-align: center; margin-top: 50px; font-family: 'Oswald'; font-size: 1.2rem;">ЗАПОЛНИТЕ ДАННЫЕ В ЛЕВОЙ ПАНЕЛИ ДЛЯ ГЕНЕРАЦИИ ДОСЬЕ</div>`;
-            }
-
-            document.getElementById('out-content').innerHTML = outputHtml;
-
-            const exportBtn = document.getElementById('export-preset-btn');
-            if (isCustomContent) {
-                exportBtn.disabled = true;
-                exportBtn.title = "Экспорт заблокирован: вы используете кастомный класс или черту.";
-            } else {
-                exportBtn.disabled = false;
-                exportBtn.title = "Скачать пресет персонажа (JSON)";
-            }
-        };
-
-        window.copyCharacter = () => {
-            const outContent = document.getElementById('output-area');
-            const textToCopy = outContent.innerText; 
-            
-            navigator.clipboard.writeText(textToCopy).then(() => {
-                alert("Досье скопировано в буфер обмена!");
-            }).catch(err => {
-                console.error('Ошибка копирования:', err);
-            });
-        };
-
-        window.exportPreset = () => {
-            const name = document.getElementById('char-name').value;
-            const raceKey = document.getElementById('char-race').value;
-            const classIndex = document.getElementById('char-class').value;
-            const desc = document.getElementById('char-desc').value; 
-            let className = classIndex !== "" ? window.dbClasses[classIndex].Name : "";
-            
-            let featNames = [];
-            window.selectedFeats.forEach(i => {
-                featNames.push(window.dbFeats[i].Name);
-            });
-
-            const preset = {
-                characterName: name,
-                race: raceKey,
-                className: className,
-                desc: desc, 
-                feats: featNames
-            };
-
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(preset, null, 2));
-            const dl = document.createElement('a');
-            dl.setAttribute("href", dataStr);
-            dl.setAttribute("download", (name || "Character") + "_preset.json");
-            document.body.appendChild(dl);
-            dl.click();
-            dl.remove();
-        };
-
-        window.loadPreset = (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                try {
-                    const preset = JSON.parse(event.target.result);
-                    
-                    document.getElementById('char-name').value = preset.characterName || "";
-                    document.getElementById('char-race').value = preset.race || "";
-                    document.getElementById('char-desc').value = preset.desc || ""; 
-                    
-                    if (preset.className) {
-                        const cIndex = window.dbClasses.findIndex(c => c.Name === preset.className);
-                        if (cIndex !== -1) document.getElementById('char-class').value = cIndex;
-                    }
-                    
-                    window.selectedFeats.clear();
-                    if (preset.feats && Array.isArray(preset.feats)) {
-                        preset.feats.forEach(fn => {
-                            const fIndex = window.dbFeats.findIndex(f => f.Name === fn);
-                            if (fIndex !== -1) window.selectedFeats.add(fIndex);
-                        });
-                    }
-                    
-                    renderDropdowns(); 
-                    window.updateOutput();
-                    alert("Пресет успешно загружен!");
-                } catch (err) {
-                    alert("Ошибка чтения файла пресета.");
-                }
-            };
-            reader.readAsText(file);
-        };
-
-        document.addEventListener('DOMContentLoaded', () => {
-            loadDatabases();
-        });
-    </script>
+    <div class="choice-pop" id="choice-pop" hidden></div>
+    <div class="tip" id="tip" hidden></div>
+    <div class="toast" id="toast" role="status"></div>
+    <div class="modal" id="modal" hidden>
+        <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+            <div class="modal-head"><h3 id="modal-title"></h3><button class="modal-x" id="modal-close" aria-label="Закрыть"><i class="fa-solid fa-xmark"></i></button></div>
+            <div class="modal-body" id="modal-body"></div>
+        </div>
+    </div>
 </body>
 </html>
