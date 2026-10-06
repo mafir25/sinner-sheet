@@ -113,10 +113,46 @@
         .entry[aria-current=true] { background: rgba(69,179,203,.14); color: var(--cyan); }
         .entry .idx { color: var(--text-dim); font-size: .72rem; min-width: 26px; }
         .entry.changed::after { content: '●'; color: var(--yellow); margin-left: auto; font-size: .7rem; }
-        .crumbs { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; font-size: .85rem; }
-        .crumbs button { background: none; border: none; color: var(--cyan); cursor: pointer; padding: 0; text-decoration: underline; }
         .form { display: grid; gap: 10px; }
-        .form .field textarea { min-height: 38px; }
+
+        /* Переключатель «Поля | Код» — как сегменты в конструкторе (builder.html) */
+        .segs { display: inline-flex; }
+        .seg { background: #000; border: 1px solid var(--line-2); color: var(--text-dim); padding: 4px 12px; font: 500 .8rem 'Oswald', sans-serif;
+            cursor: pointer; text-transform: uppercase; letter-spacing: 1px; }
+        .seg + .seg { border-left: none; }
+        .seg.on { border-color: var(--cyan); color: var(--cyan); background: rgba(69,179,203,.1); }
+        .seg:disabled { opacity: .35; cursor: not-allowed; }
+
+        /* Поля записи — те же классы, что у конструктора в navigation.html (разметку даёт site/fields.js) */
+        .nav-form { --accent-primary: var(--cyan); --color-yellow: var(--yellow); --color-red: var(--red); }
+        .nav-form .tech-text { color: var(--accent-primary); font-size: .8rem; }
+        .nav-form .cloud-input, .nav-form .cloud-select { width: 100%; background: var(--bg-field); border: 1px solid var(--line-2); color: var(--text-main);
+            padding: 9px; margin-bottom: 12px; font-size: .9rem; outline: none; }
+        .nav-form .cloud-input:focus, .nav-form .cloud-select:focus { border-color: var(--accent-primary); }
+        .nav-form textarea.cloud-input { resize: vertical; min-height: 80px; line-height: 1.45; }
+        .nav-form .b-row { display: flex; gap: 10px; flex-wrap: wrap; }
+        .nav-form .b-row > div { flex: 1; min-width: min(120px, 100%); }
+        .nav-form .check-group { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+        .nav-form .check-label { display: flex; align-items: center; gap: 5px; font-size: .85rem; cursor: pointer; color: var(--text-dim); }
+        .nav-form .check-label input { accent-color: var(--accent-primary); }
+        .nav-form .check-label:hover { color: var(--text-main); }
+        .nav-form .b-entry { border: 1px solid var(--line-2); border-left: 3px solid var(--accent-primary); padding: 12px; margin-bottom: 12px;
+            background: rgba(0,0,0,.4); position: relative; }
+        .nav-form .b-entry .cloud-input { margin-bottom: 8px; }
+        .nav-form .sec-head { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1px solid var(--line-2);
+            padding-bottom: 8px; margin: 16px 0 12px; }
+        .nav-form .mini-btn { background: transparent; border: 1px solid var(--text-dim); color: var(--text-dim); cursor: pointer; padding: 3px 7px; font-size: .75rem; }
+        .nav-form .mini-btn:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
+        .nav-form .mini-btn.danger:hover { border-color: var(--red); color: var(--red); }
+        .nav-form .md-editor { margin-bottom: 10px; }
+        .nav-form .md-editor textarea { margin-bottom: 0; }
+        .nav-form .md-toolbar { display: flex; gap: 4px; margin-bottom: 4px; }
+        .nav-form .md-toolbar .md-spacer { flex: 1; }
+        .nav-form .md-toolbar button { background: #0d0d0d; border: 1px solid #2e2e2e; color: var(--text-dim); cursor: pointer; height: 24px; padding: 0 8px;
+            font: .75rem 'Oswald', sans-serif; }
+        .nav-form .md-toolbar button.on, .nav-form .md-toolbar button:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
+        .nav-form .md-preview { border: 1px dashed #2e2e2e; border-top: none; background: rgba(255,255,255,.025); padding: 10px 12px; line-height: 1.5; }
+        .nav-form .md-preview table { border-collapse: collapse; } .nav-form .md-preview td, .nav-form .md-preview th { border: 1px solid #333; padding: 4px 8px; }
         .dirty-bar { position: sticky; bottom: 0; z-index: 5; margin-top: 12px; padding: 10px; background: #0d0d0d; border: 1px solid var(--yellow); }
 
         /* ---------- Окно ---------- */
@@ -138,6 +174,8 @@
     </style>
 
     <script src="site/i18n.js"></script>
+    <script src="site/vendor/marked.umd.js"></script>
+    <script src="site/vendor/purify.min.js"></script>
     <script type="module" src="site/ui.js"></script>
     <script type="module" src="site/admin.js"></script>
 </head>
