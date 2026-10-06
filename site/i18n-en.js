@@ -1906,6 +1906,38 @@
     'Базовый мир — справочник по лору. Узлы из него можно копировать в свои ширмы; править его могут только Админы канона раздела «Мир».':
       'The base world is a lore reference. You can copy its nodes into your own screens; only canon Admins of the "World" section can edit it.',
     'Доступ': 'Access',
+    // классы: реестр, новые файлы и классы (admin.html), раздел «Классы» (navigation.html)
+    'Новый файл': 'New file', 'Новый класс': 'New class', 'Новый файл канона': 'New canon file',
+    'Классы перечислены в реестре': 'Classes are listed in the registry',
+    'основа': 'base', 'архетипы': 'archetypes', 'нет': 'none', 'Файла нет ни в Firestore, ни в Assets/': 'The file is neither in Firestore nor in Assets/',
+    'Раздел (папка)': 'Section (folder)', 'Имя файла': 'File name', 'Язык': 'Language', 'Начальное содержимое': 'Initial content',
+    'Список записей [ ]': 'List of entries [ ]', 'Одна запись { }': 'Single entry { }', 'Текст / HTML': 'Text / HTML',
+    'Недопустимое имя файла': 'Invalid file name', 'Для .json выберите список или запись': 'For .json choose a list or an entry',
+    'Такой файл уже есть': 'This file already exists', 'Файл создан': 'File created', 'Не удалось создать файл': 'Could not create the file',
+    'Название класса': 'Class name', 'ID (латиница)': 'ID (Latin letters)', 'Например: Коллекционер': 'For example: Collector',
+    'Заголовок панели «Основа»': 'Title of the "Base" panel', 'Файл основы (characters/)': 'Base file (characters/)',
+    'Файл архетипов (characters/)': 'Archetypes file (characters/)', 'Создать класс': 'Create class', 'основной класс': 'base class',
+    'Укажите название класса': 'Enter the class name', 'ID: строчная латиница, цифры, «_» и «-»': 'ID: lowercase Latin letters, digits, "_" and "-"',
+    'Имена файлов: латиница и .json на конце': 'File names: Latin letters ending in .json',
+    'Основа и архетипы должны быть разными файлами': 'Base and archetypes must be different files',
+    'Создание класса…': 'Creating the class…', 'Файл основы': 'Base file', 'Файл архетипов': 'Archetypes file', 'Реестр классов': 'Class registry',
+    'Реестр классов повреждён — ожидается массив': 'The class registry is broken — an array is expected',
+    'Класс с таким ID уже есть': 'A class with this ID already exists', 'Файл уже привязан к другому классу': 'The file is already bound to another class',
+    'Класс создан': 'Class created', 'Не удалось создать класс': 'Could not create the class',
+    'Этого файла нет в Assets/ — он будет удалён совсем.': 'This file is not in Assets/ — it will be deleted completely.',
+    'Реестр классов: у каждого класса — ID, название и два файла из папки characters/ (основа и архетипы). ID не меняйте — на него ссылаются архетипы пользователей. Удаление записи не удаляет сами файлы. Новый класс удобнее создать кнопкой «Новый класс».':
+      'Class registry: each class has an ID, a name and two files from the characters/ folder (base and archetypes). Do not change the ID — user archetypes refer to it. Deleting an entry does not delete the files. A new class is easier to create with the "New class" button.',
+    'Конструктор персонажа (builder.html) пока знает только Фиксера и Кровососа — новый класс появится в Базе знаний.':
+      'The Character Builder (builder.html) only knows the Fixer and the Bloodfiend for now — the new class will appear in the Knowledge Base.',
+    'Класс': 'Class', 'Классы': 'Classes', 'База данных: основные классы': 'Database: base classes',
+    'Основа класса и его способности. Канонический архетип привязан к классу файлом, пользовательский — ссылкой на класс в самом архетипе.':
+      'A class base and its features. A canon archetype is bound to its class by file, a user archetype by a link to the class in the archetype itself.',
+    'Архетипы класса': 'Class archetypes', 'Основной класс архетипа': 'Base class of the archetype', 'Пользовательские': 'User-made',
+    '— без класса (виден у всех) —': '— no class (shown for all) —', 'Класс не выбран.': 'No class selected.',
+    'класс недоступен': 'class unavailable', 'Описание класса': 'Class description',
+    'Заголовок основы (необязательно)': 'Base title (optional)', 'Например: Фиксер (основной класс)': 'For example: Fixer (base class)',
+    'ID (латиница; не меняйте — на него ссылаются архетипы пользователей)': 'ID (Latin letters; do not change — user archetypes refer to it)',
+    'Файл основы (в папке characters/)': 'Base file (in the characters/ folder)', 'Файл архетипов (в папке characters/)': 'Archetypes file (in the characters/ folder)',
   });
   patterns.push(
     [/^(\d+) мин назад$/, '$1 min ago'], [/^(\d+) ч назад$/, '$1 h ago'], [/^(\d+) дн назад$/, '$1 d ago'],

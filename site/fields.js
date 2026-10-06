@@ -102,6 +102,18 @@ export const SCHEMAS = {
       { t:"md", k:"desc", label:"Описание" }
     ]}
   ],
+  /* Основной класс (основа): канон — файл основы из реестра классов, у пользователей — запись типа baseclass */
+  baseclass: [
+    { t:"text", k:"Name", label:"Название класса", ph:"Например: Фиксер" },
+    { t:"text", k:"BaseTitle", label:"Заголовок основы (необязательно)", ph:"Например: Фиксер (основной класс)", nullable:true },
+    { t:"md", k:"Desc", label:"Описание класса" },
+    { t:"repeat", k:"Talents", label:"Классовые способности", sub:[
+      { t:"text", k:"name", label:"Название", flex:2 },
+      { t:"num", k:"level", label:"Уровень", def:1 },
+      { t:"text", k:"Color", label:"HEX цвет" },
+      { t:"md", k:"desc", label:"Описание" }
+    ]}
+  ],
   feats: [
     { t:"text", k:"Name", label:"Название черты", ph:"Например: Железная хватка" },
     { t:"text", k:"Need", label:"Требования", ph:"Например: Сила 16 (пусто — если нет)", nullable:true, link:true },
@@ -167,14 +179,47 @@ export const SCHEMAS = {
 Object.values(SCHEMAS).forEach((list) => list.push({ t: 'text', k: 'Aliases', nullable: true,
   label: 'Синонимы для автоссылок — через запятую (необязательно)', ph: 'Например: кровоток, кровопускание' }));
 
-/* Какие каноничные файлы редактируются какой схемой (остальные — только кодом) */
+/* Реестр классов (characters/systems.json): какой файл — основа класса, какой — список его архетипов.
+   Синонимы к записям реестра не нужны, поэтому схема добавлена после цикла выше. */
+export const CLASS_REGISTRY = 'characters/systems.json';
+export const FILE_NAME_RE = /^[A-Za-z0-9_.-]{1,80}$/;
+SCHEMAS.systems = [
+  { t:"row", of:[
+    { t:"text", k:"id", label:"ID (латиница; не меняйте — на него ссылаются архетипы пользователей)", ph:"fixer" },
+    { t:"text", k:"Name", label:"Название класса", ph:"Фиксер", flex:2 }
+  ]},
+  { t:"text", k:"BaseTitle", label:"Заголовок панели «Основа»", ph:"Фиксер (основной класс)" },
+  { t:"row", of:[
+    { t:"text", k:"Base", label:"Файл основы (в папке characters/)", ph:"fixer.json" },
+    { t:"text", k:"Archetypes", label:"Файл архетипов (в папке characters/)", ph:"classes.json" }
+  ]}
+];
+/** Путь файла из реестра классов: «fixer.json» → «characters/fixer.json». */
+export const classFileRel = (name) => {
+  const n = String(name ?? '').trim();
+  return !n ? '' : n.includes('/') ? n : `characters/${n}`;
+};
+
+/* Какие каноничные файлы редактируются какой схемой (остальные — только кодом).
+   Файлы классов, созданные в админ-панели, схему получают из реестра — см. canonSchemaFor. */
 export const CANON_SCHEMAS = {
   'characters/classes.json': 'classes', 'characters/bloodarch.json': 'classes',
-  'characters/fixer.json': 'classes', 'characters/bloodfiend.json': 'classes',
+  'characters/fixer.json': 'baseclass', 'characters/bloodfiend.json': 'baseclass',
+  [CLASS_REGISTRY]: 'systems',
   'characters/feats.json': 'feats', 'items/equipment.json': 'equipment', 'items/egogifts.json': 'gifts',
   'mechanics/statuses.json': 'statuses', 'mechanics/rules.json': 'rules',
   'world/lore.json': 'lore', 'world/bestiary.json': 'bestiary',
 };
+
+/** Схема каноничного файла; registry — разобранный реестр классов (массив) или null. */
+export function canonSchemaFor(rel, registry) {
+  if (CANON_SCHEMAS[rel]) return CANON_SCHEMAS[rel];
+  for (const c of arr(registry)) {
+    if (classFileRel(c?.Base) === rel) return 'baseclass';
+    if (classFileRel(c?.Archetypes) === rel) return 'classes';
+  }
+  return null;
+}
 
 /* ============================================================
    Разметка формы

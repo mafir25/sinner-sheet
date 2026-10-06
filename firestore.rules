@@ -168,10 +168,11 @@ service cloud.firestore {
     }
 
     // ---------------- Пользовательская база (navigation.html)
+    // type: baseclass — основной класс; class — архетип (data.Class — ссылка на класс: id канона или «c:<id записи>»).
     match /custom_content/{id} {
       function validContent(d) {
         return d.keys().hasOnly(['type', 'data', 'isPrivate', 'updatedAt', 'creatorEmail', 'creator'])
-          && d.type in ['status', 'class', 'feat', 'gift', 'equip', 'bestiary', 'rule', 'lore']
+          && d.type in ['status', 'baseclass', 'class', 'feat', 'gift', 'equip', 'bestiary', 'rule', 'lore']
           && d.data is map
           && d.isPrivate is bool
           && (!('creator' in d) || isShortString(d.creator, 80))

@@ -12,7 +12,9 @@ import {
   findUserByNick, normalizePerms, banActive,
 } from './auth.js';
 import * as Canon from './canon.js';
-import { SCHEMAS, CANON_SCHEMAS, formHtml, collectFields, repeatAction } from './fields.js';
+import {
+  SCHEMAS, formHtml, collectFields, repeatAction, canonSchemaFor, classFileRel, CLASS_REGISTRY, FILE_NAME_RE,
+} from './fields.js';
 
 /* ============================================================
    Общее
@@ -431,6 +433,7 @@ function editRole(r, exists) {
    ============================================================ */
 const CS = {
   manifests: new Map(),
+  registry: [],       // реестр классов (characters/systems.json): [{ id, Name, BaseTitle, Base, Archetypes }]
   sel: null,          // { lang, rel }
   manifest: null,     // манифест открытой версии (null — файла в Firestore нет)
   source: null,       // 'canon' | 'static' | 'none'
@@ -449,7 +452,7 @@ const BUILDER_LINKED = ['characters/feats.json', 'characters/classes.json', 'cha
   'characters/bloodfiend.json', 'characters/bloodarch.json', 'items/equipment.json'];
 
 const isList = () => Array.isArray(CS.data);
-const schemaOf = () => SCHEMAS[CANON_SCHEMAS[CS.sel?.rel]] || null;
+const schemaOf = () => SCHEMAS[canonSchemaFor(CS.sel?.rel, CS.registry)] || null;
 const entryOf = () => (CS.key == null ? CS.data : CS.data[CS.key]);
 const labelOf = (v, i) => textOf(v?.Name ?? v?.name ?? v?.id) || `#${i}`;
 
@@ -467,21 +470,45 @@ function togglePreview(btn) {
   if (!box.hidden) box.innerHTML = DOMPurify.sanitize(marked.parse(wrap.querySelector('textarea').value || ''));
 }
 
+/* ---- Реестр классов: класс → файл основы + файл архетипов (папка characters/) ---- */
+async function loadRegistry() {
+  try {
+    const r = await Canon.loadText('Rus', CLASS_REGISTRY);
+    const list = r ? JSON.parse(r.text) : [];
+    return Array.isArray(list) ? list : [];
+  } catch (e) { console.warn('Реестр классов не прочитан', e); return []; }
+}
+const registryRels = (reg) => reg.flatMap((c) => [classFileRel(c?.Base), classFileRel(c?.Archetypes)]).filter(Boolean);
+/** Подпись файла класса в списке: «основа: Фиксер» / «архетипы: Фиксер». */
+function classTag(rel) {
+  for (const c of CS.registry) {
+    if (classFileRel(c?.Base) === rel) return `${T('основа')}: ${textOf(c.Name) || c.id}`;
+    if (classFileRel(c?.Archetypes) === rel) return `${T('архетипы')}: ${textOf(c.Name) || c.id}`;
+  }
+  return '';
+}
+
 async function renderCanon(v) {
   try { CS.manifests = await Canon.listManifests(); } catch (e) { fail(e, 'Не удалось прочитать канон'); }
-  const files = Canon.canonFiles();
+  CS.registry = await loadRegistry();
+  // В списке — файлы Assets/, созданные в панели (есть только в Firestore) и упомянутые в реестре классов
+  const files = Canon.canonFiles([...Canon.manifestRels(CS.manifests), ...registryRels(CS.registry)]);
   const groups = [...new Set(files.map((f) => f.group))];
+  const inAssets = new Set(window.I18N.canon.files());
   v.innerHTML = `
     <div class="panel" style="margin-bottom:14px">
       <div class="row between">
         <h2 style="margin:0">Каноничные данные</h2>
         <div class="row">
           <button class="btn sm ghost" id="cn-reload"><i class="fa-solid fa-rotate"></i> Обновить</button>
+          ${CANON_GROUPS.some((g) => canCanon(S, g)) ? '<button class="btn sm green" id="cn-new-file"><i class="fa-solid fa-file-circle-plus"></i> Новый файл</button>' : ''}
+          ${canCanon(S, 'characters') ? '<button class="btn sm green" id="cn-new-class"><i class="fa-solid fa-sitemap"></i> Новый класс</button>' : ''}
           ${files.some((f) => canCanon(S, f.group)) ? '<button class="btn sm yellow" id="cn-import-all"><i class="fa-solid fa-cloud-arrow-up"></i> Перенести всё из Assets</button>' : ''}
         </div>
       </div>
       <p class="muted small" style="margin-top:8px">Сайт читает канон из Firestore (коллекция canon); если файла там нет или Firestore недоступен — из папки Assets/ репозитория. Правки видны всем сразу после сохранения.</p>
       <p class="muted small">Чтобы перенести правки обратно в репозиторий: <span class="mono notranslate">node scripts/canon-pull.mjs</span></p>
+      <p class="muted small">Классы перечислены в реестре <span class="mono notranslate">characters/systems.json</span>: у каждого класса — файл основы и файл архетипов. «Новый класс» создаёт оба файла и запись в реестре; привязать класс к уже существующим файлам можно там же или правкой реестра.</p>
     </div>
     <div class="canon">
       <div class="files" id="cn-files">
@@ -489,9 +516,12 @@ async function renderCanon(v) {
           ${files.filter((f) => f.group === g).map((f) => Object.keys(Canon.LANG_DIRS).map((lang) => {
             const m = CS.manifests.get(Canon.fileId(lang, f.rel));
             const cur = CS.sel?.lang === lang && CS.sel?.rel === f.rel;
+            const tag = classTag(f.rel);
             return `<button class="file" data-lang="${lang}" data-rel="${esc(f.rel)}" aria-current="${cur}" ${canCanon(S, g) ? '' : 'disabled'}>
-              <span class="notranslate">${esc(f.name)} <span class="muted small">${lang}</span></span>
-              ${m ? `<span class="chip on">v${m.version}</span>` : '<span class="chip">Assets</span>'}</button>`;
+              <span style="min-width:0"><span class="notranslate">${esc(f.name)} <span class="muted small">${lang}</span></span>${tag
+                ? `<span class="muted small" style="display:block"><i class="fa-solid fa-sitemap"></i> <span class="notranslate">${esc(tag)}</span></span>` : ''}</span>
+              ${m ? `<span class="chip on">v${m.version}</span>` : inAssets.has(f.rel) ? '<span class="chip">Assets</span>'
+                : `<span class="chip" title="${esc(T('Файла нет ни в Firestore, ни в Assets/'))}">${esc(T('нет'))}</span>`}</button>`;
           }).join('')).join('')}`).join('')}
       </div>
       <div id="cn-editor"><div class="notice">Выберите файл слева.</div></div>
@@ -499,6 +529,8 @@ async function renderCanon(v) {
 
   $('#cn-reload', v).onclick = () => { if (confirmDiscard()) { CS.dirty = false; CS.sel = null; openTab('canon'); } };
   $('#cn-import-all', v)?.addEventListener('click', importAll);
+  $('#cn-new-file', v)?.addEventListener('click', () => { if (confirmDiscard()) newFileDialog(); });
+  $('#cn-new-class', v)?.addEventListener('click', () => { if (confirmDiscard()) newClassDialog(); });
   $('#cn-files', v).onclick = (e) => {
     const b = e.target.closest('.file');
     if (b && !b.disabled && confirmDiscard()) openFile(b.dataset.lang, b.dataset.rel);
@@ -527,6 +559,141 @@ async function importAll() {
   pr.done();
   toast(`${T('Перенесено')}: ${done}${skipped ? `, ${T('нет в Assets')}: ${skipped}` : ''}`, 'ok');
   openTab('canon');
+}
+
+/* ---- Новый файл ---- */
+const NEW_FILE_KINDS = { list: ['Список записей  [ ]', '[]'], object: ['Одна запись  { }', '{}'], text: ['Текст / HTML', ''] };
+const extOk = (name) => /\.(json|html|txt)$/i.test(name);
+
+function newFileDialog() {
+  const groups = CANON_GROUPS.filter((g) => canCanon(S, g));
+  const m = modal(T('Новый файл канона'), `
+    <div class="form">
+      <div class="row">
+        <label class="field" style="flex:1;min-width:140px"><span>Раздел (папка)</span>
+          <select class="in" id="nf-group">${groups.map((g) => `<option value="${g}">${esc(T(Canon.GROUP_NAMES[g] || g))} — ${g}/</option>`).join('')}</select></label>
+        <label class="field" style="flex:2;min-width:180px"><span>Имя файла</span>
+          <input class="in notranslate" id="nf-name" placeholder="my-file.json" maxlength="80"></label>
+        <label class="field" style="width:120px"><span>Язык</span>
+          <select class="in" id="nf-lang">${Object.entries(Canon.LANG_DIRS).map(([k, l]) => `<option value="${k}">${esc(l)}</option>`).join('')}</select></label>
+      </div>
+      <label class="field"><span>Начальное содержимое</span>
+        <select class="in" id="nf-kind">${Object.entries(NEW_FILE_KINDS).map(([k, [l]]) => `<option value="${k}">${esc(T(l))}</option>`).join('')}</select></label>
+      <p class="muted small">Латиница, цифры, «_», «-», «.»; расширение .json, .html или .txt. Файл создаётся сразу в Firestore (в Assets/ его нет — перенести в репозиторий: <span class="mono notranslate">node scripts/canon-pull.mjs</span>). Сайт читает такой файл с папкой: <span class="mono notranslate">I18N.fetchData('characters/my-file.json')</span>; файлы классов подключает реестр классов.</p>
+      <div class="row"><span class="small" id="nf-msg" style="color:var(--red)"></span><span class="spacer"></span>
+        <button class="btn ghost" data-x>Отмена</button><button class="btn green" id="nf-ok"><i class="fa-solid fa-plus"></i> Создать</button></div>
+    </div>`);
+  const name = $('#nf-name', m.el), kind = $('#nf-kind', m.el), msg = $('#nf-msg', m.el);
+  name.oninput = () => { if (/\.(html|txt)$/i.test(name.value)) kind.value = 'text'; else if (kind.value === 'text') kind.value = 'list'; };
+  name.focus();
+  $('#nf-ok', m.el).onclick = async () => {
+    const group = $('#nf-group', m.el).value, lang = $('#nf-lang', m.el).value, n = name.value.trim();
+    if (!FILE_NAME_RE.test(n) || !extOk(n)) { msg.textContent = T('Недопустимое имя файла'); return; }
+    if (Canon.isJson(n) && kind.value === 'text') { msg.textContent = T('Для .json выберите список или запись'); return; }
+    const rel = `${group}/${n}`;
+    $('#nf-ok', m.el).disabled = true;
+    try {
+      if (await Canon.fileExists(lang, rel)) { msg.textContent = T('Такой файл уже есть'); $('#nf-ok', m.el).disabled = false; return; }
+      await Canon.saveCanon(lang, rel, NEW_FILE_KINDS[kind.value][1], {
+        baseVersion: 0, nick: myNick(), note: 'Новый файл', audit: { action: 'canon.create' },
+      });
+      m.close();
+      toast(`${T('Файл создан')}: ${lang}/${rel}`, 'ok');
+      CS.dirty = false; CS.sel = { lang, rel };
+      openTab('canon', { push: false });
+    } catch (e) { $('#nf-ok', m.el).disabled = false; fail(e, 'Не удалось создать файл'); }
+  };
+}
+
+/* ---- Новый класс: файл основы + файл архетипов + запись в реестре ---- */
+const TRANSLIT = { а: 'a', б: 'b', в: 'v', г: 'g', д: 'd', е: 'e', ё: 'e', ж: 'zh', з: 'z', и: 'i', й: 'y', к: 'k', л: 'l', м: 'm', н: 'n',
+  о: 'o', п: 'p', р: 'r', с: 's', т: 't', у: 'u', ф: 'f', х: 'h', ц: 'c', ч: 'ch', ш: 'sh', щ: 'sch', ъ: '', ы: 'y', ь: '', э: 'e', ю: 'yu', я: 'ya' };
+const slugOf = (s) => [...String(s).toLowerCase()].map((ch) => TRANSLIT[ch] ?? ch).join('')
+  .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
+const CLASS_ID_RE = /^[a-z0-9][a-z0-9_-]{0,39}$/;
+
+function newClassDialog() {
+  const m = modal(T('Новый класс'), `
+    <div class="form">
+      <div class="row">
+        <label class="field" style="flex:2;min-width:180px"><span>Название класса</span>
+          <input class="in notranslate" id="nc-name" placeholder="${esc(T('Например: Коллекционер'))}" maxlength="80"></label>
+        <label class="field" style="flex:1;min-width:140px"><span>ID (латиница)</span>
+          <input class="in notranslate" id="nc-id" placeholder="collector" maxlength="40"></label>
+      </div>
+      <label class="field"><span>Заголовок панели «Основа»</span>
+        <input class="in notranslate" id="nc-title" maxlength="120"></label>
+      <div class="row">
+        <label class="field" style="flex:1;min-width:180px"><span>Файл основы (characters/)</span>
+          <input class="in notranslate" id="nc-base" maxlength="80"></label>
+        <label class="field" style="flex:1;min-width:180px"><span>Файл архетипов (characters/)</span>
+          <input class="in notranslate" id="nc-arch" maxlength="80"></label>
+      </div>
+      <p class="muted small">Файлы, которых ещё нет, создаются в Firestore (русская версия; английская по умолчанию берётся из русской). Если файл уже существует — класс просто привязывается к нему. ID нужен для ссылок: архетипы пользователей ссылаются на класс по нему, поэтому после публикации его лучше не менять.</p>
+      <p class="muted small">Конструктор персонажа (builder.html) пока знает только Фиксера и Кровососа — новый класс появится в Базе знаний.</p>
+      <div class="row"><span class="small" id="nc-msg" style="color:var(--red)"></span><span class="spacer"></span>
+        <button class="btn ghost" data-x>Отмена</button><button class="btn green" id="nc-ok"><i class="fa-solid fa-plus"></i> Создать класс</button></div>
+    </div>`);
+  const f = (id) => $('#nc-' + id, m.el), msg = f('msg');
+  // Пока поле не трогали руками, оно подстраивается под название / ID
+  const auto = new Set(['id', 'title', 'base', 'arch']);
+  ['id', 'title', 'base', 'arch'].forEach((k) => { f(k).oninput = () => { auto.delete(k); if (k === 'id') fill(); }; });
+  const fill = () => {
+    const name = f('name').value.trim();
+    if (auto.has('id')) f('id').value = slugOf(name);
+    const id = f('id').value.trim();
+    if (auto.has('title')) f('title').value = name ? `${name} (${T('основной класс')})` : '';
+    if (auto.has('base')) f('base').value = id ? `${id}.json` : '';
+    if (auto.has('arch')) f('arch').value = id ? `${id}-arch.json` : '';
+  };
+  f('name').oninput = fill;
+  f('name').focus();
+  f('ok').onclick = async () => {
+    const entry = {
+      id: f('id').value.trim(), Name: f('name').value.trim(), BaseTitle: f('title').value.trim(),
+      Base: f('base').value.trim(), Archetypes: f('arch').value.trim(),
+    };
+    const bad = (t) => { msg.textContent = T(t); };
+    if (!entry.Name) return bad('Укажите название класса');
+    if (!CLASS_ID_RE.test(entry.id)) return bad('ID: строчная латиница, цифры, «_» и «-»');
+    if (![entry.Base, entry.Archetypes].every((n) => FILE_NAME_RE.test(n) && Canon.isJson(n))) return bad('Имена файлов: латиница и .json на конце');
+    if (entry.Base === entry.Archetypes) return bad('Основа и архетипы должны быть разными файлами');
+    f('ok').disabled = true;
+    const pr = progress('Создание класса…');
+    try {
+      const reg = await Canon.loadText('Rus', CLASS_REGISTRY);
+      const list = reg ? JSON.parse(reg.text) : [];
+      if (!Array.isArray(list)) throw new Error(T('Реестр классов повреждён — ожидается массив'));
+      if (list.some((c) => c?.id === entry.id)) throw new Error(`${T('Класс с таким ID уже есть')}: ${entry.id}`);
+      const used = registryRels(list);
+      const baseRel = classFileRel(entry.Base), archRel = classFileRel(entry.Archetypes);
+      if (used.includes(baseRel) || used.includes(archRel)) throw new Error(T('Файл уже привязан к другому классу'));
+      const make = async (rel, text) => {
+        if (await Canon.fileExists('Rus', rel)) return false;
+        await Canon.saveCanon('Rus', rel, text, { baseVersion: 0, nick: myNick(), note: `Новый класс: ${entry.Name}`, audit: { action: 'canon.create' } });
+        return true;
+      };
+      pr.set(`${T('Файл основы')}: ${baseRel}`);
+      const madeBase = await make(baseRel, JSON.stringify({ Name: entry.Name, BaseTitle: entry.BaseTitle, Desc: '', Talents: [] }));
+      pr.set(`${T('Файл архетипов')}: ${archRel}`);
+      const madeArch = await make(archRel, '[]');
+      pr.set(T('Реестр классов'));
+      list.push(entry);
+      await Canon.saveCanon('Rus', CLASS_REGISTRY, JSON.stringify(list), {
+        baseVersion: reg ? reg.version : 0, nick: myNick(), note: `Новый класс: ${entry.Name}`,
+        audit: { action: 'canon.class', details: JSON.stringify({ entry, created: { base: madeBase, archetypes: madeArch } }) },
+      });
+      pr.done();
+      m.close();
+      toast(`${T('Класс создан')}: ${entry.Name}`, 'ok');
+      CS.dirty = false; CS.sel = { lang: 'Rus', rel: baseRel };
+      openTab('canon', { push: false });
+    } catch (e) {
+      pr.done();
+      f('ok').disabled = false;
+      if (e.code === 'canon/conflict') toast(e.message, 'err'); else fail(e, 'Не удалось создать класс');
+    }
+  };
 }
 
 let loadSeq = 0;
@@ -584,6 +751,7 @@ function renderEditor() {
       ${rel.startsWith('builder/') || BUILDER_LINKED.includes(rel) ? `<div class="notice warn small" style="margin-top:10px">${esc(T(BUILDER_NOTE))}</div>` : ''}
       ${rel === 'world/world.json' ? `<div class="notice small" style="margin-top:10px">${esc(T('Карту базового мира удобнее править прямо в Ширме: откройте ширму из группы «Базовый мир» — у кого есть право на раздел «Мир», появится кнопка «Опубликовать в канон».'))}
         <a href="shirm.html" style="margin-left:6px">${esc(T('Открыть Ширму'))}</a></div>` : ''}
+      ${rel === CLASS_REGISTRY ? `<div class="notice small" style="margin-top:10px">${esc(T('Реестр классов: у каждого класса — ID, название и два файла из папки characters/ (основа и архетипы). ID не меняйте — на него ссылаются архетипы пользователей. Удаление записи не удаляет сами файлы. Новый класс удобнее создать кнопкой «Новый класс».'))}</div>` : ''}
       ${CS.source === 'none' ? `<div class="notice" style="margin-top:10px">${esc(T('Файла на этом языке нет — сайт показывает русскую версию. Нажмите «Копия русской», чтобы начать перевод.'))}</div>` : ''}
       <div class="${isList() ? 'editor' : ''}" style="margin-top:12px">
         ${isList() ? '<div id="en-side"></div>' : ''}
@@ -614,7 +782,8 @@ async function fileAction(act) {
       if (t == null) return toast('Русской версии нет', 'err');
       replaceFile(t, T('русская версия'));
     } else if (act === 'reset') {
-      if (!confirm(T('Удалить файл из Firestore? Сайт снова будет брать его из Assets/ репозитория (правки, сделанные в панели, пропадут, если вы их не скачали).'))) return;
+      if (!confirm(T('Удалить файл из Firestore? Сайт снова будет брать его из Assets/ репозитория (правки, сделанные в панели, пропадут, если вы их не скачали).')
+        + (window.I18N.canon.files().includes(rel) ? '' : '\n\n' + T('Этого файла нет в Assets/ — он будет удалён совсем.')))) return;
       await Canon.resetCanon(lang, rel, { nick: myNick() });
       toast('Файл убран из Firestore', 'ok');
       CS.dirty = false;
@@ -908,7 +1077,7 @@ function banDialog(u) {
    Модерация пользовательской базы (custom_content)
    ============================================================ */
 const MS = { search: '', type: '', vis: 'all' };
-const CONTENT_TYPES = { status: 'Статус', class: 'Архетип', feat: 'Черта', gift: 'Э.Г.О. гифт', equip: 'Снаряжение', bestiary: 'Бестиарий', rule: 'Правило', lore: 'Лор' };
+const CONTENT_TYPES = { status: 'Статус', baseclass: 'Класс', class: 'Архетип', feat: 'Черта', gift: 'Э.Г.О. гифт', equip: 'Снаряжение', bestiary: 'Бестиарий', rule: 'Правило', lore: 'Лор' };
 
 async function renderModeration(v) {
   const snap = await getDocs(collection(db, 'custom_content'));

@@ -493,9 +493,8 @@ textarea.ce-code{font-family:Consolas,'Courier New',monospace;font-size:.85rem;m
     <button data-src="custom">Кастом</button>
     <button data-src="all">Всё</button>
   </div>
-  <select id="system-select" class="cloud-input" style="width:auto;margin:0;padding:4px 8px;font-size:.78rem;display:none">
+  <select id="system-select" class="cloud-input" style="width:auto;max-width:46vw;margin:0;padding:4px 8px;font-size:.78rem;display:none" title="Основной класс">
     <option value="fixer">Фиксер</option>
-    <option value="bloodfiend">Кровосос</option>
   </select>
   <div class="tb-spacer"></div>
   <span class="tb-user notranslate" id="user-info"></span>
@@ -723,8 +722,8 @@ import { doc, setDoc, getDocs, collection, deleteDoc, query, where }
   from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 import { db } from "./site/firebase.js";
 import { onAuth } from "./site/auth.js";
-import { DICT, SCHEMAS, fieldHtml as fieldHtmlBase, repeatRow as repeatRowBase, collectFields }
-  from "./site/fields.js";
+import { DICT, SCHEMAS, fieldHtml as fieldHtmlBase, repeatRow as repeatRowBase, collectFields,
+  CLASS_REGISTRY, classFileRel } from "./site/fields.js";
 
 /* ============================================================
    0. ИНИЦИАЛИЗАЦИЯ
@@ -872,13 +871,12 @@ function textPlain(it){
    Добавить новую категорию = добавить объект сюда.
    ============================================================ */
 const CATS = {
+  /* Архетипы выбранного основного класса. Классы — из реестра (см. «Реестр классов» ниже):
+     канонические архетипы лежат в файле класса, пользовательские ссылаются на класс полем Class. */
   classes: {
     label:"Архетипы", icon:"fa-book-journal-whills", color:"#1E3A8A", kind:"data",
     title:"База данных: архетипы и классы", customType:"class", badgeModes:true,
-    systems:{
-      fixer:      { label:"Фиксер",  list:"classes.json",  base:"fixer.json",      baseTitle:"Фиксер (основной класс)" },
-      bloodfiend: { label:"Кровосос", list:"bloodarch.json", base:"bloodfiend.json", baseTitle:"Первородный кровосос (основной класс)" }
-    },
+    systems:true,
     filters:[
       { key:"Type",  title:"Типы эффектов",  dict:"types", mode:"types" },
       { key:"Stats", title:"Характеристики", dict:"stats", mode:"stats" }
@@ -887,7 +885,7 @@ const CATS = {
     card(it){
       return {
         title: it.Name,
-        badges: badges(it.Type,"types","badge-type") + badges(it.Stats,"stats","badge-stat"),
+        badges: classBadge(it) + badges(it.Type,"types","badge-type") + badges(it.Stats,"stats","badge-stat"),
         body: (it.Desc ? `<div class="card-desc md">${md(it.Desc)}</div>` : "")
               + (arr(it.Talents).length
                   ? (it.Desc ? `<div class="section-sub" style="color:var(--accent-primary)">Способности</div>` : "")
@@ -896,12 +894,47 @@ const CATS = {
       };
     },
     plain(it){
-      let s = `=== ${it.Name} ===\nТипы: ${arr(it.Type).join(", ")} | Статы: ${arr(it.Stats).join(", ")}\n`;
+      let s = `=== ${it.Name} ===\n`;
+      if (it.Class) s += `Класс: ${sysLabel(it.Class) || it.Class}\n`;
+      s += `Типы: ${arr(it.Type).join(", ")} | Статы: ${arr(it.Stats).join(", ")}\n`;
       if (it.Desc) s += `\n${it.Desc}\n`;
       arr(it.Talents).forEach(t => s += `\n[Ур. ${t.level}] ${t.name}\n${t.desc}\n`);
       return s;
     },
-    builder: SCHEMAS.classes
+    /* Поле «Класс» — ссылка архетипа на основной класс; варианты подставляет openBuilder */
+    builder: [SCHEMAS.classes[0],
+      { t:"select", k:"Class", label:"Основной класс архетипа", opts:{}, dyn:"systems" },
+      ...SCHEMAS.classes.slice(1)]
+  },
+
+  /* Основные классы: канон — файлы основ из реестра, пользовательские — записи типа baseclass */
+  bases: {
+    label:"Классы", icon:"fa-sitemap", color:"#2E86AB", kind:"data",
+    title:"База данных: основные классы", customType:"baseclass", classList:true, xlCodeOnly:true,
+    sub:"Основа класса и его способности. Канонический архетип привязан к классу файлом, пользовательский — ссылкой на класс в самом архетипе.",
+    sort:(a,b)=>(a.__order ?? 9999)-(b.__order ?? 9999) || String(a.Name).localeCompare(String(b.Name)),
+    card(it){
+      const key = sysKeyOf(it), title = it.BaseTitle || it.__baseTitle;
+      return {
+        title: it.Name,
+        meta: title ? esc(title) : "", metaBelow:true,
+        body: (it.Desc ? `<div class="card-desc md">${md(it.Desc)}</div>` : "")
+              + (arr(it.Talents).length
+                  ? `<div class="section-sub" style="color:var(--accent-primary)">Классовые способности</div>`
+                    + arr(it.Talents).map(t => subBlock(t.name, t.desc, t.Color||t.color, t.level)).join("")
+                  : `<div class="sidebar-empty">Способности не указаны.</div>`)
+              + (key ? `<div style="margin-top:12px"><button class="action-btn ghost" data-act="open-class-archs" data-sys="${esc(key)}">
+                  <i class="fa-solid fa-book-journal-whills"></i> Архетипы класса</button></div>` : "")
+      };
+    },
+    plain(it){
+      let s = `=== ${it.Name} ===\n`;
+      if (it.BaseTitle || it.__baseTitle) s += `${it.BaseTitle || it.__baseTitle}\n`;
+      if (it.Desc) s += `\n${it.Desc}\n`;
+      arr(it.Talents).forEach(t => s += `\n[Ур. ${t.level}] ${t.name}\n${t.desc}\n`);
+      return s;
+    },
+    builder: SCHEMAS.baseclass
   },
 
   feats: {
@@ -1076,6 +1109,100 @@ const CAT_BY_CUSTOM = Object.fromEntries(
 );
 
 /* ============================================================
+   3b. РЕЕСТР КЛАССОВ
+   Канон: characters/systems.json — [{ id, Name, BaseTitle, Base, Archetypes }]; Base и Archetypes —
+   файлы в папке characters/ (правятся и создаются в admin.html → «Канон» → «Новый класс»).
+   Пользовательский класс — запись типа baseclass, его ключ — «c:<id записи>».
+   Пользовательский архетип ссылается на класс полем Class (ключ канона или «c:<id>»);
+   архетип без Class (старые записи) или со ссылкой на недоступный класс виден у всех классов.
+   ============================================================ */
+const DEFAULT_SYSTEMS = [
+  { id:"fixer", Name:"Фиксер", BaseTitle:"Фиксер (основной класс)", Base:"fixer.json", Archetypes:"classes.json" },
+  { id:"bloodfiend", Name:"Кровосос", BaseTitle:"Первородный кровосос (основной класс)", Base:"bloodfiend.json", Archetypes:"bloodarch.json" }
+];
+const SYS = { canon:null, p:null };
+function loadSystems(){
+  if (!SYS.p) SYS.p = (async () => {
+    let list = DEFAULT_SYSTEMS;
+    try {
+      const res = await I18N.fetchData(CLASS_REGISTRY);
+      if (res.ok){ const d = await res.json(); if (Array.isArray(d) && d.length) list = d; }
+    } catch(e){ console.warn("Реестр классов недоступен — беру встроенный", e); }
+    const out = {};
+    list.forEach((c, i) => {
+      const id = String(c?.id ?? "").trim();
+      if (!id || id.startsWith("c:") || out[id] || !c.Base || !c.Archetypes) return;
+      const name = String(c.Name || id);
+      out[id] = { id, label:name, list:classFileRel(c.Archetypes), base:classFileRel(c.Base),
+                  baseTitle:String(c.BaseTitle || `${name} (основной класс)`), order:i, canon:true };
+    });
+    SYS.canon = out;
+    return out;
+  })();
+  return SYS.p;
+}
+/* Пользовательские классы — все, что видит пользователь (не зависит от переключателя «Канон | Кастом») */
+const customSystems = () => (state.customCache || []).filter(x => x.__type === "baseclass").map(x => ({
+  id:"c:" + x.__id, label:String(x.Name || "Без названия"), custom:true, item:x,
+  baseTitle:String(x.BaseTitle || `${x.Name || "Класс"} (основной класс)`)
+}));
+/* Классы в переключателе: пользовательские — только в режимах «Кастом» и «Всё» */
+function shownSystems(){
+  const out = { ...(SYS.canon || {}) };
+  if (state.source !== "canon") customSystems().forEach(s => { out[s.id] = s; });
+  return out;
+}
+const curSys = () => shownSystems()[state.system] || null;
+const sysKeyOf = it => it.__origin === "custom" ? (it.__id ? "c:" + it.__id : null) : (it.__sys || null);
+function sysLabel(key){
+  if (!key) return "";
+  if (SYS.canon?.[key]) return SYS.canon[key].label;
+  return customSystems().find(s => s.id === key)?.label || "";
+}
+const knownSystem = key => !!(SYS.canon?.[key] || customSystems().some(s => s.id === key));
+/* Плашка «к какому классу» у пользовательского архетипа */
+function classBadge(it){
+  if (!it.Class || it.__origin !== "custom") return "";
+  const name = sysLabel(it.Class);
+  return `<div class="badge${name ? " notranslate" : ""}" style="color:var(--text-main);border-color:#555" title="Основной класс">
+    <i class="fa-solid fa-sitemap"></i>${esc(name || "класс недоступен")}</div>`;
+}
+/* Варианты поля «Класс» в конструкторе архетипа */
+function classOptions(){
+  const o = { "":"— без класса (виден у всех) —" };
+  Object.values(SYS.canon || {}).forEach(s => { o[s.id] = s.label; });
+  customSystems().forEach(s => { o[s.id] = `${s.label} — пользовательский (${s.item.__creator})`; });
+  return o;
+}
+/* Канонические классы как записи раздела «Классы»: данные основы + место в реестре */
+async function canonClassItems(){
+  const systems = Object.values(await loadSystems());
+  const res = await Promise.allSettled(systems.map(async s => {
+    const cls = (await loadJson(s.base))[0] || {};
+    return { ...cls, Name:cls.Name || s.label, __sys:s.id, __order:s.order, __baseTitle:s.baseTitle };
+  }));
+  return res.filter(r => r.status === "fulfilled").map(r => r.value);
+}
+/* Переключатель классов (раздел «Архетипы») */
+function renderSystemSelect(){
+  const all = shownSystems(), list = Object.values(all);
+  if (!all[state.system]) state.system = list[0]?.id || "fixer";
+  const opt = s => `<option value="${esc(s.id)}"${s.id === state.system ? " selected" : ""}${s.custom ? ' class="notranslate"' : ""}>${esc(s.label)}</option>`;
+  const cust = list.filter(s => s.custom);
+  $("#system-select").innerHTML = list.filter(s => !s.custom).map(opt).join("")
+    + (cust.length ? `<optgroup label="${esc(I18N.t("Пользовательские"))}">${cust.map(opt).join("")}</optgroup>` : "");
+}
+/* После смены источника или пользовательской базы: обновить переключатель и «Основу» */
+async function syncSystems(){
+  if (!catCfg().systems) return;
+  await loadSystems();
+  if (state.source !== "canon") await loadCustom();
+  const before = state.system;
+  renderSystemSelect();
+  if (state.system !== before || curSys()?.custom) loadBase();
+}
+
+/* ============================================================
    4. СОСТОЯНИЕ
    ============================================================ */
 const PICK_KEY = "pm_compendium_picks_v1";
@@ -1152,15 +1279,21 @@ async function loadCustom(force=false){
 async function currentItems(){
   const c = catCfg();
   let canon = [], custom = [];
+  if (c.systems) await loadSystems();
   if (state.source !== "custom"){
     try {
-      if (c.systems) canon = (await loadJson(c.systems[state.system].list)).map(x => ({ ...x, __sys:state.system }));
+      if (c.systems){
+        const sys = curSys();
+        if (sys?.canon) canon = (await loadJson(sys.list)).map(x => ({ ...x, __sys:sys.id }));
+      }
+      else if (c.classList) canon = await canonClassItems();
       else if (c.src) canon = await loadJson(c.src);
     } catch(e){ canon = []; throw e; }
   }
   if (state.source !== "canon" && c.customType){
     const all = await loadCustom();
     custom = all.filter(x => x.__type === c.customType);
+    if (c.systems) custom = custom.filter(x => !x.Class || x.Class === state.system || !knownSystem(x.Class));
   }
   return [...canon, ...custom].sort(c.sort || ((a,b)=>0));
 }
@@ -1193,7 +1326,12 @@ async function setCategory(id){
   $("#btn-base").style.display = c.systems ? "" : "none";
   $("#src-switch").style.visibility = c.kind === "data" ? "visible" : "hidden";
   renderSubtabs();
-  if (c.systems) loadBase();
+  if (c.systems){
+    await loadSystems();
+    if (state.source !== "canon") await loadCustom();
+    renderSystemSelect();
+    loadBase();
+  }
   await renderView();
 }
 function renderSubtabs(){
@@ -1356,6 +1494,7 @@ const catOf    = uid => REG.get(uid)?.cat || state.cat;
 /* Перерисовать то, что сейчас на экране (сетку или кабинет) */
 async function refreshCurrent(){
   const c = catCfg();
+  if (c.systems) await syncSystems();          // пользовательский класс могли создать, переименовать или удалить
   if (c.kind === "cabinet") return renderCabinetView();
   if (c.kind === "data" && state.subtab === "data") return renderGrid();
 }
@@ -1444,27 +1583,36 @@ function renderPicks(){
 /* ============================================================
    11. ОСНОВА КЛАССА (сайдбар для Архетипов)
    ============================================================ */
+let baseSeq = 0;
 async function loadBase(){
   const c = catCfg();
   if (!c.systems) return;
-  const sys = c.systems[state.system];
+  const seq = ++baseSeq;
+  await loadSystems();
+  const sys = curSys(), box = $("#base-body");
+  if (seq !== baseSeq) return;
+  if (!sys){
+    $("#base-title").textContent = "Основной класс";
+    box.innerHTML = `<div class="sidebar-empty">Класс не выбран.</div>`;
+    return;
+  }
   $("#base-title").textContent = sys.baseTitle;
-  const box = $("#base-body");
   box.innerHTML = `<div class="sidebar-empty">Загрузка основы…</div>`;
   try {
-    const data = await loadJson(sys.base);
-    const cls  = data[0] || {};
-    box.innerHTML = withCalcs(`base:${state.system}`, cls.Calcs, () =>
+    const cls = sys.custom ? sys.item : ((await loadJson(sys.base))[0] || {});
+    if (seq !== baseSeq) return;
+    box.innerHTML = withCalcs(sys.custom ? uidOf("bases", sys.item) : `base:${sys.id}`, cls.Calcs, () =>
       (cls.Desc ? `<div class="card-desc md">${md(cls.Desc)}</div>` : "")
       + (arr(cls.Talents).length
           ? `<div class="sidebar-h2">Классовые способности</div>`
             + arr(cls.Talents).map(t => subBlock(t.name, t.desc, t.Color || t.color, t.level)).join("")
-          : `<div class="sidebar-empty">Нет данных о способностях основы.</div>`));
+          : `<div class="sidebar-empty">Нет данных о способностях основы.</div>`)
+      + (sys.custom ? `<div class="creator-tag">Пользовательский класс · автор: ${esc(cls.__creator)}</div>` : ""));
     mountCalcs(box);
     delete box.dataset.xl;
     autolinkIn(box);
   } catch(e){
-    box.innerHTML = `<div class="sidebar-empty" style="color:var(--color-red)">Ошибка загрузки основы (${esc(sys.base)}).</div>`;
+    if (seq === baseSeq) box.innerHTML = `<div class="sidebar-empty" style="color:var(--color-red)">Ошибка загрузки основы (${esc(sys.base)}).</div>`;
   }
 }
 
@@ -1676,19 +1824,22 @@ function openBuilder(data=null, isPrivate=false, editId=null, catId=state.cat){
   if (!state.user) return toast("Для создания контента нужно войти");
   state.builderCat = catId;
   state.editId = editId;
+  /* Поле «Класс» у архетипа: варианты — классы реестра и пользовательские; новая запись — текущий класс */
+  state.builderSchema = c.builder.map(f => f.dyn === "systems" ? { ...f, opts:classOptions() } : f);
+  if (!data && c.systems) data = { Class: state.system };
   FP.undo = null;
   $("#fp-undo-btn").style.display = "none";
   $("#builder-title").textContent = editId ? `Редактирование: ${c.label}` : `Создать: ${c.label}`;
   $("#bf-private").checked = !!isPrivate;
   c.builder.forEach(f => { if (f.t === "repeat") REPEAT_SPEC[f.k] = f; });
   state.draftCalcs = JSON.parse(JSON.stringify(data?.Calcs || {}));
-  $("#builder-fields").innerHTML = c.builder.map(f => fieldHtml(f, data || {})).join("");
+  $("#builder-fields").innerHTML = state.builderSchema.map(f => fieldHtml(f, data || {})).join("");
   $("#builderModal").classList.add("active");
   mountCalcs($("#builder-fields"));
   $("#builder-fields").querySelectorAll(".md-preview-body").forEach(b => autolinkIn(b, draftUid()));
 }
 function collectBuilder(){
-  const out = collectFields(CATS[state.builderCat || state.cat].builder, $("#builder-fields"));
+  const out = collectFields(state.builderSchema || CATS[state.builderCat || state.cat].builder, $("#builder-fields"));
   // Калькуляторы: сохраняем только те, на которые остались ссылки [calc:имя] в тексте
   const calcs = {};
   for (const m of JSON.stringify(out).matchAll(CALC_TOKEN))
@@ -2904,8 +3055,9 @@ async function loadCanonIndex(){
   const jobs = [];
   for (const [catId, c] of Object.entries(CATS)){
     if (c.kind !== "data") continue;
-    if (c.systems) Object.entries(c.systems).forEach(([sys, s]) =>
-      jobs.push(loadJson(s.list).then(l => l.map(it => ({ it:{ ...it, __sys:sys }, cat:catId, sys })))));
+    if (c.systems) Object.values(await loadSystems()).forEach(s =>
+      jobs.push(loadJson(s.list).then(l => l.map(it => ({ it:{ ...it, __sys:s.id }, cat:catId, sys:s.id })))));
+    else if (c.classList) jobs.push(canonClassItems().then(l => l.map(it => ({ it, cat:catId }))));
     else if (c.src) jobs.push(loadJson(c.src).then(l => l.map(it => ({ it, cat:catId }))));
   }
   const out = [];
@@ -2939,8 +3091,10 @@ async function getIndex(){
       if (!l.some(x => x.uid === e.uid)) l.push(e);
     });
   });
+  /* Названия классов («Фиксер») встречаются в тексте постоянно — на них ссылаются только через `код` */
   const keys = [...aliasText.keys()]
     .filter(k => k.replace(/[^\p{L}\p{N}]/gu, "").length >= XL_MIN_PLAIN)
+    .filter(k => byKey.get(k).some(e => !CATS[e.cat].xlCodeOnly))
     .sort((a, b) => b.length - a.length);              // длинные названия — первыми
   XL.groups = keys;
   XL.re = keys.length
@@ -3108,7 +3262,8 @@ async function openInBase(e){
   closePop(); closeSidebars();
   const custom = e.it.__origin === "custom";
   if ((custom && state.source === "canon") || (!custom && state.source === "custom")) setSource("all");
-  if (e.sys){ state.system = e.sys; $("#system-select").value = e.sys; }
+  const sys = e.sys || (e.cat === "classes" && custom ? e.it.Class : null);
+  if (sys) state.system = sys;                    // переключатель перерисует setCategory
   await setCategory(e.cat);                       // сбрасывает поиск и фильтры
   state.search = String(e.it.Name ?? "");
   renderFilters();
@@ -3783,6 +3938,14 @@ document.addEventListener("click", async ev => {
 
     case "open-picks": openSidebar("#sb-picks"); break;
     case "open-base": openSidebar("#sb-base"); break;
+    case "open-class-archs": {
+      const key = el.dataset.sys; if (!key) break;
+      closePop(); closeSidebars();
+      if (key.startsWith("c:") && state.source === "canon") setSource("all");
+      state.system = key;
+      await setCategory("classes");
+      break;
+    }
     case "close-sidebars": closeSidebars(); break;
     case "pick-copy": { const p = state.picks.find(x => x.uid === uid); if (p) copyText(pickPlain(p)); break; }
     case "pick-remove": {
@@ -3809,7 +3972,10 @@ document.addEventListener("click", async ev => {
     }
     case "del-item": {
       const it = findItem(uid); if (!it) break;
-      if (!confirm(`Удалить «${it.Name}» навсегда?`)) break;
+      const linked = it.__type === "baseclass"
+        ? (state.customCache || []).filter(x => x.__type === "class" && x.Class === "c:" + it.__id).length : 0;
+      if (!confirm(`Удалить «${it.Name}» навсегда?` + (linked
+        ? `\n\nНа этот класс ссылаются архетипы: ${linked}. Они останутся и будут видны у всех классов.` : ""))) break;
       try { await deleteDoc(doc(db, COLL, it.__id)); await loadCustom(true); await refreshCurrent(); toast("Удалено"); }
       catch(e){ toast("Ошибка удаления"); } break;
     }
@@ -3918,6 +4084,7 @@ $("#src-switch").addEventListener("click", async ev => {
   const b = ev.target.closest("button[data-src]"); if (!b) return;
   state.source = b.dataset.src;
   [...$("#src-switch").children].forEach(x => x.classList.toggle("active", x === b));
+  await syncSystems();
   await renderGrid();
 });
 
@@ -3931,8 +4098,10 @@ async function uploadJson(input){
     const nick = myNick();
     for (const item of list){
       const id = `${c.customType}_${Date.now()}_${Math.floor(Math.random()*1000)}`;
+      // архетип без ссылки на класс привязываем к классу, открытому сейчас
+      const data = c.systems && item && typeof item === "object" && !item.Class ? { ...item, Class:state.system } : item;
       await setDoc(doc(db, COLL, id), {
-        type:c.customType, data:item, isPrivate:false,
+        type:c.customType, data, isPrivate:false,
         creatorEmail:state.user.email, creator:nick, updatedAt:new Date().toISOString()
       });
     }

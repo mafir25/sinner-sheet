@@ -1,0 +1,16 @@
+[
+  {
+    "id": "fixer",
+    "Name": "Фиксер",
+    "BaseTitle": "Фиксер (основной класс)",
+    "Base": "fixer.json",
+    "Archetypes": "classes.json"
+  },
+  {
+    "id": "bloodfiend",
+    "Name": "Кровосос",
+    "BaseTitle": "Первородный кровосос (основной класс)",
+    "Base": "bloodfiend.json",
+    "Archetypes": "bloodarch.json"
+  }
+]
