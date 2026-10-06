@@ -4,178 +4,508 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Управление Офисом / Office Management</title>
-    
+
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Merriweather:ital,wght@0,300;1,300;1,700&family=Oswald:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <style>
         :root {
-            --bg-main: #070707; --bg-panel: #000000; --accent-primary: #8FCC2A;
-            --accent-muted: #4d7311; --color-cyan: #45B3CB; --color-red: #C7243A; --color-yellow: #F1C40F;
-            --text-main: #E0D8C8; --text-dim: #696969;
-            --border-width: 1px; --chamfer: 14px;
+            --bg-main: #070707; --bg-panel: #000000; --bg-field: #111; --line: #222; --line-2: #333;
+            --accent-primary: #8FCC2A; --accent-muted: #4d7311;
+            --color-cyan: #45B3CB; --color-red: #C7243A; --color-yellow: #F1C40F; --color-orange: #D9772F;
+            --text-main: #E0D8C8; --text-dim: #8a8a8a;
+            --chamfer: 14px;
+            --tape: var(--accent-muted);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
+        [hidden] { display: none !important; }
 
         body {
             background-color: var(--bg-main); color: var(--text-main); font-family: 'Inter', sans-serif;
-            min-height: 100vh; padding: 60px 20px 40px 20px; display: flex; flex-direction: column; align-items: center;
+            min-height: 100vh; padding: 0 20px 80px; display: flex; flex-direction: column; align-items: center;
             background-image: linear-gradient(rgba(7,7,7,0.85), rgba(7,7,7,0.85)), repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.02) 2px, rgba(255,255,255,0.02) 4px);
             overflow-x: hidden;
         }
+        h1, h2, h3, .oswald { font-family: 'Oswald', sans-serif; text-transform: uppercase; font-weight: 500; }
+        button { font: inherit; }
+        :focus-visible { outline: 2px solid var(--color-cyan); outline-offset: 2px; }
 
-        h1, h2, h3, h4, .oswald { font-family: 'Oswald', sans-serif; text-transform: uppercase; }
-        .tech-text { font-family: 'Inter', sans-serif; color: var(--accent-primary); font-size: 0.8rem; }
-        .lore-text { font-family: 'Merriweather', serif; font-style: italic; color: var(--text-dim); font-size: 0.85rem; }
+        .label { font-family: 'Inter', sans-serif; color: var(--accent-primary); font-size: 0.8rem; margin-bottom: 4px; display: block; }
+        .hint { color: var(--text-dim); font-size: 0.8rem; line-height: 1.4; }
+        .lore { font-family: 'Merriweather', serif; font-style: italic; color: var(--text-dim); font-size: 0.8rem; line-height: 1.4; }
+        .muted { color: var(--text-dim); }
 
-        .top-nav-btn { position: fixed; top: 10px; left: 20px; padding: 6px 12px; font-size: 0.8rem; border-color: var(--accent-primary); color: var(--accent-primary); font-family: 'Oswald', sans-serif; z-index: 100; background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; border: 1px solid var(--accent-primary); cursor: pointer; text-transform: uppercase; transition: 0.2s; }
-        .top-nav-btn:hover { background-color: var(--accent-primary); color: #000; }
+        /* ---------- Верхняя панель ---------- */
+        .topbar { width: 100%; max-width: 1600px; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+            flex-wrap: wrap; padding: 12px 0; border-bottom: 1px solid var(--accent-muted); margin-bottom: 20px; }
+        .header-title { color: var(--accent-primary); font-size: clamp(1.1rem, 3vw, 1.8rem); letter-spacing: 2px; text-align: center;
+            text-shadow: 0 0 10px rgba(143, 204, 42, 0.4); flex: 1 1 300px; }
+        .nav-btn { padding: 6px 12px; font-size: 0.8rem; font-family: 'Oswald', sans-serif; background: var(--bg-main); text-decoration: none;
+            display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--accent-primary); color: var(--accent-primary);
+            cursor: pointer; text-transform: uppercase; transition: 0.2s; white-space: nowrap; }
+        .nav-btn:hover { background-color: var(--accent-primary); color: #000; }
+        .nav-btn.cyan { border-color: var(--color-cyan); color: var(--color-cyan); }
+        .nav-btn.cyan:hover { background-color: var(--color-cyan); color: #000; }
+        .sync-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-dim); display: inline-block; }
+        .sync-dot.live { background: var(--accent-primary); box-shadow: 0 0 6px var(--accent-primary); }
+        .sync-dot.err { background: var(--color-red); }
 
-        .right-controls { position: fixed; top: 10px; right: 20px; z-index: 1000; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
-        
-        .dropdown { position: relative; display: inline-block; }
-        .dropdown-btn { padding: 6px 12px; font-size: 0.8rem; font-family: 'Oswald', sans-serif; background: var(--bg-main); border: 1px solid var(--color-cyan); color: var(--color-cyan); text-decoration: none; display: flex; align-items: center; gap: 6px; cursor: pointer; text-transform: uppercase; transition: 0.2s; }
-        .dropdown-btn:hover { background-color: var(--color-cyan); color: #000; }
-        
-        .dropdown-content { display: none; position: absolute; right: 0; background-color: var(--bg-panel); min-width: 200px; border: 1px solid var(--color-cyan); z-index: 1; margin-top: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.8); }
+        .dropdown { position: relative; }
+        .dropdown-content { display: none; position: absolute; right: 0; background-color: var(--bg-panel); min-width: 240px; max-width: 80vw;
+            border: 1px solid var(--color-cyan); z-index: 1500; margin-top: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.8); max-height: 60vh; overflow-y: auto; }
         .dropdown.active .dropdown-content { display: block; }
-        .dropdown-item { padding: 10px 12px; color: var(--text-main); text-decoration: none; display: block; font-family: 'Oswald'; font-size: 0.9rem; border-bottom: 1px solid #222; cursor: pointer; transition: 0.2s; }
-        .dropdown-item:hover { background-color: rgba(69, 179, 203, 0.2); color: var(--color-cyan); }
+        .dropdown-item { padding: 10px 12px; color: var(--text-main); display: flex; align-items: center; gap: 8px; width: 100%; text-align: left;
+            font-family: 'Oswald'; font-size: 0.9rem; border: none; border-bottom: 1px solid var(--line); background: transparent; cursor: pointer; transition: 0.2s; }
+        .dropdown-item:hover, .dropdown-item:focus-visible { background-color: rgba(69, 179, 203, 0.2); color: var(--color-cyan); }
+        .dropdown-item.current { color: var(--color-cyan); }
+        .dropdown-item .role { margin-left: auto; font-size: 0.7rem; color: var(--text-dim); }
         .dropdown-create { color: var(--color-yellow); border-top: 1px dashed var(--color-yellow); border-bottom: none; }
         .dropdown-create:hover { background-color: rgba(241, 196, 15, 0.2); color: var(--color-yellow); }
 
-        .status-banner { width: 100%; max-width: 1400px; background: rgba(0,0,0,0.8); border: 1px solid var(--text-dim); color: var(--text-dim); padding: 10px 16px; margin-top: 10px; font-family: 'Oswald', sans-serif; text-transform: uppercase; font-size: 0.9rem; display: flex; align-items: center; gap: 10px; transition: 0.3s; }
-        .status-banner.loading { border-color: var(--color-yellow); color: var(--color-yellow); background: rgba(241, 196, 15, 0.1); }
-        .status-banner.success { border-color: var(--accent-primary); color: var(--accent-primary); background: rgba(143, 204, 42, 0.1); }
-        .status-banner.error { border-color: var(--color-red); color: var(--color-red); background: rgba(199, 36, 58, 0.1); }
-
-        .header-bar { width: 100%; max-width: 1400px; display: flex; justify-content: center; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--accent-muted); padding-bottom: 10px; margin-top: 10px; }
-        .header-title { color: var(--accent-primary); font-size: 1.8rem; letter-spacing: 2px; text-align: center; text-shadow: 0 0 10px rgba(143, 204, 42, 0.4); }
-
-        .office-grid { display: grid; grid-template-columns: 1fr 2.5fr 1fr; gap: 20px; width: 100%; max-width: 1600px; align-items: stretch; }
-
-        .panel-outer { background-color: var(--accent-primary); padding: var(--border-width); position: relative; display: flex; flex-direction: column; height: 100%; }
-        .panel-inner { background-color: var(--bg-panel); padding: 16px; height: 100%; display: flex; flex-direction: column; }
+        /* ---------- Панели ---------- */
+        .office-grid { display: grid; grid-template-columns: minmax(260px, 1fr) minmax(0, 2.2fr) minmax(260px, 1fr); gap: 20px; width: 100%; max-width: 1600px; align-items: start; }
+        .panel-outer { background-color: var(--tape); padding: 1px; position: relative; display: flex; flex-direction: column; min-width: 0; }
+        .panel-inner { background-color: var(--bg-panel); padding: 16px; display: flex; flex-direction: column; min-width: 0; }
         .cut-tl { clip-path: polygon(var(--chamfer) 0, 100% 0, 100% 100%, 0 100%, 0 var(--chamfer)); }
-        .hazard-tape { height: 6px; background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--accent-muted) 10px, var(--accent-muted) 20px); border-bottom: 1px solid var(--accent-primary); }
+        .hazard-tape { height: 6px; background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--tape) 10px, var(--tape) 20px); }
+        .t-green { --tape: var(--accent-primary); } .t-green .hazard-tape { --tape: var(--accent-muted); }
+        .t-yellow { --tape: var(--color-yellow); } .t-red { --tape: var(--color-red); } .t-cyan { --tape: var(--color-cyan); }
+        .panel-title { color: var(--tape); font-size: 1.15rem; margin-bottom: 12px; letter-spacing: 1px; border-bottom: 1px solid var(--tape);
+            padding-bottom: 4px; font-family: 'Oswald'; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .t-green .panel-title { color: var(--accent-primary); border-color: var(--accent-muted); }
+        .section { margin-bottom: 16px; border-bottom: 1px solid var(--line); padding-bottom: 12px; }
+        .section:last-child { border-bottom: none; margin-bottom: 0; }
+        .row { display: flex; gap: 6px; align-items: center; }
+        .row > .field { margin: 0; flex: 1; min-width: 0; }
+        .stack > * + * { margin-top: 6px; }
 
-        .panel-title { color: var(--accent-primary); font-size: 1.2rem; margin-bottom: 12px; letter-spacing: 1px; border-bottom: 1px solid var(--accent-muted); padding-bottom: 4px; font-family: 'Oswald'; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; }
+        .btn { background: transparent; border: 1px solid var(--text-dim); color: var(--text-dim); cursor: pointer; padding: 6px 12px; font-size: 0.75rem;
+            text-transform: uppercase; transition: 0.2s; font-family: 'Oswald'; display: inline-flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap; }
+        .btn:hover:not(:disabled) { border-color: var(--accent-primary); color: var(--accent-primary); }
+        .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+        .btn.block { width: 100%; }
+        .btn.yellow { border-color: var(--color-yellow); color: var(--color-yellow); } .btn.yellow:hover:not(:disabled) { background: rgba(241,196,15,.12); color: var(--color-yellow); border-color: var(--color-yellow); }
+        .btn.red { border-color: var(--color-red); color: var(--color-red); } .btn.red:hover:not(:disabled) { background: rgba(199,36,58,.15); color: #ff4d64; border-color: #ff4d64; }
+        .btn.cyan { border-color: var(--color-cyan); color: var(--color-cyan); } .btn.cyan:hover:not(:disabled) { background: rgba(69,179,203,.15); color: var(--color-cyan); border-color: var(--color-cyan); }
+        .btn.green { border-color: var(--accent-primary); color: var(--accent-primary); } .btn.green:hover:not(:disabled) { background: rgba(143,204,42,.12); }
+        .btn.big { font-size: 1rem; padding: 10px 16px; }
+        .icon-btn { background: transparent; border: none; color: var(--text-dim); cursor: pointer; transition: 0.2s; font-size: 0.95rem; padding: 4px; line-height: 1; }
+        .icon-btn:hover { color: var(--color-cyan); }
+        .icon-btn.danger:hover { color: var(--color-red); }
+        .icon-btn.on { color: var(--color-yellow); }
 
-        .btn-small { background: transparent; border: 1px solid var(--text-dim); color: var(--text-dim); cursor: pointer; padding: 6px 12px; font-size: 0.75rem; text-transform: uppercase; transition: 0.2s; font-family: 'Oswald'; display: inline-flex; align-items: center; gap: 6px;}
-        .btn-small:hover { border-color: var(--accent-primary); color: var(--accent-primary); }
-        .cloud-input { width: 100%; background: #111; border: 1px solid #333; color: var(--text-main); padding: 8px; outline: none; font-family: 'Inter'; font-size: 0.9rem; margin-bottom: 8px;}
-        .cloud-input:focus { border-color: var(--accent-primary); }
-        
-        .logo-area { width: 100%; aspect-ratio: 1/1; background-color: #111; border: 1px dashed var(--text-dim); display: flex; justify-content: center; align-items: center; margin-bottom: 12px; cursor: pointer; background-size: cover; background-position: center; position: relative; }
-        .logo-area.creator:hover { border-color: var(--accent-primary); }
-        .logo-area.creator::after { content: "\f0c1"; font-family: 'FontAwesome'; position: absolute; font-size: 2rem; color: var(--accent-primary); opacity: 0; transition: 0.2s; background: rgba(0,0,0,0.6); padding: 10px; border-radius: 50%; }
-        .logo-area.creator:hover::after { opacity: 1; }
-        .office-name-input { background: transparent; border: none; color: var(--color-cyan); font-family: 'Oswald'; font-size: 1.5rem; width: 100%; text-align: center; text-transform: uppercase; border-bottom: 1px dashed transparent; margin-bottom: 16px; outline: none;}
+        .field { width: 100%; background: var(--bg-field); border: 1px solid var(--line-2); color: var(--text-main); padding: 8px; outline: none;
+            font-family: 'Inter'; font-size: 0.9rem; margin-bottom: 8px; border-radius: 0; }
+        .field:focus { border-color: var(--accent-primary); }
+        textarea.field { min-height: 80px; resize: vertical; line-height: 1.4; }
+        select.field { font-family: 'Oswald'; text-transform: uppercase; }
+        .check { display: flex; align-items: center; gap: 6px; color: var(--text-dim); font-size: 0.8rem; margin-bottom: 4px; cursor: pointer; }
+        .check input { accent-color: var(--accent-primary); }
+
+        /* ---------- Экраны входа / пустого состояния ---------- */
+        .gate { width: 100%; max-width: 520px; margin-top: 40px; }
+        .gate .panel-inner { align-items: center; text-align: center; gap: 12px; padding: 24px; }
+        .gate .gate-icon { font-size: 2.5rem; color: var(--tape); }
+        .gate h2 { color: var(--tape); letter-spacing: 1px; }
+        .gate .actions { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+
+        /* ---------- Левая колонка ---------- */
+        .logo-area { width: 100%; aspect-ratio: 1/1; background-color: var(--bg-field); border: 1px dashed var(--text-dim); display: flex; justify-content: center; align-items: center;
+            margin-bottom: 12px; background-size: cover; background-position: center; position: relative; color: var(--text-dim); font-size: 3rem; padding: 0; }
+        .logo-area.has-logo i { display: none; }
+        .logo-area:disabled { cursor: default; }
+        .logo-area:not(:disabled) { cursor: pointer; }
+        .logo-area:not(:disabled):hover, .logo-area:not(:disabled):focus-visible { border-color: var(--accent-primary); }
+        .logo-area:not(:disabled)::after { content: "\f03e"; font-family: 'Font Awesome 6 Free'; font-weight: 900; position: absolute; font-size: 1.6rem; color: var(--accent-primary);
+            opacity: 0; transition: 0.2s; background: rgba(0,0,0,0.7); width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .logo-area:not(:disabled):hover::after, .logo-area:not(:disabled):focus-visible::after { opacity: 1; }
+        .office-name-input { background: transparent; border: none; color: var(--color-cyan); font-family: 'Oswald'; font-size: 1.5rem; width: 100%; text-align: center;
+            text-transform: uppercase; border-bottom: 1px dashed transparent; margin-bottom: 6px; outline: none; }
+        .office-name-input:not([readonly]):hover { border-bottom-color: #2a5a66; }
         .office-name-input:focus { border-bottom-color: var(--color-cyan); }
+        .role-badge { text-align: center; font-family: 'Oswald'; font-size: 0.8rem; letter-spacing: 1px; color: var(--color-yellow); margin-bottom: 14px; }
 
-        .preset-card { border: 1px solid #333; padding: 8px; margin-bottom: 8px; background: rgba(255,255,255,0.02); }
-        .preset-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
-        .preset-name { font-family: 'Oswald'; color: var(--text-main); font-size: 1rem; }
-        .preset-desc { max-height: 0; overflow: hidden; opacity: 0; transition: 0.3s; font-size: 0.85rem; margin-top: 0; color: var(--text-dim); line-height: 1.4; }
-        .preset-card.expanded .preset-desc { max-height: 800px; opacity: 1; margin-top: 8px; border-top: 1px dashed #333; padding-top: 8px; }
-        
-        .grade-block { margin-bottom: 12px; border: 1px solid #222; }
-        .grade-header { background: rgba(0,0,0,0.6); padding: 12px 16px; font-family: 'Oswald'; font-size: 1.2rem; color: var(--color-yellow); cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; border-left: 3px solid var(--color-yellow); }
+        .member-item { display: flex; justify-content: space-between; align-items: center; gap: 8px; border-bottom: 1px dashed var(--line-2); padding: 6px 0; font-size: 0.85rem; }
+        .member-item .who { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .tag { font-family: 'Oswald'; font-size: 0.7rem; letter-spacing: 0.5px; padding: 1px 6px; border: 1px solid currentColor; white-space: nowrap; }
+        .tag.yellow { color: var(--color-yellow); } .tag.cyan { color: var(--color-cyan); } .tag.dim { color: var(--text-dim); } .tag.green { color: var(--accent-primary); } .tag.red { color: var(--color-red); }
+
+        .builder-card { border: 1px solid var(--color-cyan); background: rgba(69,179,203,0.06); padding: 10px; margin-bottom: 12px; }
+        .builder-card .bc-head { font-family: 'Oswald'; color: var(--color-cyan); font-size: 0.85rem; letter-spacing: 1px; display: flex; align-items: center; gap: 6px; margin-bottom: 6px; }
+        .builder-card .bc-name { font-family: 'Oswald'; font-size: 1.05rem; }
+        .builder-card .bc-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+        .builder-card .bc-actions .btn { flex: 1 1 auto; }
+
+        .preset-card { border: 1px solid var(--line-2); margin-bottom: 8px; background: rgba(255,255,255,0.02); }
+        .preset-card.mine { border-color: #2a5a66; }
+        .preset-header { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px; }
+        .preset-toggle { background: none; border: none; color: var(--text-main); font-family: 'Oswald'; font-size: 1rem; cursor: pointer; text-align: left; flex: 1; min-width: 0;
+            display: flex; align-items: center; gap: 8px; text-transform: uppercase; }
+        .preset-toggle .nm { overflow: hidden; text-overflow: ellipsis; }
+        .preset-actions { display: flex; gap: 2px; align-items: center; flex-shrink: 0; }
+        .preset-desc { display: none; font-size: 0.85rem; color: var(--text-main); line-height: 1.45; padding: 8px; border-top: 1px dashed var(--line-2); }
+        .preset-card.expanded .preset-desc { display: block; }
+        .kv { margin-bottom: 4px; } .kv b { color: var(--text-dim); font-weight: 600; }
+
+        /* ---------- Доска контрактов ---------- */
+        .grade-block { margin-bottom: 10px; border: 1px solid var(--line); }
+        .grade-header { width: 100%; background: rgba(0,0,0,0.6); padding: 12px 16px; font-family: 'Oswald'; font-size: 1.15rem; color: var(--color-yellow); cursor: pointer;
+            display: flex; justify-content: space-between; align-items: center; gap: 8px; transition: 0.2s; border: none; border-left: 3px solid var(--color-yellow); text-transform: uppercase; text-align: left; }
         .grade-header:hover { background: rgba(241, 196, 15, 0.1); }
-        .grade-content { max-height: 0; overflow: hidden; transition: 0.4s; background: #0a0a0a; }
-        .grade-block.expanded .grade-content { max-height: 1000px; }
-        
-        .quest-item { padding: 10px 16px; border-bottom: 1px solid #222; cursor: pointer; position: relative;}
-        .quest-item:last-child { border-bottom: none; }
-        .quest-item:hover { background: rgba(255,255,255,0.03); }
-        .quest-title { color: var(--text-main); font-family: 'Oswald'; font-size: 1.1rem; display: flex; align-items: center; }
-        .quest-desc { display: none; font-size: 0.85rem; color: var(--text-dim); margin-top: 6px; line-height: 1.4; white-space: pre-wrap;}
-        .quest-item.open .quest-desc { display: block; }
-        .quest-item.open .quest-title { color: var(--color-cyan); }
-        
-        .quest-icon { height: 24px; object-fit: contain; margin-left: 12px; vertical-align: middle; }
-        .header-icons { display: flex; gap: 8px; align-items: center; margin-right: 12px; }
+        .grade-header .count { font-size: 0.8rem; color: var(--text-dim); margin-left: 8px; }
+        .grade-header .chev { transition: transform 0.2s; }
+        .grade-block.expanded .grade-header .chev { transform: rotate(180deg); }
+        .grade-content { display: none; background: #0a0a0a; }
+        .grade-block.expanded .grade-content { display: block; }
+        .header-icons { display: flex; gap: 6px; align-items: center; margin-right: 8px; }
+        .quest-icon { height: 22px; width: 22px; object-fit: contain; vertical-align: middle; }
 
-        .tab-btn { font-family: 'Oswald'; font-size: 1.1rem; cursor: pointer; transition: 0.2s; color: var(--text-dim); }
+        .quest-item { border-bottom: 1px solid var(--line); }
+        .quest-item:last-child { border-bottom: none; }
+        .quest-item.closed-status { opacity: 0.6; }
+        .quest-toggle { width: 100%; background: none; border: none; color: var(--text-main); font-family: 'Oswald'; font-size: 1.05rem; padding: 10px 16px; cursor: pointer;
+            display: flex; align-items: center; gap: 10px; text-align: left; flex-wrap: wrap; }
+        .quest-toggle:hover { background: rgba(255,255,255,0.03); }
+        .quest-item.open .quest-toggle .qn { color: var(--color-cyan); }
+        .quest-body { display: none; padding: 0 16px 12px; font-size: 0.88rem; color: var(--text-main); line-height: 1.45; }
+        .quest-item.open .quest-body { display: block; }
+        .quest-meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 8px; font-size: 0.8rem; color: var(--text-dim); }
+        .quest-admin { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--line-2); }
+        .quest-admin .field { width: auto; flex: 1 1 140px; margin: 0; padding: 5px 8px; font-size: 0.8rem; }
+        .st-open { color: var(--accent-primary); } .st-taken { color: var(--color-cyan); } .st-done { color: var(--color-yellow); } .st-failed { color: var(--color-red); }
+        .board-empty { padding: 16px; color: var(--text-dim); font-family: 'Oswald'; text-align: center; }
+
+        /* ---------- Markdown ---------- */
+        .md { overflow-wrap: anywhere; }
+        .md p { margin: 0 0 6px; } .md p:last-child { margin-bottom: 0; }
+        .md ul, .md ol { margin: 4px 0 6px 20px; }
+        .md a { color: var(--color-cyan); }
+        .md h1, .md h2, .md h3, .md h4 { font-family: 'Oswald'; font-size: 1rem; color: var(--color-yellow); margin: 6px 0 4px; text-transform: uppercase; }
+        .md blockquote { border-left: 2px solid var(--line-2); padding-left: 8px; color: var(--text-dim); margin: 4px 0; }
+        .md code { background: #1a1a1a; padding: 0 4px; font-size: 0.85em; }
+        .md img { max-width: 100%; }
+        .md table { border-collapse: collapse; margin: 4px 0; } .md td, .md th { border: 1px solid var(--line-2); padding: 2px 6px; }
+        .md hr { border: none; border-top: 1px dashed var(--line-2); margin: 6px 0; }
+
+        /* ---------- Правая колонка ---------- */
+        .tabs { display: flex; gap: 14px; flex-wrap: wrap; }
+        .tab-btn { font-family: 'Oswald'; font-size: 1.05rem; cursor: pointer; transition: 0.2s; color: var(--text-dim); background: none; border: none; border-bottom: 2px solid transparent;
+            text-transform: uppercase; padding: 0 0 2px; }
         .tab-btn:hover { color: var(--text-main); }
-        .tab-btn.active-tab { color: var(--color-red); border-bottom: 2px solid var(--color-red); }
+        .tab-btn[aria-selected="true"] { color: var(--color-red); border-bottom-color: var(--color-red); }
 
         .news-item { border-left: 2px solid var(--color-red); padding-left: 10px; margin-bottom: 16px; position: relative; }
+        .news-item.pinned { border-left-color: var(--color-yellow); background: rgba(241,196,15,0.04); padding: 6px 10px; }
+        .news-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
         .news-date { font-size: 0.7rem; color: var(--text-dim); font-family: 'Oswald'; letter-spacing: 1px; }
         .news-author { font-size: 0.9rem; color: var(--color-red); font-family: 'Oswald'; margin-bottom: 4px; }
-        .news-text { font-size: 0.85rem; color: var(--text-main); white-space: pre-wrap; line-height: 1.4; }
-        
-        .btn-trash { background: transparent; border: none; color: var(--text-dim); cursor: pointer; transition: 0.2s; font-size: 1rem; }
-        .btn-trash:hover { color: var(--color-red); }
-        .news-item .btn-trash { position: absolute; top: 0; right: 0; opacity: 0; }
-        .news-item:hover .btn-trash { opacity: 1; }
+        .news-item.pinned .news-author { color: var(--color-yellow); }
+        .news-text { font-size: 0.85rem; color: var(--text-main); line-height: 1.45; }
+        .item-tools { display: flex; gap: 2px; flex-shrink: 0; opacity: 0.35; transition: 0.2s; }
+        .news-item:hover .item-tools, .news-item:focus-within .item-tools, .rep-item:hover .item-tools, .rep-item:focus-within .item-tools, .ledger-item:hover .item-tools, .ledger-item:focus-within .item-tools { opacity: 1; }
+        @media (hover: none) { .item-tools { opacity: 1; } }
+        .editing-note { font-size: 0.75rem; color: var(--color-yellow); margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
 
-        .member-item { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed #333; padding: 6px 0; font-size: 0.85rem; color: var(--text-main); }
+        .rep-item { margin-bottom: 18px; }
+        .rep-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+        .rep-name { font-family: 'Oswald'; font-size: 1rem; display: flex; align-items: center; gap: 8px; min-width: 0; }
+        .rep-name img { height: 20px; width: 20px; object-fit: contain; }
+        .rep-score { font-family: 'Oswald'; font-size: 0.85rem; white-space: nowrap; }
+        .rep-bar { position: relative; height: 10px; border: 1px solid var(--line-2); margin-top: 6px; display: flex; }
+        .rep-bar::after { content: ""; position: absolute; left: 50%; top: -3px; bottom: -3px; width: 1px; background: var(--text-dim); }
+        .rep-half { flex: 1; position: relative; }
+        .rep-fill { position: absolute; top: 0; bottom: 0; }
+        .rep-half.neg .rep-fill { right: 0; } .rep-half.pos .rep-fill { left: 0; }
+        .rep-scale { display: flex; justify-content: space-between; font-size: 0.65rem; color: var(--text-dim); margin-top: 2px; font-family: 'Oswald'; }
 
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 2000; backdrop-filter: blur(4px); }
-        .modal-overlay.hidden { display: none; }
-        .modal-box { width: 500px; max-width: 90%; }
-        .modal-btn { width: 100%; padding: 10px; font-size: 1rem; cursor: pointer; border: 1px solid var(--color-cyan); background: transparent; color: var(--color-cyan); text-transform: uppercase; font-family: 'Oswald'; transition: 0.2s; margin-top: 8px;}
-        .modal-btn:hover { background: var(--color-cyan); color: #000; }
-        
+        .balance { font-family: 'Oswald'; font-size: 2rem; color: var(--accent-primary); line-height: 1.1; overflow-wrap: anywhere; }
+        .balance.neg { color: var(--color-red); }
+        .balance-sub { font-size: 0.8rem; color: var(--text-dim); margin-bottom: 12px; }
+        .ledger-item { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; border-bottom: 1px dashed var(--line); padding: 6px 0; font-size: 0.82rem; }
+        .ledger-item .amt { font-family: 'Oswald'; white-space: nowrap; }
+        .ledger-item .amt.plus { color: var(--accent-primary); } .ledger-item .amt.minus { color: var(--color-red); }
+        .ledger-item .meta { font-size: 0.7rem; color: var(--text-dim); }
+        .converter { border: 1px solid var(--line-2); padding: 10px; margin-top: 12px; }
+        .conv-row { display: grid; grid-template-columns: 1fr auto; gap: 6px; align-items: center; margin-bottom: 6px; }
+        .conv-row .field { margin: 0; }
+        .conv-row .cur { font-family: 'Oswald'; color: var(--text-dim); width: 44px; text-align: center; }
+
+        /* ---------- Окна ---------- */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 2000;
+            backdrop-filter: blur(4px); padding: 16px; }
+        .modal-box { width: 520px; max-width: 100%; max-height: calc(100vh - 32px); }
+        .modal-box.wide { width: 820px; }
+        .modal-box .panel-inner { overflow-y: auto; max-height: calc(100vh - 40px); }
         .btn-close-modal { background: transparent; border: none; color: var(--color-red); font-size: 1.5rem; cursor: pointer; transition: 0.2s; }
         .btn-close-modal:hover { color: #ff0044; }
+        .modal-actions { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+        .modal-actions .btn { flex: 1 1 160px; padding: 10px; font-size: 0.95rem; }
+        .dialog-msg { white-space: pre-wrap; line-height: 1.45; margin-bottom: 12px; font-size: 0.9rem; }
+        .dialog-preview { width: 120px; height: 120px; margin: 0 auto 10px; border: 1px dashed var(--line-2); background: var(--bg-field) center/cover no-repeat; }
 
         .icon-selector-grid { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
-        .q-icon-option { width: 36px; height: 36px; object-fit: contain; border: 1px solid #333; padding: 4px; cursor: pointer; transition: 0.2s; background: #111; }
-        .q-icon-option:hover { border-color: var(--color-yellow); }
-        .q-icon-option.selected { border-color: var(--color-yellow); background: rgba(241, 196, 15, 0.2); }
+        .q-icon-option { width: 38px; height: 38px; border: 1px solid var(--line-2); padding: 4px; cursor: pointer; transition: 0.2s; background: var(--bg-field); display: flex; align-items: center; justify-content: center; }
+        .q-icon-option img { width: 100%; height: 100%; object-fit: contain; }
+        .q-icon-option.none { width: auto; padding: 0 10px; color: var(--text-dim); font-family: 'Oswald'; font-size: 0.7rem; }
+        .q-icon-option:hover, .q-icon-option[aria-pressed="true"] { border-color: var(--color-yellow); }
+        .q-icon-option[aria-pressed="true"] { background: rgba(241, 196, 15, 0.2); }
 
-        .creator-only { display: none; }
+        .qm-tools { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+        .qm-tools .field { margin: 0; flex: 1 1 180px; }
+        .qm-list { max-height: 50vh; overflow-y: auto; padding-right: 6px; margin-bottom: 12px; }
+        .qm-grade { display: flex; justify-content: space-between; align-items: center; margin: 12px 0 6px; color: var(--color-yellow); border-bottom: 1px solid var(--line-2); padding-bottom: 4px; font-family: 'Oswald'; font-size: 0.9rem; gap: 8px; flex-wrap: wrap; }
+        .qm-row { display: flex; justify-content: space-between; align-items: center; padding: 6px; border-bottom: 1px dashed var(--line); gap: 8px; }
+        .qm-row label { display: flex; align-items: center; gap: 10px; cursor: pointer; font-family: 'Oswald'; font-size: 1rem; min-width: 0; flex: 1; }
+        .qm-row input { accent-color: var(--color-yellow); }
+
+        /* ---------- Уведомления ---------- */
+        .toast-stack { position: fixed; right: 16px; bottom: 16px; z-index: 3000; display: flex; flex-direction: column; gap: 8px; align-items: flex-end; max-width: calc(100vw - 80px); pointer-events: none; }
+        .toast { pointer-events: auto; background: #000; border: 1px solid var(--text-dim); color: var(--text-main); padding: 10px 14px; font-family: 'Oswald'; font-size: 0.85rem; letter-spacing: 0.5px;
+            text-transform: uppercase; display: flex; gap: 10px; align-items: center; box-shadow: 0 4px 16px rgba(0,0,0,0.8); animation: toast-in 0.2s ease-out; max-width: 420px; }
+        .toast.success { border-color: var(--accent-primary); color: var(--accent-primary); }
+        .toast.error { border-color: var(--color-red); color: #ff6b7e; }
+        .toast.loading { border-color: var(--color-yellow); color: var(--color-yellow); }
+        .toast.out { opacity: 0; transform: translateY(6px); transition: 0.3s; }
+        @keyframes toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+        /* Видимость по роли */
+        body:not(.is-creator) .creator-only { display: none !important; }
+        body.is-creator .member-only { display: none !important; }
+
+        /* ---------- Адаптивность ---------- */
+        @media (max-width: 1280px) {
+            .office-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+            .col-board { grid-column: 1 / -1; order: -1; }
+        }
+        @media (max-width: 760px) {
+            body { padding: 0 12px 80px; }
+            .office-grid { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+            .topbar { justify-content: center; }
+            .header-title { order: -1; flex-basis: 100%; }
+            .logo-area { width: 160px; margin: 0 auto 12px; }
+            .grade-header { padding: 10px 12px; font-size: 1rem; }
+            .quest-toggle { padding: 10px 12px; }
+            .quest-body { padding: 0 12px 12px; }
+            .toast-stack { left: 64px; right: 12px; align-items: stretch; max-width: none; }
+        }
     </style>
     <script src="site/i18n.js"></script>
+    <script src="site/vendor/marked.umd.js"></script>
+    <script src="site/vendor/purify.min.js"></script>
     <script type="module" src="site/ui.js"></script>
+    <script type="module" src="site/office.js"></script>
 </head>
 <body>
 
-    <a href="index.html" class="top-nav-btn"><i class="fa-solid fa-house"></i> ХАБ</a>
-    
-    <div class="right-controls">
-        <div class="dropdown" id="office-dropdown">
-            <button class="dropdown-btn" onclick="document.getElementById('office-dropdown').classList.toggle('active')">
-                <i class="fa-solid fa-building"></i> МОИ ОФИСЫ
-            </button>
-            <div class="dropdown-content" id="office-list">
-                <div style="padding: 10px; color: var(--text-dim); font-size: 0.8rem;">Загрузка...</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Модальное окно Авторизации -->
-    <div class="modal-overlay" id="authModal">
-        <div class="panel-outer cut-tl modal-box">
-            <div class="hazard-tape" style="background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--color-cyan) 10px, var(--color-cyan) 20px); border-bottom-color: var(--color-cyan);"></div>
-            <div class="panel-inner cut-tl" style="border-top: none;">
-                <div class="panel-title" style="color: var(--color-cyan); border-color: var(--color-cyan); text-align: center; display: block;">СЕТЬ АССОЦИАЦИЙ</div>
-                <div class="tech-text" style="color: var(--text-dim); margin-bottom: 16px; text-align: center;">Войдите в аккаунт сайта, чтобы открыть базу Фиксеров.</div>
-
-                <button class="modal-btn" onclick="window.SiteUI?.open('login')">ВОЙТИ</button>
-                <button class="modal-btn" style="margin-top: 8px;" onclick="window.SiteUI?.open('register')">РЕГИСТРАЦИЯ</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Модальное окно Создания Контракта -->
-    <div class="modal-overlay hidden" id="questBuilderModal" onclick="window.closeQuestBuilderOnBg(event)">
-        <div class="panel-outer cut-tl modal-box">
-            <div class="hazard-tape" style="background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--color-yellow) 10px, var(--color-yellow) 20px); border-bottom-color: var(--color-yellow);"></div>
-            <div class="panel-inner cut-tl" style="border-top: none;">
-                <div class="panel-title" style="color: var(--color-yellow); border-color: var(--color-yellow); text-align: left;">
-                    СОЗДАНИЕ КОНТРАКТА
-                    <button class="btn-close-modal" onclick="window.toggleQuestBuilder()"><i class="fa-solid fa-xmark"></i></button>
+    <header class="topbar">
+        <a href="index.html" class="nav-btn"><i class="fa-solid fa-house" aria-hidden="true"></i> ХАБ</a>
+        <h1 class="header-title">БАЗА ДАННЫХ: УПРАВЛЕНИЕ ОФИСОМ</h1>
+        <div class="row">
+            <span class="sync-dot" id="sync-dot" title="Нет связи с офисом" aria-hidden="true"></span>
+            <div class="dropdown" id="office-dropdown">
+                <button class="nav-btn cyan" id="office-dropdown-btn" aria-haspopup="true" aria-expanded="false" aria-controls="office-list">
+                    <i class="fa-solid fa-building" aria-hidden="true"></i> МОИ ОФИСЫ
+                </button>
+                <div class="dropdown-content" id="office-list">
+                    <div class="dropdown-item muted">Загрузка...</div>
                 </div>
-                
-                <div class="tech-text" style="color: var(--color-yellow); margin-bottom: 4px;">НАЗВАНИЕ КОНТРАКТА</div>
-                <input type="text" id="q-name" class="cloud-input" placeholder="Например: Зачистка переулка">
-                
-                <div class="tech-text" style="color: var(--color-yellow); margin-bottom: 4px;">РАНГ (GRADE)</div>
-                <select id="q-grade" class="cloud-input" style="font-family: 'Oswald'; text-transform: uppercase;">
+            </div>
+        </div>
+    </header>
+
+    <div class="toast-stack" id="toasts" aria-live="polite" aria-atomic="false"></div>
+
+    <!-- Вход -->
+    <section class="gate panel-outer cut-tl t-cyan" id="auth-gate" hidden>
+        <div class="hazard-tape"></div>
+        <div class="panel-inner cut-tl">
+            <i class="fa-solid fa-network-wired gate-icon" aria-hidden="true"></i>
+            <h2>СЕТЬ АССОЦИАЦИЙ</h2>
+            <p class="hint">Войдите в аккаунт сайта, чтобы открыть базу Фиксеров.</p>
+            <div class="actions">
+                <button class="btn cyan big" data-act="login">ВОЙТИ</button>
+                <button class="btn cyan big" data-act="register">РЕГИСТРАЦИЯ</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Загрузка -->
+    <section class="gate" id="loading-gate">
+        <p class="hint" style="text-align:center"><i class="fa-solid fa-circle-notch fa-spin" aria-hidden="true"></i> Подключение к сети...</p>
+    </section>
+
+    <!-- Нет офисов -->
+    <section class="gate panel-outer cut-tl t-yellow" id="empty-gate" hidden>
+        <div class="hazard-tape"></div>
+        <div class="panel-inner cut-tl">
+            <i class="fa-solid fa-building-circle-exclamation gate-icon" aria-hidden="true"></i>
+            <h2>ОФИСОВ ПОКА НЕТ</h2>
+            <p class="hint">Создайте свой Офис или попросите менеджера добавить вас по никнейму.</p>
+            <p class="hint" id="empty-nick"></p>
+            <div class="actions">
+                <button class="btn yellow big" data-act="create-office"><i class="fa-solid fa-plus" aria-hidden="true"></i> СОЗДАТЬ ОФИС</button>
+                <button class="btn big" data-act="account"><i class="fa-solid fa-user-gear" aria-hidden="true"></i> НАСТРОИТЬ НИКНЕЙМ</button>
+            </div>
+        </div>
+    </section>
+
+    <main class="office-grid" id="office-workspace" hidden>
+
+        <!-- ЛЕВАЯ КОЛОНКА -->
+        <section class="panel-outer cut-tl t-green col-office" aria-label="Офис">
+            <div class="hazard-tape"></div>
+            <div class="panel-inner cut-tl">
+                <button class="logo-area" id="office-logo" data-act="logo" aria-label="Изменить логотип" disabled><i class="fa-solid fa-building" aria-hidden="true"></i></button>
+                <input type="text" id="office-name" class="office-name-input notranslate" value="" maxlength="80" readonly aria-label="Название офиса">
+                <div class="role-badge" id="role-badge"></div>
+
+                <div class="section creator-only">
+                    <span class="label">УПРАВЛЕНИЕ ДОСТУПОМ</span>
+                    <form class="row" id="member-form" autocomplete="off">
+                        <input type="text" id="new-member-nick" class="field" placeholder="Никнейм фиксера..." maxlength="40" aria-label="Никнейм фиксера">
+                        <button class="btn" type="submit" aria-label="Добавить участника" title="Добавить участника"><i class="fa-solid fa-plus" aria-hidden="true"></i></button>
+                    </form>
+                    <p class="hint" style="margin: 4px 0 6px;">Игрок задаёт никнейм в настройках сайта (⚙ внизу слева).</p>
+                    <div id="members-list"></div>
+                </div>
+
+                <div class="section creator-only">
+                    <span class="label">НАСТРОЙКИ ВИДИМОСТИ ДОСЬЕ</span>
+                    <label class="check"><input type="checkbox" data-cs="name" checked> Показывать Имя</label>
+                    <label class="check"><input type="checkbox" data-cs="race" checked> Показывать Расу</label>
+                    <label class="check"><input type="checkbox" data-cs="class" checked> Показывать Класс</label>
+                    <label class="check"><input type="checkbox" data-cs="feats" checked> Показывать Черты</label>
+                    <label class="check"><input type="checkbox" data-cs="desc" checked> Показывать Описание</label>
+                    <label class="check"><input type="checkbox" data-cs="download" checked> Разрешить Скачивание игрокам</label>
+                    <p class="hint" style="margin-top:4px;">Владелец досье всегда видит его целиком.</p>
+                </div>
+
+                <div class="section">
+                    <div class="panel-title" style="font-size: 1rem;">
+                        АГЕНТЫ ОФИСА
+                        <label class="btn" title="Загрузить пресет персонажа из файла">
+                            <input type="file" accept=".json,application/json" id="agent-file" hidden>
+                            <i class="fa-solid fa-file-import" aria-hidden="true"></i> JSON
+                        </label>
+                    </div>
+                    <div class="builder-card" id="builder-card"></div>
+                    <div id="agents-container"></div>
+                </div>
+
+                <div class="section member-only">
+                    <button class="btn red block" data-act="leave-office"><i class="fa-solid fa-person-walking-arrow-right" aria-hidden="true"></i> ПОКИНУТЬ ОФИС</button>
+                </div>
+                <div class="section creator-only">
+                    <button class="btn red block" data-act="delete-office"><i class="fa-solid fa-trash" aria-hidden="true"></i> УДАЛИТЬ ОФИС</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ЦЕНТРАЛЬНАЯ КОЛОНКА -->
+        <section class="panel-outer cut-tl t-yellow col-board" aria-label="Доска контрактов">
+            <div class="hazard-tape"></div>
+            <div class="panel-inner cut-tl">
+                <div class="panel-title">
+                    ДОСКА КОНТРАКТОВ
+                    <div class="creator-only row">
+                        <button class="btn yellow" data-act="new-quest" title="Новый контракт" aria-label="Новый контракт"><i class="fa-solid fa-plus" aria-hidden="true"></i></button>
+                        <button class="btn yellow" data-act="quest-manager"><i class="fa-solid fa-list-check" aria-hidden="true"></i> УПРАВЛЕНИЕ</button>
+                    </div>
+                </div>
+                <div id="grades-container"></div>
+            </div>
+        </section>
+
+        <!-- ПРАВАЯ КОЛОНКА -->
+        <section class="panel-outer cut-tl t-red col-feed" aria-label="Сводки, репутация и казна">
+            <div class="hazard-tape"></div>
+            <div class="panel-inner cut-tl">
+                <div class="panel-title">
+                    <div class="tabs" role="tablist" aria-label="Разделы">
+                        <button class="tab-btn" role="tab" id="tab-news" aria-controls="wrapper-news" aria-selected="true" data-tab="news">СВОДКИ</button>
+                        <button class="tab-btn" role="tab" id="tab-rep" aria-controls="wrapper-rep" aria-selected="false" tabindex="-1" data-tab="rep">РЕПУТАЦИЯ</button>
+                        <button class="tab-btn" role="tab" id="tab-bank" aria-controls="wrapper-bank" aria-selected="false" tabindex="-1" data-tab="bank">КАЗНА</button>
+                    </div>
+                </div>
+
+                <div id="wrapper-news" role="tabpanel" aria-labelledby="tab-news">
+                    <form class="section creator-only" id="news-form" autocomplete="off">
+                        <div class="editing-note" id="news-editing" hidden><span>РЕДАКТИРОВАНИЕ СВОДКИ</span><button type="button" class="icon-btn" data-act="news-cancel" aria-label="Отменить редактирование" title="Отменить"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div>
+                        <div class="row" style="margin-bottom: 8px;">
+                            <input type="text" id="news-author" class="field" placeholder="От чьего лица..." maxlength="80" aria-label="Автор">
+                            <input type="text" id="news-date" class="field" placeholder="Дата (напр. День 14)..." maxlength="40" aria-label="Дата">
+                        </div>
+                        <textarea id="news-input" class="field" placeholder="Описать события отдыха..." maxlength="8000" aria-label="Текст сводки"></textarea>
+                        <div class="row" style="justify-content: space-between; margin-bottom: 8px; flex-wrap: wrap;">
+                            <label class="check" style="margin:0;"><input type="checkbox" id="news-pinned"> Закрепить</label>
+                            <span class="hint">Поддерживается Markdown: **жирный**, *курсив*, списки, ссылки</span>
+                        </div>
+                        <button class="btn red block" type="submit" id="news-submit"><i class="fa-solid fa-bullhorn" aria-hidden="true"></i> <span>ПУБЛИКОВАТЬ НОВОСТЬ</span></button>
+                    </form>
+                    <div id="news-container"></div>
+                </div>
+
+                <div id="wrapper-rep" role="tabpanel" aria-labelledby="tab-rep" hidden>
+                    <form class="section creator-only" id="rep-form" autocomplete="off">
+                        <span class="label" style="color: var(--color-red);">УПРАВЛЕНИЕ РЕПУТАЦИЕЙ</span>
+                        <div class="editing-note" id="rep-editing" hidden><span>РЕДАКТИРОВАНИЕ ФРАКЦИИ</span><button type="button" class="icon-btn" data-act="rep-cancel" aria-label="Отменить редактирование" title="Отменить"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div>
+                        <input type="text" id="rep-name" class="field" placeholder="Название фракции..." maxlength="80" aria-label="Название фракции">
+                        <input type="url" id="rep-icon" class="field" placeholder="URL иконки (Необязательно)..." aria-label="URL иконки">
+                        <input type="number" id="rep-score" class="field" placeholder="Значение от -100 до 100..." min="-100" max="100" step="1" aria-label="Репутация">
+                        <button class="btn red block" type="submit" id="rep-submit"><i class="fa-solid fa-handshake" aria-hidden="true"></i> <span>ДОБАВИТЬ / ОБНОВИТЬ</span></button>
+                    </form>
+                    <div id="rep-container"></div>
+                </div>
+
+                <div id="wrapper-bank" role="tabpanel" aria-labelledby="tab-bank" hidden>
+                    <span class="label" style="color: var(--color-red);">БАЛАНС ОФИСА</span>
+                    <div class="balance" id="bank-balance">0 Ан</div>
+                    <div class="balance-sub" id="bank-balance-sub"></div>
+
+                    <form class="section creator-only" id="bank-form" autocomplete="off">
+                        <input type="number" id="bank-amount" class="field" placeholder="Сумма в Анах..." min="1" step="1" aria-label="Сумма в Анах">
+                        <input type="text" id="bank-note" class="field" placeholder="За что (необязательно)..." maxlength="200" aria-label="Комментарий">
+                        <div class="row">
+                            <button class="btn green" type="submit" data-kind="in" style="flex:1"><i class="fa-solid fa-plus" aria-hidden="true"></i> ДОХОД</button>
+                            <button class="btn red" type="submit" data-kind="out" style="flex:1"><i class="fa-solid fa-minus" aria-hidden="true"></i> РАСХОД</button>
+                        </div>
+                    </form>
+
+                    <span class="label" style="color: var(--color-red);">ЖУРНАЛ ОПЕРАЦИЙ</span>
+                    <div id="bank-log"></div>
+
+                    <div class="converter" id="converter">
+                        <span class="label" style="color: var(--color-cyan);"><i class="fa-solid fa-right-left" aria-hidden="true"></i> КОНВЕРТЕР ВАЛЮТ</span>
+                        <div class="conv-row"><input type="number" class="field" id="conv-ahn" placeholder="0" step="any" aria-label="Аны"><span class="cur">АН</span></div>
+                        <div class="conv-row"><input type="number" class="field" id="conv-rub" placeholder="0" step="any" aria-label="Рубли"><span class="cur">₽</span></div>
+                        <div class="conv-row"><input type="number" class="field" id="conv-usd" placeholder="0" step="any" aria-label="Доллары"><span class="cur">$</span></div>
+                        <div class="row" style="justify-content: space-between; margin-top: 4px;">
+                            <span class="hint" id="conv-rate"></span>
+                            <button class="icon-btn" data-act="rates-refresh" title="Обновить курс" aria-label="Обновить курс"><i class="fa-solid fa-rotate" aria-hidden="true"></i></button>
+                        </div>
+                        <p class="lore" style="margin-top: 8px;">По канону Project Moon курс Ана (Ahn) идентичен южнокорейской воне: 1 Ан = 1 ₩ (KRW). Рубли и доллары пересчитываются по текущему курсу воны.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Создание / редактирование контракта -->
+    <div class="modal-overlay" id="questBuilderModal" role="dialog" aria-modal="true" aria-labelledby="qb-title" hidden>
+        <form class="panel-outer cut-tl modal-box t-yellow" id="quest-form" autocomplete="off">
+            <div class="hazard-tape"></div>
+            <div class="panel-inner cut-tl">
+                <div class="panel-title">
+                    <span id="qb-title">СОЗДАНИЕ КОНТРАКТА</span>
+                    <button type="button" class="btn-close-modal" data-close aria-label="Закрыть"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+                </div>
+
+                <label class="label" style="color: var(--color-yellow);" for="q-name">НАЗВАНИЕ КОНТРАКТА</label>
+                <input type="text" id="q-name" class="field" placeholder="Например: Зачистка переулка" maxlength="120">
+
+                <label class="label" style="color: var(--color-yellow);" for="q-grade">РАНГ (GRADE)</label>
+                <select id="q-grade" class="field">
                     <option value="1">Цветной</option>
                     <option value="2">1 Ранг</option>
                     <option value="3">2 Ранг</option>
@@ -188,973 +518,102 @@
                     <option value="10">9 Ранг</option>
                 </select>
 
-                <div class="tech-text" style="color: var(--color-yellow); margin-bottom: 4px;">ИКОНКА МЕТКИ (ПРЯМАЯ ССЫЛКА ИЛИ ПРЕСЕТ)</div>
-                <input type="text" id="q-icon-url" class="cloud-input" placeholder="https://imgur.com/image.png (или выберите ниже)" oninput="window.clearIconSelection()">
-                
-                <div class="icon-selector-grid" id="q-icon-grid">
-                    <img src="Burn.png" class="q-icon-option" onclick="window.selectQuestIcon('Burn.png', this)">
-                    <img src="Bleed.png" class="q-icon-option" onclick="window.selectQuestIcon('Bleed.png', this)">
-                    <img src="Tremor.png" class="q-icon-option" onclick="window.selectQuestIcon('Tremor.png', this)">
-                    <img src="Rupture.png" class="q-icon-option" onclick="window.selectQuestIcon('Rupture.png', this)">
-                    <img src="Sinking.png" class="q-icon-option" onclick="window.selectQuestIcon('Sinking.png', this)">
-                    <img src="Poise.png" class="q-icon-option" onclick="window.selectQuestIcon('Poise.png', this)">
-                    <img src="Charge.png" class="q-icon-option" onclick="window.selectQuestIcon('Charge.png', this)">
-                    <img src="Other.png" class="q-icon-option" onclick="window.selectQuestIcon('Other.png', this)">
-                    <img src="phis.png" class="q-icon-option" onclick="window.selectQuestIcon('phis.png', this)">
-                    <div class="q-icon-option selected" id="q-icon-none" style="display:flex; justify-content:center; align-items:center; color:var(--text-dim); font-family:Oswald; font-size:0.7rem; width: auto; padding: 0 10px;" onclick="window.selectQuestIcon('', this)">БЕЗ ИКОНКИ</div>
+                <div class="row" style="margin-bottom: 8px;">
+                    <div style="flex:1; min-width:0;">
+                        <label class="label" style="color: var(--color-yellow);" for="q-status">СТАТУС</label>
+                        <select id="q-status" class="field" style="margin:0;"></select>
+                    </div>
+                    <div style="flex:1; min-width:0;">
+                        <label class="label" style="color: var(--color-yellow);" for="q-assignee">ИСПОЛНИТЕЛЬ</label>
+                        <input type="text" id="q-assignee" class="field" list="assignee-options" placeholder="Кто взял..." maxlength="80" style="margin:0;">
+                    </div>
                 </div>
 
-                <div class="tech-text" style="color: var(--color-yellow); margin-bottom: 4px;">ОПИСАНИЕ И НАГРАДА</div>
-                <textarea id="q-desc" class="cloud-input" placeholder="Подробности задания..." style="min-height: 100px;"></textarea>
-                
-                <div style="display: flex; gap: 8px;">
-                    <button class="modal-btn" style="border-color: var(--color-yellow); color: var(--color-yellow);" onclick="window.saveCustomQuest(false)">СОХРАНИТЬ И ДОБАВИТЬ ЕЩЁ</button>
-                    <button class="modal-btn" style="border-color: var(--text-dim); color: var(--text-dim);" onclick="window.saveCustomQuest(true)">СОХРАНИТЬ И ЗАКРЫТЬ</button>
+                <label class="label" style="color: var(--color-yellow);" for="q-icon-url">ИКОНКА МЕТКИ (ПРЯМАЯ ССЫЛКА ИЛИ ПРЕСЕТ)</label>
+                <input type="text" id="q-icon-url" class="field" placeholder="https://imgur.com/image.png (или выберите ниже)">
+                <div class="icon-selector-grid" id="q-icon-grid"></div>
+
+                <label class="label" style="color: var(--color-yellow);" for="q-desc">ОПИСАНИЕ И НАГРАДА</label>
+                <textarea id="q-desc" class="field" placeholder="Подробности задания..." style="min-height: 110px;" maxlength="8000"></textarea>
+                <p class="hint" style="margin-bottom: 4px;">Поддерживается Markdown.</p>
+                <label class="check"><input type="checkbox" id="q-visible" checked> Показывать игрокам на доске</label>
+
+                <div class="modal-actions">
+                    <button class="btn yellow" type="submit" data-more="1" id="qb-more">СОХРАНИТЬ И ДОБАВИТЬ ЕЩЁ</button>
+                    <button class="btn" type="submit" data-more="0">СОХРАНИТЬ И ЗАКРЫТЬ</button>
                 </div>
             </div>
-        </div>
+        </form>
     </div>
+    <datalist id="assignee-options"></datalist>
 
-    <!-- Модальное окно Управления Контрактами (для ДМа) -->
-    <div class="modal-overlay hidden" id="questManagerModal" onclick="window.closeQuestManagerOnBg(event)">
-        <div class="panel-outer cut-tl modal-box" style="width: 800px; max-width: 95%;">
-            <div class="hazard-tape" style="background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--color-yellow) 10px, var(--color-yellow) 20px); border-bottom-color: var(--color-yellow);"></div>
-            <div class="panel-inner cut-tl" style="border-top: none;">
-                <div class="panel-title" style="color: var(--color-yellow); border-color: var(--color-yellow); text-align: left;">
-                    УПРАВЛЕНИЕ ДОСКОЙ КОНТРАКТОВ
-                    <button class="btn-close-modal" onclick="window.toggleQuestManager()"><i class="fa-solid fa-xmark"></i></button>
-                </div>
-                
-                <div class="tech-text" style="color: var(--text-dim); margin-bottom: 12px;">Установите галочки напротив контрактов, которые будут видны игрокам на главной доске.</div>
-                
-                <div id="qm-list" style="max-height: 50vh; overflow-y: auto; padding-right: 10px; margin-bottom: 16px;"></div>
-                
-                <button class="modal-btn" style="border-color: var(--color-yellow); color: var(--color-yellow);" onclick="window.saveQuestVisibility()"><i class="fa-solid fa-floppy-disk"></i> СОХРАНИТЬ ВИДИМОСТЬ</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="system-status-banner" class="status-banner">
-        <i class="fa-solid fa-circle-notch fa-spin"></i> СИСТЕМА: ОЖИДАНИЕ ИНИЦИАЛИЗАЦИИ...
-    </div>
-
-    <div class="header-bar">
-        <div class="header-title oswald">БАЗА ДАННЫХ: УПРАВЛЕНИЕ ОФИСОМ</div>
-    </div>
-
-    <div class="office-grid" id="office-workspace" style="display: none;">
-        
-        <!-- ЛЕВАЯ КОЛОНКА -->
-        <div class="panel-outer cut-tl">
+    <!-- Управление контрактами -->
+    <div class="modal-overlay" id="questManagerModal" role="dialog" aria-modal="true" aria-labelledby="qm-title" hidden>
+        <div class="panel-outer cut-tl modal-box wide t-yellow">
             <div class="hazard-tape"></div>
-            <div class="panel-inner cut-tl" style="border-top: none;">
-                
-                <div class="logo-area" id="office-logo" onclick="window.triggerLogoUpload()"></div>
-                
-                <input type="text" id="office-name" class="office-name-input" value="НОВЫЙ ОФИС" readonly onblur="window.saveOfficeInfo()">
-
-                <div class="creator-only" style="margin-bottom: 16px; border-bottom: 1px solid #222; padding-bottom: 12px;">
-                    <div class="tech-text" style="margin-bottom: 4px;">УПРАВЛЕНИЕ ДОСТУПОМ</div>
-                    <div style="display: flex; gap: 4px; margin-bottom: 8px;">
-                        <input type="email" id="new-member-email" class="cloud-input" placeholder="Email фиксера..." style="margin: 0;">
-                        <button class="btn-small" style="padding: 0 12px;" onclick="window.addMember()"><i class="fa-solid fa-plus"></i></button>
-                    </div>
-                    <div id="members-list"></div>
+            <div class="panel-inner cut-tl">
+                <div class="panel-title">
+                    <span id="qm-title">УПРАВЛЕНИЕ ДОСКОЙ КОНТРАКТОВ</span>
+                    <button class="btn-close-modal" data-close aria-label="Закрыть"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
                 </div>
-
-                <!-- НАСТРОЙКИ ПРИВАТНОСТИ (Для ДМа) -->
-                <div class="creator-only" style="margin-bottom: 16px; border-bottom: 1px solid #222; padding-bottom: 12px;">
-                    <div class="tech-text" style="margin-bottom: 4px;">НАСТРОЙКИ ВИДИМОСТИ ДОСЬЕ</div>
-                    <label style="display:flex; align-items:center; color:var(--text-dim); font-size:0.8rem; margin-bottom:4px;"><input type="checkbox" id="cs-name" checked onchange="window.saveCharSettings()" style="margin-right:6px; accent-color:var(--accent-primary);"> Показывать Имя</label>
-                    <label style="display:flex; align-items:center; color:var(--text-dim); font-size:0.8rem; margin-bottom:4px;"><input type="checkbox" id="cs-race" checked onchange="window.saveCharSettings()" style="margin-right:6px; accent-color:var(--accent-primary);"> Показывать Расу</label>
-                    <label style="display:flex; align-items:center; color:var(--text-dim); font-size:0.8rem; margin-bottom:4px;"><input type="checkbox" id="cs-class" checked onchange="window.saveCharSettings()" style="margin-right:6px; accent-color:var(--accent-primary);"> Показывать Класс</label>
-                    <label style="display:flex; align-items:center; color:var(--text-dim); font-size:0.8rem; margin-bottom:4px;"><input type="checkbox" id="cs-feats" checked onchange="window.saveCharSettings()" style="margin-right:6px; accent-color:var(--accent-primary);"> Показывать Черты</label>
-                    <label style="display:flex; align-items:center; color:var(--text-dim); font-size:0.8rem; margin-bottom:4px;"><input type="checkbox" id="cs-desc" checked onchange="window.saveCharSettings()" style="margin-right:6px; accent-color:var(--accent-primary);"> Показывать Описание</label>
-                    <label style="display:flex; align-items:center; color:var(--text-dim); font-size:0.8rem; margin-bottom:4px;"><input type="checkbox" id="cs-download" checked onchange="window.saveCharSettings()" style="margin-right:6px; accent-color:var(--accent-primary);"> Разрешить Скачивание игрокам</label>
+                <p class="hint" style="margin-bottom: 10px;">Установите галочки напротив контрактов, которые будут видны игрокам на главной доске.</p>
+                <div class="qm-tools">
+                    <input type="search" class="field" id="qm-search" placeholder="Поиск по названию и описанию..." aria-label="Поиск">
+                    <select class="field" id="qm-status" aria-label="Фильтр по статусу" style="flex: 0 1 180px;"></select>
                 </div>
-
-                <div class="panel-title" style="font-size: 1rem;">
-                    АГЕНТЫ ОФИСА
-                    <label class="btn-small creator-only" style="cursor: pointer;">
-                        <input type="file" accept=".json" style="display: none;" onchange="window.uploadCharacter(event)">
-                        <i class="fa-solid fa-file-import"></i> ЗАГРУЗИТЬ JSON
-                    </label>
+                <div id="qm-list" class="qm-list"></div>
+                <div class="modal-actions">
+                    <button class="btn yellow" data-act="qm-save"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> СОХРАНИТЬ ВИДИМОСТЬ</button>
                 </div>
-                
-                <div id="characters-container"></div>
-
             </div>
         </div>
-
-        <!-- ЦЕНТРАЛЬНАЯ КОЛОНКА -->
-        <div class="panel-outer cut-tl">
-            <div class="hazard-tape" style="background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--color-yellow) 10px, var(--color-yellow) 20px); border-bottom-color: var(--color-yellow);"></div>
-            <div class="panel-inner cut-tl" style="border-top: none;">
-                <div class="panel-title" style="color: var(--color-yellow); border-color: var(--color-yellow);">
-                    ДОСКА КОНТРАКТОВ
-                    <div class="creator-only" style="display: flex; gap: 6px;">
-                        <button class="btn-small" style="border-color: var(--color-yellow); color: var(--color-yellow);" onclick="window.toggleQuestBuilder()"><i class="fa-solid fa-plus"></i></button>
-                        <button class="btn-small" style="border-color: var(--color-yellow); color: var(--color-yellow);" onclick="window.openQuestManager()"><i class="fa-solid fa-list-check"></i> УПРАВЛЕНИЕ</button>
-                    </div>
-                </div>
-                <div id="grades-container"></div>
-            </div>
-        </div>
-
-        <!-- ПРАВАЯ КОЛОНКА -->
-        <div class="panel-outer cut-tl">
-            <div class="hazard-tape" style="background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--color-red) 10px, var(--color-red) 20px); border-bottom-color: var(--color-red);"></div>
-            <div class="panel-inner cut-tl" style="border-top: none;">
-                
-                <div class="panel-title" style="color: var(--color-red); border-color: var(--color-red); justify-content: flex-start; gap: 15px;">
-                    <span id="tab-news" class="tab-btn active-tab" onclick="window.switchRightTab('news')">СВОДКИ</span>
-                    <span style="color: var(--text-dim);">|</span>
-                    <span id="tab-rep" class="tab-btn" onclick="window.switchRightTab('rep')">РЕПУТАЦИЯ</span>
-                </div>
-                
-                <div id="wrapper-news" style="display: block;">
-                    <div class="creator-only" style="margin-bottom: 16px; border-bottom: 1px solid #222; padding-bottom: 12px;">
-                        <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-                            <input type="text" id="news-author" class="cloud-input" placeholder="От чьего лица..." style="margin: 0; flex: 1;">
-                            <input type="text" id="news-date" class="cloud-input" placeholder="Дата (напр. День 14)..." style="margin: 0; flex: 1;">
-                        </div>
-                        <textarea id="news-input" class="cloud-input" placeholder="Описать события отдыха..." style="min-height: 80px;"></textarea>
-                        <button class="btn-small" style="width: 100%; color: var(--color-red); border-color: var(--color-red); justify-content: center;" onclick="window.addNews()">
-                            <i class="fa-solid fa-bullhorn"></i> ПУБЛИКОВАТЬ НОВОСТЬ
-                        </button>
-                    </div>
-                    <div id="news-container"></div>
-                </div>
-
-                <div id="wrapper-rep" style="display: none;">
-                    <div class="creator-only" style="margin-bottom: 16px; border-bottom: 1px solid #222; padding-bottom: 12px;">
-                        <div class="tech-text" style="color: var(--color-red); margin-bottom: 4px;">УПРАВЛЕНИЕ РЕПУТАЦИЕЙ</div>
-                        <input type="text" id="rep-name" class="cloud-input" placeholder="Название фракции..." style="margin-bottom: 4px;">
-                        <input type="text" id="rep-icon" class="cloud-input" placeholder="URL иконки (Необязательно)..." style="margin-bottom: 4px;">
-                        <input type="number" id="rep-score" class="cloud-input" placeholder="Значение от -100 до 100..." min="-100" max="100" style="margin-bottom: 8px;">
-                        <button class="btn-small" style="width: 100%; color: var(--color-red); border-color: var(--color-red); justify-content: center;" onclick="window.addReputation()">
-                            <i class="fa-solid fa-handshake"></i> ДОБАВИТЬ / ОБНОВИТЬ
-                        </button>
-                    </div>
-                    <div id="rep-container"></div>
-                </div>
-
-            </div>
-        </div>
-
     </div>
 
-    <!-- Firebase SDK (БЕЗ STORAGE) -->
-    <script type="module">
-        import { doc, setDoc, getDoc, collection, query, where, getDocs, updateDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
-        import { db } from "./site/firebase.js";
-        import { onAuth } from "./site/auth.js";
+    <!-- Редактирование досье -->
+    <div class="modal-overlay" id="agentModal" role="dialog" aria-modal="true" aria-labelledby="ag-title" hidden>
+        <form class="panel-outer cut-tl modal-box t-green" id="agent-form" autocomplete="off">
+            <div class="hazard-tape"></div>
+            <div class="panel-inner cut-tl">
+                <div class="panel-title">
+                    <span id="ag-title">РЕДАКТИРОВАНИЕ ДОСЬЕ</span>
+                    <button type="button" class="btn-close-modal" data-close aria-label="Закрыть"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+                </div>
+                <label class="label" for="ag-name">ИМЯ</label>
+                <input type="text" id="ag-name" class="field" maxlength="120">
+                <div class="creator-only">
+                    <label class="label" for="ag-owner">ИГРОК (ВЛАДЕЛЕЦ ДОСЬЕ)</label>
+                    <select id="ag-owner" class="field" style="text-transform:none; font-family:'Inter';"></select>
+                    <p class="hint" style="margin: -4px 0 8px;">Владелец сам обновляет своё досье — из конструктора или файлом.</p>
+                </div>
+                <label class="label" for="ag-desc">ОПИСАНИЕ</label>
+                <textarea id="ag-desc" class="field" maxlength="8000" style="min-height: 120px;"></textarea>
+                <p class="hint">Поддерживается Markdown.</p>
+                <div class="modal-actions">
+                    <button class="btn green" type="submit"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> СОХРАНИТЬ</button>
+                </div>
+            </div>
+        </form>
+    </div>
 
-        // Всё, что пришло из базы, выводим только через esc()/jsArg()/safeUrl() — иначе XSS.
-        const ESC_MAP = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
-        const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ESC_MAP[c]);
-        const escMultiline = v => esc(v).replace(/\r?\n/g, "<br>");
-        // аргумент для inline-обработчика onclick="f(${jsArg(x)})"
-        const jsArg = v => esc(JSON.stringify(String(v ?? "")));
-        // только http(s) или относительные пути к картинкам сайта
-        const safeUrl = v => {
-            const u = String(v ?? "").trim();
-            if (/^https?:\/\/[^\s"'<>()\\]+$/i.test(u) || /^[\w\-./]+\.(png|jpe?g|gif|webp|svg|avif)$/i.test(u)) return u;
-            return "";
-        };
+    <!-- Подтверждение / ввод -->
+    <div class="modal-overlay" id="dialogModal" role="dialog" aria-modal="true" aria-labelledby="dlg-title" hidden>
+        <form class="panel-outer cut-tl modal-box t-cyan" id="dialog-form" autocomplete="off">
+            <div class="hazard-tape"></div>
+            <div class="panel-inner cut-tl">
+                <div class="panel-title">
+                    <span id="dlg-title">ПОДТВЕРЖДЕНИЕ</span>
+                    <button type="button" class="btn-close-modal" data-close aria-label="Закрыть"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+                </div>
+                <div class="dialog-msg" id="dlg-msg"></div>
+                <div class="dialog-preview" id="dlg-preview" hidden></div>
+                <input type="text" class="field" id="dlg-input" hidden>
+                <div class="modal-actions">
+                    <button class="btn" type="button" data-close id="dlg-cancel">ОТМЕНА</button>
+                    <button class="btn cyan" type="submit" id="dlg-ok">ОК</button>
+                </div>
+            </div>
+        </form>
+    </div>
 
-        let currentUser = null;
-        let currentOfficeId = null;
-        let isCreator = false;
-        let questsDB = [];
-        window.currentOfficeData = null;
-
-        window.setSystemStatus = (msg, type = 'normal') => {
-            const banner = document.getElementById('system-status-banner');
-            banner.className = 'status-banner ' + type;
-            let icon = '<i class="fa-solid fa-info-circle"></i>';
-            if (type === 'loading') icon = '<i class="fa-solid fa-circle-notch fa-spin"></i>';
-            if (type === 'success') icon = '<i class="fa-solid fa-check"></i>';
-            if (type === 'error') icon = '<i class="fa-solid fa-triangle-exclamation"></i>';
-            banner.innerHTML = `${icon} <span>СИСТЕМА:</span> <span>${esc(msg)}</span>`;
-        };
-
-        onAuth(({ user }) => {
-            if (user) {
-                currentUser = user;
-                document.getElementById('authModal').classList.add('hidden');
-                document.getElementById('office-workspace').style.display = 'grid';
-                window.setSystemStatus("АВТОРИЗАЦИЯ УСПЕШНА. ЗАГРУЗКА ДАННЫХ...", "loading");
-                loadUserOffices();
-                loadQuestsDB();
-            } else {
-                currentUser = null;
-                currentOfficeId = null;
-                isCreator = false;
-                document.getElementById('authModal').classList.remove('hidden');
-                document.getElementById('office-workspace').style.display = 'none';
-                window.setSystemStatus("ОЖИДАНИЕ ВХОДА СЕТЕВОГО ОПЕРАТОРА", "normal");
-            }
-        });
-
-        window.onclick = function(event) {
-            if (!event.target.closest('.dropdown')) {
-                const drops = document.getElementsByClassName("dropdown-content");
-                for (let i = 0; i < drops.length; i++) {
-                    if (drops[i].parentElement.classList.contains('active')) {
-                        drops[i].parentElement.classList.remove('active');
-                    }
-                }
-            }
-        };
-
-        async function loadUserOffices() {
-            const listEl = document.getElementById('office-list');
-            listEl.innerHTML = '<div style="padding: 10px; color: var(--text-dim); font-size: 0.8rem;">Загрузка...</div>';
-            
-            try {
-                const q = query(collection(db, "offices"), where("members", "array-contains", currentUser.email));
-                const querySnapshot = await getDocs(q);
-                
-                let html = '';
-                querySnapshot.forEach((docSnap) => {
-                    const data = docSnap.data();
-                    html += `<div class="dropdown-item" onclick="window.openOffice(${jsArg(docSnap.id)})">${esc(data.name)}</div>`;
-                });
-                
-                html += `<div class="dropdown-item dropdown-create" onclick="window.createNewOffice(event)"><i class="fa-solid fa-plus"></i> СОЗДАТЬ ОФИС</div>`;
-                listEl.innerHTML = html;
-                
-                if (!currentOfficeId && !querySnapshot.empty) {
-                    window.openOffice(querySnapshot.docs[0].id);
-                } else if (querySnapshot.empty) {
-                    document.getElementById('office-name').value = "ВЫБЕРИТЕ ИЛИ СОЗДАЙТЕ ОФИС";
-                    window.setSystemStatus("СПИСОК ОФИСОВ ПУСТ. СОЗДАЙТЕ НОВЫЙ ОФИС В МЕНЮ.", "normal");
-                } else {
-                    window.setSystemStatus("СИНХРОНИЗАЦИЯ ЗАВЕРШЕНА.", "success");
-                }
-            } catch (error) {
-                console.error(error);
-                listEl.innerHTML = '<div style="padding: 10px; color: var(--color-red);">Ошибка загрузки. Вероятно, блокировка правилами Firebase.</div>';
-                window.setSystemStatus("ОШИБКА ДОСТУПА К БАЗЕ ОФИСОВ", "error");
-            }
-        }
-
-        window.createNewOffice = async (e) => {
-            if (e) e.stopPropagation(); 
-            document.getElementById('office-dropdown').classList.remove('active');
-            
-            const nameInput = document.getElementById('office-name');
-            nameInput.value = "СИСТЕМА СОЗДАЕТ ОФИС...";
-            window.setSystemStatus("ОТПРАВКА ЗАПРОСА В FIRESTORE...", "loading");
-            
-            try {
-                const newOfficeRef = doc(collection(db, "offices"));
-                const newOfficeData = {
-                    name: "НОВЫЙ ОФИС " + Math.floor(Math.random() * 1000),
-                    creator: currentUser.email,
-                    members: [currentUser.email],
-                    logoUrl: "",
-                    characters: [],
-                    news: [],
-                    customQuests: [],
-                    activeQuests: [],
-                    reputations: [],
-                    charSettings: { name: true, race: true, class: true, feats: true, desc: true, download: true }
-                };
-                await setDoc(newOfficeRef, newOfficeData);
-                window.setSystemStatus("ОФИС УСПЕШНО СОЗДАН. ПОДКЛЮЧЕНИЕ...", "success");
-                await loadUserOffices();
-                window.openOffice(newOfficeRef.id);
-            } catch (err) {
-                nameInput.value = "ОШИБКА ДОСТУПА В БАЗУ";
-                window.setSystemStatus("ОШИБКА ЗАПИСИ (ПРАВА FIRESTORE). " + err.message, "error");
-                console.error(err);
-            }
-        };
-
-        window.openOffice = async (id) => {
-            document.getElementById('office-dropdown').classList.remove('active');
-            currentOfficeId = id;
-            window.setSystemStatus("ПОЛУЧЕНИЕ ДАННЫХ ОФИСА...", "loading");
-            try {
-                const docSnap = await getDoc(doc(db, "offices", id));
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    if (!data.activeQuests) data.activeQuests = [];
-                    window.currentOfficeData = data; 
-                    isCreator = (data.creator === currentUser.email);
-                    
-                    const creatorEls = document.querySelectorAll('.creator-only');
-                    creatorEls.forEach(el => el.style.display = isCreator ? 'block' : 'none');
-                    
-                    const nameInput = document.getElementById('office-name');
-                    nameInput.value = data.name;
-                    nameInput.readOnly = !isCreator;
-                    
-                    const logoArea = document.getElementById('office-logo');
-                    const logo = safeUrl(data.logoUrl);
-                    if (logo) logoArea.style.backgroundImage = `url(${JSON.stringify(logo)})`;
-                    else logoArea.style.backgroundImage = 'none';
-                    if (isCreator) logoArea.classList.add('creator'); else logoArea.classList.remove('creator');
-
-                    // Установка настроек приватности
-                    const charSettings = data.charSettings || { name: true, race: true, class: true, feats: true, desc: true, download: true };
-                    if (isCreator) {
-                        document.getElementById('cs-name').checked = charSettings.name;
-                        document.getElementById('cs-race').checked = charSettings.race;
-                        document.getElementById('cs-class').checked = charSettings.class;
-                        document.getElementById('cs-feats').checked = charSettings.feats;
-                        document.getElementById('cs-desc').checked = charSettings.desc;
-                        document.getElementById('cs-download').checked = charSettings.download;
-                    }
-
-                    renderMembersList(data.members || []);
-                    renderCharacters(data.characters || [], charSettings);
-                    renderNews(data.news || []);
-                    renderReputations(data.reputations || []);
-                    
-                    renderGradeAccordions();
-                    
-                    window.setSystemStatus("ОФИС ЗАГРУЖЕН УСПЕШНО", "success");
-                }
-            } catch(e) { 
-                console.error(e);
-                window.setSystemStatus("ОШИБКА ЧТЕНИЯ ДОКУМЕНТА ОФИСА", "error");
-            }
-        };
-
-        window.saveOfficeInfo = async () => {
-            if (!currentOfficeId || !isCreator) return;
-            const newName = document.getElementById('office-name').value;
-            window.setSystemStatus("ОБНОВЛЕНИЕ НАЗВАНИЯ...", "loading");
-            try {
-                await updateDoc(doc(db, "offices", currentOfficeId), { name: newName });
-                loadUserOffices();
-            } catch (err) {
-                window.setSystemStatus("ОШИБКА СОХРАНЕНИЯ ИМЕНИ", "error");
-            }
-        };
-
-        // Сохранение настроек приватности досье
-        window.saveCharSettings = async () => {
-            if (!isCreator || !currentOfficeId) return;
-            const settings = {
-                name: document.getElementById('cs-name').checked,
-                race: document.getElementById('cs-race').checked,
-                class: document.getElementById('cs-class').checked,
-                feats: document.getElementById('cs-feats').checked,
-                desc: document.getElementById('cs-desc').checked,
-                download: document.getElementById('cs-download').checked
-            };
-            
-            window.setSystemStatus("СОХРАНЕНИЕ НАСТРОЕК ПРИВАТНОСТИ...", "loading");
-            try {
-                await updateDoc(doc(db, "offices", currentOfficeId), { charSettings: settings });
-                window.currentOfficeData.charSettings = settings;
-                renderCharacters(window._currentChars || [], settings);
-                window.setSystemStatus("НАСТРОЙКИ ПРИВАТНОСТИ СОХРАНЕНЫ", "success");
-            } catch(e) {
-                window.setSystemStatus("ОШИБКА СОХРАНЕНИЯ НАСТРОЕК", "error");
-            }
-        };
-
-        window.triggerLogoUpload = async () => {
-            if (!isCreator || !currentOfficeId) return;
-            const url = prompt("Введите прямую ссылку на изображение логотипа (URL):", window.currentOfficeData.logoUrl || "");
-            if (url !== null) {
-                if (url.trim() && !safeUrl(url)) return alert("Нужна прямая ссылка на изображение (http:// или https://)");
-                window.setSystemStatus("ОБНОВЛЕНИЕ ЛОГОТИПА...", "loading");
-                try {
-                    const clean = safeUrl(url);
-                    await updateDoc(doc(db, "offices", currentOfficeId), { logoUrl: clean });
-                    document.getElementById('office-logo').style.backgroundImage = clean ? `url(${JSON.stringify(clean)})` : 'none';
-                    window.currentOfficeData.logoUrl = clean;
-                    window.setSystemStatus("ЛОГОТИП ОБНОВЛЕН", "success");
-                } catch(e) {
-                    window.setSystemStatus("ОШИБКА ОБНОВЛЕНИЯ ЛОГОТИПА", "error");
-                }
-            }
-        };
-
-        window.addMember = async () => {
-            const input = document.getElementById('new-member-email');
-            const email = input.value.trim().toLowerCase();
-            if (!email || !currentOfficeId || !isCreator) return;
-            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return alert("Некорректный email");
-            
-            window.setSystemStatus("ДОБАВЛЕНИЕ АГЕНТА...", "loading");
-            try {
-                await updateDoc(doc(db, "offices", currentOfficeId), {
-                    members: arrayUnion(email)
-                });
-                window.setSystemStatus(`АГЕНТ ${email.toUpperCase()} ДОБАВЛЕН В БАЗУ`, "success");
-                input.value = '';
-                window.openOffice(currentOfficeId); 
-            } catch (err) { 
-                window.setSystemStatus("ОШИБКА ДОБАВЛЕНИЯ", "error");
-                console.error(err); 
-            }
-        };
-
-        function renderMembersList(members) {
-            const container = document.getElementById('members-list');
-            if (!isCreator) {
-                container.innerHTML = '';
-                return;
-            }
-            
-            let html = '';
-            members.forEach(email => {
-                let delBtn = '';
-                if (email !== currentUser.email) {
-                    delBtn = `<button class="btn-trash" style="opacity: 1;" onclick="window.removeMember(${jsArg(email)})"><i class="fa-solid fa-trash"></i></button>`;
-                } else {
-                    delBtn = `<span class="tech-text" style="color: var(--color-yellow);">[МЕНЕДЖЕР]</span>`;
-                }
-
-                html += `
-                    <div class="member-item">
-                        <span>${esc(email)}</span>
-                        ${delBtn}
-                    </div>
-                `;
-            });
-            container.innerHTML = html;
-        }
-
-        window.removeMember = async (email) => {
-            if (!confirm(`Отозвать доступ к Офису у ${email}?`)) return;
-            window.setSystemStatus("ОТЗЫВ ДОСТУПА...", "loading");
-            try {
-                await updateDoc(doc(db, "offices", currentOfficeId), {
-                    members: arrayRemove(email)
-                });
-                window.setSystemStatus(`ДОСТУП ОГРАНИЧЕН ДЛЯ ${email.toUpperCase()}`, "success");
-                window.openOffice(currentOfficeId);
-            } catch (err) { window.setSystemStatus("ОШИБКА ОТЗЫВА ДОСТУПА", "error"); }
-        };
-
-        window.uploadCharacter = (e) => {
-            const file = e.target.files[0];
-            if (!file || !currentOfficeId) return;
-            const reader = new FileReader();
-            
-            window.setSystemStatus("ИНТЕГРАЦИЯ ДОСЬЕ...", "loading");
-            reader.onload = async (event) => {
-                try {
-                    const preset = JSON.parse(event.target.result);
-                    if (!preset.characterName) throw new Error();
-                    
-                    const charObj = {
-                        id: Date.now().toString(),
-                        name: preset.characterName || 'Неизвестно',
-                        race: preset.race || 'Неизвестно',
-                        className: preset.className || 'Фиксер',
-                        feats: preset.feats || [],
-                        description: preset.desc || preset.description || '', // Захват графы desc
-                        rawJson: preset
-                    };
-                    
-                    await updateDoc(doc(db, "offices", currentOfficeId), {
-                        characters: arrayUnion(charObj)
-                    });
-                    window.openOffice(currentOfficeId);
-                } catch (err) { 
-                    window.setSystemStatus("ОШИБКА ФОРМАТА JSON", "error");
-                }
-            };
-            reader.readAsText(file);
-            e.target.value = '';
-        };
-
-        function renderCharacters(chars, settings = null) {
-            const defaultSettings = { name: true, race: true, class: true, feats: true, desc: true, download: true };
-            const s = settings || defaultSettings;
-            
-            const container = document.getElementById('characters-container');
-            if (chars.length === 0) {
-                container.innerHTML = '<div class="tech-text" style="color: var(--text-dim);">Досье отсутствуют.</div>';
-                return;
-            }
-            
-            let html = '';
-            chars.forEach(c => {
-                const displayName = s.name ? esc(c.name) : '[ СЕКРЕТНО ]';
-                const canDownload = isCreator || s.download;
-                
-                const dlBtn = canDownload ? `<i class="fa-solid fa-download btn-trash" style="position:relative; opacity:1; color: var(--color-cyan);" title="Скачать пресет" onclick="window.downloadPreset(event, ${jsArg(c.id)})"></i>` : '';
-                const delBtn = isCreator ? `<i class="fa-solid fa-trash btn-trash" style="position:relative; opacity:1;" onclick="window.deleteCharacter(event, ${jsArg(c.id)})"></i>` : '';
-                
-                let detailsHtml = '';
-                if (s.race) detailsHtml += `<div style="margin-bottom: 4px;"><strong style="color:var(--text-dim)">РАСА:</strong> ${esc(c.race)}</div>`;
-                if (s.class) detailsHtml += `<div style="margin-bottom: 4px;"><strong style="color:var(--text-dim)">КЛАСС:</strong> ${esc(c.className)}</div>`;
-                const feats = Array.isArray(c.feats) ? c.feats : [];
-                if (s.feats && feats.length > 0) detailsHtml += `<div style="margin-bottom: 4px;"><strong style="color:var(--text-dim)">ЧЕРТЫ:</strong> ${esc(feats.map(f => typeof f === 'string' ? f : (f && (f.Name || f.name)) || '').join(', '))}</div>`;
-                
-                const finalDesc = c.description || (c.rawJson && c.rawJson.desc) || '';
-                if (s.desc && finalDesc) detailsHtml += `<div style="margin-bottom: 4px;"><strong style="color:var(--text-dim)">ОПИСАНИЕ:</strong> ${escMultiline(finalDesc)}</div>`;
-                
-                if (!detailsHtml) detailsHtml = `<div style="color: var(--text-dim); font-style: italic;">Информация скрыта настройками приватности.</div>`;
-
-                html += `
-                    <div class="preset-card">
-                        <div class="preset-header" onclick="this.parentElement.classList.toggle('expanded')">
-                            <span class="preset-name">${displayName}</span>
-                            <div style="display:flex; gap: 8px; align-items:center;">
-                                ${dlBtn}
-                                ${delBtn}
-                            </div>
-                        </div>
-                        <div class="preset-desc">${detailsHtml}</div>
-                    </div>
-                `;
-            });
-            container.innerHTML = html;
-            window._currentChars = chars; 
-        }
-
-        window.deleteCharacter = async (e, id) => {
-            e.stopPropagation();
-            if (!confirm("Удалить досье из Офиса?")) return;
-            const charObj = window._currentChars.find(c => c.id === id);
-            if(charObj) {
-                window.setSystemStatus("УДАЛЕНИЕ ДОСЬЕ...", "loading");
-                try {
-                    await updateDoc(doc(db, "offices", currentOfficeId), {
-                        characters: arrayRemove(charObj)
-                    });
-                    window.openOffice(currentOfficeId);
-                } catch(err) { 
-                    window.setSystemStatus("ОШИБКА УДАЛЕНИЯ", "error");
-                }
-            }
-        };
-
-        window.downloadPreset = (e, id) => {
-            e.stopPropagation();
-            const charObj = window._currentChars.find(c => c.id === id);
-            if (charObj && charObj.rawJson) {
-                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(charObj.rawJson, null, 2));
-                const dl = document.createElement('a');
-                dl.setAttribute("href", dataStr);
-                dl.setAttribute("download", charObj.name + "_preset.json");
-                document.body.appendChild(dl);
-                dl.click();
-                dl.remove();
-            }
-        };
-
-        window.switchRightTab = (tab) => {
-            document.getElementById('tab-news').classList.remove('active-tab');
-            document.getElementById('tab-rep').classList.remove('active-tab');
-            document.getElementById('wrapper-news').style.display = 'none';
-            document.getElementById('wrapper-rep').style.display = 'none';
-            
-            if(tab === 'news') {
-                document.getElementById('tab-news').classList.add('active-tab');
-                document.getElementById('wrapper-news').style.display = 'block';
-            } else {
-                document.getElementById('tab-rep').classList.add('active-tab');
-                document.getElementById('wrapper-rep').style.display = 'block';
-            }
-        };
-
-        window.addNews = async () => {
-            const authorInput = document.getElementById('news-author').value.trim() || 'Менеджер';
-            const textInput = document.getElementById('news-input').value.trim();
-            const dateInput = document.getElementById('news-date').value.trim();
-            
-            if (!textInput || !currentOfficeId) return;
-            
-            const finalDate = dateInput || new Date().toLocaleDateString('ru-RU');
-            
-            const newsObj = {
-                id: Date.now().toString(),
-                date: finalDate,
-                author: authorInput,
-                text: textInput
-            };
-            
-            window.setSystemStatus("ПУБЛИКАЦИЯ СВОДКИ...", "loading");
-            try {
-                await updateDoc(doc(db, "offices", currentOfficeId), {
-                    news: arrayUnion(newsObj)
-                });
-                document.getElementById('news-input').value = '';
-                document.getElementById('news-author').value = '';
-                document.getElementById('news-date').value = '';
-                window.openOffice(currentOfficeId);
-            } catch(err) { window.setSystemStatus("ОШИБКА ПУБЛИКАЦИИ", "error"); }
-        };
-
-        function renderNews(newsArr) {
-            const container = document.getElementById('news-container');
-            if (newsArr.length === 0) {
-                container.innerHTML = '<div class="tech-text" style="color: var(--text-dim);">Событий не зафиксировано.</div>';
-                return;
-            }
-            
-            const sorted = [...newsArr].sort((a,b) => parseInt(b.id) - parseInt(a.id));
-            
-            let html = '';
-            sorted.forEach(n => {
-                const delBtn = isCreator ? `<button class="btn-trash" onclick="window.deleteNews(${jsArg(n.id)})"><i class="fa-solid fa-trash"></i></button>` : '';
-                html += `
-                    <div class="news-item">
-                        ${delBtn}
-                        <div class="news-date">${esc(n.date)}</div>
-                        <div class="news-author">${esc(n.author)}</div>
-                        <div class="news-text">${escMultiline(n.text)}</div>
-                    </div>
-                `;
-            });
-            container.innerHTML = html;
-            window._currentNews = newsArr;
-        }
-
-        window.deleteNews = async (id) => {
-            if (!confirm("Удалить сводку?")) return;
-            const nObj = window._currentNews.find(n => n.id === id);
-            if(nObj) {
-                window.setSystemStatus("УДАЛЕНИЕ СВОДКИ...", "loading");
-                try {
-                    await updateDoc(doc(db, "offices", currentOfficeId), {
-                        news: arrayRemove(nObj)
-                    });
-                    window.openOffice(currentOfficeId);
-                } catch (err) { window.setSystemStatus("ОШИБКА УДАЛЕНИЯ СВОДКИ", "error"); }
-            }
-        };
-
-        window.addReputation = async () => {
-            const name = document.getElementById('rep-name').value.trim();
-            const iconUrl = document.getElementById('rep-icon').value.trim();
-            const score = parseInt(document.getElementById('rep-score').value);
-            
-            if (!name || isNaN(score) || !currentOfficeId) return;
-            if (score < -100 || score > 100) return alert("Репутация должна быть от -100 до 100");
-
-            window.setSystemStatus("ОБНОВЛЕНИЕ РЕПУТАЦИИ...", "loading");
-            try {
-                const repsCache = window._currentReps || [];
-                const existing = repsCache.find(r => r.name.toLowerCase() === name.toLowerCase());
-                
-                if (existing) {
-                    await updateDoc(doc(db, "offices", currentOfficeId), {
-                        reputations: arrayRemove(existing)
-                    });
-                }
-                
-                const repObj = { id: Date.now().toString(), name: name, score: score, iconUrl: iconUrl };
-                await updateDoc(doc(db, "offices", currentOfficeId), {
-                    reputations: arrayUnion(repObj)
-                });
-                
-                document.getElementById('rep-name').value = '';
-                document.getElementById('rep-score').value = '';
-                document.getElementById('rep-icon').value = '';
-                window.openOffice(currentOfficeId);
-            } catch(err) { 
-                console.error(err);
-                window.setSystemStatus("ОШИБКА ОБНОВЛЕНИЯ РЕПУТАЦИИ", "error"); 
-            }
-        };
-
-        function renderReputations(repArr) {
-            window._currentReps = repArr || []; 
-            const container = document.getElementById('rep-container');
-            
-            if (window._currentReps.length === 0) {
-                container.innerHTML = '<div class="tech-text" style="color: var(--text-dim);">Данные о репутации отсутствуют.</div>';
-                return;
-            }
-            
-            let html = '';
-            window._currentReps.forEach(r => {
-                const delBtn = isCreator ? `<button class="btn-trash" style="opacity: 1;" onclick="window.deleteReputation(${jsArg(r.id)})"><i class="fa-solid fa-trash"></i></button>` : '';
-                
-                let colorVar = 'var(--text-main)'; 
-                if (r.score < -50) colorVar = 'var(--color-red)';
-                if (r.score > 50) colorVar = 'var(--accent-primary)'; 
-
-                const absScore = Math.abs(r.score);
-                const blockCount = Math.floor(absScore / 10);
-                
-                let blocksHtml = '';
-                for(let i=0; i<10; i++) {
-                    if (i < blockCount) {
-                        blocksHtml += `<div style="flex:1; height: 10px; background-color: ${colorVar}; margin-right: 2px;"></div>`;
-                    } else {
-                        blocksHtml += `<div style="flex:1; height: 10px; border: 1px solid #333; margin-right: 2px;"></div>`;
-                    }
-                }
-
-                const repIcon = safeUrl(r.iconUrl);
-                const iconHtml = repIcon ? `<img src="${esc(repIcon)}" style="height:20px; width:20px; object-fit:contain; margin-left:8px; vertical-align:middle;" onerror="this.style.display='none'">` : '';
-
-                html += `
-                    <div class="news-item" style="border-left-color: ${colorVar}; margin-bottom: 24px;">
-                        <div style="position: absolute; right: 0; top: -5px;">${delBtn}</div>
-                        <div class="news-date" style="color: ${colorVar}; font-size:1rem; display:flex; align-items:center;">
-                            ${esc(r.name)} ${iconHtml}
-                        </div>
-                        <div style="display:flex; margin-top: 6px; width: calc(100% - 20px);">
-                            ${blocksHtml}
-                        </div>
-                    </div>
-                `;
-            });
-            container.innerHTML = html;
-        }
-
-        window.deleteReputation = async (id) => {
-            if (!confirm("Удалить данные фракции?")) return;
-            const rObj = window._currentReps.find(r => r.id === id);
-            if(rObj) {
-                window.setSystemStatus("УДАЛЕНИЕ РЕПУТАЦИИ...", "loading");
-                try {
-                    await updateDoc(doc(db, "offices", currentOfficeId), {
-                        reputations: arrayRemove(rObj)
-                    });
-                    window.openOffice(currentOfficeId);
-                } catch (err) { window.setSystemStatus("ОШИБКА УДАЛЕНИЯ РЕПУТАЦИИ", "error"); }
-            }
-        };
-
-        window.toggleQuestBuilder = () => {
-            document.getElementById('questBuilderModal').classList.toggle('hidden');
-        };
-        
-        window.closeQuestBuilderOnBg = (e) => {
-            if (e.target.id === 'questBuilderModal') window.toggleQuestBuilder();
-        };
-
-        window.selectQuestIcon = (iconName, el) => {
-            document.querySelectorAll('.q-icon-option').forEach(img => img.classList.remove('selected'));
-            el.classList.add('selected');
-            document.getElementById('q-icon-url').value = iconName;
-        };
-
-        window.clearIconSelection = () => {
-            document.querySelectorAll('.q-icon-option').forEach(img => img.classList.remove('selected'));
-        };
-
-        window.saveCustomQuest = async (closeModal = true) => {
-            const name = document.getElementById('q-name').value.trim();
-            const grade = parseInt(document.getElementById('q-grade').value);
-            const iconUrl = document.getElementById('q-icon-url').value;
-            const desc = document.getElementById('q-desc').value.trim();
-
-            if (!name || !currentOfficeId) return alert("Введите название контракта.");
-
-            const newQuest = {
-                id: 'custom_' + Date.now(),
-                name: name,
-                grade: grade,
-                Icon: iconUrl,
-                desc: desc
-            };
-
-            window.setSystemStatus("СОХРАНЕНИЕ КОНТРАКТА В БАЗУ...", "loading");
-            try {
-                await updateDoc(doc(db, "offices", currentOfficeId), {
-                    customQuests: arrayUnion(newQuest),
-                    activeQuests: arrayUnion(newQuest.id)
-                });
-                
-                window.setSystemStatus("КОНТРАКТ УСПЕШНО ДОБАВЛЕН", "success");
-                
-                if (closeModal) {
-                    window.toggleQuestBuilder();
-                }
-                
-                document.getElementById('q-name').value = '';
-                document.getElementById('q-desc').value = '';
-
-                window.openOffice(currentOfficeId);
-            } catch (err) {
-                window.setSystemStatus("ОШИБКА СОХРАНЕНИЯ КОНТРАКТА", "error");
-                console.error(err);
-            }
-        };
-
-        const gradeMapping = {
-            1: "ЦВЕТНОЙ", 2: "1 РАНГ", 3: "2 РАНГ", 4: "3 РАНГ", 5: "4 РАНГ", 
-            6: "5 РАНГ", 7: "6 РАНГ", 8: "7 РАНГ", 9: "8 РАНГ", 10: "9 РАНГ"
-        };
-
-        async function loadQuestsDB() {
-            try {
-                const res = await I18N.fetchData('quests.json');
-                if (res.ok) {
-                    const data = await res.json();
-                    questsDB = data.map((q, i) => ({ ...q, id: q.id || `sys_${i}` }));
-                }
-            } catch(e) { console.error("Quests JSON not found", e); }
-            
-            renderGradeAccordions();
-        }
-
-        window.toggleQuestManager = () => {
-            document.getElementById('questManagerModal').classList.toggle('hidden');
-        };
-        window.closeQuestManagerOnBg = (e) => {
-            if (e.target.id === 'questManagerModal') window.toggleQuestManager();
-        };
-
-        window.openQuestManager = () => {
-            const container = document.getElementById('qm-list');
-            let html = '';
-            
-            const officeQuests = (window.currentOfficeData && window.currentOfficeData.customQuests) ? window.currentOfficeData.customQuests : [];
-            const allQuests = questsDB.concat(officeQuests);
-            const activeQuests = window.currentOfficeData?.activeQuests || [];
-
-            for (let i = 1; i <= 10; i++) {
-                const gradeQuests = allQuests.filter(q => parseInt(q.grade) === i);
-                if (gradeQuests.length > 0) {
-                    html += `<div class="tech-text" style="margin-top: 12px; color: var(--color-yellow); border-bottom: 1px solid #333; padding-bottom: 4px; margin-bottom: 8px;">${gradeMapping[i]}</div>`;
-                    
-                    gradeQuests.forEach(q => {
-                        const isChecked = activeQuests.includes(q.id) ? 'checked' : '';
-                        const isCustom = q.id && !q.id.toString().startsWith('sys_');
-                        const delBtn = isCustom ? `<button class="btn-trash" style="position:relative; opacity:1;" title="Удалить кастомный квест" onclick="window.deleteCustomQuest(${jsArg(q.id)})"><i class="fa-solid fa-trash"></i></button>` : '';
-                        const qIcon = safeUrl(q.Icon);
-                        const iconHtml = qIcon ? `<img src="${esc(qIcon)}" style="height:20px; vertical-align:middle; margin-right:8px;" onerror="this.style.display='none'">` : '';
-
-                        html += `
-                            <div style="display:flex; justify-content:space-between; align-items:center; padding: 6px; border-bottom: 1px dashed #222;">
-                                <label style="display:flex; align-items:center; cursor:pointer; color: var(--text-main); font-family: 'Oswald'; font-size: 1rem;">
-                                    <input type="checkbox" class="qm-checkbox" value="${esc(q.id)}" ${isChecked} style="margin-right: 12px; accent-color: var(--color-yellow);">
-                                    ${iconHtml} ${esc(q.name)}
-                                </label>
-                                ${delBtn}
-                            </div>
-                        `;
-                    });
-                }
-            }
-            container.innerHTML = html;
-            window.toggleQuestManager();
-        };
-
-        window.saveQuestVisibility = async () => {
-            const checkboxes = document.querySelectorAll('.qm-checkbox');
-            const active = [];
-            checkboxes.forEach(cb => {
-                if (cb.checked) active.push(cb.value);
-            });
-
-            window.setSystemStatus("СОХРАНЕНИЕ НАСТРОЕК ДОСКИ...", "loading");
-            try {
-                await updateDoc(doc(db, "offices", currentOfficeId), { activeQuests: active });
-                window.currentOfficeData.activeQuests = active;
-                window.setSystemStatus("ДОСКА КОНТРАКТОВ ОБНОВЛЕНА", "success");
-                window.toggleQuestManager();
-                renderGradeAccordions(); 
-            } catch(e) {
-                window.setSystemStatus("ОШИБКА СОХРАНЕНИЯ ВИДИМОСТИ", "error");
-            }
-        };
-
-        window.deleteCustomQuest = async (id) => {
-            if (!confirm("Удалить этот контракт навсегда?")) return;
-            const qObj = window.currentOfficeData.customQuests.find(q => q.id === id);
-            
-            if(qObj) {
-                window.setSystemStatus("УДАЛЕНИЕ КОНТРАКТА...", "loading");
-                try {
-                    await updateDoc(doc(db, "offices", currentOfficeId), {
-                        customQuests: arrayRemove(qObj),
-                        activeQuests: arrayRemove(qObj.id)
-                    });
-                    
-                    window.currentOfficeData.customQuests = window.currentOfficeData.customQuests.filter(q => q.id !== id);
-                    window.currentOfficeData.activeQuests = window.currentOfficeData.activeQuests.filter(activeId => activeId !== id);
-                    
-                    window.openQuestManager(); 
-                    renderGradeAccordions(); 
-                    window.setSystemStatus("КОНТРАКТ УДАЛЕН", "success");
-                } catch (err) { window.setSystemStatus("ОШИБКА УДАЛЕНИЯ КОНТРАКТА", "error"); }
-            }
-        };
-
-        function renderGradeAccordions() {
-            const container = document.getElementById('grades-container');
-            let html = '';
-            
-            for (let i = 1; i <= 10; i++) {
-                html += `
-                    <div class="grade-block" id="grade-block-${i}">
-                        <div class="grade-header" onclick="window.toggleGrade(${i})">
-                            <span>КОНТРАКТЫ: ${gradeMapping[i]}</span>
-                            <div style="display: flex; align-items: center;">
-                                <div class="header-icons" id="header-icons-${i}"></div>
-                                <i class="fa-solid fa-chevron-down"></i>
-                            </div>
-                        </div>
-                        <div class="grade-content" id="grade-content-${i}"></div>
-                    </div>
-                `;
-            }
-            container.innerHTML = html;
-        }
-
-        window.toggleGrade = (gradeNum) => {
-            const block = document.getElementById(`grade-block-${gradeNum}`);
-            const content = document.getElementById(`grade-content-${gradeNum}`);
-            const headerIconsContainer = document.getElementById(`header-icons-${gradeNum}`);
-            
-            if (block.classList.contains('expanded')) {
-                block.classList.remove('expanded');
-                return;
-            }
-            
-            document.querySelectorAll('.grade-block').forEach(b => b.classList.remove('expanded'));
-            
-            const officeQuests = (window.currentOfficeData && window.currentOfficeData.customQuests) ? window.currentOfficeData.customQuests : [];
-            const activeQuests = window.currentOfficeData?.activeQuests || [];
-            const allQuests = questsDB.concat(officeQuests);
-            
-            const filtered = allQuests.filter(q => parseInt(q.grade) === gradeNum && activeQuests.includes(q.id));
-            
-            if (filtered.length === 0) {
-                content.innerHTML = '<div style="padding:16px; color:var(--text-dim); font-family:Oswald;">НА ДАННЫЙ МОМЕНТ НЕТ АКТИВНЫХ КОНТРАКТОВ ЭТОГО РАНГА.</div>';
-                headerIconsContainer.innerHTML = '';
-            } else {
-                let qHtml = '';
-                let uniqueIcons = new Set();
-
-                filtered.forEach(q => {
-                    let iconHtml = '';
-                    const qIcon = safeUrl(q.Icon);
-                    if (qIcon) {
-                        iconHtml = `&nbsp;&nbsp;&nbsp;<img src="${esc(qIcon)}" class="quest-icon" onerror="this.style.display='none'">`;
-                        uniqueIcons.add(qIcon);
-                    }
-                    
-                    const isCustomMarker = (q.id && !q.id.toString().startsWith('sys_')) ? `<span style="color:var(--text-dim); font-size:0.8rem; margin-left:8px;" title="Кастомный контракт">[OFFICE]</span>` : '';
-
-                    qHtml += `
-                        <div class="quest-item" onclick="this.classList.toggle('open')">
-                            <div class="quest-title">${esc(q.name)}${iconHtml}${isCustomMarker}</div>
-                            <div class="quest-desc">${escMultiline(q.desc)}</div>
-                        </div>
-                    `;
-                });
-                
-                content.innerHTML = qHtml;
-
-                let hIconsHtml = '';
-                uniqueIcons.forEach(iconSrc => {
-                    hIconsHtml += `<img src="${esc(iconSrc)}" class="quest-icon" style="margin-left:0;" onerror="this.style.display='none'">`;
-                });
-                headerIconsContainer.innerHTML = hIconsHtml;
-            }
-            
-            block.classList.add('expanded');
-        };
-    </script>
 </body>
 </html>

@@ -137,6 +137,8 @@ function renderAccount() {
       <button class="su-btn su-red" type="button" data-su="logout">Выйти</button>`;
     box.querySelector('.su-mail').textContent = state.user.email + (state.isAdmin ? ` · ${t('админ')}` : '');
     box.querySelector('#su-nick').value = state.nick;
+    if (state.nickStatus === 'taken') setMsg('Этот никнейм уже занят другим аккаунтом — выберите другой, иначе вас не найдут по нику', 'err');
+    else if (state.nickStatus === 'none') setMsg('Задайте никнейм — по нему вас добавляют в Офис', 'err');
     box.querySelector('[data-su="nick"]').onclick = async () => {
       try { await setNickname(box.querySelector('#su-nick').value); setMsg('Никнейм сохранён', 'ok'); }
       catch (e) { setMsg(e.message || 'Не удалось сохранить никнейм', 'err'); }
