@@ -1743,6 +1743,186 @@
     [/^(\d+) футов$/, '$1 feet']
   );
 
+  /* ===================== Админ-панель (admin.html, site/admin.js) ===================== */
+  Object.assign(dict, {
+    'Администрация / Administration': 'Administration',
+    'На главную': 'Home',
+    'Терминал администрации': 'Administration Terminal',
+    'Обзор': 'Overview', 'Доступы': 'Access', 'Канон': 'Canon', 'Пользователи': 'Users', 'Модерация': 'Moderation',
+    'Скрытое': 'Hidden', 'Журнал': 'Log',
+    // роли и права (site/auth.js)
+    'Кодер': 'Coder', 'Гл-Админ': 'Head Admin', 'Админ': 'Admin', 'админ': 'admin',
+    'Редактирование канона': 'Canon editing', 'Модерация пользовательской базы': 'User database moderation',
+    'Мониторинг и журнал': 'Monitoring and log', 'Блокировка пользователей': 'User bans',
+    'Скрытое содержимое': 'Hidden content', 'Админ-панель': 'Admin panel',
+    'Не удалось прочитать роль': 'Could not read the role',
+    'Аккаунт заблокирован: создавать и менять что-либо на сайте нельзя': 'Account banned: you cannot create or change anything on the site',
+    // общие сообщения
+    'Нет прав на это действие (если права точно есть — опубликуйте свежие firestore.rules)': 'No permission for this action (if you are sure you have it, publish the latest firestore.rules)',
+    'Нет соединения с Firestore': 'No connection to Firestore',
+    'Неизвестная ошибка': 'Unknown error',
+    'Ошибка': 'Error',
+    'только что': 'just now',
+    'Название не совпадает — ничего не удалено': 'The name does not match — nothing was deleted',
+    'В каноне есть несохранённые изменения. Уйти без сохранения?': 'The canon has unsaved changes. Leave without saving?',
+    'Админ-панель доступна только сотрудникам. Войдите в аккаунт.': 'The admin panel is for staff only. Please sign in.',
+    'Ваш аккаунт заблокирован': 'Your account is banned',
+    'Ваш аккаунт заблокирован — изменения сохраняться не будут.': 'Your account is banned — changes will not be saved.',
+    'Причина:': 'Reason:',
+    'У вашего аккаунта нет доступа к админ-панели. Доступ выдаёт Гл-Админ или Кодер — отправьте им ID аккаунта:': 'Your account has no access to the admin panel. Access is granted by a Head Admin or the Coder — send them your account ID:',
+    'Скопировать': 'Copy',
+    'ID скопирован': 'ID copied',
+    'Или ваш никнейм:': 'Or your nickname:',
+    'Никнейм у вас не задан в реестре — по нику вас не найти. Задайте его в ⚙ Настройках (левый нижний угол).': 'You have no registered nickname, so nobody can find you by nickname. Set one in ⚙ Settings (bottom left corner).',
+    // обзор
+    'Ваш доступ': 'Your access', 'Статистика': 'Statistics', 'Последние действия': 'Recent actions',
+    'Полный доступ, назначает Гл-Админов и Админов': 'Full access, appoints Head Admins and Admins',
+    'Все права, видит скрытое, назначает Админов': 'All permissions, sees hidden content, appoints Admins',
+    'Права выдаёт Гл-Админ': 'Permissions are granted by a Head Admin',
+    'Аккаунтов с ником': 'Accounts with a nickname', 'Активны за 24 ч': 'Active in 24 h', 'Активны за 7 дней': 'Active in 7 days',
+    'Записей в пользовательской базе': 'User database entries', 'Из них приватных': 'Of them private',
+    'Офисов': 'Offices', 'Ширм': 'Screens', 'Сотрудников (кроме Кодера)': 'Staff (besides the Coder)',
+    'Заблокировано': 'Banned', 'Файлов канона в Firestore': 'Canon files in Firestore', 'Журнал пуст': 'The log is empty',
+    // доступы
+    'Выдать доступ': 'Grant access', 'Изменить доступ': 'Change access', 'Найти и настроить': 'Find and configure',
+    'Ник, email или ID аккаунта': 'Nickname, email or account ID',
+    'Вы можете назначать Гл-Админов и Админов.': 'You can appoint Head Admins and Admins.',
+    'Гл-Админ назначает Админов и выбирает их права; Гл-Админов назначает Кодер.': 'A Head Admin appoints Admins and chooses their permissions; Head Admins are appointed by the Coder.',
+    'Искать можно по нику (если человек задал его в ⚙ Настройках), по email (если он заходил на сайт после обновления) или по ID аккаунта — его человек видит, открыв admin.html, а Кодер — в Firebase Console → Authentication (столбец User UID).':
+      'You can search by nickname (if the person set one in ⚙ Settings), by email (if they visited the site after the update) or by account ID — the person sees it by opening admin.html, and the Coder sees it in Firebase Console → Authentication (User UID column).',
+    'Сотрудники': 'Staff', 'Ник': 'Nickname', 'Роль': 'Role', 'Права': 'Permissions', 'Выдал': 'Granted by', 'Изменено': 'Changed',
+    'Все права. Задаётся в коде (site/auth.js и firestore.rules)': 'All permissions. Set in code (site/access-config.js and firestore.rules)',
+    'Все права + скрытое': 'All permissions + hidden', 'Нет прав': 'No permission', 'нет прав': 'no permissions', 'Пока никого': 'Nobody yet',
+    'всё': 'everything', 'Мониторинг': 'Monitoring', 'Блокировки': 'Bans',
+    'Не найден ни по нику, ни по email, ни по ID — см. подсказку под полем': 'Not found by nickname, email or ID — see the hint below the field',
+    'Этого сотрудника может менять только Кодер': 'Only the Coder can change this staff member',
+    'Свои права менять нельзя': 'You cannot change your own permissions',
+    'Поиск не удался': 'Search failed', 'Снять доступ с': 'Revoke access from', 'Доступ снят': 'Access revoked',
+    'Не удалось снять доступ': 'Could not revoke access',
+    'Аккаунт с таким ID ещё ни разу не отмечался на сайте. Всё равно выдать доступ? Проверьте ID — ошибка в нём выдаст доступ «никому».':
+      'An account with this ID has never been seen on the site. Grant access anyway? Check the ID — a typo would grant access to "nobody".',
+    'Права Админа': 'Admin permissions', '— по разделам:': '— by section:', 'по разделам:': 'by section:',
+    'Гл-Админ получает все права, видит скрытое содержимое (приватные записи, все Ширмы и Офисы) и сам назначает Админов.':
+      'A Head Admin gets all permissions, sees hidden content (private entries, all Screens and Offices) and appoints Admins.',
+    'Доступ сохранён': 'Access saved', 'Не удалось сохранить доступ': 'Could not save access',
+    // канон
+    'Персонажи': 'Characters', 'Предметы': 'Items', 'Механики': 'Mechanics', 'Мир': 'World', 'Статьи': 'Articles', 'Конструктор': 'Builder',
+    'Каноничные данные': 'Canon data', 'Обновить': 'Refresh', 'Перенести всё из Assets': 'Import everything from Assets',
+    'Сайт читает канон из Firestore (коллекция canon); если файла там нет или Firestore недоступен — из папки Assets/ репозитория. Правки видны всем сразу после сохранения.':
+      'The site reads the canon from Firestore (the canon collection); if a file is not there or Firestore is unavailable, it uses the repository Assets/ folder. Changes are visible to everyone right after saving.',
+    'Чтобы перенести правки обратно в репозиторий:': 'To copy the changes back into the repository:',
+    'Выберите файл слева.': 'Choose a file on the left.', 'Не удалось прочитать канон': 'Could not read the canon',
+    'Отбросить несохранённые изменения?': 'Discard unsaved changes?',
+    'Все доступные вам файлы уже в Firestore': 'All files available to you are already in Firestore',
+    'Перенести в Firestore файлов': 'Files to import into Firestore', 'Уже перенесённые файлы не трогаются.': 'Files already imported are left untouched.',
+    'Перенос…': 'Importing…', 'Перенос': 'Importing', 'Перенос из Assets': 'Import from Assets', 'Перенесено': 'Imported', 'нет в Assets': 'missing in Assets',
+    'Загрузка файла…': 'Loading the file…', 'Только Assets — ещё не перенесён': 'Assets only — not imported yet', 'Файла нет': 'No file',
+    'Скачать': 'Download', 'Загрузить файл': 'Upload file', 'Из Assets': 'From Assets', 'Копия русской': 'Copy of Russian',
+    'Убрать из Firestore': 'Remove from Firestore',
+    'Взять версию из репозитория (Assets/) в рабочую копию': 'Load the repository version (Assets/) into the working copy',
+    'Конструктор персонажа берёт черты, умения и предметы по порядку (индексу). Правка текста безопасна; добавление, удаление или перестановка записей требуют перегенерации Builder_*.json (node scripts/gen-builder-data.mjs) и их переноса.':
+      'The Character Builder matches feats, talents and items by order (index). Editing text is safe; adding, deleting or reordering entries requires regenerating Builder_*.json (node scripts/gen-builder-data.mjs) and importing them.',
+    'Карту базового мира удобнее править прямо в Ширме: откройте ширму из группы «Базовый мир» — у кого есть право на раздел «Мир», появится кнопка «Опубликовать в канон».':
+      'The base world map is easier to edit right in the Screen: open a screen from the "Base world" group — with permission for the "World" section you get a "Publish to canon" button.',
+    'Открыть Ширму': 'Open the Screen',
+    'Файла на этом языке нет — сайт показывает русскую версию. Нажмите «Копия русской», чтобы начать перевод.':
+      'There is no file in this language — the site shows the Russian version. Press "Copy of Russian" to start a translation.',
+    'В Assets/ нет такого файла': 'No such file in Assets/', 'Русской версии нет': 'No Russian version', 'русская версия': 'Russian version',
+    'Удалить файл из Firestore? Сайт снова будет брать его из Assets/ репозитория (правки, сделанные в панели, пропадут, если вы их не скачали).':
+      'Delete the file from Firestore? The site will use the repository Assets/ version again (changes made in the panel are lost unless you downloaded them).',
+    'Файл убран из Firestore': 'File removed from Firestore',
+    'Некорректный JSON': 'Invalid JSON', 'весь файл заменён': 'whole file replaced', 'файл': 'file',
+    'Загружено в рабочую копию': 'Loaded into the working copy', 'Не забудьте сохранить.': "Don't forget to save.",
+    'Поиск': 'Search', 'Добавить запись': 'Add entry', 'Дублировать': 'Duplicate', 'Выше': 'Up', 'Ниже': 'Down', 'Удалить запись': 'Delete entry',
+    'Ничего не найдено': 'Nothing found', 'новая запись': 'new entry', 'копия': 'copy', 'изменён порядок записей': 'entries reordered', 'удалено': 'deleted',
+    'Выберите запись.': 'Choose an entry.', 'Поля': 'Fields', 'Код': 'Code',
+    'Для этого файла нет полей конструктора — только код': 'This file has no builder fields — code only',
+    'Применить к записи': 'Apply to entry', 'Предпросмотр': 'Preview', 'Поддерживается Markdown': 'Markdown is supported',
+    'Изменено в рабочей копии — сохраните файл': 'Changed in the working copy — save the file',
+    'Несохранённые изменения': 'Unsaved changes', 'Комментарий к правке (попадёт в журнал)': 'Change comment (goes to the log)',
+    'Отменить всё': 'Discard all', 'Сохранить в Firestore': 'Save to Firestore', 'Отменить все несохранённые изменения?': 'Discard all unsaved changes?',
+    'Не удалось сохранить': 'Could not save',
+    'Файл сейчас сохраняется кем-то ещё — попробуйте ещё раз': 'Someone else is saving the file right now — try again',
+    'world.json не найден': 'world.json not found',
+    // пользователи
+    'Ник, email или uid': 'Nickname, email or uid', 'Активны за 24 ч ': 'Active in 24 h', 'Заблокированные': 'Banned',
+    'Список собирается из реестра ников и отметок активности (сайт пишет их при заходе, не чаще раза в 10 минут). Полный список аккаунтов Firebase сайту недоступен без серверного кода (тариф Spark): здесь нет тех, кто не задал ник и не заходил после обновления сайта. Такой человек может открыть admin.html и прислать свой ID аккаунта; все аккаунты видны Кодеру в Firebase Console → Authentication.':
+      'The list is built from the nickname registry and activity marks (the site writes them on visits, at most once every 10 minutes). The full list of Firebase accounts is not available to the site without server code (Spark plan): it lacks people who set no nickname and have not visited since the site update. Such a person can open admin.html and send their account ID; the Coder sees all accounts in Firebase Console → Authentication.',
+    'Был': 'Last seen', 'Впервые': 'First seen', 'Страница': 'Page', 'Статус': 'Status',
+    'Заблокирован': 'Banned', 'до': 'until', 'бан истёк': 'ban expired', 'Никого не найдено': 'Nobody found',
+    'Записи пользователя': "User's entries", 'Снять блокировку': 'Lift the ban', 'Снять блокировку с': 'Lift the ban from',
+    'Себя заблокировать нельзя': 'You cannot ban yourself', 'Сотрудника может заблокировать только Кодер': 'Only the Coder can ban a staff member',
+    'Блокировка снята': 'Ban lifted', 'Не удалось снять блокировку': 'Could not lift the ban',
+    'Заблокировать': 'Ban',
+    'Заблокированный пользователь может входить и читать сайт, но не может ничего создавать и менять: записи базы, Офисы, досье, Ширмы, никнейм. Проверяется на сервере (firestore.rules).':
+      'A banned user can sign in and read the site but cannot create or change anything: database entries, Offices, dossiers, Screens, nickname. Enforced on the server (firestore.rules).',
+    'Срок': 'Duration', 'день': 'day', 'дней': 'days', 'Навсегда': 'Forever', 'навсегда': 'forever', 'Причина': 'Reason',
+    'Пользователь заблокирован': 'User banned', 'Не удалось заблокировать': 'Could not ban',
+    // модерация
+    'Пользовательская база': 'User database', 'Название, автор или email': 'Name, author or email', 'Все типы': 'All types',
+    'Публичные': 'Public', 'Приватные': 'Private', 'Проставить флаг приватности': 'Set the privacy flag',
+    'Проставить isPrivate: false записям без флага': 'Set isPrivate: false on entries without the flag',
+    'Статус': 'Status', 'Архетип': 'Archetype', 'Черта': 'Feat', 'Э.Г.О. гифт': 'E.G.O. gift', 'Снаряжение': 'Equipment',
+    'Бестиарий': 'Bestiary', 'Правило': 'Rule', 'Лор': 'Lore',
+    'Автор': 'Author', 'Видимость': 'Visibility', 'Приватная': 'Private', 'Публичная': 'Public', 'без флага': 'no flag',
+    'Посмотреть': 'View', 'Сделать публичной': 'Make public', 'Сделать приватной': 'Make private',
+    'Копия попадёт в журнал.': 'A copy goes to the log.', 'Готово': 'Done', 'Запись удалена': 'Entry deleted', 'Не удалось удалить': 'Could not delete',
+    // скрытое
+    'Офисы': 'Offices', 'Приватные записи базы': 'Private database entries', 'Создатель': 'Creator', 'Участники': 'Members',
+    'Казна': 'Treasury', 'Офисов нет': 'No offices', 'Ширмы': 'Screens', 'Зрители / админы': 'Viewers / admins', 'Ширм нет': 'No screens',
+    'Офис, все досье, контракты и казна будут удалены навсегда. Введите название офиса для подтверждения':
+      'The office, all dossiers, contracts and treasury will be deleted forever. Type the office name to confirm',
+    'Офис удалён': 'Office deleted', 'Не удалось удалить офис': 'Could not delete the office',
+    'Ширма и все её объекты будут удалены навсегда. Введите название для подтверждения': 'The screen and all its objects will be deleted forever. Type the name to confirm',
+    'Ширма удалена': 'Screen deleted', 'Не удалось удалить ширму': 'Could not delete the screen',
+    'Офис': 'Office', 'Ширма': 'Screen', 'Загрузка досье…': 'Loading dossiers…', 'Контрактов': 'Contracts', 'Сводок': 'Reports',
+    'Имя': 'Name', 'Раса / класс': 'Race / class', 'Игрок': 'Player', 'Досье нет': 'No dossiers',
+    'Документ офиса целиком': 'Whole office document', 'Загрузка объектов…': 'Loading objects…', 'Объектов': 'Objects',
+    'Скрытых («туман войны»)': 'Hidden ("fog of war")', 'Зрители': 'Viewers', 'Админы': 'Admins', 'Объект': 'Object', 'скрыт': 'hidden',
+    'Пусто': 'Empty', 'Документ ширмы': 'Screen document',
+    // журнал
+    'Канон: правка': 'Canon: edit', 'Канон: перенос': 'Canon: import', 'Канон: убран из Firestore': 'Canon: removed from Firestore',
+    'Доступ выдан': 'Access granted', 'Доступ изменён': 'Access changed', 'Блокировка': 'Ban', 'Снятие блокировки': 'Ban lifted',
+    'Запись базы удалена': 'Database entry deleted', 'Видимость записи': 'Entry visibility', 'Флаги приватности': 'Privacy flags',
+    'Когда': 'When', 'Кто': 'Who', 'Действие': 'Action', 'Журнал действий': 'Action log', 'Все действия': 'All actions',
+    'Каждое действие в панели записывается сюда вместе с прежними значениями — по ним правку можно откатить вручную.':
+      'Every action in the panel is recorded here together with the previous values — they let you roll a change back manually.',
+    'Показать ещё': 'Show more', 'Записей нет': 'No records',
+    // поля конструктора (site/fields.js)
+    'Характеристики — "16 (+3)" или просто "16" (модификатор посчитается сам)': 'Ability scores — "16 (+3)" or just "16" (the modifier is computed automatically)',
+    // Ширма: правка базового мира
+    '● не опубликовано': '● not published', '⟳ публикация…': '⟳ publishing…', '✓ опубликовано': '✓ published', '⚠ ошибка': '⚠ error',
+    '⇪ Опубликовать в канон': '⇪ Publish to canon', 'Отменить правки': 'Discard changes',
+    'Записать правки в канон (world.json) — их увидят все': 'Write the changes to the canon (world.json) — everyone will see them',
+    'канон: правки видны всем после публикации': 'canon: changes are visible to everyone after publishing',
+    'Опубликовать правки базового мира? Комментарий для журнала:': 'Publish the base world changes? Comment for the log:',
+    'Что изменено': 'What changed',
+    'Записать ваши правки поверх? Чужие изменения этой ширмы пропадут. Иначе — «Отменить правки» и повторить.':
+      'Write your changes over them? The other changes to this screen will be lost. Otherwise use "Discard changes" and try again.',
+    'Нет прав на канон раздела «Мир»': 'No permission for the "World" canon section', 'Не удалось опубликовать': 'Could not publish',
+    'Отменить все неопубликованные правки этой ширмы?': 'Discard all unpublished changes to this screen?',
+    'В базовом мире есть неопубликованные правки. Уйти и отбросить их?': 'The base world has unpublished changes. Leave and discard them?',
+    'Этой ширмы больше нет в world.json — обновите страницу': 'This screen is no longer in world.json — reload the page',
+    'Базовый мир — справочник по лору. Узлы из него можно копировать в свои ширмы; править его могут только Админы канона раздела «Мир».':
+      'The base world is a lore reference. You can copy its nodes into your own screens; only canon Admins of the "World" section can edit it.',
+    'Доступ': 'Access',
+  });
+  patterns.push(
+    [/^(\d+) мин назад$/, '$1 min ago'], [/^(\d+) ч назад$/, '$1 h ago'], [/^(\d+) дн назад$/, '$1 d ago'],
+    [/^([\d.]+) КБ$/, '$1 KB'], [/^([\d.]+) МБ$/, '$1 MB'],
+    [/^v(\d+) \(([\d.]+) (КБ|МБ)\)$/, function (m, v, n, u) { return 'v' + v + ' (' + n + (u === 'КБ' ? ' KB' : ' MB') + ')'; }],
+    [/^(\d+) зап\.$/, '$1 entries'],
+    [/^Досье агентов \((\d+)\)$/, 'Agent dossiers ($1)'],
+    [/^Файл уже изменил (.+) \(версия (\d+)\)\. Перезагрузите его, чтобы не затереть правки\.$/, function (m, who, v) {
+      return 'The file was already changed by ' + (who === 'другой админ' ? 'another admin' : who) + ' (version ' + v + '). Reload it so you do not overwrite their changes.'; }],
+    [/^Эту ширму уже изменил (.+)\.$/, function (m, who) { return 'This screen was already changed by ' + (who === 'другой админ' ? 'another admin' : who) + '.'; }],
+    [/^Опубликовано в канон \(world\.json v(\d+)\)\. Игроки увидят при следующем открытии Ширмы\.$/, 'Published to canon (world.json v$1). Players will see it the next time they open the Screen.'],
+    [/^Опубликовано в канон \(world\.json v(\d+)\)\.$/, 'Published to canon (world.json v$1).'],
+    [/^Удалена версия (\d+); сайт берёт файл из Assets\/$/, 'Version $1 deleted; the site uses the file from Assets/'],
+    [/^\(старый формат, (\d+) символов\)$/, '(old format, $1 characters)'],
+    [/^Файл (.+) не может быть каноном$/, 'File $1 cannot be canon']
+  );
+
   window.I18N.register(dict, patterns);
   window.I18N.start();
 })();

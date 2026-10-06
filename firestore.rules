@@ -87,7 +87,8 @@ service cloud.firestore {
       }
       allow read: if signedIn() && (request.auth.uid == uid || can('ban') || can('monitor'));
       allow create, update: if mayBan() && validBan(request.resource.data);
-      allow delete: if can('ban');
+      // снять бан с сотрудника (его мог поставить только Кодер) — тоже только Кодер
+      allow delete: if can('ban') && (isCoder() || !exists(/databases/$(database)/documents/roles/$(uid)));
     }
 
     // ================= Активность (мониторинг) =================
