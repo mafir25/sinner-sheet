@@ -4,7 +4,9 @@
 import {
   onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile,
 } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
-import { doc, getDoc, runTransaction } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
+import {
+  doc, getDoc, setDoc, updateDoc, runTransaction, serverTimestamp,
+} from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 import { auth, db } from './firebase.js';
 
 /* ---------------- Ограничение попыток ввода пароля ----------------
@@ -200,42 +202,122 @@ async function ensureRegistered(user) {
   if (registry.uid === user.uid) { registry.status = status; emit(); }
 }
 
-/* ---------------- Администраторы ----------------
-   Права админа: документ admins/<email> в Firestore (его читает только сам пользователь).
-   BOOTSTRAP_ADMINS — запасной список на случай, если документы ещё не созданы.
-   Он же продублирован в firestore.rules: реальные права проверяет сервер, здесь — только интерфейс. */
-const BOOTSTRAP_ADMINS = ['nikkitamatveev2009@gmail.com', 'pavlovichpavel03@gmail.com'];
-const adminCache = new Map();
+/* ---------------- Роли и права ----------------
+   Кодер — владелец сайта: задан email-ом в CODER_EMAILS (тот же список — в firestore.rules, меняйте оба места).
+     Все права; только он назначает и снимает Гл-Админов.
+   Гл-Админ — roles/<uid> { role: 'headadmin' }: все права, видит скрытое (приватные записи, все Ширмы и Офисы),
+     назначает Админов и выбирает их права. Кодера и других Гл-Админов трогать не может.
+   Админ — roles/<uid> { role: 'admin', perms }: только выданные права (PERMS).
+   Реальные права проверяет сервер (firestore.rules); здесь — только интерфейс. */
+export const CODER_EMAILS = ['nikkitamatveev2009@gmail.com'];
+export const ROLES = { coder: 'Кодер', headadmin: 'Гл-Админ', admin: 'Админ' };
+export const PERMS = {
+  canon: 'Редактирование канона',
+  moderate: 'Модерация пользовательской базы',
+  monitor: 'Мониторинг и журнал',
+  ban: 'Блокировка пользователей',
+};
+// Группы канона (папки Assets/<язык>/…) — право canon выдаётся списком групп.
+export const CANON_GROUPS = (window.I18N && window.I18N.canon && window.I18N.canon.groups)
+  || ['characters', 'items', 'mechanics', 'world', 'articles', 'builder'];
 
-export async function isAdmin(user = auth.currentUser) {
-  if (!user?.email) return false;
-  if (adminCache.has(user.uid)) return adminCache.get(user.uid);
-  let ok = BOOTSTRAP_ADMINS.includes(user.email.toLowerCase());
-  if (!ok) {
-    try { ok = (await getDoc(doc(db, 'admins', user.email))).exists(); } catch { ok = false; }
+const isCoderUser = (user) => !!user?.email && CODER_EMAILS.includes(user.email.toLowerCase());
+const fullPerms = () => ({ canon: [...CANON_GROUPS], moderate: true, monitor: true, ban: true });
+export function normalizePerms(p) {
+  p = p && typeof p === 'object' ? p : {};
+  return {
+    canon: Array.isArray(p.canon) ? p.canon.filter((g) => CANON_GROUPS.includes(g)) : [],
+    moderate: p.moderate === true, monitor: p.monitor === true, ban: p.ban === true,
+  };
+}
+const NO_ACCESS = () => ({ role: null, perms: normalizePerms(null), banned: null });
+
+/** Действует ли блокировка (без until — навсегда). */
+export function banActive(ban) {
+  if (!ban) return false;
+  const until = ban.until?.toMillis ? ban.until.toMillis() : null;
+  return until == null || until > Date.now();
+}
+
+/** Роль, права и блокировка аккаунта: { role, perms, banned }. */
+export async function loadAccess(user = auth.currentUser) {
+  if (!user?.email) return NO_ACCESS();
+  const out = NO_ACCESS();
+  if (isCoderUser(user)) { out.role = 'coder'; out.perms = fullPerms(); }
+  else {
+    try {
+      const snap = await getDoc(doc(db, 'roles', user.uid));
+      const r = snap.exists() ? snap.data() : null;
+      if (r?.role === 'headadmin') { out.role = 'headadmin'; out.perms = fullPerms(); }
+      else if (r?.role === 'admin') { out.role = 'admin'; out.perms = normalizePerms(r.perms); }
+    } catch (e) { console.warn('Не удалось прочитать роль', e); }
+    try {
+      const b = await getDoc(doc(db, 'bans', user.uid));
+      if (b.exists() && banActive(b.data())) out.banned = b.data();
+    } catch { /* ignore */ }
   }
-  adminCache.set(user.uid, ok);
-  return ok;
+  return out;
+}
+
+/** Есть ли право: can(state, 'moderate'), canCanon(state, 'items'). */
+export const can = (s, perm) => !!s?.perms?.[perm] && (perm === 'canon' ? s.perms.canon.length > 0 : true);
+export const canCanon = (s, group) => !!s?.perms?.canon?.includes(group);
+export const isHead = (s) => s?.role === 'coder' || s?.role === 'headadmin';
+
+/* ---------------- Активность (для мониторинга) ----------------
+   presence/<uid> = { nick, email, page, lastSeen, firstSeen } — не чаще раза в 10 минут с браузера.
+   Читают только Админы с правом мониторинга или блокировки. */
+const PRESENCE_EVERY = 10 * 60_000;
+async function touchPresence(user, nick) {
+  const key = 'presence.t.' + user.uid;
+  try { if (Date.now() - Number(localStorage.getItem(key) || 0) < PRESENCE_EVERY) return; } catch { /* ignore */ }
+  const ref = doc(db, 'presence', user.uid);
+  const data = {
+    nick: String(nick || '').slice(0, NICK_MAX), email: user.email,
+    page: (location.pathname.split('/').pop() || 'index.html').slice(0, 80), lastSeen: serverTimestamp(),
+  };
+  try {
+    // первого документа ещё нет: правила отвечают на такой update отказом (permission-denied), а не not-found
+    try { await updateDoc(ref, data); }
+    catch { await setDoc(ref, { ...data, firstSeen: serverTimestamp() }); }
+    try { localStorage.setItem(key, String(Date.now())); } catch { /* ignore */ }
+  } catch (e) { console.warn('presence', e?.code || e); }
 }
 
 /* ---------------- Подписка на состояние ---------------- */
 const listeners = new Set();
-let state = { ready: false, user: null, isAdmin: false, nick: '', nickStatus: null };
+let state = { ready: false, user: null, isAdmin: false, nick: '', nickStatus: null, ...NO_ACCESS(), isStaff: false };
 
 function emit() {
   state = { ...state, nick: nicknameOf(state.user), nickStatus: nickRegistryStatus() };
   for (const cb of listeners) { try { cb(state); } catch (e) { console.error(e); } }
 }
 
+function accessState(a) {
+  // isAdmin — как раньше на страницах: видит и правит всю пользовательскую базу
+  return { ...a, isAdmin: can(a, 'moderate'), isStaff: !!a.role };
+}
+
 onAuthStateChanged(auth, async (user) => {
-  const admin = user ? await isAdmin(user) : false;
+  const access = user ? await loadAccess(user) : NO_ACCESS();
   if (auth.currentUser?.uid !== user?.uid) return; // за время проверки пользователь сменился
-  state = { ready: true, user: user || null, isAdmin: admin, nick: nicknameOf(user), nickStatus: null };
+  state = { ready: true, user: user || null, nick: nicknameOf(user), nickStatus: null, ...accessState(access) };
   emit();
-  if (user) ensureRegistered(user);
+  if (user) { ensureRegistered(user); touchPresence(user, user.displayName); }
 });
 
-/** Подписка на вход/выход. cb({ ready, user, isAdmin, nick, nickStatus }). Возвращает функцию отписки. */
+/** Перечитать роль и права (например, после изменения в админ-панели). */
+export async function refreshAccess() {
+  const user = auth.currentUser;
+  const access = user ? await loadAccess(user) : NO_ACCESS();
+  if (auth.currentUser?.uid !== user?.uid) return state;
+  state = { ...state, ...accessState(access) };
+  emit();
+  return state;
+}
+
+/** Подписка на вход/выход. cb({ ready, user, nick, nickStatus, role, perms, banned, isStaff, isAdmin }).
+    Возвращает функцию отписки. */
 export function onAuth(cb) {
   listeners.add(cb);
   if (state.ready) cb(state);

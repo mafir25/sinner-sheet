@@ -11,3 +11,15 @@ export const firebaseConfig = {
 
 // В проекте используется именованная база «default».
 export const FIRESTORE_DB = 'default';
+
+// Локальная разработка с эмуляторами Firebase (firebase emulators:start): только на localhost,
+// включается адресом ?emulator=1 (выключается ?emulator=0). На сайте не действует.
+export const EMULATOR = (() => {
+  try {
+    if (!['localhost', '127.0.0.1'].includes(location.hostname)) return null;
+    const q = new URLSearchParams(location.search).get('emulator');
+    if (q === '1') localStorage.setItem('dev.emulator', '1');
+    if (q === '0') localStorage.removeItem('dev.emulator');
+    return localStorage.getItem('dev.emulator') === '1' ? { host: '127.0.0.1', firestore: 8085, auth: 9099 } : null;
+  } catch { return null; }
+})();
