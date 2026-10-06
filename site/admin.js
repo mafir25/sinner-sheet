@@ -3,7 +3,7 @@
 // Разделы: Обзор, Доступы, Канон, Пользователи, Модерация, Скрытое, Журнал. Каждое действие пишется
 // в журнал audit/ одной пачкой с самим изменением.
 import {
-  collection, doc, getDocs, query, where, orderBy, limit, startAfter, writeBatch,
+  collection, doc, getDoc, getDocs, query, where, orderBy, limit, startAfter, writeBatch,
   serverTimestamp, getCountFromServer, Timestamp,
 } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 import { db, auth } from './firebase.js';
@@ -192,7 +192,7 @@ let lastKey = '';
 onAuth((a) => {
   S = a;
   renderWho();
-  const key = `${a.user?.uid || ''}|${a.role || ''}|${JSON.stringify(a.perms || {})}`;
+  const key = `${a.user?.uid || ''}|${a.role || ''}|${JSON.stringify(a.perms || {})}|${a.role ? '' : a.nickStatus}`;
   if (key === lastKey) return;
   lastKey = key;
   if (!a.ready) return;
@@ -205,9 +205,17 @@ onAuth((a) => {
   }
   if (!a.role) {
     $('#tabs').hidden = true;
-    view().innerHTML = `<div class="notice ${a.banned ? 'err' : ''}">${a.banned
-      ? `Ваш аккаунт заблокирован${a.banned.until ? ' до ' + esc(fmt(a.banned.until)) : ''}.${a.banned.reason ? ' Причина: ' + esc(a.banned.reason) : ''}`
-      : 'У вашего аккаунта нет доступа к админ-панели. Доступ выдаёт Гл-Админ или Кодер — сообщите им свой никнейм.'}</div>`;
+    view().innerHTML = a.banned
+      ? `<div class="notice err">Ваш аккаунт заблокирован${a.banned.until ? ' до ' + esc(fmt(a.banned.until)) : ''}.${a.banned.reason ? ' Причина: ' + esc(a.banned.reason) : ''}</div>`
+      : `<div class="notice">У вашего аккаунта нет доступа к админ-панели. Доступ выдаёт Гл-Админ или Кодер — отправьте им ID аккаунта:
+          <div class="row" style="margin:10px 0"><code class="mono notranslate" id="my-uid" style="color:var(--cyan);font-size:.95rem">${esc(a.user.uid)}</code>
+            <button class="btn sm" id="copy-uid"><i class="fa-solid fa-copy"></i> Скопировать</button></div>
+          ${a.nickStatus === 'ok' ? `Или ваш никнейм: <b class="notranslate">${esc(a.nick)}</b>.`
+            : 'Никнейм у вас не задан в реестре — по нику вас не найти. Задайте его в ⚙ Настройках (левый нижний угол).'}</div>`;
+    $('#copy-uid')?.addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(a.user.uid); toast('ID скопирован', 'ok'); }
+      catch { getSelection().selectAllChildren($('#my-uid')); }
+    });
     return;
   }
   $('#ban-note')?.remove();
@@ -283,11 +291,13 @@ async function renderAccess(v) {
     <div class="panel" style="margin-bottom:14px">
       <h2>Выдать доступ</h2>
       <div class="row">
-        <input class="in notranslate" id="acc-nick" placeholder="${esc(T('Никнейм пользователя'))}" style="max-width:320px" maxlength="40">
+        <input class="in notranslate" id="acc-nick" placeholder="${esc(T('Ник, email или ID аккаунта'))}" style="max-width:320px" maxlength="128">
         <button class="btn green" id="acc-find"><i class="fa-solid fa-user-plus"></i> Найти и настроить</button>
       </div>
-      <p class="muted small" style="margin-top:8px">Доступ выдаётся по никнейму (он задаётся в ⚙ Настройках). ${S.role === 'coder'
-        ? 'Вы можете назначать Гл-Админов и Админов.' : 'Гл-Админ назначает Админов и выбирает их права; Гл-Админов назначает Кодер.'}</p>
+      <p class="muted small" style="margin-top:8px">${S.role === 'coder'
+        ? 'Вы можете назначать Гл-Админов и Админов.' : 'Гл-Админ назначает Админов и выбирает их права; Гл-Админов назначает Кодер.'}
+        Искать можно по <b>нику</b> (если человек задал его в ⚙ Настройках), по <b>email</b> (если он заходил на сайт после обновления)
+        или по <b>ID аккаунта</b> — его человек видит, открыв admin.html, а Кодер — в Firebase Console → Authentication (столбец User UID).</p>
     </div>
     <div class="panel">
       <h2>Сотрудники</h2>
@@ -310,11 +320,11 @@ async function renderAccess(v) {
     </div>`;
 
   const find = async () => {
-    const nick = $('#acc-nick', v).value.trim();
-    if (!nick) return;
+    const q = $('#acc-nick', v).value.trim();
+    if (!q) return;
     try {
-      const u = await findUserByNick(nick);
-      if (!u) return toast('Пользователь с таким ником не найден', 'err');
+      const u = await findAccount(q);
+      if (!u) return toast('Не найден ни по нику, ни по email, ни по ID — см. подсказку под полем', 'err');
       const existing = rows.find((r) => r.uid === u.uid);
       if (existing && !canEdit(existing)) return toast('Этого сотрудника может менять только Кодер', 'err');
       if (u.uid === S.user.uid && S.role !== 'coder') return toast('Свои права менять нельзя', 'err');
@@ -333,6 +343,23 @@ async function renderAccess(v) {
         (b) => b.delete(doc(db, 'roles', r.uid)), { ok: 'Доступ снят', failMsg: 'Не удалось снять доступ' })) openTab('access');
     }
   };
+}
+
+/** Найти аккаунт по нику, email (отметка активности presence/) или ID. { uid, nick } или null. */
+async function findAccount(q) {
+  if (q.includes('@')) {
+    const snap = await getDocs(query(collection(db, 'presence'), where('email', '==', q.toLowerCase())));
+    const d = snap.docs[0] || (await getDocs(query(collection(db, 'presence'), where('email', '==', q)))).docs[0];
+    return d ? { uid: d.id, nick: d.data().nick || q.split('@')[0] } : null;
+  }
+  const byNick = await findUserByNick(q);
+  if (byNick) return byNick;
+  if (!/^[A-Za-z0-9]{20,40}$/.test(q)) return null;
+  // ID аккаунта: ник берём из реестра или отметки активности, если они есть
+  const [user, seen] = await Promise.all([getDoc(doc(db, 'users', q)), getDoc(doc(db, 'presence', q)).catch(() => null)]);
+  const nick = (user.exists() && user.data().nick) || (seen?.exists() && (seen.data().nick || String(seen.data().email || '').split('@')[0])) || '';
+  if (!nick && !confirm(T('Аккаунт с таким ID ещё ни разу не отмечался на сайте. Всё равно выдать доступ? Проверьте ID — ошибка в нём выдаст доступ «никому».'))) return null;
+  return { uid: q, nick };
 }
 
 function permChips(perms) {
@@ -778,8 +805,10 @@ async function renderUsers(v) {
           </select>
         </div>
       </div>
-      <p class="muted small" style="margin-bottom:10px">Список собирается из реестра ников и отметок активности (их пишет сайт при заходе, не чаще раза в 10 минут).
-        Аккаунты, которые ни разу не заходили после обновления сайта и не задали ник, здесь не видны.</p>
+      <p class="muted small" style="margin-bottom:10px">Список собирается из реестра ников и отметок активности (сайт пишет их при заходе,
+        не чаще раза в 10 минут). Полный список аккаунтов Firebase сайту недоступен без серверного кода (тариф Spark): здесь нет тех,
+        кто не задал ник и не заходил после обновления сайта. Такой человек может открыть admin.html и прислать свой ID аккаунта;
+        все аккаунты видны Кодеру в Firebase Console → Authentication.</p>
       <div class="table-wrap"><table>
         <thead><tr><th>Ник</th><th>Email</th><th>Роль</th><th>Был</th><th>Впервые</th><th>Страница</th><th>Статус</th><th></th></tr></thead>
         <tbody id="us-body"></tbody></table></div>
