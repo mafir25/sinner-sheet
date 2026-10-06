@@ -65,7 +65,9 @@ const STATUSES = {
   failed: { label: 'Провален', icon: 'fa-skull' },
 };
 const STATUS_ORDER = { open: 0, taken: 1, done: 2, failed: 3 };
-const ICON_PRESETS = ['Burn.png', 'Bleed.png', 'Tremor.png', 'Rupture.png', 'Sinking.png', 'Poise.png', 'Charge.png', 'Other.png', 'phis.png'];
+const ICON_PRESETS = ['Burn', 'Bleed', 'Tremor', 'Rupture', 'Sinking', 'Poise', 'Charge', 'Other', 'phis'].map((n) => `Assets/Icons/${n}.png`);
+// Старые задания хранят иконку как «Burn.png» (раньше иконки лежали в корне) — на сайте её отдаёт rewrite в vercel.json.
+const iconName = (ic) => ic.replace(/^.*\//, '').replace(/\.png$/, '');
 const DEFAULT_CS = { name: true, race: true, class: true, feats: true, desc: true, download: true };
 const LEDGER_MAX = 300;
 const NEWS_MAX = 500;
@@ -973,7 +975,7 @@ async function setQuestField(id, field, value) {
 /* Окно контракта */
 function fillIconGrid(selected) {
   $('q-icon-grid').innerHTML = ICON_PRESETS.map((ic) => `
-    <button type="button" class="q-icon-option" data-icon="${esc(ic)}" aria-pressed="${ic === selected}" title="${esc(ic.replace(/\.png$/, ''))}" aria-label="${esc(ic.replace(/\.png$/, ''))}"><img src="${esc(ic)}" alt=""></button>`).join('')
+    <button type="button" class="q-icon-option" data-icon="${esc(ic)}" aria-pressed="${ic === selected}" title="${esc(iconName(ic))}" aria-label="${esc(iconName(ic))}"><img src="${esc(ic)}" alt=""></button>`).join('')
     + `<button type="button" class="q-icon-option none" data-icon="" aria-pressed="${!selected}">${esc(T('БЕЗ ИКОНКИ'))}</button>`;
 }
 $('q-icon-grid').addEventListener('click', (e) => {

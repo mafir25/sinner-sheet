@@ -15,6 +15,7 @@ const CSS = `
 .su-fab:hover,.su-fab:focus-visible{opacity:1;box-shadow:0 0 12px rgba(69,179,203,.45)}
 .su-fab .su-dot{position:absolute;top:-4px;right:-4px;width:9px;height:9px;border-radius:50%;background:#8FCC2A;display:none}
 .su-fab.su-in .su-dot{display:block}
+@media(max-width:600px){.su-fab{left:8px;bottom:calc(8px + env(safe-area-inset-bottom));width:34px;height:34px;font-size:16px;opacity:.55}}
 .su-ov{position:fixed;inset:0;z-index:9001;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;padding:16px}
 .su-ov.su-open{display:flex}
 .su-box{width:min(420px,100%);max-height:calc(100vh - 32px);overflow:auto;background:#070707;border:1px solid #45B3CB;color:#E0D8C8;

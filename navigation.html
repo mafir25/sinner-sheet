@@ -100,7 +100,7 @@ h1,h2,h3,h4,.oswald{font-family:'Oswald',sans-serif;text-transform:uppercase}
 .hazard-tape{height:6px;background:repeating-linear-gradient(45deg,#000 0,#000 10px,var(--accent-muted) 10px,var(--accent-muted) 20px);
   border-bottom:1px solid var(--accent-primary)}
 
-.compendium-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:20px;align-items:stretch}
+.compendium-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(340px,100%),1fr));gap:20px;align-items:stretch}
 .card{transition:transform .18s ease,box-shadow .18s ease}
 .card:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.55)}
 .card.expanded{grid-column:1/-1;transform:none}
@@ -476,6 +476,8 @@ textarea.ce-code{font-family:Consolas,'Courier New',monospace;font-size:.85rem;m
 
 @media(max-width:600px){
   body{padding-top:88px}
+  .article-host .rule-desc p,.article-host .paragraph{text-align:left}
+  .article-host .panel-inner{padding:20px 16px}
   .topbar{height:auto;flex-wrap:wrap;padding:6px 10px;gap:6px}
   .sidebar{padding:20px 14px 40px}
 }
@@ -781,15 +783,15 @@ function downloadJson(data, filename){
    ============================================================ */
 const DICT = {
   types: {
-    Burn:{name:"Огонь",color:"#C7243A",icon:"Burn.png"},
-    Bleed:{name:"Кровотечение",color:"#E67E22",icon:"Bleed.png"},
-    Tremor:{name:"Тремор",color:"#F1C40F",icon:"Tremor.png"},
-    Rupture:{name:"Разрыв",color:"#40E0D0",icon:"Rupture.png"},
-    Sinking:{name:"Утопание",color:"#45B3CB",icon:"Sinking.png"},
-    Poise:{name:"Уверенность",color:"#1E3A8A",icon:"Poise.png"},
-    Charge:{name:"Заряд",color:"#9B59B6",icon:"Charge.png"},
-    Other:{name:"Иное",color:"#27AE60",icon:"Other.png"},
-    None:{name:"Физические",color:"#696969",icon:"phis.png"}
+    Burn:{name:"Огонь",color:"#C7243A",icon:"Assets/Icons/Burn.png"},
+    Bleed:{name:"Кровотечение",color:"#E67E22",icon:"Assets/Icons/Bleed.png"},
+    Tremor:{name:"Тремор",color:"#F1C40F",icon:"Assets/Icons/Tremor.png"},
+    Rupture:{name:"Разрыв",color:"#40E0D0",icon:"Assets/Icons/Rupture.png"},
+    Sinking:{name:"Утопание",color:"#45B3CB",icon:"Assets/Icons/Sinking.png"},
+    Poise:{name:"Уверенность",color:"#1E3A8A",icon:"Assets/Icons/Poise.png"},
+    Charge:{name:"Заряд",color:"#9B59B6",icon:"Assets/Icons/Charge.png"},
+    Other:{name:"Иное",color:"#27AE60",icon:"Assets/Icons/Other.png"},
+    None:{name:"Физические",color:"#696969",icon:"Assets/Icons/phis.png"}
   },
   stats: {
     Str:{name:"Сила",color:"#C7243A",fa:"fa-hand-fist"}, Dex:{name:"Ловкость",color:"#45B3CB",fa:"fa-feather-pointed"},
@@ -1008,7 +1010,7 @@ const CATS = {
     label:"Снаряжение", icon:"fa-shield-halved", color:"#9B59B6", kind:"data",
     title:"База снаряжения (equipment)", customType:"equip", src:"equipment.json",
     sub:"Мастерские, аугментации, налоги и арсенал Фиксеров.",
-    article:{ label:"Лор и правила", src:"equipment.html", pick:"#tab-lore" },
+    article:{ label:"Лор и правила", src:"articles/equipment-lore.html" },
     filters:[
       { key:"ItemType", title:"Тип предмета", dict:"itemTypes" },
       { key:"Type", title:"Типы урона (для оружия)", dict:"types" },
@@ -1497,26 +1499,23 @@ async function refreshCurrent(){
 }
 
 /* ============================================================
-   9. СТАТЬИ (rules / lore / лор снаряжения)
-   Контент берётся из исходных страниц — без дублирования текста.
+   9. СТАТЬИ (лор снаряжения)
+   Текст статьи — отдельный HTML-фрагмент в Assets/<Rus|Eng>/articles/.
    ============================================================ */
 const articleCache = {};
 async function renderArticle(a){
   const host = $("#article-view");
-  if (articleCache[a.src + a.pick]){ host.innerHTML = articleCache[a.src + a.pick]; return; }
+  if (articleCache[a.src]){ host.innerHTML = articleCache[a.src]; return; }
   host.innerHTML = `<div class="notice">Загрузка материала…</div>`;
   try {
-    const res = await fetch(a.src);
+    const res = await I18N.fetchData(a.src);
     if (!res.ok) throw new Error(`${a.src} недоступен`);
-    const dom  = new DOMParser().parseFromString(await res.text(), "text/html");
-    const node = dom.querySelector(a.pick);
-    if (!node) throw new Error(`Блок ${a.pick} не найден в ${a.src}`);
-    articleCache[a.src + a.pick] = node.innerHTML;
-    host.innerHTML = node.innerHTML;
+    const html = DOMPurify.sanitize(await res.text());
+    articleCache[a.src] = html;
+    host.innerHTML = html;
   } catch(e){
     host.innerHTML = `<div class="notice error">Не удалось загрузить материал.<br>
-      <span style="font-size:.8rem;color:var(--text-dim)">${esc(e.message)}</span><br>
-      <a href="${esc(a.src)}" class="tb-btn" style="display:inline-flex;margin-top:12px">Открыть страницу напрямую</a></div>`;
+      <span style="font-size:.8rem;color:var(--text-dim)">${esc(e.message)}</span></div>`;
   }
 }
 
@@ -1758,7 +1757,7 @@ function renderImageTool(){
     <div class="tool-hint">Вставится как <code>[ссылка W:ширина H:высота]</code>. Оставьте размеры пустыми —
       картинка впишется в ширину блока с сохранением пропорций. Указан только один размер — второй посчитается сам.</div>
     <div class="tech-text" style="margin-bottom:4px">Ссылка на изображение</div>
-    <input type="text" id="img-url" class="cloud-input" placeholder="https://… или Burn.png">
+    <input type="text" id="img-url" class="cloud-input" placeholder="https://… или Assets/Icons/Burn.png">
     <div class="b-row">
       <div><div class="tech-text" style="margin-bottom:4px">Ширина, px</div>
         <input type="number" id="img-w" class="cloud-input" placeholder="авто" min="1"></div>

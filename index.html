@@ -34,7 +34,7 @@
         .lore-text { font-family: 'Merriweather', serif; font-style: italic; color: var(--text-dim); font-size: 0.85rem; line-height: 1.4; }
         .tech-text { font-family: 'Inter', sans-serif; color: var(--text-dim); font-size: 0.8rem; letter-spacing: 1px; }
 
-        .terminal-header { text-align: center; margin-bottom: 50px; }
+        .terminal-header { text-align: center; margin-bottom: 50px; max-width: 100%; }
         .terminal-header h1 { font-size: 3rem; color: var(--color-cyan); letter-spacing: 4px; margin-bottom: 8px; text-shadow: 0 0 10px rgba(69, 179, 203, 0.3); }
         .terminal-header p { color: var(--accent-primary); letter-spacing: 2px; }
 
@@ -111,6 +111,9 @@
         @media (max-width: 600px) {
             .hub-container { grid-template-columns: 1fr; }
             .pmd-grid { grid-template-columns: 1fr; }
+            /* «МЕФИСТОФЕЛЬ» одним словом не помещается в узкий экран при 3rem */
+            .terminal-header h1 { font-size: clamp(1.6rem, 9vw, 3rem); letter-spacing: 2px; overflow-wrap: anywhere; }
+            .terminal-header p { letter-spacing: 1px; }
         }
     </style>
     <script src="site/i18n.js"></script>

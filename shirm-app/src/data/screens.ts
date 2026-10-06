@@ -12,10 +12,10 @@ import { type AccessLevel, type Item, type ItemMap, type ScreenMeta, SCHEMA_VERS
 
 const SCREENS = 'custom_screens';
 
-/** Данные сайта на выбранном языке (site/i18n.js): Assets/<Eng|Rus>/<name> с запасными путями. */
+/** Данные сайта на выбранном языке (site/i18n.js): Assets/<Eng|Rus>/<группа>/<name> с запасными путями. */
 function fetchData(name: string, init?: RequestInit): Promise<Response> {
   const i18n = (window as unknown as { I18N?: { fetchData(n: string, i?: RequestInit): Promise<Response> } }).I18N;
-  return i18n ? i18n.fetchData(name, init) : fetch(`/${name}`, init);
+  return i18n ? i18n.fetchData(name, init) : Promise.reject(new Error('site/i18n.js не загружен'));
 }
 
 function toMeta(id: string, d: DocumentData): ScreenMeta {

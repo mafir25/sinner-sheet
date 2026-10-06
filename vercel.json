@@ -2,20 +2,98 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "installCommand": "npm ci",
+  "redirects": [
+    {
+      "source": "/feats.html",
+      "destination": "/navigation.html#feats",
+      "permanent": false
+    },
+    {
+      "source": "/grimoire.html",
+      "destination": "/navigation.html#classes",
+      "permanent": false
+    },
+    {
+      "source": "/statuses.html",
+      "destination": "/navigation.html#statuses",
+      "permanent": false
+    },
+    {
+      "source": "/bestiary.html",
+      "destination": "/navigation.html#bestiary",
+      "permanent": false
+    },
+    {
+      "source": "/equipment.html",
+      "destination": "/navigation.html#equipment",
+      "permanent": false
+    },
+    {
+      "source": "/egogifts.html",
+      "destination": "/navigation.html#gifts",
+      "permanent": false
+    },
+    {
+      "source": "/lore.html",
+      "destination": "/navigation.html#lore",
+      "permanent": false
+    },
+    {
+      "source": "/rules.html",
+      "destination": "/navigation.html#rules",
+      "permanent": false
+    },
+    {
+      "source": "/custom.html",
+      "destination": "/navigation.html",
+      "permanent": false
+    },
+    {
+      "source": "/shirm-legacy.html",
+      "destination": "/shirm.html",
+      "permanent": false
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/:icon(Aggro|Bleed|Burn|Charge|Other|Poise|Rupture|Sinking|Tremor|phis)\\.png",
+      "destination": "/Assets/Icons/:icon.png"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=(), payment=()" },
-        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.googleapis.com https://www.gstatic.com https://cdn.jsdelivr.net https://latest.currency-api.pages.dev https://open.er-api.com; frame-src https://projectmoonchar.firebaseapp.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'" }
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=(), payment=()"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.googleapis.com https://www.gstatic.com https://cdn.jsdelivr.net https://latest.currency-api.pages.dev https://open.er-api.com; frame-src https://projectmoonchar.firebaseapp.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'"
+        }
       ]
     },
     {
       "source": "/site/(.*)",
-      "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }]
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
     }
   ]
 }
