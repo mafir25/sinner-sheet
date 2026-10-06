@@ -32,6 +32,7 @@ const STD_ARRAY = [15, 14, 13, 12, 10, 8];
 const LS_STATE = 'builder.v2.state';
 const LS_UPLOADS = 'builder.v2.uploads';
 const LS_VIEW = 'builder.v2.view';
+const LS_PRESET = 'builder.v2.preset'; // читает site/office.js
 
 /* ---------------- утилиты ---------------- */
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -276,6 +277,10 @@ let VIEW = 'cubes';
 
 function saveState() {
   try { localStorage.setItem(LS_STATE, JSON.stringify(S)); } catch (e) { /* приватный режим */ }
+  // Готовый пресет текущего персонажа — его подтягивает Офис (office.html → «Из конструктора»)
+  if (R) {
+    try { localStorage.setItem(LS_PRESET, JSON.stringify({ ...buildPreset(), savedAt: Date.now() })); } catch (e) { /* переполнено */ }
+  }
 }
 function loadState() {
   try {
@@ -1559,10 +1564,10 @@ function refreshModal() {
 /* =====================================================================
    ПРЕСЕТЫ
    ===================================================================== */
-function exportPreset() {
-  const customUsed = [R.arch, ...R.slots.map((s) => s.entry), ...S.extras.map((x) => xe(x).entry)].some(isCustom) || S.extras.length;
-  if (customUsed && !confirm(T('В персонаже есть пользовательские объекты или объекты вне слотов. Они сохранятся в пресете с пометкой «на усмотрение ДМ-а». Продолжить?'))) return;
-  const preset = {
+const usesCustom = () => [R.arch, ...R.slots.map((s) => s.entry), ...S.extras.map((x) => xe(x).entry)].some(isCustom) || S.extras.length > 0;
+function buildPreset() {
+  const customUsed = usesCustom();
+  return {
     format: 'sinner-sheet.character', version: 2,
     characterName: S.name, race: R.race ? R.race.name : '', className: R.arch ? entryName(R.arch) : R.base.name,
     desc: S.desc, feats: R.feats.map((r) => r.entry.data.Name), level: R.L,
@@ -1570,6 +1575,10 @@ function exportPreset() {
     dmReview: customUsed ? true : undefined,
     builder: clone(S),
   };
+}
+function exportPreset() {
+  if (usesCustom() && !confirm(T('В персонаже есть пользовательские объекты или объекты вне слотов. Они сохранятся в пресете с пометкой «на усмотрение ДМ-а». Продолжить?'))) return;
+  const preset = buildPreset();
   const blob = new Blob([JSON.stringify(preset, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);

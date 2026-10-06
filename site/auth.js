@@ -4,7 +4,7 @@
 import {
   onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, updateProfile,
 } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
-import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
+import { doc, getDoc, runTransaction } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 import { auth, db } from './firebase.js';
 
 /* ---------------- Ограничение попыток ввода пароля ----------------
@@ -121,15 +121,83 @@ export function nicknameOf(user) {
   return user.displayName || local || (user.email || '').split('@')[0];
 }
 
+/* Реестр ников в Firestore — по нику другие находят аккаунт (например, чтобы пустить в Офис).
+   nicknames/<nickId> = { uid, nick } — один документ на ник, поэтому ник уникален (без учёта регистра);
+   users/<uid> = { nick, nickId } — текущий ник аккаунта. Оба пишутся одной транзакцией,
+   а firestore.rules не дают держать больше одного ника и занять чужой. */
+const cleanNick = (nick) => String(nick || '').replace(/\s+/g, ' ').trim().slice(0, NICK_MAX);
+export const nickId = (nick) => 'n_' + encodeURIComponent(cleanNick(nick).toLowerCase());
+
+async function claimNickname(user, nick) {
+  const id = nickId(nick);
+  const userRef = doc(db, 'users', user.uid);
+  await runTransaction(db, async (tx) => {
+    const taken = await tx.get(doc(db, 'nicknames', id));
+    if (taken.exists() && taken.data().uid !== user.uid) {
+      throw new AuthError('Этот никнейм уже занят', 'local/nick-taken');
+    }
+    const me = await tx.get(userRef);
+    const old = me.exists() ? me.data().nickId : null;
+    if (old && old !== id) tx.delete(doc(db, 'nicknames', old));
+    tx.set(doc(db, 'nicknames', id), { uid: user.uid, nick });
+    tx.set(userRef, { nick, nickId: id });
+  });
+}
+
 export async function setNickname(nick) {
   const user = auth.currentUser;
-  nick = String(nick || '').trim().slice(0, NICK_MAX);
+  nick = cleanNick(nick);
   if (!user) throw new AuthError('Вы не вошли в аккаунт', 'local/no-user');
   if (!nick) throw new AuthError('Никнейм не может быть пустым', 'local/empty');
+  await claimNickname(user, nick);
   await updateProfile(user, { displayName: nick });
   try { localStorage.setItem(LS_NICK, nick); } catch { /* ignore */ }
   emit();
   return nick;
+}
+
+/** Найти аккаунт по нику: { uid, nick } или null. */
+export async function findUserByNick(nick) {
+  if (!cleanNick(nick)) return null;
+  const snap = await getDoc(doc(db, 'nicknames', nickId(nick)));
+  return snap.exists() ? { uid: snap.data().uid, nick: snap.data().nick } : null;
+}
+
+/** Текущие ники аккаунтов: Map uid → nick (кого нет в реестре — того нет и в ответе). */
+export async function nicknamesOf(uids) {
+  const out = new Map();
+  await Promise.all([...new Set(uids)].map(async (uid) => {
+    try {
+      const snap = await getDoc(doc(db, 'users', uid));
+      if (snap.exists() && snap.data().nick) out.set(uid, snap.data().nick);
+    } catch { /* нет доступа или сети — покажем сохранённое имя */ }
+  }));
+  return out;
+}
+
+/** Состояние ника в реестре: 'ok' | 'none' (ник не задан) | 'taken' (занят другим — нужно сменить) | 'error'. */
+let registry = { uid: null, status: null };
+export const nickRegistryStatus = () => (registry.uid === auth.currentUser?.uid ? registry.status : null);
+
+// Ники, заданные до появления реестра, регистрируем при входе (один раз за вкладку).
+async function ensureRegistered(user) {
+  if (registry.uid === user.uid && registry.status) return;
+  registry = { uid: user.uid, status: null };
+  // Ник «по умолчанию» (начало email) в общий реестр не отдаём — человек задаст свой в настройках.
+  let local = '';
+  try { local = localStorage.getItem(LS_NICK) || ''; } catch { /* ignore */ }
+  const nick = cleanNick(user.displayName || local);
+  if (!nick) { registry.status = 'none'; emit(); return; }
+  let status = 'error';
+  try {
+    const me = await getDoc(doc(db, 'users', user.uid));
+    if (me.exists() && me.data().nickId === nickId(nick)) status = 'ok';
+    else { await claimNickname(user, nick); status = 'ok'; }
+  } catch (e) {
+    status = e?.code === 'local/nick-taken' ? 'taken' : 'error';
+    if (status === 'error') console.warn('Реестр ников недоступен', e);
+  }
+  if (registry.uid === user.uid) { registry.status = status; emit(); }
 }
 
 /* ---------------- Администраторы ----------------
@@ -152,21 +220,22 @@ export async function isAdmin(user = auth.currentUser) {
 
 /* ---------------- Подписка на состояние ---------------- */
 const listeners = new Set();
-let state = { ready: false, user: null, isAdmin: false, nick: '' };
+let state = { ready: false, user: null, isAdmin: false, nick: '', nickStatus: null };
 
 function emit() {
-  state = { ...state, nick: nicknameOf(state.user) };
+  state = { ...state, nick: nicknameOf(state.user), nickStatus: nickRegistryStatus() };
   for (const cb of listeners) { try { cb(state); } catch (e) { console.error(e); } }
 }
 
 onAuthStateChanged(auth, async (user) => {
   const admin = user ? await isAdmin(user) : false;
   if (auth.currentUser?.uid !== user?.uid) return; // за время проверки пользователь сменился
-  state = { ready: true, user: user || null, isAdmin: admin, nick: nicknameOf(user) };
+  state = { ready: true, user: user || null, isAdmin: admin, nick: nicknameOf(user), nickStatus: null };
   emit();
+  if (user) ensureRegistered(user);
 });
 
-/** Подписка на вход/выход. cb({ ready, user, isAdmin, nick }). Возвращает функцию отписки. */
+/** Подписка на вход/выход. cb({ ready, user, isAdmin, nick, nickStatus }). Возвращает функцию отписки. */
 export function onAuth(cb) {
   listeners.add(cb);
   if (state.ready) cb(state);

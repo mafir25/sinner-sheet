@@ -50,20 +50,99 @@ service cloud.firestore {
       allow delete: if isOwner() || isAdmin();
     }
 
-    // ---------------- Офисы (office.html)
-    // Читают участники, меняет и удаляет только создатель.
+    // ---------------- Реестр ников (site/auth.js)
+    // nicknames/<nickId> = { uid, nick } — ник уникален; users/<uid> = { nick, nickId } — текущий ник аккаунта.
+    // Пишутся вместе одной транзакцией. Держать можно только один ник: занять новый можно, лишь указав его
+    // в своём users/<uid>, а сменить ник в users/<uid> — только удалив старый документ ника.
+    match /nicknames/{nid} {
+      function validNick(d) {
+        return d.keys().hasOnly(['uid', 'nick']) && d.uid == request.auth.uid
+          && isShortString(d.nick, 40) && d.nick.size() > 0;
+      }
+      allow read: if signedIn();
+      allow create: if signedIn() && validNick(request.resource.data)
+        && getAfter(/databases/$(database)/documents/users/$(request.auth.uid)).data.nickId == nid;
+      allow update: if signedIn() && resource.data.uid == request.auth.uid && validNick(request.resource.data);
+      allow delete: if signedIn() && resource.data.uid == request.auth.uid;
+    }
+    match /users/{uid} {
+      allow read: if signedIn();
+      allow create, update: if signedIn() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['nick', 'nickId'])
+        && isShortString(request.resource.data.nick, 40)
+        && request.resource.data.nickId is string
+        && getAfter(/databases/$(database)/documents/nicknames/$(request.resource.data.nickId)).data.uid == uid
+        && (resource == null
+            || resource.data.nickId == request.resource.data.nickId
+            || !existsAfter(/databases/$(database)/documents/nicknames/$(resource.data.nickId)));
+      allow delete: if false;
+    }
+
+    // ---------------- Офисы (office.html, site/office.js)
+    // Участники — по аккаунту (memberUids, их добавляют по нику). members — старый список email:
+    // он ещё даёт доступ, пока участник не зайдёт в Офис (тогда он сам переносит себя в memberUids).
+    // Меняет офис создатель; участник может только добавить/убрать самого себя (переход со старого списка и «покинуть офис»).
     match /offices/{oid} {
-      allow read: if signedIn() && myEmail() in resource.data.members;
+      function isCreatorOf(d) {
+        return ('creatorUid' in d) ? d.creatorUid == request.auth.uid : d.get('creator', '') == myEmail();
+      }
+      function inLegacyList(d) {
+        return myEmail() in d.get('members', []) || myEmail().lower() in d.get('members', []);
+      }
+      function isMemberOf(d) {
+        return request.auth.uid in d.get('memberUids', []) || inLegacyList(d) || isCreatorOf(d);
+      }
+      function office() { return get(/databases/$(database)/documents/offices/$(oid)).data; }
+
+      function creatorKept(n, o) {
+        return n.get('creator', '') == o.get('creator', '')
+          && n.creatorUid == o.get('creatorUid', request.auth.uid)
+          && request.auth.uid in n.memberUids;
+      }
+      // участник меняет только свою запись: свой uid в memberUids, своё имя в memberNames, свой email в members
+      function onlySelf(n, o) {
+        return n.diff(o).affectedKeys().hasOnly(['memberUids', 'memberNames', 'members'])
+          && n.get('memberUids', []).toSet().difference(o.get('memberUids', []).toSet()).hasOnly([request.auth.uid])
+          && o.get('memberUids', []).toSet().difference(n.get('memberUids', []).toSet()).hasOnly([request.auth.uid])
+          && n.get('memberNames', {}).diff(o.get('memberNames', {})).affectedKeys().hasOnly([request.auth.uid])
+          && o.get('members', []).toSet().difference(n.get('members', []).toSet()).hasOnly([myEmail(), myEmail().lower()])
+          && n.get('members', []).toSet().difference(o.get('members', []).toSet()).size() == 0;
+      }
+
+      // resource == null — офис удалён: слушатель получает «документа нет», а не ошибку доступа
+      allow read: if signedIn() && (resource == null || isMemberOf(resource.data));
       allow create: if signedIn()
         && request.resource.data.creator == myEmail()
-        && request.resource.data.members is list
-        && myEmail() in request.resource.data.members;
-      allow update: if signedIn()
-        && resource.data.creator == myEmail()
-        && request.resource.data.creator == resource.data.creator
-        && request.resource.data.members is list
-        && myEmail() in request.resource.data.members;
-      allow delete: if signedIn() && resource.data.creator == myEmail();
+        && request.resource.data.creatorUid == request.auth.uid
+        && request.resource.data.memberUids is list
+        && request.auth.uid in request.resource.data.memberUids;
+      allow update: if signedIn() && (
+        (isCreatorOf(resource.data) && request.resource.data.memberUids is list
+          && creatorKept(request.resource.data, resource.data))
+        || (!isCreatorOf(resource.data) && isMemberOf(resource.data) && onlySelf(request.resource.data, resource.data))
+      );
+      allow delete: if signedIn() && isCreatorOf(resource.data);
+
+      // Досье агентов. Создатель офиса управляет всеми; участник может добавить своё досье
+      // и обновлять досье, привязанные к нему (ownerUid), но не переназначать их.
+      match /agents/{aid} {
+        function validAgent(d) {
+          return d.keys().hasOnly(['name', 'race', 'className', 'level', 'feats', 'description', 'presetJson',
+                                   'ownerUid', 'ownerName', 'createdAt', 'updatedAt', 'order'])
+            && isShortString(d.name, 120)
+            && d.get('ownerUid', '') is string
+            && d.get('presetJson', '') is string && d.get('presetJson', '').size() < 600000;
+        }
+        allow read: if signedIn() && isMemberOf(office());
+        allow create: if signedIn() && validAgent(request.resource.data) && (
+          isCreatorOf(office())
+          || (isMemberOf(office()) && request.resource.data.ownerUid == request.auth.uid));
+        allow update: if signedIn() && validAgent(request.resource.data) && (
+          isCreatorOf(office())
+          || (isMemberOf(office()) && resource.data.ownerUid == request.auth.uid
+              && request.resource.data.ownerUid == request.auth.uid));
+        allow delete: if signedIn() && isCreatorOf(office());
+      }
     }
 
     // ---------------- Ширмы (shirm.html)
