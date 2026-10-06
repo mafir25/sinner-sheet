@@ -1,0 +1,1136 @@
+{
+  "_doc": "Метаданные черт для Конструктора персонажа. Генерируется scripts/gen-builder-data.mjs — правьте генератор и перезапускайте его.",
+  "feats": [
+    {
+      "id": "sin_enhanced_body",
+      "index": 0,
+      "name": "Тело, усиленное грехом",
+      "base": [
+        "Background"
+      ],
+      "background": true,
+      "repeatable": false,
+      "requires": {},
+      "effects": [
+        {
+          "type": "hpPerLevel",
+          "value": 5
+        },
+        {
+          "type": "perLevelStat",
+          "stats": {
+            "Str": 1
+          },
+          "once": {
+            "Dex": 1,
+            "Con": 1
+          }
+        },
+        {
+          "type": "statMax",
+          "stats": {
+            "Str": 22
+          }
+        },
+        {
+          "type": "note",
+          "text": "Владение спасбросками Телосложения."
+        },
+        {
+          "type": "grantFeat",
+          "feat": "sin_affinity"
+        },
+        {
+          "type": "featChoice",
+          "id": "bonus",
+          "label": "Дополнительная черта",
+          "options": [
+            "athlete_history",
+            "beyond_fast",
+            "strong_body"
+          ],
+          "ignoreReq": true
+        }
+      ],
+      "links": {
+        "feats": [
+          "sin_affinity",
+          "athlete_history",
+          "beyond_fast",
+          "strong_body"
+        ],
+        "other": []
+      }
+    },
+    {
+      "id": "backstreet_dweller",
+      "index": 1,
+      "name": "Житель Закоулков",
+      "base": [
+        "Background"
+      ],
+      "background": true,
+      "repeatable": false,
+      "requires": {},
+      "effects": [],
+      "links": {
+        "feats": [],
+        "other": []
+      }
+    },
+    {
+      "id": "mephistopheles_engine",
+      "index": 2,
+      "name": "Связь с Двигателем Мефистофеля",
+      "base": [
+        "Background"
+      ],
+      "background": true,
+      "repeatable": false,
+      "requires": {},
+      "effects": [
+        {
+          "type": "grantFeat",
+          "feat": "sin_affinity"
+        },
+        {
+          "type": "grantFeat",
+          "feat": "ego_weapon"
+        }
+      ],
+      "links": {
+        "feats": [
+          "sin_affinity",
+          "ego_weapon"
+        ],
+        "other": []
+      }
+    },
+    {
+      "id": "once_affiliated",
+      "index": 3,
+      "name": "Бывший член",
+      "base": [
+        "Background"
+      ],
+      "background": true,
+      "repeatable": false,
+      "requires": {},
+      "effects": [
+        {
+          "type": "classChoice",
+          "id": "second",
+          "label": "Дополнительная принадлежность"
+        }
+      ],
+      "links": {
+        "feats": [],
+        "other": []
+      }
+    },
+    {
+      "id": "workshop_connections",
+      "index": 4,
+      "name": "Связи с мастерскими",
+      "base": [
+        "Background"
+      ],
+      "background": true,
+      "repeatable": false,
+      "requires": {},
+      "effects": [
+        {
+          "type": "grantFeat",
+          "feat": "workshop_enthusiast"
+        },
+        {
+          "type": "note",
+          "text": "+1 очко модификаций мастерского оружия."
+        }
+      ],
+      "links": {
+        "feats": [
+          "workshop_enthusiast"
+        ],
+        "other": []
+      }
+    },
+    {
+      "id": "athlete_history",
+      "index": 5,
+      "name": "Атлетическое прошлое",
+      "base": [
+        "Body"
+      ],
+      "background": false,
+      "repeatable": false,
+      "requires": {
+        "stats": {
+          "Str": 15
+        }
+      },
+      "effects": [
+        {
+          "type": "stat",
+          "stats": {
+            "Str": 1
+          },
+          "cap": 20
+        }
+      ],
+      "links": {
+        "feats": [],
+        "other": []
+      }
+    },
+    {
+      "id": "colossal_physique",
+      "index": 6,
+      "name": "Колоссальное телосложение",
+      "base": [
+        "Body"
+      ],
+      "background": false,
+      "repeatable": false,
+      "requires": {
+        "stats": {
+          "Str": 17
+        },
+        "feats": [
+          "athlete_history"
+        ]
+      },
+      "effects": [],
+      "links": {
+        "feats": [
+          "athlete_history"
+        ],
+        "other": []
+      }
+    },
+    {
+      "id": "beyond_fast",
+      "index": 7,
+      "name": "Запредельная скорость",
+      "base": [
+        "Body"
+      ],
+      "background": false,
+      "repeatable": false,
+      "requires": {
+        "stats": {
+          "Dex": 15
+        }
+      },
+      "effects": [
+        {
+          "type": "stat",
+          "stats": {
+            "Dex": 1
+          },
+          "cap": 20
+        },
+        {
+          "type": "speed",
+          "value": 15
+        }
+      ],
+      "links": {
+        "feats": [],
+        "other": []
+      }
+    },
+    {
+      "id": "untraceable_speed",
+      "index": 8,
+      "name": "Неуловимая скорость",
+      "base": [
+        "Body"
+      ],
+      "background": false,
+      "repeatable": false,
+      "requires": {
+        "stats": {
+          "Dex": 17
+        },
+        "feats": [
+          "beyond_fast"
+        ]
+      },
+      "effects": [],
+      "links": {
+        "feats": [
+          "beyond_fast"
+        ],
+        "other": []
+      }
+    },
+    {
+      "id": "strong_body",
+      "index": 9,
+      "name": "Крепкое тело",
+      "base": [
+        "Body"
+      ],
+      "background": false,
+      "repeatable": false,
+      "requires": {
+        "stats": {
+          "Con": 15
+        }
+      },
+      "effects": [
+        {
+          "type": "stat",
+          "stats": {
+            "Con": 1
+          },
+          "cap": 20
+        },
+        {
+          "type": "hpConMult",
+          "value": 2
+        }
+      ],
+      "links": {
+        "feats": [],
+        "other": []
+      }
+    },
+    {
+      "id": "human_wall",
+      "index": 10,
+      "name": "Живая стена",
+      "base": [
+        "Body"
+      ],
+      "background": false,
+      "repeatable": false,
+      "requires": {
+        "stats": {
+          "Con": 17
+        },
+        "feats": [
+          "strong_body"
+        ]
+      },
+      "effects": [],
+      "links": {
+        "feats": [
+          "strong_body"
+        ],
+        "other": []
+      }
+    },
+    {
+      "id": "resilient",
+      "index": 11,
+      "name": "Стойкий",
+      "base": [
+        "Body"
+      ],
+      "background": false,
+      "repeatable": true,
+      "requires": {
+        "stats": {
+          "Con": 15
+        }
+      },
+      "effects": [
+        {
+          "type": "hitDieStep",
+          "value": 1
+        }
+      ],
+      "links": {
+        "feats": [],
+        "other": []
+      }
+    },
+    {
+      "id": "astute_observation",
+      "index": 12,
+      "name": "Проницательность",
+      "base": [
+        "Mind"
+      ],
+      "background": false,
+      "repeatable": false,
+      "requires": {
+        "stats": {
+          "Int": 15
+        }
+      },
+      "effects": [
+        {
+          "type": "stat",
+          "stats": {
+            "Int": 1
+          },
+          "cap": 20
+        }
+      ],
+      "links": {
+        "feats": [],
+        "other": []
+      }
+    },
+    {
+      "id": "analytical_mind",
+      "index": 13,
+      "name": "Аналитический ум",
+      "base": [
+        "Mind"
+      ],
+      "background": false,
+      "repeatable": false,
+      "requires": {
+        "stats": {
+          "Int": 17
+        },
+        "feats": [
+          "astute_observation"
+        ]
+      },
+      "effects": [],
+      "links": {
+        "feats": [
+          "astute_observation"
+        ],
+        "other": []
+      }
+    },
+    {
+      "id": "incredible_intuition",
+      "index": 14,
+      "name": "Невероятная интуиция",
+      "base": [
+        "Mind"
+      ],
+      "background": false,
+      "repeatable": false,
+      "requires": {
+        "stats": {
+          "Wis": 15
+        }
+      },
+      "effects": [
+        {
+          "type": "stat",
+          "stats": {
+            "Wis": 1
+          },
+          "cap": 20
+        }
+      ],
+      "links": {
+        "feats": [],
+        "other": [
+          "Боевой стиль"
+        ]
+      }
+    },
+    {
+      "id": "honed_psyche",
+      "index": 15,
+      "name": "Закалённая психика",
+      "base": [
+        "Mind"
+      ],
+      "background": false,
+      "repeatable": false,
+      "requires": {
+        "stats": {
+          "Wis": 17
+        },
+        "feats": [
+          "incredible_intuition"
+        ]
+      },
+      "effects": [],
+      "links": {
+        "feats": [
+          "incredible_intuition"
+        ],
+        "other": []
+      }
+    },
+    {
+      "id": "magnetising_charm",
+      "index": 16,
+      "name": "Притягательное обаяние",
+      "base": [
+        "Mind"
+      ],
+      "background": false,
+      "repeatable": false,
+      "requires": {
+        "stats": {
+          "Cha": 15
+        }
+      },
+      "effects": [
+        {
+          "type": "stat",
+          "stats": {
+            "Cha": 1
+          },
+          "cap": 20
+        },
+        {
+          "type": "dc",
+          "value": 1
+        }
+      ],
+      "links": {
+        "feats": [],
+        "other": []
+      }
+    },
+    {
+      "id": "overwhelming_presence",
+      "index": 17,
+      "name": "Подавляющее присутствие",
+      "base": [
+        "Mind"
+      ],
+      "background": false,
+      "repeatable": false,
+      "requires": {
+        "stats": {
+          "Cha": 17
+        },
+        "feats": [
+          "magnetising_charm"
+        ]
+      },
+      "effects": [
+        {
+          "type": "dc",
+          "value": 2
+        }
+      ],
+      "links": {
+        "feats": [
+          "magnetising_charm"
+        ],
+        "other": []
+      }
+    },
+    {
+      "id": "slam_master",
+      "index": 18,
+      "name": "Мастер бросков",
+      "base": [
+        "Martial Arts"
+      ],
+      "background": false,
+      "repeatable": false,
+      "requires": {
+        "stats": {
+          "Str": 16
+        }
+      },
+      "effects": [],
+      "links": {
+        "feats": [],
+        "other": []
+      }
+    },
+    {
+      "id": "acrobatic_fighter",
+      "index": 19,
+      "name": "Боец-акробат",
+      "base": [
+        "Martial Arts"
+      ],
+      "background": false,
+      "repeatable": false,
+      "requires": {
+        "stats": {
+          "Dex": 16
+        }
+      },
+      "effects": [],
+      "links": {
+        "feats": [],
+        "other": [
+          "Боевой стиль"
+        ]
+      }
+    },
+    {
+      "id": "protector",
+      "index": 20,
+      "name": "Защитник",
+      "base": [
+        "Martial Arts"
+      ],
+      "background": false,
+      "repeatable": false,
+      "requires": {
+        "anyStats": [
+          {
+            "Dex": 16
+          },
+          {
+            "Con": 16
+          }
+        ]
+      },
+      "effects": [],
+      "links": {
+        "feats": [],
+        "other": [
+          "Аггро"
+        ]
+      }
+    },
+    {
+      "id": "hardblood_arts",
+      "index": 21,
+      "name": "Искусства затвердевшей крови",
+      "base": [
+        "Affiliation"
+      ],
+      "background": false,
+      "repeatable": false,
+      "requires": {
+        "bloodfiend": true
+      },
+      "effects": [
+        {
+          "type": "pick",
+          "id": "art",
+          "label": "Искусство затвердевшей крови",
+          "parse": "bullets",
+          "from": "self",
+          "range": [
+            0,
+            5
+          ]
+        }
+      ],
+      "links": {
+        "feats": [],
+        "other": [
+          "Кровавый пир",
+          "Кровотечение"
+        ]
+      }
+    },
+    {
+      "id": "big_sibling",
+      "index": 22,
+      "name": "Старший брат",
+      "base": [
+        "Affiliation"
+      ],
+      "background": false,
+      "repeatable": false,
+      "requires": {
+        "level": 19,
+        "archetype": [
+          22
+        ]
+      },
+      "effects": [],
+      "links": {
+        "feats": [],
+        "other": [
+          "Средний Палец"
+        ]
+      }
+    },
+    {
+      "id": "imperfect_replica",
+      "index": 23,
+      "name": "Несовершенная копия",
+      "base": [
+        "Affiliation"
+      ],
+      "background": false,
+      "repeatable": false,
+      "requires": {
+        "level": 19,
+        "archetype": [
+          23
+        ]
+      },
+      "effects": [],
+      "links": {
+        "feats": [],
+        "other": [
+          "N-Корп"
+        ]
+      }
+    },
+    {
+      "id": "workshop_enthusiast",
+      "index": 24,
+      "name": "Энтузиаст мастерских",
+      "base": [
+        "Weapon"
+      ],
+      "background": false,
+      "repeatable": false,
+      "requires": {
+        "level": 4
+      },
+      "effects": [
+        {
+          "type": "slot",
+          "slot": "workshop",
+          "value": 1
+        }
+      ],
+      "links": {
+        "feats": [],
+        "other": []
+      }
+    },
+    {
+      "id": "aimed_shots",
+      "index": 25,
+      "name": "Прицельные выстрелы",
+      "base": [
+        "Weapon"
+      ],
+      "background": false,
+      "repeatable": false,
+      "requires": {
+        "stats": {
+          "Dex": 15
+        }
+      },
+      "effects": [],
+      "links": {
+        "feats": [],
+        "other": [
+          "Свет"
+        ]
+      }
+    },
+    {
+      "id": "firearm_adept",
+      "index": 26,
+      "name": "Знаток огнестрела",
+      "base": [
+        "Weapon"
+      ],
+      "background": false,
+      "repeatable": false,
+      "requires": {
+        "stats": {
+          "Dex": 16
+        },
+        "text": true
+      },
+      "effects": [],
+      "links": {
+        "feats": [],
+        "other": [
+          "Свет"
+        ]
+      }
+    },
+    {
+      "id": "blade_master",
+      "index": 27,
+      "name": "Мастер клинка",
+      "base": [
+        "Weapon"
+      ],
+      "background": false,
+      "repeatable": false,
+      "requires": {
+        "anyStats": [
+          {
+            "Dex": 16
+          },
+          {
+            "Str": 16
+          }
+        ]
+      },
+      "effects": [],
+      "links": {
+        "feats": [],
+        "other": [
+          "Разрыв",
+          "Столкновение",
+          "Свет"
+        ]
+      }
+    },
+    {
+      "id": "piercer",
+      "index": 28,
+      "name": "Пронзатель",
+      "base": [
+        "Weapon"
+      ],
+      "background": false,
+      "repeatable": false,
+      "requires": {
+        "anyStats": [
+          {
+            "Str": 16
+          },
+          {
+            "Dex": 16
+          }
+        ]
+      },
+      "effects": [],
+      "links": {
+        "feats": [],
+        "other": [
+          "Свет",
+          "Оковы"
+        ]
+      }
+    },
+    {
+      "id": "bludgeoner",
+      "index": 29,
+      "name": "Дробитель",
+      "base": [
+        "Weapon"
+      ],
+      "background": false,
+      "repeatable": false,
+      "requires": {
+        "stats": {
+          "Str": 16
+        }
+      },
+      "effects": [],
+      "links": {
+        "feats": [],
+        "other": [
+          "Свет",
+          "Хрупкость"
+        ]
+      }
+    },
+    {
+      "id": "sole_status",
+      "index": 30,
+      "name": "Единственный статус",
+      "base": [
+        "Status"
+      ],
+      "background": true,
+      "repeatable": false,
+      "requires": {},
+      "effects": [],
+      "links": {
+        "feats": [],
+        "other": []
+      }
+    },
+    {
+      "id": "sin_affinity",
+      "index": 31,
+      "name": "Сродство с грехом",
+      "base": [
+        "Sin"
+      ],
+      "background": false,
+      "repeatable": false,
+      "requires": {
+        "level": 4
+      },
+      "effects": [
+        {
+          "type": "pick",
+          "id": "sin",
+          "label": "Грех",
+          "parse": "bullets",
+          "from": "self",
+          "range": [
+            0,
+            7
+          ]
+        },
+        {
+          "type": "pick",
+          "id": "vuln",
+          "label": "Уязвимость к греху",
+          "options": [
+            "Гнев",
+            "Похоть",
+            "Лень",
+            "Зависть",
+            "Уныние",
+            "Чревоугодие",
+            "Гордыня"
+          ]
+        }
+      ],
+      "links": {
+        "feats": [],
+        "other": [
+          "Свет",
+          "Разрыв",
+          "Кровотечение",
+          "Потопление",
+          "Тремор",
+          "Горение"
+        ]
+      }
+    },
+    {
+      "id": "advanced_sin_affinity",
+      "index": 32,
+      "name": "Продвинутое сродство с грехом",
+      "base": [
+        "Sin"
+      ],
+      "background": false,
+      "repeatable": false,
+      "requires": {
+        "feats": [
+          "sin_affinity"
+        ]
+      },
+      "effects": [
+        {
+          "type": "pick",
+          "id": "sin2",
+          "label": "Второй грех (I уровня)",
+          "options": [
+            "Гнев",
+            "Похоть",
+            "Лень",
+            "Зависть",
+            "Уныние",
+            "Чревоугодие",
+            "Гордыня"
+          ]
+        }
+      ],
+      "links": {
+        "feats": [
+          "sin_affinity"
+        ],
+        "other": []
+      }
+    },
+    {
+      "id": "mastered_sin_affinity",
+      "index": 33,
+      "name": "Совершенное сродство с грехом",
+      "base": [
+        "Sin"
+      ],
+      "background": false,
+      "repeatable": false,
+      "requires": {
+        "feats": [
+          "advanced_sin_affinity"
+        ]
+      },
+      "effects": [
+        {
+          "type": "pick",
+          "id": "sin3",
+          "label": "Третий грех (I уровня)",
+          "options": [
+            "Гнев",
+            "Похоть",
+            "Лень",
+            "Зависть",
+            "Уныние",
+            "Чревоугодие",
+            "Гордыня"
+          ]
+        }
+      ],
+      "links": {
+        "feats": [
+          "sin_affinity",
+          "advanced_sin_affinity"
+        ],
+        "other": []
+      }
+    },
+    {
+      "id": "shin_and_mang",
+      "index": 34,
+      "name": "Шин и Ман",
+      "base": [
+        "Shin and Mang"
+      ],
+      "background": false,
+      "repeatable": false,
+      "requires": {
+        "level": 9
+      },
+      "effects": [],
+      "links": {
+        "feats": [],
+        "other": [
+          "Свет"
+        ]
+      }
+    },
+    {
+      "id": "improved_shin_and_mang",
+      "index": 35,
+      "name": "Улучшенные Шин и Ман",
+      "base": [
+        "Shin and Mang"
+      ],
+      "background": false,
+      "repeatable": false,
+      "requires": {
+        "feats": [
+          "shin_and_mang"
+        ]
+      },
+      "effects": [],
+      "links": {
+        "feats": [
+          "shin_and_mang"
+        ],
+        "other": []
+      }
+    },
+    {
+      "id": "mastered_shin_and_mang",
+      "index": 36,
+      "name": "Совершенные Шин и Ман",
+      "base": [
+        "Shin and Mang"
+      ],
+      "background": false,
+      "repeatable": false,
+      "requires": {
+        "feats": [
+          "improved_shin_and_mang"
+        ]
+      },
+      "effects": [],
+      "links": {
+        "feats": [
+          "shin_and_mang",
+          "improved_shin_and_mang"
+        ],
+        "other": []
+      }
+    },
+    {
+      "id": "ego_weapon",
+      "index": 37,
+      "name": "Э.Г.О.-оружие",
+      "base": [
+        "E.G.O"
+      ],
+      "background": false,
+      "repeatable": false,
+      "requires": {
+        "notFeats": [
+          "efflorescent_ego"
+        ]
+      },
+      "effects": [
+        {
+          "type": "egoAttack"
+        }
+      ],
+      "links": {
+        "feats": [
+          "efflorescent_ego"
+        ],
+        "other": []
+      }
+    },
+    {
+      "id": "manifest_ego",
+      "index": 38,
+      "name": "Проявление Э.Г.О.",
+      "base": [
+        "E.G.O"
+      ],
+      "background": false,
+      "repeatable": false,
+      "requires": {
+        "level": 12,
+        "feats": [
+          "ego_weapon"
+        ]
+      },
+      "effects": [
+        {
+          "type": "note",
+          "text": "Во время проявления Э.Г.О.: +2 к каждой характеристике (временно, в расчёт не входит)."
+        }
+      ],
+      "links": {
+        "feats": [
+          "ego_weapon"
+        ],
+        "other": []
+      }
+    },
+    {
+      "id": "volatile_ego",
+      "index": 39,
+      "name": "Нестабильное Э.Г.О.",
+      "base": [
+        "E.G.O"
+      ],
+      "background": false,
+      "repeatable": false,
+      "requires": {
+        "notFeats": [
+          "ego_weapon"
+        ],
+        "text": true
+      },
+      "effects": [
+        {
+          "type": "egoForm",
+          "form": "volatile"
+        }
+      ],
+      "links": {
+        "feats": [
+          "efflorescent_ego",
+          "ego_weapon"
+        ],
+        "other": []
+      }
+    },
+    {
+      "id": "efflorescent_ego",
+      "index": 40,
+      "name": "Расцветшее Э.Г.О.",
+      "base": [
+        "E.G.O"
+      ],
+      "background": false,
+      "repeatable": false,
+      "requires": {
+        "notFeats": [
+          "ego_weapon"
+        ]
+      },
+      "effects": [
+        {
+          "type": "egoForm",
+          "form": "efflorescent"
+        }
+      ],
+      "links": {
+        "feats": [
+          "volatile_ego",
+          "ego_weapon"
+        ],
+        "other": []
+      }
+    }
+  ]
+}

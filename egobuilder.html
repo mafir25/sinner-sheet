@@ -104,6 +104,24 @@
         .btn-small-bld { background: transparent; border: 1px solid var(--color-cyan); color: var(--color-cyan); cursor: pointer; padding: 4px 8px; font-size: 0.75rem; text-transform: uppercase; transition: 0.2s; font-family: 'Oswald'; }
         .btn-small-bld:hover { background: var(--color-cyan); color: #000; }
 
+        /* Библиотека и панель инструментов */
+        .lib-toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+        .file-btn { position: relative; overflow: hidden; display: inline-flex; align-items: center; gap: 4px; }
+        .file-btn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+        .out-btns { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+        .save-btn { border-color: var(--color-yellow); color: var(--color-yellow); }
+        .save-btn:hover { background: var(--color-yellow); color: #000; }
+        .lib-block { margin-top: 24px; border-top: 1px dashed #333; padding-top: 14px; }
+        .lib-title { font-family: 'Oswald'; color: var(--accent-primary); font-size: 1.1rem; margin-bottom: 10px; }
+        .lib-sub { color: var(--text-dim); font-size: 0.8rem; font-family: 'Inter'; text-transform: none; }
+        .lib-empty { color: var(--text-dim); font-size: 0.85rem; margin-bottom: 10px; }
+        .lib-item { display: flex; align-items: center; gap: 8px; border: 1px solid #333; padding: 8px; margin-bottom: 6px; }
+        .lib-item:hover { border-color: var(--accent-primary); }
+        .lib-item-main { flex: 1; cursor: pointer; }
+        .lib-item-name { font-family: 'Oswald'; font-size: 1rem; }
+        .lib-item-meta { color: var(--color-cyan); font-size: 0.8rem; }
+        .lib-link { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; margin-top: 8px; }
+
         /* Сайдбар Базы Статусов */
         .sidebar-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 2000; opacity: 0; pointer-events: none; transition: 0.3s; backdrop-filter: blur(3px); }
         .sidebar-overlay.active { opacity: 1; pointer-events: all; }
@@ -127,118 +145,32 @@
 
     </style>
     <script src="site/i18n.js"></script>
+    <script src="site/ego-core.js"></script>
     <script type="module" src="site/ui.js"></script>
 </head>
 <body>
 
     <a href="index.html" class="top-nav-btn"><i class="fa-solid fa-arrow-left"></i> ХАБ</a>
+    <a href="builder.html" class="top-nav-btn" style="left:auto; right:20px;"><i class="fa-solid fa-user-gear"></i> КОНСТРУКТОР ПЕРСОНАЖА</a>
 
     <div class="header-bar">
         <div class="header-title oswald">КОНСТРУКТОР Э.Г.О. (E.G.O. MANIFESTATION)</div>
     </div>
 
     <div class="builder-container">
-        
+
         <!-- ВЕРХНИЙ БЛОК: ВВОД И ВЫВОД -->
         <div class="builder-top-row">
-            <!-- ЛЕВАЯ ПАНЕЛЬ: ВВОД -->
+            <!-- ЛЕВАЯ ПАНЕЛЬ: ВВОД (форма из site/ego-core.js) -->
             <div class="panel-outer cut-tl">
                 <div class="hazard-tape"></div>
                 <div class="panel-inner cut-tl" style="border-top: none;">
-                    
-                    <div class="tabs">
-                        <button class="tab-btn active" id="tab-attack" onclick="window.switchTab('attack')">АТАКА Э.Г.О.</button>
-                        <button class="tab-btn" id="tab-eff" onclick="window.switchTab('efflorescent')">РАСЦВЕТАЮЩЕЕ Э.Г.О.</button>
+                    <div class="lib-toolbar">
+                        <button class="btn-small-bld" onclick="window.newEgo()"><i class="fa-solid fa-plus"></i> НОВОЕ Э.Г.О.</button>
+                        <label class="btn-small-bld file-btn"><i class="fa-solid fa-upload"></i> ЗАГРУЗИТЬ JSON<input type="file" accept=".json" onchange="window.importEgo(event)"></label>
+                        <button class="btn-small-bld" onclick="window.toggleStatusesSidebar()"><i class="fa-solid fa-book"></i> БАЗА СТАТУСОВ</button>
                     </div>
-
-                    <div class="points-display" id="points-display">
-                        ДОСТУПНЫЕ ОЧКИ: <span id="pts-count" style="color: #fff;">0</span> / <span id="pts-max">0</span>
-                    </div>
-
-                    <div class="form-group">
-                        <label>Название Э.Г.О.</label>
-                        <input type="text" id="ego-name" class="cloud-input" placeholder="Например: Bodysack" oninput="window.updateOutput()">
-                    </div>
-                    <div class="form-group">
-                        <label>Фраза при использовании (Quote)</label>
-                        <input type="text" id="ego-quote" class="cloud-input" placeholder="Например: Я ничего не смог изменить..." oninput="window.updateOutput()">
-                    </div>
-
-                    <!-- БЛОК АТАКИ -->
-                    <div id="block-attack">
-                        <div class="form-group">
-                            <label>Уровень Угрозы (Ранг)</label>
-                            <select id="ego-rank" class="cloud-select" onchange="window.recalcPoints()">
-                                <option value="4">ZAYIN (4 Очка)</option>
-                                <option value="5">TETH (5 Очков)</option>
-                                <option value="6">HE (6 Очков)</option>
-                                <option value="7">WAW (7 Очков)</option>
-                                <option value="8">ALEPH (8 Очков)</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Дистанция атаки (База)</label>
-                            <select id="ego-range" class="cloud-select" onchange="window.updateOutput()">
-                                <option value="ranged">Дальний бой - 30 футов (Урон 2d8)</option>
-                                <option value="melee">Ближний бой - 5 футов (Урон 2d12)</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Тип Урона</label>
-                            <select id="ego-dmgtype" class="cloud-select" onchange="window.updateOutput()">
-                                <option value="Рубящий (Slashing)">Рубящий (Slashing)</option>
-                                <option value="Колющий (Piercing)">Колющий (Piercing)</option>
-                                <option value="Дробящий (Bludgeoning)">Дробящий (Bludgeoning)</option>
-                            </select>
-                        </div>
-                        
-                        <div class="tech-text" style="margin-top: 20px; border-bottom: 1px solid #333; padding-bottom: 4px;">УЛУЧШЕНИЯ (ПОКУПКА ЗА ОЧКИ)</div>
-                        <div id="upgrades-attack"></div>
-
-                        <div class="form-group" style="margin-top: 20px;">
-                            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px;">
-                                <label style="margin:0;">Кастомные эффекты / Статусы</label>
-                                <button class="btn-small-bld" onclick="window.toggleStatusesSidebar()"><i class="fa-solid fa-book"></i> БАЗА СТАТУСОВ</button>
-                            </div>
-                            <div class="tech-text" style="margin-bottom: 6px; font-size: 0.75rem;">Вложите очки в "Кастомные Статусы/Дебаффы" выше, чтобы ваши записи отсюда отображались в итоговом листе.</div>
-                            <textarea id="ego-custom" class="cloud-input" placeholder="Опишите накладываемые статусы (например: Накладывает 4 Кровотечения)..." oninput="window.updateOutput()"></textarea>
-                        </div>
-                    </div>
-
-                    <!-- БЛОК РАСЦВЕТАЮЩЕГО Э.Г.О. -->
-                    <div id="block-eff" style="display: none;">
-                        <div class="form-group">
-                            <label>Тип формы</label>
-                            <select id="eff-type" class="cloud-select" onchange="window.recalcPoints()">
-                                <option value="7">Расцветающее Э.Г.О. / Трансформация (7 Очков)</option>
-                                <option value="pb">Нестабильное Э.Г.О. (Кол-во очков = Ваш ПБ)</option>
-                            </select>
-                        </div>
-                        <div class="form-group" id="pb-group" style="display: none;">
-                            <label>Ваш Бонус Мастерства (PB)</label>
-                            <input type="number" id="eff-pb" class="cloud-input" value="3" min="2" max="6" onchange="window.recalcPoints()">
-                        </div>
-                        <div class="form-group">
-                            <label>Форма (Form)</label>
-                            <select id="eff-form" class="cloud-select" onchange="window.updateOutput()">
-                                <option value="Transformation">Трансформация (Активация бонусным действием)</option>
-                                <option value="Equipment">Экипировка (Артефакт/Предмет)</option>
-                            </select>
-                        </div>
-
-                        <div class="tech-text" style="margin-top: 20px; border-bottom: 1px solid #333; padding-bottom: 4px;">УЛУЧШЕНИЯ (ПОКУПКА ЗА ОЧКИ)</div>
-                        <div id="upgrades-eff"></div>
-
-                        <div class="form-group" style="margin-top: 20px;">
-                            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px;">
-                                <label style="margin:0;">Особые действия / Атаки</label>
-                                <button class="btn-small-bld" onclick="window.toggleStatusesSidebar()"><i class="fa-solid fa-book"></i> БАЗА СТАТУСОВ</button>
-                            </div>
-                            <div class="tech-text" style="margin-bottom: 6px; font-size: 0.75rem;">Вложите очки в "Спец-атака / Пассивка" выше, чтобы эти записи отобразились в досье.</div>
-                            <textarea id="eff-custom" class="cloud-input" placeholder="Опишите мощную спец-атаку (1-3 очка) или уникальную пассивку (1-7 очков)..." oninput="window.updateOutput()"></textarea>
-                        </div>
-                    </div>
-
+                    <div id="ego-form"></div>
                 </div>
             </div>
 
@@ -246,18 +178,26 @@
             <div class="panel-outer cut-tl output-panel">
                 <div class="hazard-tape" style="background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--accent-primary) 10px, var(--accent-primary) 20px);"></div>
                 <div class="panel-inner cut-tl" style="border-top: none;" id="output-area">
-                    
+
                     <div class="output-header">
                         <div>
                             <div class="ego-name-display" id="out-name">БЕЗ НАЗВАНИЯ</div>
-                            <div class="ego-quote" id="out-quote">"..."</div>
                             <div class="ego-meta" id="out-meta">Атака Э.Г.О. | ZAYIN</div>
                         </div>
-                        <button class="copy-btn" onclick="window.copyEgo()"><i class="fa-regular fa-copy"></i> КОПИРОВАТЬ</button>
+                        <div class="out-btns">
+                            <button class="copy-btn" onclick="window.copyEgo()"><i class="fa-regular fa-copy"></i> КОПИРОВАТЬ</button>
+                            <button class="copy-btn" onclick="window.exportEgo()"><i class="fa-solid fa-file-export"></i> СКАЧАТЬ JSON</button>
+                            <button class="copy-btn save-btn" onclick="window.saveEgo()"><i class="fa-solid fa-floppy-disk"></i> В БИБЛИОТЕКУ</button>
+                        </div>
                     </div>
 
                     <div id="out-content"></div>
 
+                    <div class="lib-block">
+                        <div class="lib-title">БИБЛИОТЕКА Э.Г.О. <span class="lib-sub">— доступна в Конструкторе персонажа (слоты Э.Г.О.)</span></div>
+                        <div id="ego-library"></div>
+                        <a href="builder.html" class="copy-btn lib-link"><i class="fa-solid fa-user-gear"></i> ОТКРЫТЬ КОНСТРУКТОР ПЕРСОНАЖА</a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -311,77 +251,86 @@
     </div>
 
     <script>
-        let currentTab = 'attack';
         window.statusesDB = [];
+        const esc = EgoCore.esc;
+        let form = null;
 
-        // Базы апгрейдов
-        const atkUpgrades = [
-            { id: "add_dice", name: "Доп. куб урона (+1 кость)", cost: 1, max: 5 },
-            { id: "up_dice", name: "Повышение куба (Напр. d8 -> d10)", cost: 1, max: 3 },
-            { id: "add_range", name: "Увеличение дальности (+10 футов)", cost: 1, max: 10 },
-            { id: "spread", name: "Область/Доп. Цели (Конус или Радиус)", cost: 1, max: 5 },
-            { id: "custom_pts", name: "Вложения в Кастомные Статусы/Дебаффы", cost: 1, max: 8 }
-        ];
-
-        const effUpgrades = [
-            { id: "eff_dmg", name: "Увеличение урона (+1 тир кости)", cost: 1, max: 3 },
-            { id: "eff_spd", name: "Скорость (+15 футов)", cost: 1, max: 3 },
-            { id: "eff_ac", name: "Защита (+1 КД)", cost: 1, max: 3 },
-            { id: "eff_stat", name: "Характеристики (+2 к 1 или +1 к 2)", cost: 1, max: 3 },
-            { id: "eff_save", name: "Стойкость (+1 к спасброскам)", cost: 1, max: 3 },
-            { id: "eff_status", name: "+1 Статус при нанесении урона", cost: 1, max: 3 },
-            { id: "eff_custom", name: "Спец-атака / Пассивка", cost: 1, max: 7 }
-        ];
-
-        let state = {
-            attack: { pts: 0, max: 4 },
-            eff: { pts: 0, max: 7 }
-        };
-
-        function initBuilder() {
-            // Рендер кнопок Атаки
-            let atkHtml = '';
-            atkUpgrades.forEach(u => {
-                atkHtml += `
-                    <div class="upgrade-row">
-                        <div class="upgrade-info">
-                            <div class="upgrade-name">${u.name}</div>
-                            <div class="upgrade-desc">Стоимость: ${u.cost} очко</div>
-                        </div>
-                        <div class="upgrade-controls">
-                            <button class="btn-qty" onclick="changeQty('attack', '${u.id}', -1)">-</button>
-                            <div class="qty-display" id="qty-attack-${u.id}">0</div>
-                            <button class="btn-qty" onclick="changeQty('attack', '${u.id}', 1)">+</button>
-                        </div>
-                    </div>
-                `;
-                state.attack[u.id] = 0;
-            });
-            document.getElementById('upgrades-attack').innerHTML = atkHtml;
-
-            // Рендер кнопок Расцветающего
-            let effHtml = '';
-            effUpgrades.forEach(u => {
-                effHtml += `
-                    <div class="upgrade-row">
-                        <div class="upgrade-info">
-                            <div class="upgrade-name">${u.name}</div>
-                            <div class="upgrade-desc">Стоимость: ${u.cost} очко</div>
-                        </div>
-                        <div class="upgrade-controls">
-                            <button class="btn-qty" onclick="changeQty('eff', '${u.id}', -1)">-</button>
-                            <div class="qty-display" id="qty-eff-${u.id}">0</div>
-                            <button class="btn-qty" onclick="changeQty('eff', '${u.id}', 1)">+</button>
-                        </div>
-                    </div>
-                `;
-                state.eff[u.id] = 0;
-            });
-            document.getElementById('upgrades-eff').innerHTML = effHtml;
-
-            recalcPoints();
-            loadStatusesDB();
+        function readDraft() {
+            try { return EgoCore.normalize(JSON.parse(localStorage.getItem('ego.draft.v1') || 'null')); } catch (e) { return null; }
         }
+        function writeDraft(ego) {
+            try { localStorage.setItem('ego.draft.v1', JSON.stringify(ego)); } catch (e) { /* приватный режим */ }
+        }
+
+        function renderOutput(ego) {
+            document.getElementById('out-name').textContent = ego.name || 'БЕЗ НАЗВАНИЯ';
+            document.getElementById('out-meta').textContent = EgoCore.metaLine(ego);
+            document.getElementById('out-content').innerHTML = EgoCore.summaryHtml(ego);
+            writeDraft(ego);
+        }
+
+        function renderLibrary() {
+            const list = EgoCore.library.list();
+            const box = document.getElementById('ego-library');
+            if (!list.length) { box.innerHTML = '<div class="lib-empty">Библиотека пуста. Сохраните Э.Г.О., чтобы вставить его в слот персонажа.</div>'; return; }
+            box.innerHTML = list.map(e => `
+                <div class="lib-item">
+                    <div class="lib-item-main" data-load="${esc(e.id)}">
+                        <div class="lib-item-name">${esc(e.name || 'БЕЗ НАЗВАНИЯ')}</div>
+                        <div class="lib-item-meta">${esc(EgoCore.metaLine(e))}</div>
+                    </div>
+                    <button class="btn-qty" title="Удалить" data-del="${esc(e.id)}"><i class="fa-solid fa-trash"></i></button>
+                </div>`).join('');
+        }
+
+        document.getElementById('ego-library').addEventListener('click', (ev) => {
+            const load = ev.target.closest('[data-load]');
+            const del = ev.target.closest('[data-del]');
+            if (del) {
+                if (confirm('Удалить Э.Г.О. из библиотеки?')) { EgoCore.library.remove(del.dataset.del); renderLibrary(); }
+            } else if (load) {
+                const e = EgoCore.library.list().find(x => x.id === load.dataset.load);
+                if (e) { form.set(e); renderOutput(form.get()); }
+            }
+        });
+
+        window.newEgo = () => { form.set(EgoCore.blank('attack')); renderOutput(form.get()); };
+        window.saveEgo = () => {
+            const e = form.get();
+            if (!e.name.trim()) { alert('Дайте Э.Г.О. название перед сохранением.'); return; }
+            if (EgoCore.spent(e) > EgoCore.maxPoints(e) && !confirm('Бюджет очков превышен. Всё равно сохранить?')) return;
+            EgoCore.library.save(e);
+            renderLibrary();
+            alert('Э.Г.О. сохранено в библиотеку. Его можно выбрать в Конструкторе персонажа.');
+        };
+        window.exportEgo = () => {
+            const e = form.get();
+            const blob = new Blob([JSON.stringify(e, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = (e.name || 'EGO').replace(/[\\/:*?"<>|]+/g, '_') + '_ego.json';
+            document.body.appendChild(a); a.click(); a.remove();
+            setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+        };
+        window.importEgo = (ev) => {
+            const file = ev.target.files[0];
+            ev.target.value = '';
+            if (!file) return;
+            const r = new FileReader();
+            r.onload = () => {
+                try {
+                    const e = EgoCore.normalize(JSON.parse(r.result));
+                    if (!e) throw new Error();
+                    form.set(e); renderOutput(form.get());
+                } catch (err) { alert('Ошибка чтения JSON файла.'); }
+            };
+            r.readAsText(file);
+        };
+        window.copyEgo = () => {
+            navigator.clipboard.writeText(EgoCore.summaryText(form.get()))
+                .then(() => alert('Скопировано в буфер обмена!'))
+                .catch(err => console.error(err));
+        };
 
         // Загрузка базы статусов
         async function loadStatusesDB() {
@@ -400,40 +349,22 @@
 
         function renderStatusesSidebar() {
             const container = document.getElementById('status-list-container');
-            let html = '';
-            window.statusesDB.forEach(s => {
-                let seHtml = '';
-                if (s.SideEffects && s.SideEffects.length > 0) {
-                    s.SideEffects.forEach(se => {
-                        seHtml += `
-                            <div class="status-se">
-                                <div class="status-se-name">${se.sideeffectname}</div>
-                                <div class="status-se-desc">${se.sideeffect}</div>
-                            </div>
-                        `;
-                    });
-                }
-                html += `
-                    <div class="status-card" data-search="${s.Name.toLowerCase()} ${s.Effect.toLowerCase()}">
-                        <div class="status-card-name">${s.Name}</div>
-                        <div class="status-card-effect">${s.Effect}</div>
-                        ${seHtml}
-                    </div>
-                `;
-            });
-            container.innerHTML = html;
+            container.innerHTML = window.statusesDB.map(s => `
+                <div class="status-card" data-search="${esc(String(s.Name).toLowerCase() + ' ' + String(s.Effect).toLowerCase())}">
+                    <div class="status-card-name">${esc(s.Name)}</div>
+                    <div class="status-card-effect">${esc(s.Effect)}</div>
+                    ${(s.SideEffects || []).map(se => `
+                        <div class="status-se">
+                            <div class="status-se-name">${esc(se.sideeffectname)}</div>
+                            <div class="status-se-desc">${esc(se.sideeffect)}</div>
+                        </div>`).join('')}
+                </div>`).join('');
         }
 
         window.filterStatusesSidebar = () => {
             const query = document.getElementById('status-search').value.toLowerCase();
-            const cards = document.querySelectorAll('.status-card');
-            cards.forEach(card => {
-                const text = card.getAttribute('data-search');
-                if (text.includes(query)) {
-                    card.style.display = 'block';
-                } else {
-                    card.style.display = 'none';
-                }
+            document.querySelectorAll('.status-card').forEach(card => {
+                card.style.display = card.getAttribute('data-search').includes(query) ? 'block' : 'none';
             });
         };
 
@@ -442,216 +373,11 @@
             document.getElementById('sidebar-overlay').classList.toggle('active');
         };
 
-        window.switchTab = (tab) => {
-            currentTab = tab;
-            document.getElementById('tab-attack').classList.remove('active');
-            document.getElementById('tab-eff').classList.remove('active');
-            
-            document.getElementById('block-attack').style.display = 'none';
-            document.getElementById('block-eff').style.display = 'none';
-
-            if (tab === 'attack') {
-                document.getElementById('tab-attack').classList.add('active');
-                document.getElementById('block-attack').style.display = 'block';
-            } else {
-                document.getElementById('tab-eff').classList.add('active');
-                document.getElementById('block-eff').style.display = 'block';
-            }
-            recalcPoints();
-        };
-
-        window.changeQty = (tab, id, delta) => {
-            const list = tab === 'attack' ? atkUpgrades : effUpgrades;
-            const item = list.find(x => x.id === id);
-            
-            let current = state[tab][id];
-            let next = current + delta;
-            
-            if (next < 0) next = 0;
-            if (next > item.max) next = item.max;
-            
-            state[tab][id] = next;
-            document.getElementById(`qty-${tab}-${id}`).innerText = next;
-            
-            recalcPoints();
-        };
-
-        window.recalcPoints = () => {
-            if (currentTab === 'attack') {
-                const rankSelect = document.getElementById('ego-rank');
-                state.attack.max = parseInt(rankSelect.value);
-                
-                let spent = 0;
-                atkUpgrades.forEach(u => { spent += state.attack[u.id] * u.cost; });
-                state.attack.pts = spent;
-                
-                updateDisplay('attack');
-            } else {
-                const typeSelect = document.getElementById('eff-type').value;
-                if (typeSelect === 'pb') {
-                    document.getElementById('pb-group').style.display = 'block';
-                    state.eff.max = parseInt(document.getElementById('eff-pb').value) || 2;
-                } else {
-                    document.getElementById('pb-group').style.display = 'none';
-                    state.eff.max = 7;
-                }
-
-                let spent = 0;
-                effUpgrades.forEach(u => { spent += state.eff[u.id] * u.cost; });
-                state.eff.pts = spent;
-
-                updateDisplay('eff');
-            }
-        };
-
-        function updateDisplay(tab) {
-            const display = document.getElementById('points-display');
-            const pts = state[tab].pts;
-            const max = state[tab].max;
-            
-            document.getElementById('pts-count').innerText = pts;
-            document.getElementById('pts-max').innerText = max;
-            
-            if (pts > max) {
-                display.classList.add('error');
-            } else {
-                display.classList.remove('error');
-            }
-            window.updateOutput();
-        }
-
-        // Логика расчета кубов
-        function calculateDice(baseCount, baseType, addDice, upDice) {
-            const diceTiers = [4, 6, 8, 10, 12, "2d6"]; 
-            let currentCount = baseCount + addDice;
-            
-            let startIndex = diceTiers.indexOf(baseType);
-            if (startIndex === -1) startIndex = 2; 
-            
-            let finalIndex = startIndex + upDice;
-            if (finalIndex > 5) finalIndex = 5; 
-
-            if (finalIndex === 5) {
-                return `${currentCount * 2}d6`;
-            } else {
-                return `${currentCount}d${diceTiers[finalIndex]}`;
-            }
-        }
-
-        window.updateOutput = () => {
-            const name = document.getElementById('ego-name').value || "БЕЗ НАЗВАНИЯ";
-            const quote = document.getElementById('ego-quote').value || "...";
-            
-            document.getElementById('out-name').innerText = name;
-            document.getElementById('out-quote').innerText = `"${quote}"`;
-
-            let html = '';
-
-            if (currentTab === 'attack') {
-                const rankSelect = document.getElementById('ego-rank');
-                const rankText = rankSelect.options[rankSelect.selectedIndex].text.split(' ')[0];
-                const isMelee = document.getElementById('ego-range').value === 'melee';
-                const dmgType = document.getElementById('ego-dmgtype').value;
-                const customDesc = document.getElementById('ego-custom').value;
-                
-                const hasCorrosion = rankText !== 'ZAYIN';
-
-                document.getElementById('out-meta').innerText = `Атака Э.Г.О. | ${rankText}`;
-
-                // Расчет базы
-                let baseDiceCount = 2;
-                let baseDiceType = isMelee ? 12 : 8;
-                let baseRange = isMelee ? 5 : 30;
-
-                let finalDiceStr = calculateDice(baseDiceCount, baseDiceType, state.attack.add_dice, state.attack.up_dice);
-                let finalRange = baseRange + (state.attack.add_range * 10);
-                
-                html += `<div class="stat-block">
-                    <div class="stat-line"><strong>Тип Атаки:</strong> Бросок атаки от МУД или ХАР + БМ.</div>
-                    <div class="stat-line"><strong>Урон:</strong> ${finalDiceStr} + МУД/ХАР [${dmgType}]</div>
-                    <div class="stat-line"><strong>Дистанция:</strong> ${finalRange} футов</div>
-                </div>`;
-
-                html += `<div class="stat-line"><strong>Эффекты Атаки:</strong></div><ul class="effects-list">`;
-                if (state.attack.spread > 0) {
-                    html += `<li>Атака становится конусом (${finalRange} футов) или сферой (${Math.floor(finalRange/2)} футов). Вы совершаете атаку против +${state.attack.spread * 2} доп. целей в области.</li>`;
-                }
-                
-                if (state.attack.custom_pts > 0 || customDesc.trim() !== '') {
-                    const ptsAllocated = state.attack.custom_pts > 0 ? ` (${state.attack.custom_pts} очк.)` : '';
-                    html += `<li><strong>Кастомные эффекты${ptsAllocated}:</strong><br>${customDesc.replace(/\n/g, '<br>') || '<em>(Эффекты не описаны)</em>'}</li>`;
-                }
-
-                if (state.attack.spread === 0 && customDesc.trim() === '' && state.attack.custom_pts === 0) {
-                    html += `<li style="color: var(--text-dim);">Нет дополнительных эффектов</li>`;
-                }
-                html += `</ul>`;
-
-                if (hasCorrosion) {
-                    html += `
-                    <div class="corrosion-block">
-                        <div class="corrosion-title">КОРРОЗИЯ Э.Г.О. (CORROSION)</div>
-                        <div class="stat-line"><strong>Активация:</strong> При падении Рассудка до 0 (-45) ИЛИ при провале спасброска МУД/ХАР (СЛ 10) при попытке использовать Э.Г.О.</div>
-                        <div class="stat-line"><strong>Целеуказание (Бросьте 1d4):</strong></div>
-                        <ul class="effects-list">
-                            <li>1. Ближайшая цель</li>
-                            <li>2. Существо с наибольшим количеством ХП в радиусе</li>
-                            <li>3. Существо с наименьшим количеством ХП в радиусе</li>
-                            <li>4. Ближайший союзник</li>
-                        </ul>
-                        <div class="stat-line" style="margin-top:10px;"><strong>Эффект Коррозии:</strong> Атака получает +1 Очко Улучшений. (Применяются те же базовые эффекты + 1 доп. эффект или условие).</div>
-                    </div>
-                    `;
-                }
-
-            } else {
-                const isVolatile = document.getElementById('eff-type').value === 'pb';
-                const formType = document.getElementById('eff-form').value;
-                const customDesc = document.getElementById('eff-custom').value;
-                
-                const metaType = isVolatile ? 'Нестабильное Э.Г.О.' : 'Расцветающее Э.Г.О.';
-                const metaForm = formType === 'Transformation' ? 'Трансформация' : 'Экипировка';
-                
-                document.getElementById('out-meta').innerText = `${metaType} | ${metaForm}`;
-
-                html += `<div class="stat-block">
-                    <div class="stat-line"><strong>Активация:</strong> ${formType === 'Transformation' ? 'Бонусное действие (1 раз за Длительный Отдых)' : 'Свойства магического артефакта 5e'}</div>
-                </div>`;
-
-                html += `<div class="stat-line"><strong>Дарованные эффекты:</strong></div><ul class="effects-list">`;
-                
-                if (state.eff.eff_dmg > 0) html += `<li><strong>Усиление урона:</strong> +${state.eff.eff_dmg} тир(а) кости урона.</li>`;
-                if (state.eff.eff_spd > 0) html += `<li><strong>Скорость:</strong> +${state.eff.eff_spd * 15} футов ко всем видам перемещения.</li>`;
-                if (state.eff.eff_ac > 0) html += `<li><strong>Защита:</strong> +${state.eff.eff_ac} КД.</li>`;
-                if (state.eff.eff_stat > 0) html += `<li><strong>Характеристики:</strong> +${state.eff.eff_stat * 2} к одной или +${state.eff.eff_stat} к двум характеристикам.</li>`;
-                if (state.eff.eff_save > 0) html += `<li><strong>Стойкость:</strong> +${state.eff.eff_save} ко всем спасброскам.</li>`;
-                if (state.eff.eff_status > 0) html += `<li><strong>Статус:</strong> Накладывает +${state.eff.eff_status} статус-эффекта при нанесении урона.</li>`;
-                
-                if (state.eff.eff_custom > 0 || customDesc.trim() !== '') {
-                    const ptsAllocated = state.eff.eff_custom > 0 ? ` (${state.eff.eff_custom} очк.)` : '';
-                    html += `<li><strong>Особые черты / Спец-атака${ptsAllocated}:</strong><br>${customDesc.replace(/\n/g, '<br>') || '<em>(Эффекты не описаны)</em>'}</li>`;
-                }
-                
-                if (state.eff.eff_dmg === 0 && state.eff.eff_spd === 0 && state.eff.eff_ac === 0 && state.eff.eff_stat === 0 && state.eff.eff_save === 0 && state.eff.eff_status === 0 && state.eff.eff_custom === 0 && customDesc.trim() === '') {
-                     html += `<li style="color: var(--text-dim);">Нет дополнительных эффектов</li>`;
-                }
-                
-                html += `</ul>`;
-            }
-
-            document.getElementById('out-content').innerHTML = html;
-        };
-
-        window.copyEgo = () => {
-            const outContent = document.getElementById('output-area');
-            const textToCopy = outContent.innerText;
-            navigator.clipboard.writeText(textToCopy).then(() => {
-                alert("Скопировано в буфер обмена!");
-            }).catch(err => console.error(err));
-        };
-
         document.addEventListener('DOMContentLoaded', () => {
-            initBuilder();
+            form = EgoCore.mount(document.getElementById('ego-form'), readDraft() || EgoCore.blank('attack'), { onChange: renderOutput });
+            renderOutput(form.get());
+            renderLibrary();
+            loadStatusesDB();
         });
     </script>
 </body>
