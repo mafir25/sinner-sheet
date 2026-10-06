@@ -15,13 +15,24 @@ export const GROUP_NAMES = {
   world: 'Мир', articles: 'Статьи', builder: 'Конструктор',
 };
 
-/** Все каноничные файлы: [{ rel: 'characters/feats.json', group, name }]. */
-export function canonFiles() {
-  return window.I18N.canon.files().map((rel) => {
+/**
+ * Все каноничные файлы: [{ rel: 'characters/feats.json', group, name }].
+ * extra — ещё пути: файлы, созданные в панели (их нет в Assets/, только в Firestore), и файлы из реестра классов.
+ */
+export function canonFiles(extra = []) {
+  const seen = new Set();
+  return [...window.I18N.canon.files(), ...extra].filter((rel) => {
+    if (!rel || seen.has(rel) || !window.I18N.canon.id('Rus', rel)) return false;
+    seen.add(rel);
+    return true;
+  }).map((rel) => {
     const [group, name] = rel.split('/');
     return { rel, group, name };
   });
 }
+/** Пути файлов по манифестам Firestore (Map id → manifest из listManifests). */
+export const manifestRels = (manifests) => [...manifests.values()]
+  .filter((m) => m && m.group && m.name).map((m) => `${m.group}/${m.name}`);
 export const fileId = (lang, rel) => window.I18N.canon.id(lang, rel);
 export const isJson = (rel) => /\.json$/i.test(rel);
 
@@ -57,6 +68,20 @@ export async function loadCanon(lang, rel) {
 export async function loadStatic(lang, rel) {
   const res = await fetch(`Assets/${lang}/${rel}`, { cache: 'no-cache' });
   return res.ok ? res.text() : null;
+}
+
+/** Текст файла: из Firestore, иначе из Assets/; { text, version } или null. */
+export async function loadText(lang, rel) {
+  const c = await loadCanon(lang, rel);
+  if (c) return { text: c.text, version: c.manifest.version };
+  const t = await loadStatic(lang, rel);
+  return t == null ? null : { text: t, version: 0 };
+}
+
+/** Есть ли файл где-нибудь — в Firestore или в Assets/. */
+export async function fileExists(lang, rel) {
+  if (await getManifest(lang, rel)) return true;
+  return (await loadStatic(lang, rel)) != null;
 }
 
 /** Проверить текст перед сохранением: JSON должен разбираться. Возвращает нормализованный текст. */

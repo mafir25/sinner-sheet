@@ -33,13 +33,15 @@
   // папку и добавьте строку сюда (или запрашивайте сразу с папкой: fetchData('articles/x.html')).
   var DATA_GROUPS = {
     'classes.json': 'characters', 'fixer.json': 'characters', 'bloodarch.json': 'characters',
-    'bloodfiend.json': 'characters', 'feats.json': 'characters',
+    'bloodfiend.json': 'characters', 'feats.json': 'characters', 'systems.json': 'characters',
     'equipment.json': 'items', 'egogifts.json': 'items',
     'statuses.json': 'mechanics', 'rules.json': 'mechanics',
     'lore.json': 'world', 'bestiary.json': 'world', 'world.json': 'world',
     'Builder_classes.json': 'builder', 'Builder_feats.json': 'builder', 'Builder_races.json': 'builder',
   };
   // Статьи и прочие файлы вне таблицы запрашиваются сразу с папкой: fetchData('articles/equipment-lore.html').
+  // Так же читаются файлы, созданные в админ-панели (их нет в Assets/, только в Firestore):
+  // fetchData('characters/my-class.json'). Реестр классов — characters/systems.json.
   var CANON_EXTRA = ['articles/equipment-lore.html'];
   function relOf(name) {
     name = String(name).replace(/^\/+/, '');
