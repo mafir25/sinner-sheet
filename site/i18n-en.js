@@ -700,7 +700,7 @@
     '. Оставьте размеры пустыми — картинка впишется в ширину блока с сохранением пропорций. Указан только один размер — второй посчитается сам.':
       '. Leave the sizes empty and the image will fit the block width keeping its proportions. If only one size is set, the other is calculated automatically.',
     'Ссылка на изображение': 'Image link',
-    'https://… или Burn.png': 'https://… or Burn.png',
+    'https://… или Assets/Icons/Burn.png': 'https://… or Assets/Icons/Burn.png',
     'Ширина, px': 'Width, px',
     'авто': 'auto',
     'Высота, px': 'Height, px',
@@ -1318,7 +1318,7 @@
     'Новый Гифт': 'New Gift',
     'КОПИРОВАТЬ Э.Г.О. ГИФТ': 'COPY E.G.O. GIFT',
     'Ошибка загрузки гифтов:': 'Error loading gifts:',
-    // orphan-страницы lore.html / rules.html: только заголовки
+    // заголовки разделов «Время и история» и «Правила» Базы знаний
     'ВРЕМЯ И ИСТОРИЯ (ЛОР)': 'TIME AND HISTORY (LORE)',
     'ПРАВИЛА И МЕХАНИКИ (ВАРИАНТНЫЕ)': 'RULES AND MECHANICS (VARIANT)',
   });

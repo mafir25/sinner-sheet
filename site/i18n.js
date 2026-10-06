@@ -4,8 +4,9 @@
    Что делает:
    1. Хранит выбранный язык (localStorage 'site.lang', по умолчанию русский). Выбор — в окне настроек (site/ui.js).
    2. Отдаёт данные на нужном языке: I18N.fetchData('feats.json') ищет файл по цепочке
-        Assets/<Eng|Rus>/feats.json → Assets/Rus/feats.json → feats.json
-      Поэтому английский world.json достаточно положить в Assets/Eng/world.json — он подхватится сам.
+        Assets/<Eng|Rus>/characters/feats.json → Assets/Rus/characters/feats.json
+      Папку (группу) файла знает таблица DATA_GROUPS ниже. Поэтому английский world.json достаточно
+      положить в Assets/Eng/world/world.json — он подхватится сам.
    3. В английском режиме переводит интерфейс: подгружает словарь site/i18n-en.js и заменяет
       русские строки в тексте, placeholder/title/aria-label, а также в alert/confirm/prompt.
       Пользовательский ввод (input/textarea) и элементы с классом .notranslate / translate="no" не трогаются. */
@@ -25,11 +26,21 @@
   document.documentElement.lang = lang;
 
   /* ---------------- Данные ---------------- */
+  // Файл данных → папка-группа внутри Assets/<Rus|Eng>/. Новый файл: положите его в подходящую
+  // папку и добавьте строку сюда (или запрашивайте сразу с папкой: fetchData('articles/x.html')).
+  var DATA_GROUPS = {
+    'classes.json': 'characters', 'fixer.json': 'characters', 'bloodarch.json': 'characters',
+    'bloodfiend.json': 'characters', 'feats.json': 'characters',
+    'equipment.json': 'items', 'egogifts.json': 'items',
+    'statuses.json': 'mechanics', 'rules.json': 'mechanics',
+    'lore.json': 'world', 'bestiary.json': 'world', 'world.json': 'world',
+    'Builder_classes.json': 'builder', 'Builder_feats.json': 'builder', 'Builder_races.json': 'builder',
+  };
   function candidates(name) {
     name = String(name).replace(/^\/+/, '');
-    var list = ['Assets/' + LANGS[lang].dir + '/' + name];
-    if (lang !== 'ru') list.push('Assets/Rus/' + name);
-    list.push(name);
+    var rel = DATA_GROUPS[name] ? DATA_GROUPS[name] + '/' + name : name;
+    var list = ['Assets/' + LANGS[lang].dir + '/' + rel];
+    if (lang !== 'ru') list.push('Assets/Rus/' + rel);
     return list;
   }
   async function fetchData(name, init) {
@@ -210,6 +221,7 @@
     setLang: setLang,
     t: tr,
     dataUrl: function (name) { return candidates(name)[0]; },
+    dataGroups: DATA_GROUPS,
     fetchData: fetchData,
     register: register,
     start: start,

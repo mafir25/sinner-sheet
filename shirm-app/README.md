@@ -4,8 +4,8 @@
 
 ## Как устроена сборка
 - `npm run build` собирает Ширму в `dist/shirm.html`, а `scripts/copy-static.mjs` копирует
-  все остальные страницы и json из корня репозитория в `dist/`. Vercel публикует `dist/` (см. `vercel.json`).
-- Старая Ширма сохранена как `shirm-legacy.html`.
+  остальные страницы, `site/` и `Assets/` в `dist/`. Vercel публикует `dist/` (см. `vercel.json`).
+- Старый адрес `shirm-legacy.html` перенаправляется на `shirm.html` (`redirects` в `vercel.json`).
 
 ## Папки
 - `src/model` — формат данных (zod), перевод старых ширм (`migrate.ts`), markdown, поиск.

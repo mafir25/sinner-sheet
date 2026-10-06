@@ -40,6 +40,14 @@
         /* Лейаут */
         .builder-container { display: flex; flex-direction: column; gap: 40px; width: 100%; max-width: 1400px; }
         .builder-top-row { display: grid; grid-template-columns: 1fr 1.2fr; gap: 30px; align-items: start; }
+        /* Телефоны и планшеты: редактор и предпросмотр — одной колонкой */
+        @media (max-width: 900px) {
+            .builder-top-row { grid-template-columns: minmax(0, 1fr); }
+        }
+        @media (max-width: 600px) {
+            .header-title { font-size: 1.5rem; }
+            .builder-container { gap: 24px; }
+        }
         
         .panel-outer { background-color: var(--accent-primary); padding: var(--border-width); position: relative; display: flex; flex-direction: column; }
         .panel-inner { background-color: var(--bg-panel); padding: 20px; height: 100%; display: flex; flex-direction: column; }

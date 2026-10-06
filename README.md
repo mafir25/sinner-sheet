@@ -6,12 +6,41 @@
 
 | Путь | Что это |
 |---|---|
-| `*.html` в корне | страницы сайта (копируются в `dist` как есть) |
-| `shirm-app/` | новая Ширма, собирается Vite в `dist/shirm.html` |
-| `Assets/Rus/*.json`, `Assets/Eng/*.json` | данные на русском и английском |
-| `site/` | общий слой для всех страниц (см. ниже) |
+| `index.html` | главная (хаб) |
+| `navigation.html` | База знаний: архетипы, черты, снаряжение, правила, бестиарий, Э.Г.О. гифты, статусы, лор |
+| `builder.html`, `egobuilder.html` | Конструктор персонажа и Конструктор Э.Г.О. |
+| `office.html` | Офис |
+| `shirm-app/` | Ширма (React), собирается Vite в `dist/shirm.html` |
+| `Assets/` | **весь контент сайта** — см. ниже |
+| `site/` | общий код для всех страниц (см. ниже) |
+| `scripts/` | генератор данных конструктора и копирование страниц в `dist/` |
 | `firestore.rules` | **полные** правила Firestore — вставлять в консоль Firebase целиком |
-| `vercel.json` | сборка и заголовки безопасности (CSP и др.) |
+| `vercel.json` | сборка, заголовки безопасности (CSP), перенаправления со старых адресов |
+
+Старые адреса (`feats.html`, `grimoire.html`, `statuses.html`, `bestiary.html`, `equipment.html`,
+`egogifts.html`, `lore.html`, `rules.html`, `custom.html`, `shirm-legacy.html`) больше не отдельные страницы —
+`vercel.json` перенаправляет их в нужный раздел Базы знаний (`navigation.html#feats` и т. д.) или в Ширму.
+
+### `Assets/` — контент по группам
+
+```
+Assets/
+├── Rus/                     русский (основной) — Eng/ повторяет ту же структуру
+│   ├── characters/          classes.json, fixer.json, bloodarch.json, bloodfiend.json, feats.json
+│   ├── items/               equipment.json, egogifts.json
+│   ├── mechanics/           statuses.json, rules.json
+│   ├── world/               lore.json, bestiary.json, world.json (карта Ширмы)
+│   ├── articles/            статьи-фрагменты HTML (equipment-lore.html — «Лор и правила» снаряжения)
+│   └── builder/             Builder_*.json — генерируются, руками не править
+├── Eng/
+└── Icons/                   иконки типов урона/статусов (Burn.png, Bleed.png, …)
+```
+
+- Чтобы поправить текст — откройте нужный файл в своей группе; код страниц трогать не нужно.
+- Новый файл данных: положите его в подходящую папку и допишите строку в `DATA_GROUPS` в `site/i18n.js`
+  (или запрашивайте сразу с папкой: `I18N.fetchData('articles/my-article.html')`).
+- Новая иконка — в `Assets/Icons/`, в тексте карточек на неё ссылаются как `[Assets/Icons/Имя.png W:24]`.
+  Старые ссылки вида `Burn.png` продолжают работать (rewrite в `vercel.json`).
 
 ### `site/` — общий слой
 
@@ -32,13 +61,13 @@
 <script type="module" src="site/ui.js"></script> <!-- окно настроек -->
 ```
 Данные — только через `I18N.fetchData('feats.json')`: путь подбирается сам
-(`Assets/<Eng|Rus>/feats.json` → `Assets/Rus/feats.json` → `feats.json`).
+(`Assets/<Eng|Rus>/characters/feats.json` → `Assets/Rus/characters/feats.json`).
 Вход — через `onAuth` из `site/auth.js`; своё окно входа на странице не нужно.
 
 ### Английский язык
 
-- Данные: файл в `Assets/Eng/` с тем же именем, что в `Assets/Rus/`. Чего нет — показывается русская версия.
-  Английская карта для Ширмы — `Assets/Eng/world.json`.
+- Данные: файл в `Assets/Eng/<группа>/` с тем же именем, что в `Assets/Rus/<группа>/`. Чего нет — показывается русская версия.
+  Английская карта для Ширмы — `Assets/Eng/world/world.json`.
 - Интерфейс: добавьте пару `'русская строка': 'English'` в `site/i18n-en.js`.
   Строки с числами/именами — через `patterns` в том же файле.
 
@@ -46,7 +75,7 @@
 
 - Логика — `site/builder.js`, общее ядро Э.Г.О. — `site/ego-core.js` (им же пользуется `egobuilder.html`;
   библиотека Э.Г.О. общая, хранится в браузере и доступна в слотах Э.Г.О. персонажа).
-- Метаданные правил: `Assets/<Rus|Eng>/Builder_feats.json`, `Builder_races.json`, `Builder_classes.json` —
+- Метаданные правил: `Assets/<Rus|Eng>/builder/Builder_feats.json`, `Builder_races.json`, `Builder_classes.json` —
   какие черты/расы/архетипы дают прибавки к характеристикам, выборы, другие черты, слоты, скорость, хиты,
   ссылки между чертами и снаряжение принадлежностей. **Не правьте их руками** — правьте
   `scripts/gen-builder-data.mjs` и запускайте `node scripts/gen-builder-data.mjs`
@@ -67,6 +96,12 @@
   только интерфейс: участники офиса технически могут прочитать досье целиком.
 - Казна в Анах; 1 Ан = 1 южнокорейская вона (KRW). Курс ₽/$ берётся с currency-api (jsDelivr) или open.er-api.com
   (разрешены в CSP в `vercel.json`), кэшируется на 6 часов; без сети — примерный курс.
+
+## Мобильная вёрстка
+
+Все страницы проверены на ширине 320, 360 и 412 px (горизонтальной прокрутки нет). Для новых блоков:
+сетки — `minmax(min(Npx, 100%), 1fr)`, а не `minmax(Npx, 1fr)`; многоколоночные раскладки — в одну колонку
+через `@media (max-width: 900px)`.
 
 ## Безопасность
 
