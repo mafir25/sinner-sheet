@@ -12,6 +12,7 @@ import {
   findUserByNick, normalizePerms, banActive,
 } from './auth.js';
 import * as Canon from './canon.js';
+import { SCHEMAS, CANON_SCHEMAS, formHtml, collectFields, repeatAction } from './fields.js';
 
 /* ============================================================
    Общее
@@ -62,6 +63,13 @@ function ago(ts) {
   if (m < 1440) return `${Math.round(m / 60)} ч назад`;
   return `${Math.round(m / 1440)} дн назад`;
 }
+/** Подпись из значения: строка, число или { ru, en } / { Name } */
+function textOf(v) {
+  if (v == null) return '';
+  if (typeof v === 'string' || typeof v === 'number') return String(v);
+  if (typeof v === 'object' && !Array.isArray(v)) return textOf(v.ru ?? v.en ?? v.Name ?? v.name);
+  return '';
+}
 const kb = (n) => (n >= 1048576 ? (n / 1048576).toFixed(2) + ' МБ' : Math.max(1, Math.round(n / 1024)) + ' КБ');
 
 /** Запись в журнал — добавляется в ту же пачку, что и само действие. */
@@ -71,6 +79,29 @@ function addAudit(batch, action, target, details = '') {
     action, target: String(target || '').slice(0, 300),
     details: (typeof details === 'string' ? details : JSON.stringify(details)).slice(0, 60000),
   });
+}
+
+/**
+ * Действие + запись в журнал одной пачкой: fill(batch) добавляет сами изменения.
+ * Показывает итог (ok — текст успеха) или ошибку; возвращает true, если получилось.
+ */
+async function logged(action, target, details, fill, { ok = '', failMsg = 'Ошибка' } = {}) {
+  try {
+    const batch = writeBatch(db);
+    fill(batch);
+    addAudit(batch, action, target, details);
+    await batch.commit();
+    if (ok) toast(ok, 'ok');
+    return true;
+  } catch (e) { fail(e, failMsg); return false; }
+}
+/** Подтверждение удаления вводом названия. */
+function confirmName(message, name) {
+  const typed = prompt(`${T(message)}: ${name}`);
+  if (typed == null) return false;
+  if (typed.trim().toUpperCase() === String(name || '').trim().toUpperCase()) return true;
+  toast('Название не совпадает — ничего не удалено', 'err');
+  return false;
 }
 
 /** Модальное окно. Возвращает { el, close }. */
@@ -298,14 +329,8 @@ async function renderAccess(v) {
     if (del) {
       const r = rows.find((x) => x.uid === del.dataset.del);
       if (!confirm(`${T('Снять доступ с')} ${r.nick || r.uid}?`)) return;
-      try {
-        const batch = writeBatch(db);
-        batch.delete(doc(db, 'roles', r.uid));
-        addAudit(batch, 'role.remove', `${r.nick || ''} (${r.uid})`, { before: { role: r.role, perms: r.perms } });
-        await batch.commit();
-        toast('Доступ снят', 'ok');
-        openTab('access');
-      } catch (er) { fail(er, 'Не удалось снять доступ'); }
+      if (await logged('role.remove', `${r.nick || ''} (${r.uid})`, { before: { role: r.role, perms: r.perms } },
+        (b) => b.delete(doc(db, 'roles', r.uid)), { ok: 'Доступ снят', failMsg: 'Не удалось снять доступ' })) openTab('access');
     }
   };
 }
@@ -354,57 +379,74 @@ function editRole(r, exists) {
       monitor: $('[data-perm=monitor]', m.el).checked,
       ban: $('[data-perm=ban]', m.el).checked,
     };
-    try {
-      const batch = writeBatch(db);
-      batch.set(doc(db, 'roles', r.uid), {
+    const done = await logged(exists ? 'role.update' : 'role.grant', `${r.nick || ''} (${r.uid})`,
+      { role, perms, before: exists ? { role: r.role, perms: r.perms } : null },
+      (b) => b.set(doc(db, 'roles', r.uid), {
         role, perms, nick: String(r.nick || '').slice(0, 40),
         grantedBy: S.user.uid, grantedByNick: myNick().slice(0, 40), updatedAt: serverTimestamp(),
-      });
-      addAudit(batch, exists ? 'role.update' : 'role.grant', `${r.nick || ''} (${r.uid})`,
-        { role, perms, before: exists ? { role: r.role, perms: r.perms } : null });
-      await batch.commit();
-      m.close();
-      toast('Доступ сохранён', 'ok');
-      if (r.uid === S.user.uid) await refreshAccess();
-      openTab('access');
-    } catch (e) { fail(e, 'Не удалось сохранить доступ'); }
+      }), { ok: 'Доступ сохранён', failMsg: 'Не удалось сохранить доступ' });
+    if (!done) return;
+    m.close();
+    if (r.uid === S.user.uid) await refreshAccess();
+    openTab('access');
   };
 }
 
 /* ============================================================
    Канон
+   Редактор как конструктор Базы знаний: слева записи файла, справа запись в виде
+   «Поля» (схема из site/fields.js — те же поля, что в navigation.html) или «Код» (JSON).
+   Файлы без схемы (world.json, Builder_*, статьи) правятся только кодом.
    ============================================================ */
 const CS = {
   manifests: new Map(),
   sel: null,          // { lang, rel }
   manifest: null,     // манифест открытой версии (null — файла в Firestore нет)
   source: null,       // 'canon' | 'static' | 'none'
-  data: undefined,    // разобранный JSON (рабочая копия)
-  text: '',           // текст (для не-JSON файлов и режима «целиком»)
-  path: [],           // путь к открытому списку внутри JSON
-  key: null,          // выбранная запись в списке
-  mode: 'entries',    // entries | raw
-  entryJson: false,   // запись в виде JSON, а не формы
-  dirty: false,
-  changes: new Map(), // путь → { label, before, after }
+  data: undefined,    // рабочая копия: разобранный JSON или текст (статьи)
+  key: null,          // выбранная запись (индекс), null — весь файл
+  view: 'fields',     // fields | code
+  apply: null,        // применить открытую запись к рабочей копии → false, если в ней ошибка
   search: '',
+  dirty: false,
+  changes: new Map(), // запись → { label, before, after } — для журнала
 };
 
 const BUILDER_NOTE = 'Конструктор персонажа берёт черты, умения и предметы по порядку (индексу). Правка текста безопасна; '
   + 'добавление, удаление или перестановка записей требуют перегенерации Builder_*.json (node scripts/gen-builder-data.mjs) и их переноса.';
+const BUILDER_LINKED = ['characters/feats.json', 'characters/classes.json', 'characters/fixer.json',
+  'characters/bloodfiend.json', 'characters/bloodarch.json', 'items/equipment.json'];
+
+const isList = () => Array.isArray(CS.data);
+const schemaOf = () => SCHEMAS[CANON_SCHEMAS[CS.sel?.rel]] || null;
+const entryOf = () => (CS.key == null ? CS.data : CS.data[CS.key]);
+const labelOf = (v, i) => textOf(v?.Name ?? v?.name ?? v?.id) || `#${i}`;
+
+/* Markdown-поле: textarea + предпросмотр (как в конструкторе, без калькуляторов) */
+const ADMIN_FIELDS = {
+  md: (f, val) => `<div class="md-editor">
+    <div class="md-toolbar"><span class="md-spacer"></span><button type="button" data-act="md-preview">Предпросмотр</button></div>
+    <textarea class="cloud-input" data-f="${esc(f.k)}" placeholder="${esc(T('Поддерживается Markdown'))}">${esc(val ?? '')}</textarea>
+    <div class="md-preview md" hidden></div></div>`,
+};
+function togglePreview(btn) {
+  const wrap = btn.closest('.md-editor'), box = wrap.querySelector('.md-preview');
+  btn.classList.toggle('on');
+  box.hidden = !btn.classList.contains('on');
+  if (!box.hidden) box.innerHTML = DOMPurify.sanitize(marked.parse(wrap.querySelector('textarea').value || ''));
+}
 
 async function renderCanon(v) {
   try { CS.manifests = await Canon.listManifests(); } catch (e) { fail(e, 'Не удалось прочитать канон'); }
   const files = Canon.canonFiles();
   const groups = [...new Set(files.map((f) => f.group))];
-  const editable = files.some((f) => canCanon(S, f.group));
   v.innerHTML = `
     <div class="panel" style="margin-bottom:14px">
       <div class="row between">
         <h2 style="margin:0">Каноничные данные</h2>
         <div class="row">
           <button class="btn sm ghost" id="cn-reload"><i class="fa-solid fa-rotate"></i> Обновить</button>
-          ${editable ? '<button class="btn sm yellow" id="cn-import-all"><i class="fa-solid fa-cloud-arrow-up"></i> Перенести всё из Assets</button>' : ''}
+          ${files.some((f) => canCanon(S, f.group)) ? '<button class="btn sm yellow" id="cn-import-all"><i class="fa-solid fa-cloud-arrow-up"></i> Перенести всё из Assets</button>' : ''}
         </div>
       </div>
       <p class="muted small" style="margin-top:8px">Сайт читает канон из Firestore (коллекция <span class="mono">canon</span>); если файла там нет
@@ -416,33 +458,29 @@ async function renderCanon(v) {
         ${groups.map((g) => `<div class="file-group">${esc(T(Canon.GROUP_NAMES[g] || g))}${canCanon(S, g) ? '' : ' · <i class="fa-solid fa-lock"></i>'}</div>
           ${files.filter((f) => f.group === g).map((f) => Object.keys(Canon.LANG_DIRS).map((lang) => {
             const m = CS.manifests.get(Canon.fileId(lang, f.rel));
-            const cur = CS.sel && CS.sel.lang === lang && CS.sel.rel === f.rel;
-            return `<button class="file" data-lang="${lang}" data-rel="${esc(f.rel)}" aria-current="${!!cur}" ${canCanon(S, g) ? '' : 'disabled'}>
+            const cur = CS.sel?.lang === lang && CS.sel?.rel === f.rel;
+            return `<button class="file" data-lang="${lang}" data-rel="${esc(f.rel)}" aria-current="${cur}" ${canCanon(S, g) ? '' : 'disabled'}>
               <span class="notranslate">${esc(f.name)} <span class="muted small">${lang}</span></span>
               ${m ? `<span class="chip on">v${m.version}</span>` : '<span class="chip">Assets</span>'}</button>`;
           }).join('')).join('')}`).join('')}
       </div>
-      <div id="cn-editor">${CS.sel ? '' : '<div class="notice">Выберите файл слева.</div>'}</div>
+      <div id="cn-editor"><div class="notice">Выберите файл слева.</div></div>
     </div>`;
 
-  $('#cn-reload', v).onclick = () => { if (!CS.dirty || confirm(T('Отбросить несохранённые изменения?'))) { CS.dirty = false; CS.sel = null; openTab('canon'); } };
+  $('#cn-reload', v).onclick = () => { if (confirmDiscard()) { CS.dirty = false; CS.sel = null; openTab('canon'); } };
   $('#cn-import-all', v)?.addEventListener('click', importAll);
   $('#cn-files', v).onclick = (e) => {
     const b = e.target.closest('.file');
-    if (b && !b.disabled) openFile(b.dataset.lang, b.dataset.rel);
+    if (b && !b.disabled && confirmDiscard()) openFile(b.dataset.lang, b.dataset.rel);
   };
-  if (CS.sel) {
-    if (CS.data === undefined && !CS.text) await openFile(CS.sel.lang, CS.sel.rel, true);
-    else renderEditor();
-  }
+  if (CS.sel) await openFile(CS.sel.lang, CS.sel.rel);
 }
+const confirmDiscard = () => !CS.dirty || confirm(T('Отбросить несохранённые изменения?'));
 
 async function importAll() {
-  const todo = [];
-  for (const f of Canon.canonFiles()) {
-    if (!canCanon(S, f.group)) continue;
-    for (const lang of Object.keys(Canon.LANG_DIRS)) if (!CS.manifests.has(Canon.fileId(lang, f.rel))) todo.push({ lang, ...f });
-  }
+  const todo = Canon.canonFiles().filter((f) => canCanon(S, f.group))
+    .flatMap((f) => Object.keys(Canon.LANG_DIRS).map((lang) => ({ lang, ...f })))
+    .filter((f) => !CS.manifests.has(Canon.fileId(f.lang, f.rel)));
   if (!todo.length) return toast('Все доступные вам файлы уже в Firestore', 'ok');
   if (!confirm(`${T('Перенести в Firestore файлов')}: ${todo.length}? ${T('Уже перенесённые файлы не трогаются.')}`)) return;
   let done = 0, skipped = 0;
@@ -452,7 +490,7 @@ async function importAll() {
     try {
       const text = await Canon.loadStatic(f.lang, f.rel);
       if (text == null) { skipped++; continue; }
-      await Canon.saveCanon(f.lang, f.rel, text, { baseVersion: 0, nick: myNick(), note: 'Перенос из Assets', audit: { action: 'canon.import' } });
+      await Canon.saveCanon(f.lang, f.rel, text, { nick: myNick(), note: 'Перенос из Assets', audit: { action: 'canon.import' } });
       done++;
     } catch (e) { fail(e, `${f.lang}/${f.rel}`); }
   }
@@ -461,379 +499,207 @@ async function importAll() {
   openTab('canon');
 }
 
-async function openFile(lang, rel, force = false) {
-  if (!force && CS.dirty && !confirm(T('Отбросить несохранённые изменения?'))) return;
-  Object.assign(CS, { sel: { lang, rel }, manifest: null, source: null, data: undefined, text: '', path: [], key: null,
-    mode: Canon.isJson(rel) ? 'entries' : 'raw', entryJson: false, dirty: false, changes: new Map(), search: '' });
+async function openFile(lang, rel) {
+  Object.assign(CS, { sel: { lang, rel }, manifest: null, source: null, data: undefined, key: null, apply: null,
+    view: 'fields', search: '', dirty: false, changes: new Map() });
   $$('#cn-files .file').forEach((b) => b.setAttribute('aria-current', String(b.dataset.lang === lang && b.dataset.rel === rel)));
   const ed = $('#cn-editor');
   ed.innerHTML = '<div class="notice">Загрузка файла…</div>';
   try {
     const c = await Canon.loadCanon(lang, rel);
-    if (c) { CS.manifest = c.manifest; CS.source = 'canon'; CS.text = c.text; }
-    else {
-      const s = await Canon.loadStatic(lang, rel);
-      CS.source = s == null ? 'none' : 'static';
-      CS.text = s ?? '';
-    }
-    if (Canon.isJson(rel) && CS.text) CS.data = JSON.parse(CS.text);
+    let text = c?.text;
+    if (c) { CS.manifest = c.manifest; CS.source = 'canon'; }
+    else { text = await Canon.loadStatic(lang, rel); CS.source = text == null ? 'none' : 'static'; }
+    setWorking(text ?? (Canon.isJson(rel) ? '[]' : ''));
   } catch (e) { ed.innerHTML = `<div class="notice err">${esc(T(errText(e)))}</div>`; return; }
   renderEditor();
 }
 
-function setDirty() { CS.dirty = true; renderDirtyBar(); }
+/** Положить текст файла в рабочую копию (бросает ошибку, если JSON битый). */
+function setWorking(text) {
+  CS.data = Canon.isJson(CS.sel.rel) ? JSON.parse(text) : String(text);
+  CS.key = isList() && CS.data.length ? 0 : null;
+}
 
 function renderEditor() {
   const ed = $('#cn-editor');
   if (!ed || !CS.sel) return;
-  const { lang, rel } = CS.sel;
-  const m = CS.manifest;
-  const group = rel.split('/')[0];
+  const { lang, rel } = CS.sel, m = CS.manifest;
   const src = CS.source === 'canon' ? `<span class="chip on">Firestore v${m.version}</span>`
     : CS.source === 'static' ? '<span class="chip yellow">Только Assets — ещё не перенесён</span>'
       : '<span class="chip red">Файла нет</span>';
   ed.innerHTML = `
     <div class="panel">
       <div class="row between">
-        <div><h2 style="margin:0" class="notranslate">${esc(lang)}/${esc(rel)}</h2>
+        <div style="min-width:0"><h2 style="margin:0;overflow-wrap:anywhere" class="notranslate">${esc(lang)}/${esc(rel)}</h2>
           <div class="row small" style="margin-top:6px">${src}
-            ${m ? `<span class="muted">${esc(kb(m.size))} · ${m.chunks} ${esc(T('кусков'))} · ${esc(fmt(m.updatedAt))} · <span class="notranslate">${esc(m.updatedByNick || '')}</span>${m.note ? ' · «' + esc(m.note) + '»' : ''}</span>` : ''}</div></div>
+            ${m ? `<span class="muted">${esc(kb(m.size))} · ${esc(fmt(m.updatedAt))} · <span class="notranslate">${esc(m.updatedByNick || '')}</span>${m.note ? ' · «' + esc(m.note) + '»' : ''}</span>` : ''}</div></div>
         <div class="row">
-          ${Canon.isJson(rel) ? `<button class="btn sm ghost" id="ed-mode">${CS.mode === 'raw' ? '<i class="fa-solid fa-list"></i> По записям' : '<i class="fa-solid fa-code"></i> Файл целиком'}</button>` : ''}
-          <button class="btn sm ghost" id="ed-export" ${CS.text || CS.data !== undefined ? '' : 'disabled'}><i class="fa-solid fa-download"></i> Скачать</button>
-          <label class="btn sm ghost"><i class="fa-solid fa-upload"></i> Загрузить файл<input type="file" id="ed-upload" hidden accept="${Canon.isJson(rel) ? '.json,application/json' : '.html,.txt,text/*'}"></label>
-          <button class="btn sm ghost" id="ed-static" title="${esc(T('Взять версию из репозитория (Assets/) в рабочую копию'))}"><i class="fa-solid fa-code-branch"></i> Из Assets</button>
-          ${lang !== 'Rus' ? '<button class="btn sm ghost" id="ed-from-rus"><i class="fa-solid fa-language"></i> Копия русской</button>' : ''}
-          ${CS.source === 'canon' ? '<button class="btn sm red" id="ed-reset"><i class="fa-solid fa-trash"></i> Убрать из Firestore</button>' : ''}
+          <button class="btn sm ghost" data-file="export"><i class="fa-solid fa-download"></i> Скачать</button>
+          <label class="btn sm ghost"><i class="fa-solid fa-upload"></i> Загрузить файл<input type="file" id="ed-upload" hidden></label>
+          <button class="btn sm ghost" data-file="static" title="${esc(T('Взять версию из репозитория (Assets/) в рабочую копию'))}"><i class="fa-solid fa-code-branch"></i> Из Assets</button>
+          ${lang !== 'Rus' ? '<button class="btn sm ghost" data-file="rus"><i class="fa-solid fa-language"></i> Копия русской</button>' : ''}
+          ${CS.source === 'canon' ? '<button class="btn sm red" data-file="reset"><i class="fa-solid fa-trash"></i> Убрать из Firestore</button>' : ''}
         </div>
       </div>
-      ${group === 'builder' || ['characters/feats.json', 'characters/classes.json', 'items/equipment.json', 'characters/fixer.json', 'characters/bloodfiend.json', 'characters/bloodarch.json'].includes(rel)
-        ? `<div class="notice warn small" style="margin-top:10px">${esc(T(BUILDER_NOTE))}</div>` : ''}
+      ${rel.startsWith('builder/') || BUILDER_LINKED.includes(rel) ? `<div class="notice warn small" style="margin-top:10px">${esc(T(BUILDER_NOTE))}</div>` : ''}
+      ${rel === 'world/world.json' ? `<div class="notice small" style="margin-top:10px">${esc(T('Карту базового мира удобнее править прямо в Ширме: откройте ширму из группы «Базовый мир» — у кого есть право на раздел «Мир», появится кнопка «Опубликовать в канон».'))}
+        <a href="shirm.html" style="margin-left:6px">${esc(T('Открыть Ширму'))}</a></div>` : ''}
       ${CS.source === 'none' ? `<div class="notice" style="margin-top:10px">${esc(T('Файла на этом языке нет — сайт показывает русскую версию. Нажмите «Копия русской», чтобы начать перевод.'))}</div>` : ''}
-      <div id="ed-body" style="margin-top:12px"></div>
+      <div class="${isList() ? 'editor' : ''}" style="margin-top:12px">
+        ${isList() ? '<div id="en-side"></div>' : ''}
+        <div id="en-pane"></div>
+      </div>
       <div id="ed-dirty"></div>
     </div>`;
-
-  $('#ed-mode', ed)?.addEventListener('click', () => {
-    if (CS.mode === 'raw' && !applyRaw()) return;
-    CS.mode = CS.mode === 'raw' ? 'entries' : 'raw';
-    renderEditor();
-  });
-  $('#ed-export', ed).onclick = () => {
-    const name = rel.split('/').pop();
-    if (Canon.isJson(rel)) Canon.download(name, JSON.stringify(CS.data, null, 2) + '\n');
-    else Canon.download(name, CS.text, 'text/html');
-  };
-  $('#ed-upload', ed).onchange = async (e) => {
-    const f = e.target.files[0];
-    if (!f) return;
-    loadIntoWorking(await f.text(), `файл ${f.name}`);
-  };
-  $('#ed-static', ed).onclick = async () => {
-    const t = await Canon.loadStatic(lang, rel);
-    if (t == null) return toast('В Assets/ нет такого файла', 'err');
-    loadIntoWorking(t, 'Assets/');
-  };
-  $('#ed-from-rus', ed)?.addEventListener('click', async () => {
-    try {
-      const c = await Canon.loadCanon('Rus', rel);
-      const t = c ? c.text : await Canon.loadStatic('Rus', rel);
-      if (t == null) return toast('Русской версии нет', 'err');
-      loadIntoWorking(t, 'русская версия');
-    } catch (er) { fail(er); }
-  });
-  $('#ed-reset', ed)?.addEventListener('click', async () => {
-    if (!confirm(T('Удалить файл из Firestore? Сайт снова будет брать его из Assets/ репозитория (правки, сделанные в панели, пропадут, если вы их не скачали).'))) return;
-    try {
-      await Canon.resetCanon(lang, rel, { nick: myNick() });
-      toast('Файл убран из Firestore', 'ok');
-      CS.dirty = false; CS.data = undefined; CS.text = '';
-      openTab('canon');
-    } catch (er) { fail(er, 'Не удалось убрать файл'); }
-  });
-
-  if (CS.mode === 'raw' || !Canon.isJson(rel)) renderRaw();
-  else renderEntries();
+  $('#ed-upload', ed).onchange = async (e) => { const f = e.target.files[0]; if (f) replaceFile(await f.text(), `${T('файл')} ${f.name}`); };
+  ed.querySelector('.row').onclick = (e) => fileAction(e.target.closest('[data-file]')?.dataset.file);
+  if (isList()) renderList();
+  renderPane();
   renderDirtyBar();
 }
 
-function loadIntoWorking(text, from) {
-  const { rel } = CS.sel;
+async function fileAction(act) {
+  if (!act) return;
+  const { lang, rel } = CS.sel;
   try {
-    if (Canon.isJson(rel)) CS.data = JSON.parse(text);
-    CS.text = text;
-  } catch (e) { return toast(`${T('Некорректный JSON')}: ${e.message}`, 'err'); }
-  CS.changes.set('*', { label: `${T('весь файл заменён')}: ${from}` });
-  CS.path = []; CS.key = null;
-  setDirty();
+    if (act === 'export') {
+      if (!CS.apply || CS.apply()) Canon.download(rel.split('/').pop(), Canon.isJson(rel) ? JSON.stringify(CS.data, null, 2) + '\n' : CS.data);
+    } else if (act === 'static') {
+      const t = await Canon.loadStatic(lang, rel);
+      if (t == null) return toast('В Assets/ нет такого файла', 'err');
+      replaceFile(t, 'Assets/');
+    } else if (act === 'rus') {
+      const c = await Canon.loadCanon('Rus', rel);
+      const t = c ? c.text : await Canon.loadStatic('Rus', rel);
+      if (t == null) return toast('Русской версии нет', 'err');
+      replaceFile(t, T('русская версия'));
+    } else if (act === 'reset') {
+      if (!confirm(T('Удалить файл из Firestore? Сайт снова будет брать его из Assets/ репозитория (правки, сделанные в панели, пропадут, если вы их не скачали).'))) return;
+      await Canon.resetCanon(lang, rel, { nick: myNick() });
+      toast('Файл убран из Firestore', 'ok');
+      CS.dirty = false;
+      openTab('canon');
+    }
+  } catch (e) { fail(e); }
+}
+
+function replaceFile(text, from) {
+  try { setWorking(text); } catch (e) { return toast(`${T('Некорректный JSON')}: ${e.message}`, 'err'); }
+  markChanged('*', `${T('весь файл заменён')}: ${from}`);
   renderEditor();
   toast(`${T('Загружено в рабочую копию')}: ${from}. ${T('Не забудьте сохранить.')}`);
 }
 
-/* ---- Режим «файл целиком» ---- */
-function renderRaw() {
-  const body = $('#ed-body');
-  const json = Canon.isJson(CS.sel.rel);
-  const text = json ? (CS.data === undefined ? '' : JSON.stringify(CS.data, null, 2)) : CS.text;
-  body.innerHTML = `<textarea class="in code notranslate" id="raw" spellcheck="false" style="min-height:60vh">${esc(text)}</textarea>
-    <div class="row" style="margin-top:8px"><span class="muted small" id="raw-msg"></span><span class="spacer"></span>
-      ${json ? '<button class="btn sm ghost" id="raw-check">Проверить JSON</button>' : ''}</div>`;
-  const ta = $('#raw', body);
-  ta.oninput = () => { CS.rawEdited = true; if (!CS.dirty) { CS.changes.set('*', { label: T('файл правился целиком') }); setDirty(); } };
-  $('#raw-check', body)?.addEventListener('click', () => { if (applyRaw()) $('#raw-msg', body).textContent = T('JSON в порядке'); });
-}
-/** Забрать текст из режима «целиком» в рабочую копию. false — JSON с ошибкой. */
-function applyRaw() {
-  const ta = $('#raw');
-  if (!ta || !CS.rawEdited) return true;
-  if (!Canon.isJson(CS.sel.rel)) { CS.text = ta.value; return true; }
-  try { CS.data = JSON.parse(ta.value); CS.rawEdited = false; return true; }
-  catch (e) { toast(`${T('Некорректный JSON')}: ${e.message}`, 'err'); return false; }
-}
-
-/* ---- Режим «по записям» ---- */
-const isObj = (v) => v && typeof v === 'object' && !Array.isArray(v);
-const getAt = (root, path) => path.reduce((o, k) => (o == null ? o : o[k]), root);
-function textOf(v) {
-  if (v == null) return '';
-  if (typeof v === 'string') return v;
-  if (typeof v === 'number') return String(v);
-  if (isObj(v)) return textOf(v.ru ?? v.en ?? v.Name ?? v.name);
-  return '';
-}
-function labelOf(v, k) {
-  if (isObj(v)) {
-    const l = textOf(v.Name ?? v.name ?? v.title ?? v.Title ?? v.id ?? v.label);
-    if (l) return l;
-  }
-  if (typeof v === 'string') return v.length > 60 ? v.slice(0, 60) + '…' : v;
-  return String(k);
-}
-function blankLike(v) {
-  if (Array.isArray(v)) return [];
-  if (isObj(v)) return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, blankLike(x)]));
-  if (typeof v === 'number') return 0;
-  if (typeof v === 'boolean') return false;
-  if (typeof v === 'string') return '';
-  return null;
-}
-const pathKey = (p) => p.map(String).join(' › ');
-
-function recordChange(path, label, before, after) {
-  const key = pathKey(path);
+function markChanged(key, label, before, after) {
   const prev = CS.changes.get(key);
   CS.changes.set(key, { label, before: prev ? prev.before : before, after });
-  setDirty();
+  CS.dirty = true;
+  renderDirtyBar();
 }
 
-/** Применить открытую форму записи (если есть). false — в форме ошибка, действие нужно прервать. */
-const applyOpenEntry = () => (CS.applyEntry ? CS.applyEntry() : true);
-
-function renderEntries() {
-  CS.applyEntry = null;
-  const body = $('#ed-body');
-  const container = getAt(CS.data, CS.path);
-  if (container === undefined) { body.innerHTML = '<div class="notice">Пустой файл.</div>'; return; }
-  if (!Array.isArray(container) && !isObj(container)) { CS.path = CS.path.slice(0, -1); return renderEntries(); }
-  const isArr = Array.isArray(container);
-  const keys = isArr ? container.map((_, i) => i) : Object.keys(container);
+/* ---- Список записей ---- */
+function renderList() {
+  const side = $('#en-side');
   const q = CS.search.trim().toLowerCase();
-  const shown = keys.filter((k) => !q || labelOf(container[k], k).toLowerCase().includes(q) || String(k).includes(q));
-  const changedHere = new Set([...CS.changes.keys()]);
-
-  body.innerHTML = `
-    <div class="crumbs notranslate"><button data-crumb="-1">${esc(CS.sel.rel.split('/').pop())}</button>
-      ${CS.path.map((k, i) => `› <button data-crumb="${i}">${esc(labelOf(getAt(CS.data, CS.path.slice(0, i + 1)), k))}</button>`).join(' ')}</div>
-    <div class="editor">
-      <div>
-        <div class="row" style="margin-bottom:6px">
-          <input class="in" id="en-search" placeholder="${esc(T('Поиск'))}" value="${esc(CS.search)}" style="flex:1">
-        </div>
-        <div class="row" style="margin-bottom:6px">
-          <button class="btn sm green" id="en-add" title="${esc(T('Добавить запись'))}"><i class="fa-solid fa-plus"></i></button>
-          ${isArr ? `<button class="btn sm" id="en-dup" title="${esc(T('Дублировать'))}"><i class="fa-solid fa-clone"></i></button>
-            <button class="btn sm" id="en-up" title="${esc(T('Выше'))}"><i class="fa-solid fa-arrow-up"></i></button>
-            <button class="btn sm" id="en-down" title="${esc(T('Ниже'))}"><i class="fa-solid fa-arrow-down"></i></button>` : ''}
-          <button class="btn sm red" id="en-del" title="${esc(T('Удалить запись'))}"><i class="fa-solid fa-trash"></i></button>
-          <span class="muted small">${keys.length} ${esc(T('зап.'))}</span>
-        </div>
-        <div class="entries notranslate" id="en-list">
-          ${shown.map((k) => `<button class="entry ${changedHere.has(pathKey([...CS.path, k])) ? 'changed' : ''}" data-key="${esc(k)}" aria-current="${String(k) === String(CS.key)}">
-            <span class="idx">${isArr ? '#' + k : ''}</span><span>${esc(labelOf(container[k], k))}</span></button>`).join('') || '<div class="muted small" style="padding:8px">Ничего не найдено</div>'}
-        </div>
-      </div>
-      <div id="en-edit">${CS.key == null || !(CS.key in container) ? '<div class="notice">Выберите запись.</div>' : ''}</div>
-    </div>`;
-
-  const s = $('#en-search', body);
-  s.oninput = () => { CS.search = s.value; const pos = s.selectionStart; renderEntries(); const n = $('#en-search'); n.focus(); n.setSelectionRange(pos, pos); };
-  $('.crumbs', body).onclick = (e) => {
-    const b = e.target.closest('[data-crumb]');
-    if (!b || !applyOpenEntry()) return;
-    const i = Number(b.dataset.crumb);
-    CS.key = i < 0 ? CS.path[0] ?? null : CS.path[i + 1] ?? null;
-    CS.path = CS.path.slice(0, i + 1);
-    CS.search = '';
-    renderEntries();
+  const rows = CS.data.map((v, i) => [v, i]).filter(([v, i]) => !q || labelOf(v, i).toLowerCase().includes(q));
+  side.innerHTML = `
+    <input class="in" id="en-search" placeholder="${esc(T('Поиск'))}" value="${esc(CS.search)}" style="margin-bottom:6px">
+    <div class="row" style="margin-bottom:6px">
+      <button class="btn sm green" data-list="add" title="${esc(T('Добавить запись'))}"><i class="fa-solid fa-plus"></i></button>
+      <button class="btn sm" data-list="dup" title="${esc(T('Дублировать'))}"><i class="fa-solid fa-clone"></i></button>
+      <button class="btn sm" data-list="up" title="${esc(T('Выше'))}"><i class="fa-solid fa-arrow-up"></i></button>
+      <button class="btn sm" data-list="down" title="${esc(T('Ниже'))}"><i class="fa-solid fa-arrow-down"></i></button>
+      <button class="btn sm red" data-list="del" title="${esc(T('Удалить запись'))}"><i class="fa-solid fa-trash"></i></button>
+      <span class="muted small">${CS.data.length} ${esc(T('зап.'))}</span>
+    </div>
+    <div class="entries notranslate">${rows.map(([v, i]) => `<button class="entry ${CS.changes.has(String(i)) ? 'changed' : ''}" data-key="${i}" aria-current="${i === CS.key}">
+      <span class="idx">#${i}</span><span>${esc(labelOf(v, i))}</span></button>`).join('') || '<div class="muted small" style="padding:8px">Ничего не найдено</div>'}</div>`;
+  const s = $('#en-search', side);
+  s.oninput = () => { CS.search = s.value; renderList(); const n = $('#en-search'); n.focus(); n.setSelectionRange(s.value.length, s.value.length); };
+  side.onclick = (e) => {
+    const b = e.target.closest('[data-key],[data-list]');
+    if (!b || (CS.apply && !CS.apply())) return;   // открытую запись сначала применяем
+    if (b.dataset.key != null) CS.key = Number(b.dataset.key);
+    else listAction(b.dataset.list);
+    renderList(); renderPane();
   };
-  $('#en-list', body).ondblclick = (e) => {
-    const b = e.target.closest('[data-key]');
-    const k = b && (isArr ? Number(b.dataset.key) : b.dataset.key);
-    if (b && container[k] && typeof container[k] === 'object' && applyOpenEntry()) {
-      CS.path = [...CS.path, k]; CS.key = null; CS.search = '';
-      renderEntries();
-    }
-  };
-  $('#en-list', body).onclick = (e) => {
-    const b = e.target.closest('[data-key]');
-    if (!b || !applyOpenEntry()) return;
-    CS.key = isArr ? Number(b.dataset.key) : b.dataset.key;
-    CS.entryJson = false;
-    renderEntries();
-  };
-  $('#en-add', body).onclick = () => {
-    if (!applyOpenEntry()) return;
-    if (isArr) {
-      const tpl = container.length ? blankLike(container[CS.key ?? 0] ?? container[0]) : {};
-      container.push(tpl);
-      CS.key = container.length - 1;
-      recordChange([...CS.path, CS.key], T('новая запись'), null, tpl);
-    } else {
-      const name = prompt(T('Ключ новой записи:'));
-      if (!name) return;
-      if (name in container) return toast('Такой ключ уже есть', 'err');
-      const sample = Object.values(container).find(isObj);
-      container[name] = sample ? blankLike(sample) : '';
-      CS.key = name;
-      recordChange([...CS.path, name], name, null, container[name]);
-    }
-    renderEntries();
-  };
-  $('#en-del', body).onclick = () => {
-    if (CS.key == null || !(CS.key in container)) return;
-    const label = labelOf(container[CS.key], CS.key);
-    if (!confirm(`${T('Удалить запись')} «${label}»?`)) return;
-    const before = container[CS.key];
-    if (isArr) container.splice(CS.key, 1); else delete container[CS.key];
-    recordChange([...CS.path, CS.key, 'удалено'], `${T('удалено')}: ${label}`, before, null);
-    CS.key = null;
-    renderEntries();
-  };
-  const move = (d) => {
-    if (!applyOpenEntry()) return;
-    const i = CS.key;
-    if (i == null || i + d < 0 || i + d >= container.length) return;
-    [container[i], container[i + d]] = [container[i + d], container[i]];
-    recordChange([...CS.path, 'порядок'], T('изменён порядок записей'), null, null);
-    CS.key = i + d;
-    renderEntries();
-  };
-  $('#en-up', body)?.addEventListener('click', () => move(-1));
-  $('#en-down', body)?.addEventListener('click', () => move(1));
-  $('#en-dup', body)?.addEventListener('click', () => {
-    if (CS.key == null || !applyOpenEntry()) return;
-    const copy = structuredClone(container[CS.key]);
-    container.splice(CS.key + 1, 0, copy);
-    CS.key += 1;
-    recordChange([...CS.path, CS.key], `${T('копия')}: ${labelOf(copy, CS.key)}`, null, copy);
-    renderEntries();
-  });
-
-  if (CS.key != null && CS.key in container) renderEntryEditor(container, CS.key);
 }
 
-function renderEntryEditor(container, key) {
-  const box = $('#en-edit');
-  const value = container[key];
-  const path = [...CS.path, key];
-  const label = labelOf(value, key);
-  const asJson = CS.entryJson || !isObj(value);
-
-  let fields = '';
-  if (!asJson) {
-    fields = Object.entries(value).map(([k, v]) => {
-      const id = 'f-' + encodeURIComponent(k).replace(/%/g, '_');
-      let input;
-      if (typeof v === 'string') {
-        const rows = Math.min(16, Math.max(1, Math.ceil(v.length / 90) + (v.match(/\n/g) || []).length));
-        input = `<textarea class="in notranslate" id="${id}" data-f="${esc(k)}" data-t="string" rows="${rows}">${esc(v)}</textarea>`;
-      } else if (typeof v === 'number') {
-        input = `<input class="in notranslate" type="number" step="any" id="${id}" data-f="${esc(k)}" data-t="number" value="${esc(v)}">`;
-      } else if (typeof v === 'boolean') {
-        input = `<label class="check"><input type="checkbox" id="${id}" data-f="${esc(k)}" data-t="bool" ${v ? 'checked' : ''}> ${esc(T('да'))}</label>`;
-      } else {
-        const text = JSON.stringify(v, null, 2);
-        const rows = Math.min(14, Math.max(2, (text.match(/\n/g) || []).length + 1));
-        input = `<textarea class="in code notranslate" id="${id}" data-f="${esc(k)}" data-t="json" rows="${rows}" spellcheck="false">${esc(text)}</textarea>`;
-      }
-      const drill = (Array.isArray(v) && v.length) || (isObj(v) && Object.keys(v).length)
-        ? ` <button class="btn sm ghost" data-drill="${esc(k)}" type="button"><i class="fa-solid fa-folder-open"></i> ${esc(T('Открыть списком'))}</button>` : '';
-      return `<div class="field"><span class="notranslate">${esc(k)}${drill}</span>${input}</div>`;
-    }).join('');
+function listAction(act) {
+  const list = CS.data, i = CS.key;
+  if (act === 'add') {
+    list.push({});
+    CS.key = list.length - 1;
+    markChanged(String(CS.key), T('новая запись'), null, {});
+    return;
   }
+  if (i == null || !(i in list)) return;
+  if (act === 'dup') {
+    list.splice(i + 1, 0, structuredClone(list[i]));
+    CS.key = i + 1;
+    markChanged(String(CS.key), `${T('копия')}: ${labelOf(list[i], i)}`, null, list[i + 1]);
+  } else if (act === 'up' || act === 'down') {
+    const j = act === 'up' ? i - 1 : i + 1;
+    if (j < 0 || j >= list.length) return;
+    [list[i], list[j]] = [list[j], list[i]];
+    CS.key = j;
+    markChanged('order', T('изменён порядок записей'));
+  } else if (act === 'del') {
+    if (!confirm(`${T('Удалить запись')} «${labelOf(list[i], i)}»?`)) return;
+    const [gone] = list.splice(i, 1);
+    markChanged(`del:${labelOf(gone, i)}`, `${T('удалено')}: ${labelOf(gone, i)}`, gone, null);
+    CS.key = list.length ? Math.min(i, list.length - 1) : null;
+  }
+}
 
-  box.innerHTML = `
-    <div class="row between" style="margin-bottom:8px">
-      <h3 style="margin:0" class="notranslate">${esc(label)}</h3>
-      <div class="row">
-        ${(Array.isArray(value) && value.length) || (isObj(value) && Object.values(value).some((x) => x && typeof x === 'object'))
-          ? `<button class="btn sm" id="ee-open"><i class="fa-solid fa-folder-open"></i> ${esc(T('Открыть списком'))}</button>` : ''}
-        ${isObj(value) ? `<button class="btn sm ghost" id="ee-toggle">${asJson ? esc(T('Форма')) : 'JSON'}</button>` : ''}
-        ${!asJson ? `<button class="btn sm ghost" id="ee-addf"><i class="fa-solid fa-plus"></i> ${esc(T('Поле'))}</button>` : ''}
+/* ---- Запись: Поля | Код ---- */
+function renderPane() {
+  const pane = $('#en-pane');
+  CS.apply = null;
+  if (isList() && (CS.key == null || !(CS.key in CS.data))) { pane.innerHTML = '<div class="notice">Выберите запись.</div>'; return; }
+  const schema = schemaOf(), value = entryOf(), json = Canon.isJson(CS.sel.rel);
+  const canFields = !!schema && value && typeof value === 'object' && !Array.isArray(value);
+  const mode = canFields ? CS.view : 'code';
+  const code = json ? JSON.stringify(value, null, 2) : value;
+
+  pane.innerHTML = `
+    <div class="row between" style="margin-bottom:10px">
+      <h3 style="margin:0" class="notranslate">${esc(CS.key == null ? CS.sel.rel.split('/').pop() : labelOf(value, CS.key))}</h3>
+      <div class="segs">
+        <button class="seg ${mode === 'fields' ? 'on' : ''}" data-view="fields" ${canFields ? '' : `disabled title="${esc(T('Для этого файла нет полей конструктора — только код'))}"`}>Поля</button>
+        <button class="seg ${mode === 'code' ? 'on' : ''}" data-view="code">Код</button>
       </div>
     </div>
-    <div class="form">${asJson
-      ? `<textarea class="in code notranslate" id="ee-json" rows="22" spellcheck="false">${esc(JSON.stringify(value, null, 2))}</textarea>`
-      : fields}</div>
-    <div class="row" style="margin-top:10px"><span class="muted small" id="ee-msg"></span><span class="spacer"></span>
-      <button class="btn sm ghost" id="ee-cancel">Отменить</button>
-      <button class="btn sm green" id="ee-apply"><i class="fa-solid fa-check"></i> Применить к записи</button></div>`;
+    ${mode === 'fields'
+      ? `<div class="nav-form" id="en-form">${formHtml(schema, value, ADMIN_FIELDS)}</div>`
+      : `<textarea class="in code notranslate" id="en-code" spellcheck="false" style="min-height:${CS.key == null ? 60 : 45}vh">${esc(code)}</textarea>`}
+    <div class="row" style="margin-top:10px"><span class="small" id="en-msg" style="color:var(--red)"></span><span class="spacer"></span>
+      <button class="btn sm ghost" data-pane="cancel">Отменить</button>
+      <button class="btn sm green" data-pane="apply"><i class="fa-solid fa-check"></i> ${esc(T(CS.key == null ? 'Применить' : 'Применить к записи'))}</button></div>`;
 
-  const read = () => {
-    if (asJson) return JSON.parse($('#ee-json', box).value);
-    const out = {};
-    for (const el of $$('[data-f]', box)) {
-      const k = el.dataset.f;
-      if (el.dataset.t === 'string') out[k] = el.value;
-      else if (el.dataset.t === 'number') { const n = Number(el.value); if (el.value === '' || Number.isNaN(n)) throw new Error(`${k}: ${T('нужно число')}`); out[k] = n; }
-      else if (el.dataset.t === 'bool') out[k] = el.checked;
-      else { try { out[k] = JSON.parse(el.value); } catch (e) { throw new Error(`${k}: ${e.message}`); } }
-    }
-    return out;
-  };
-  const apply = () => {
+  const read = () => (mode === 'fields'
+    ? collectFields(schema, $('#en-form', pane), value)
+    : json ? JSON.parse($('#en-code', pane).value) : $('#en-code', pane).value);
+  CS.apply = () => {
     let next;
-    try { next = read(); } catch (e) { $('#ee-msg', box).textContent = e.message; $('#ee-msg', box).style.color = 'var(--red)'; return false; }
-    const before = container[key];
-    if (JSON.stringify(before) === JSON.stringify(next)) return true;
-    container[key] = next;
-    recordChange(path, labelOf(next, key), before, next);
+    try { next = read(); } catch (e) { $('#en-msg', pane).textContent = `${T('Ошибка')}: ${e.message}`; return false; }
+    if (JSON.stringify(next) === JSON.stringify(value)) return true;
+    if (CS.key == null) CS.data = next; else CS.data[CS.key] = next;
+    markChanged(String(CS.key ?? '*'), CS.key == null ? T('файл') : labelOf(next, CS.key), value, next);
+    if (isList()) renderList();
     return true;
   };
-  CS.applyEntry = apply;
-  $('#ee-open', box)?.addEventListener('click', () => {
-    if (!apply()) return;
-    CS.path = path; CS.key = null; CS.search = '';
-    renderEntries();
-  });
-  $('#ee-toggle', box)?.addEventListener('click', () => { if (apply()) { CS.entryJson = !CS.entryJson; renderEntries(); } });
-  $('#ee-addf', box)?.addEventListener('click', () => {
-    if (!apply()) return;
-    const name = prompt(T('Название нового поля:'));
-    if (!name || name in container[key]) return;
-    const before = structuredClone(container[key]);
-    container[key][name] = '';
-    recordChange(path, labelOf(container[key], key), before, container[key]);
-    renderEntries();
-  });
-  $('#ee-cancel', box).onclick = () => renderEntries();
-  $('#ee-apply', box).onclick = () => { if (apply()) { renderEntries(); toast('Запись изменена в рабочей копии — сохраните файл', 'ok'); } };
-  box.onclick = (e) => {
-    const d = e.target.closest('[data-drill]');
-    if (!d || !apply()) return;
-    CS.path = [...path, d.dataset.drill];
-    CS.key = null; CS.search = '';
-    renderEntries();
+  pane.onclick = (e) => {
+    const el = e.target.closest('[data-view],[data-pane],[data-act]');
+    if (!el) return;
+    if (el.dataset.act === 'md-preview') return togglePreview(el);
+    if (el.dataset.act) return repeatAction(el, schema, ADMIN_FIELDS);
+    if (el.dataset.pane === 'cancel') return renderPane();
+    if (!CS.apply()) return;
+    if (el.dataset.view) CS.view = el.dataset.view;
+    else toast('Изменено в рабочей копии — сохраните файл', 'ok');
+    renderPane();
   };
 }
 
@@ -850,42 +716,30 @@ function renderDirtyBar() {
       <button class="btn sm ghost" id="sv-discard">Отменить всё</button>
       <button class="btn sm green" id="sv-save"><i class="fa-solid fa-cloud-arrow-up"></i> Сохранить в Firestore</button>
     </div></div>`;
-  $('#sv-discard', box).onclick = () => {
-    if (!confirm(T('Отменить все несохранённые изменения?'))) return;
-    CS.dirty = false;
-    openFile(CS.sel.lang, CS.sel.rel, true);
-  };
+  $('#sv-discard', box).onclick = () => { if (confirm(T('Отменить все несохранённые изменения?'))) { CS.dirty = false; openFile(CS.sel.lang, CS.sel.rel); } };
   $('#sv-save', box).onclick = saveFile;
 }
 
 async function saveFile() {
-  if (CS.mode === 'raw' && !applyRaw()) return;
-  // открытая форма записи могла быть не применена — применяем, чтобы не потерять правки
-  if (CS.mode === 'entries' && !applyOpenEntry()) return;
+  if (CS.apply && !CS.apply()) return;   // открытая запись могла быть не применена
   const { lang, rel } = CS.sel;
-  const text = Canon.isJson(rel) ? JSON.stringify(CS.data) : CS.text;
   const note = $('#sv-note')?.value.trim() || '';
-  // В журнал — что изменилось (с прежними значениями, чтобы правку можно было откатить вручную)
-  const changes = [...CS.changes.entries()].map(([p, c]) => ({ path: p, label: c.label, before: c.before, after: c.after }));
+  // В журнал — что изменилось, с прежними значениями (чтобы правку можно было откатить вручную)
+  const changes = [...CS.changes.values()];
   let details = JSON.stringify({ note, changes });
-  if (details.length > 55000) details = JSON.stringify({ note, changes: changes.map(({ path, label }) => ({ path, label })), truncated: true });
-  const btn = $('#sv-save');
-  if (btn) btn.disabled = true;
+  if (details.length > 55000) details = JSON.stringify({ note, changes: changes.map((c) => c.label), truncated: true });
+  $('#sv-save').disabled = true;
   try {
-    const r = await Canon.saveCanon(lang, rel, text, {
+    const r = await Canon.saveCanon(lang, rel, Canon.isJson(rel) ? JSON.stringify(CS.data) : CS.data, {
       baseVersion: CS.manifest?.version || 0, note, nick: myNick(),
       audit: { action: CS.manifest ? 'canon.save' : 'canon.import', details },
     });
     toast(`${T('Сохранено')}: v${r.version} (${kb(r.size)})`, 'ok');
     CS.dirty = false;
-    const sel = CS.sel;
-    CS.data = undefined; CS.text = '';
-    CS.sel = sel;
     await renderCanon(view());
   } catch (e) {
-    if (btn) btn.disabled = false;
-    if (e.code === 'canon/conflict') toast(e.message, 'err');
-    else fail(e, 'Не удалось сохранить');
+    $('#sv-save').disabled = false;
+    if (e.code === 'canon/conflict') toast(e.message, 'err'); else fail(e, 'Не удалось сохранить');
   }
 }
 
@@ -974,14 +828,8 @@ async function renderUsers(v) {
     if (u) {
       const user = map.get(u.dataset.unban);
       if (!confirm(`${T('Снять блокировку с')} ${user.nick || user.uid}?`)) return;
-      try {
-        const batch = writeBatch(db);
-        batch.delete(doc(db, 'bans', user.uid));
-        addAudit(batch, 'ban.remove', `${user.nick || ''} (${user.uid})`, { before: user.ban });
-        await batch.commit();
-        toast('Блокировка снята', 'ok');
-        openTab('users');
-      } catch (er) { fail(er, 'Не удалось снять блокировку'); }
+      if (await logged('ban.remove', `${user.nick || ''} (${user.uid})`, { before: user.ban },
+        (b) => b.delete(doc(db, 'bans', user.uid)), { ok: 'Блокировка снята', failMsg: 'Не удалось снять блокировку' })) openTab('users');
     }
   };
 }
@@ -1004,15 +852,11 @@ function banDialog(u) {
       by: S.user.uid, byNick: myNick().slice(0, 40), at: serverTimestamp(),
     };
     if (days) data.until = Timestamp.fromMillis(Date.now() + days * 864e5);
-    try {
-      const batch = writeBatch(db);
-      batch.set(doc(db, 'bans', u.uid), data);
-      addAudit(batch, 'ban.set', `${u.nick || ''} (${u.uid})`, { reason: data.reason, days: days || 'навсегда' });
-      await batch.commit();
+    if (await logged('ban.set', `${u.nick || ''} (${u.uid})`, { reason: data.reason, days: days || 'навсегда' },
+      (b) => b.set(doc(db, 'bans', u.uid), data), { ok: 'Пользователь заблокирован', failMsg: 'Не удалось заблокировать' })) {
       m.close();
-      toast('Пользователь заблокирован', 'ok');
       openTab('users');
-    } catch (e) { fail(e, 'Не удалось заблокировать'); }
+    }
   };
 }
 
@@ -1072,43 +916,30 @@ async function renderModeration(v) {
   $('#md-vis', v).onchange = (e) => { MS.vis = e.target.value; draw(); };
   $('#md-fix', v)?.addEventListener('click', async () => {
     if (!confirm(`${T('Проставить isPrivate: false записям без флага')}: ${broken.length}?`)) return;
-    try {
-      for (let i = 0; i < broken.length; i += 300) {
-        const batch = writeBatch(db);
-        broken.slice(i, i + 300).forEach((x) => batch.set(doc(db, 'custom_content', x.id), { isPrivate: false }, { merge: true }));
-        addAudit(batch, 'content.fixflags', `${broken.length}`, broken.slice(i, i + 300).map((x) => x.id).join(','));
-        await batch.commit();
-      }
-      toast('Готово', 'ok');
-      openTab('moderation');
-    } catch (e) { fail(e); }
+    for (let i = 0; i < broken.length; i += 300) {
+      const part = broken.slice(i, i + 300);
+      if (!await logged('content.fixflags', `${broken.length}`, part.map((x) => x.id).join(','),
+        (b) => part.forEach((x) => b.set(doc(db, 'custom_content', x.id), { isPrivate: false }, { merge: true })))) return;
+    }
+    toast('Готово', 'ok');
+    openTab('moderation');
   });
   v.onclick = async (e) => {
     const find = (attr) => { const el = e.target.closest(`[${attr}]`); return el && items.find((i) => i.id === el.getAttribute(attr)); };
     let it;
     if ((it = find('data-view'))) return showJson(`${it.name} · ${it.creator}`, it.raw);
     if ((it = find('data-priv'))) {
-      try {
-        const batch = writeBatch(db);
-        batch.update(doc(db, 'custom_content', it.id), { isPrivate: !it.priv });
-        addAudit(batch, 'content.private', `${it.type}: ${it.name} (${it.id})`, { isPrivate: !it.priv, creator: it.email });
-        await batch.commit();
-        it.priv = !it.priv;
-        draw();
-      } catch (er) { fail(er); }
+      if (await logged('content.private', `${it.type}: ${it.name} (${it.id})`, { isPrivate: !it.priv, creator: it.email },
+        (b) => b.update(doc(db, 'custom_content', it.id), { isPrivate: !it.priv }))) { it.priv = !it.priv; draw(); }
       return;
     }
     if ((it = find('data-del'))) {
       if (!confirm(`${T('Удалить запись')} «${it.name}» (${it.creator})? ${T('Копия попадёт в журнал.')}`)) return;
-      try {
-        const batch = writeBatch(db);
-        batch.delete(doc(db, 'custom_content', it.id));
-        addAudit(batch, 'content.delete', `${it.type}: ${it.name} (${it.id})`, JSON.stringify(it.raw, jsonReplacer));
-        await batch.commit();
+      if (await logged('content.delete', `${it.type}: ${it.name} (${it.id})`, JSON.stringify(it.raw, jsonReplacer),
+        (b) => b.delete(doc(db, 'custom_content', it.id)), { ok: 'Запись удалена', failMsg: 'Не удалось удалить' })) {
         items.splice(items.indexOf(it), 1);
         draw();
-        toast('Запись удалена', 'ok');
-      } catch (er) { fail(er, 'Не удалось удалить'); }
+      }
     }
   };
 }
@@ -1159,36 +990,24 @@ async function renderHidden(v) {
     if ((o = pick('data-office', off))) return viewOffice(o);
     if ((s = pick('data-screen', scr))) return viewScreen(s);
     if ((o = pick('data-office-del', off))) {
-      const typed = prompt(`${T('Офис, все досье, контракты и казна будут удалены навсегда. Введите название офиса для подтверждения')}: ${o.name}`);
-      if (typed == null) return;
-      if (typed.trim().toUpperCase() !== String(o.name || '').trim().toUpperCase()) return toast('Название не совпадает — офис не удалён', 'err');
-      try {
-        const n = await deleteCollection(['offices', o.id, 'agents']);
-        const batch = writeBatch(db);
-        batch.delete(doc(db, 'offices', o.id));
-        const { treasury, news, ...meta } = o;
-        addAudit(batch, 'office.delete', `${o.name} (${o.id})`, JSON.stringify({ ...meta, agentsDeleted: n }, jsonReplacer));
-        await batch.commit();
-        toast('Офис удалён', 'ok');
-        openTab('hidden');
-      } catch (er) { fail(er, 'Не удалось удалить офис'); }
+      if (!confirmName('Офис, все досье, контракты и казна будут удалены навсегда. Введите название офиса для подтверждения', o.name)) return;
+      let n;
+      try { n = await deleteCollection(['offices', o.id, 'agents']); } catch (er) { return fail(er, 'Не удалось удалить офис'); }
+      const { treasury, news, ...meta } = o;   // казну и сводки в журнал не тащим
+      if (await logged('office.delete', `${o.name} (${o.id})`, JSON.stringify({ ...meta, agentsDeleted: n }, jsonReplacer),
+        (b) => b.delete(doc(db, 'offices', o.id)), { ok: 'Офис удалён', failMsg: 'Не удалось удалить офис' })) openTab('hidden');
       return;
     }
     if ((s = pick('data-screen-del', scr))) {
-      const typed = prompt(`${T('Ширма и все её объекты будут удалены навсегда. Введите название для подтверждения')}: ${s.name}`);
-      if (typed == null) return;
-      if (typed.trim().toUpperCase() !== String(s.name || '').trim().toUpperCase()) return toast('Название не совпадает — ширма не удалена', 'err');
+      if (!confirmName('Ширма и все её объекты будут удалены навсегда. Введите название для подтверждения', s.name)) return;
+      let items, secret;
       try {
-        const a = await deleteCollection(['custom_screens', s.id, 'items']);
-        const b = await deleteCollection(['custom_screens', s.id, 'secret']);
-        const batch = writeBatch(db);
-        batch.delete(doc(db, 'custom_screens', s.id));
-        const { graphData, ...meta } = s;
-        addAudit(batch, 'screen.delete', `${s.name} (${s.id})`, JSON.stringify({ ...meta, items: a, secret: b }, jsonReplacer));
-        await batch.commit();
-        toast('Ширма удалена', 'ok');
-        openTab('hidden');
-      } catch (er) { fail(er, 'Не удалось удалить ширму'); }
+        items = await deleteCollection(['custom_screens', s.id, 'items']);
+        secret = await deleteCollection(['custom_screens', s.id, 'secret']);
+      } catch (er) { return fail(er, 'Не удалось удалить ширму'); }
+      const { graphData, ...meta } = s;   // старую карту целиком в журнал не тащим
+      if (await logged('screen.delete', `${s.name} (${s.id})`, JSON.stringify({ ...meta, items, secret }, jsonReplacer),
+        (b) => b.delete(doc(db, 'custom_screens', s.id)), { ok: 'Ширма удалена', failMsg: 'Не удалось удалить ширму' })) openTab('hidden');
     }
   };
 }

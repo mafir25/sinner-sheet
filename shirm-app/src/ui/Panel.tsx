@@ -229,7 +229,32 @@ export function Panel({ store, screens, screenId, onPickScreen, email, active, o
   const sbShown = Math.min(sbW, panelW * 0.88);
   const sbCompact = panelW - sbShown < 360;
 
-  const saveLabel: Record<string, string> = { idle: '', dirty: '● не сохранено', saving: '⟳ сохранение…', saved: '✓ сохранено', error: '⚠ ошибка сохранения' };
+  const saveLabel: Record<string, string> = meta?.isLocal
+    ? { idle: '', dirty: '● не опубликовано', saving: '⟳ публикация…', saved: '✓ опубликовано', error: '⚠ ошибка' }
+    : { idle: '', dirty: '● не сохранено', saving: '⟳ сохранение…', saved: '✓ сохранено', error: '⚠ ошибка сохранения' };
+
+  // базовый мир (канон world.json): правки уходят на сайт только по кнопке
+  const publish = async () => {
+    const note = await promptDialog('Опубликовать правки базового мира? Комментарий для журнала:', '', 'Что изменено');
+    if (note === null) return;
+    try {
+      const v = await store.publish(note);
+      if (v) toast(`Опубликовано в канон (world.json v${v}). Игроки увидят при следующем открытии Ширмы.`);
+    } catch (e) {
+      const err = e as Error & { code?: string };
+      if (err.code === 'canon/conflict') {
+        if (!(await confirmDialog(err.message, 'Записать ваши правки поверх? Чужие изменения этой ширмы пропадут. Иначе — «Отменить правки» и повторить.', true))) return;
+        try { const v = await store.publish(note, true); if (v) toast(`Опубликовано в канон (world.json v${v}).`); }
+        catch (e2) { console.error(e2); toast('Не удалось опубликовать', 'error'); }
+        return;
+      }
+      console.error(e);
+      toast(err.code === 'permission-denied' ? 'Нет прав на канон раздела «Мир»' : 'Не удалось опубликовать', 'error');
+    }
+  };
+  const discard = async () => {
+    if (await confirmDialog('Отменить все неопубликованные правки этой ширмы?', undefined, true)) store.discardLocal();
+  };
 
   return (
     <section ref={panelRef} className={`panel${active ? ' active' : ''}`} onPointerDownCapture={onActivate}>
@@ -253,7 +278,15 @@ export function Panel({ store, screens, screenId, onPickScreen, email, active, o
             <span className={`save-state s-${st.saveState}`}>{saveLabel[st.saveState]}</span>
           </>
         )}
-        {!sbOpen && meta?.isLocal && <span className="badge">только чтение — копируй узлы в свою ширму</span>}
+        {meta?.isLocal && admin && (
+          <>
+            <button className="btn btn-sm btn-primary" disabled={st.saveState !== 'dirty'} onClick={publish}
+              title="Записать правки в канон (world.json) — их увидят все">⇪ Опубликовать в канон</button>
+            {st.saveState === 'dirty' && <button className="btn btn-sm" onClick={discard}>Отменить правки</button>}
+          </>
+        )}
+        {!sbOpen && meta?.isLocal && !admin && <span className="badge">только чтение — копируй узлы в свою ширму</span>}
+        {!sbOpen && meta?.isLocal && admin && <span className="badge">канон: правки видны всем после публикации</span>}
         {!sbOpen && meta && !meta.isLocal && !admin && <span className="badge">просмотр</span>}
         <span className="grow" />
         <div className="search">

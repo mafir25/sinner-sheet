@@ -2,7 +2,8 @@
 import { useSyncExternalStore } from 'react';
 import { type Item, type ItemMap, type NodeItem, type ScreenMeta, isFrame, isNode } from '../model/schema';
 import { migrateV1, type V1Graph } from '../model/migrate';
-import { canAdmin, finishMigration, saveChanges, subscribeItems } from '../data/screens';
+import { canAdmin, finishMigration, publishBaseScreen, saveChanges, subscribeItems } from '../data/screens';
+import { auth } from '../data/firebase';
 import { toast } from '../ui/toast';
 
 export type SaveState = 'idle' | 'dirty' | 'saving' | 'saved' | 'error';
@@ -297,6 +298,7 @@ export class BoardStore {
   async flush(): Promise<void> {
     if (this.saveTimer) { clearTimeout(this.saveTimer); this.saveTimer = null; }
     const meta = this.state.meta;
+    // базовый мир не сохраняется сам: правки копятся до «Опубликовать» (publish)
     if (!meta || meta.isLocal || !this.dirty.size) return;
     const snapshot = new Map(this.dirty);
     const items = this.state.items;
@@ -314,6 +316,32 @@ export class BoardStore {
       toast('Ошибка сохранения. Повторю через несколько секунд.', 'error');
       this.saveTimer = setTimeout(() => void this.flush(), 5000);
     }
+  }
+
+  // ------------------------------------------------------------ базовый мир (канон world.json)
+  /** Опубликовать правки ширмы базового мира. Ошибка с code 'canon/conflict' — ширму успел изменить другой. */
+  async publish(note: string, force = false): Promise<number | null> {
+    const meta = this.state.meta, user = auth.currentUser;
+    if (!meta?.isLocal || !user || !this.dirty.size) return null;
+    const snapshot = new Map(this.dirty);
+    this.set({ saveState: 'saving' });
+    try {
+      const version = await publishBaseScreen(user, meta, this.state.items, { note, force });
+      for (const [id, v] of snapshot) if (this.dirty.get(id) === v) this.dirty.delete(id);
+      this.set({ saveState: this.dirty.size ? 'dirty' : 'saved' });
+      return version;
+    } catch (e) {
+      this.set({ saveState: 'dirty' });
+      throw e;
+    }
+  }
+
+  /** Отбросить неопубликованные правки базового мира. */
+  discardLocal() {
+    const meta = this.state.meta;
+    if (!meta?.isLocal) return;
+    this.dirty.clear();
+    void this.load(meta, this.email);
   }
 
   // ------------------------------------------------------------ удобные выборки
