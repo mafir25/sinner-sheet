@@ -288,6 +288,33 @@
             .view-cubes .group-items { gap: 20px 16px; }
             .view-toggle { margin-left: 0; }
         }
+
+        /* повышение уровня */
+        .lvl-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 0.9rem; }
+        .lvl-table td { padding: 4px 6px; border-bottom: 1px dashed rgba(255,255,255,0.12); }
+        .lvl-table td:first-child { color: var(--text-dim); }
+        .lvl-table b { color: var(--color-yellow); }
+        .lvl-sec { font-family: 'Oswald', sans-serif; color: var(--color-yellow); letter-spacing: 1px; margin: 10px 0 6px; }
+        .lvl-list { margin: 0 0 6px 18px; padding: 0; }
+        .lvl-tal { margin-bottom: 6px; }
+        .lvl-tal summary { cursor: pointer; }
+        .lvl-actions { display: flex; justify-content: flex-end; margin-top: 14px; }
+        .lvl-go { --c: var(--color-yellow); font-size: 0.95rem; padding: 8px 16px; }
+        .lvl-history small { color: var(--text-dim); }
+
+        /* печать / PDF: только досье, светлая тема */
+        @media print {
+            @page { margin: 12mm; }
+            body { background: #fff !important; color: #000 !important; }
+            body > *:not(.builder-container), .builder-container > .col, .hazard-tape, #settings-btn, .site-settings-btn { display: none !important; }
+            .builder-container { display: block !important; padding: 0 !important; margin: 0 !important; }
+            .output-panel, .output-panel .panel-inner { background: #fff !important; border: none !important; box-shadow: none !important; clip-path: none !important; padding: 0 !important; position: static !important; max-height: none !important; overflow: visible !important; }
+            #output-area, #output-area * { color: #000 !important; background: transparent !important; border-color: #999 !important; text-shadow: none !important; box-shadow: none !important; }
+            #output-area details { display: block; }
+            #output-area details > *:not(summary) { display: block !important; }
+            .dm-warn { border: 1px solid #999 !important; }
+            #output-area a { text-decoration: none; }
+        }
     </style>
     <script src="site/i18n.js"></script>
     <script src="site/vendor/marked.umd.js"></script>
@@ -314,6 +341,8 @@
         <button class="tool-btn" id="btn-export" style="--c: var(--color-yellow)"><i class="fa-solid fa-file-export"></i> СКАЧАТЬ ПРЕСЕТ</button>
         <button class="tool-btn" id="btn-copy" style="--c: var(--color-cyan)"><i class="fa-regular fa-copy"></i> КОПИРОВАТЬ ДОСЬЕ</button>
         <label class="tool-btn" style="--c: #B0B0B0" data-tip="Класс, черта, предмет, дар Э.Г.О. или Э.Г.О. в формате JSON. Такие объекты помечаются как «на усмотрение ДМ-а»."><i class="fa-solid fa-upload"></i> СВОЙ JSON<input type="file" id="custom-in" accept=".json"></label>
+        <button class="tool-btn" id="btn-levelup" style="--c: var(--color-yellow)"><i class="fa-solid fa-arrow-up"></i> ПОВЫСИТЬ УРОВЕНЬ</button>
+        <button class="tool-btn" id="btn-print" style="--c: #B0B0B0"><i class="fa-solid fa-print"></i> ПЕЧАТЬ / PDF</button>
         <button class="tool-btn" id="btn-new" style="--c: var(--color-red)"><i class="fa-solid fa-rotate-left"></i> НОВЫЙ</button>
         <button class="tool-btn pending-btn" id="pending-btn" hidden></button>
         <span class="custom-status" id="custom-status"></span>

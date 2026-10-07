@@ -150,7 +150,10 @@ async function loadData() {
   (bClasses.bases || []).forEach((b) => { DB.bases[b.id] = b; });
   DB.archMeta = bClasses.archetypes || {};
   DB.baseData = { fixer, bloodfiend };
-  Object.entries(bClasses.gear || {}).forEach(([no, items]) => {
+  // снаряжение и роды ищем по имени: порядок записей в каноне мог измениться после генерации Builder_*.json
+  const equipIdx = new Map(equipment.map((x, i) => [lower(x.Name), i]));
+  Object.entries(bClasses.gear || {}).forEach(([no, raw]) => {
+    const items = raw.map((it) => ({ ...it, index: equipIdx.get(lower(it.name)) ?? it.index }));
     DB.gearOf[no] = items;
     items.forEach((it) => {
       const list = DB.gearOwner.get(it.index) || [];
@@ -159,6 +162,7 @@ async function loadData() {
     });
   });
 
+  const bloodMeta = new Map(Object.values(DB.archMeta['bloodarch.json'] || {}).map((m) => [lower(m.name), m]));
   DB.archs = [
     ...classes.slice().sort((a, b) => (a.No ?? 999) - (b.No ?? 999)).map((c) => ({
       t: 'arch', key: `c:classes.json:${c.No}`, base: 'fixer', no: c.No, data: c, src: 'canon',
@@ -166,12 +170,55 @@ async function loadData() {
     })),
     ...bloodarch.map((c, i) => ({
       t: 'arch', key: `c:bloodarch.json:${i}`, base: 'bloodfiend', no: null, data: c, src: 'canon',
-      meta: DB.archMeta['bloodarch.json']?.[i] || null,
+      meta: bloodMeta.get(lower(c.Name)) || null,
     })),
   ];
+  await loadRegistryClasses();
   DB.archs.forEach((a) => DB.archByKey.set(a.key, a));
   loadUploads();
   DB.ready = true;
+}
+
+/* Классы из реестра (characters/systems.json), для которых нет метаданных в Builder_classes.json:
+   способности берутся из файла основы, архетипы — из файла архетипов. Авто-математика — общая (см. genericBase). */
+const HIT_DIE_RE = /(?:кость хитов|hit dice?)[^\d]{0,40}\d*d(\d+)/i;
+/** Архетип подходит выбранному классу: свой класс, «для всех» или ссылка на недоступный класс (тогда — у всех). */
+const archFits = (a) => a.base === S.base || a.base === 'any' || !DB.bases[a.base];
+function genericBase(id, name, data, src = 'canon') {
+  const text = (data?.Talents || []).map((t) => `${t.name || ''} ${t.desc || ''}`).join('\n');
+  const die = Number(HIT_DIE_RE.exec(text)?.[1]) || 10;
+  return {
+    id, name: String(name || data?.Name || id), hitDie: [6, 8, 10, 12].includes(die) ? die : 10, hide: [], src, generic: true,
+    archetypeLabel: T('Архетип'),
+    effects: [
+      { type: 'featSlot', id: 'bg', level: 1, label: T('Черта предыстории'), filter: { background: true } },
+      ...[4, 8, 12, 16, 19].map((lv) => ({ type: 'asiSlot', id: `asi${lv}`, level: lv })),
+      { type: 'egoTiers' },
+    ],
+  };
+}
+async function loadRegistryClasses() {
+  const registry = await getJson('systems.json', []);
+  if (!Array.isArray(registry)) return;
+  const file = (n) => { const v = String(n || '').trim(); return !v ? '' : v.includes('/') ? v : `characters/${v}`; };
+  await Promise.all(registry.map(async (c) => {
+    const id = String(c?.id || '').trim();
+    if (!id || DB.bases[id]) return; // Фиксер и Кровосос описаны в генераторе
+    const baseFile = file(c.Base), archFile = file(c.Archetypes);
+    const [base, archs] = await Promise.all([
+      baseFile ? getJson(baseFile, null) : null,
+      archFile ? getJson(archFile, []) : [],
+    ]);
+    const baseData = Array.isArray(base) ? base[0] : base;
+    DB.bases[id] = genericBase(id, c.Name || baseData?.Name, baseData || {});
+    DB.baseData[id] = baseData || { Talents: [] };
+    const fname = archFile.split('/').pop();
+    // архетипы, уже загруженные как архетипы другого класса (общий файл), не дублируем
+    if (DB.archs.some((a) => a.key.startsWith(`c:${fname}:`))) return;
+    (Array.isArray(archs) ? archs : []).forEach((a, i) => {
+      if (a && a.Name) DB.archs.push({ t: 'arch', key: `c:${fname}:${i}`, base: id, no: null, data: a, src: 'canon', meta: null });
+    });
+  }));
 }
 
 /* Пользовательская база Firestore — грузится отдельно и не ломает страницу, если недоступна */
@@ -215,6 +262,7 @@ async function loadCustom() {
 }
 
 function removeCustom() {
+  for (const [k, b] of Object.entries(DB.bases)) if (b.src === 'custom') { delete DB.bases[k]; delete DB.baseData[k]; }
   for (const list of [DB.feats, DB.equip, DB.gifts, DB.archs]) {
     for (let i = list.length - 1; i >= 0; i--) if (list[i].src === 'custom') list.splice(i, 1);
   }
@@ -229,8 +277,16 @@ function addCustomEntry(type, data, key, src, creator) {
   if (type === 'feat') { Object.assign(e, { t: 'feat', id: null, meta: null }); DB.feats.push(e); DB.featByKey.set(key, e); }
   else if (type === 'equip') { Object.assign(e, { t: 'equip' }); DB.equip.push(e); DB.equipByKey.set(key, e); }
   else if (type === 'gift') { Object.assign(e, { t: 'gift' }); DB.gifts.push(e); DB.giftByKey.set(key, e); }
-  else if (type === 'class') { Object.assign(e, { t: 'arch', base: 'any', no: null, meta: null }); DB.archs.push(e); DB.archByKey.set(key, e); }
-  else return false;
+  else if (type === 'class') {
+    // Class: id класса из реестра («fixer») или «c:<id записи>» пользовательского класса; без ссылки — у всех классов
+    const ref = String(data.Class || '').trim();
+    const base = !ref ? 'any' : ref.startsWith('c:') ? `${key.split(':')[0]}:${ref.slice(2)}` : ref;
+    Object.assign(e, { t: 'arch', base, no: null, meta: null }); DB.archs.push(e); DB.archByKey.set(key, e);
+  } else if (type === 'baseclass') {
+    if (src !== 'custom') return false;
+    DB.bases[key] = genericBase(key, `${data.Name} ⚠`, data, 'custom');
+    DB.baseData[key] = data;
+  } else return false;
   return true;
 }
 
@@ -268,7 +324,7 @@ function blankState() {
     stats: { method: 'pointbuy', base: { Str: 8, Dex: 8, Con: 8, Int: 8, Wis: 8, Cha: 8 }, pool: [], assign: {} },
     hp: { mode: 'avg', rolls: {} }, sp: { mode: 'avg', rolls: {} },
     opts: { durability: false, sanity: true },
-    slots: {}, choices: {}, extras: [], log: [],
+    slots: {}, choices: {}, extras: [], log: [], levels: [],
   };
 }
 let S = blankState();
@@ -293,6 +349,8 @@ function loadState() {
 /* Ссылки на объекты: { t, key, data? }. Для пользовательских объектов храним копию данных — пресет самодостаточен. */
 function makeRef(entry) {
   const ref = { t: entry.t, key: entry.key };
+  // имя — подсказка: если записи канона переставили, ключ-индекс укажет не туда, а по имени найдём нужную
+  if (entry.src === 'canon' && entry.data?.Name) ref.n = String(entry.data.Name);
   if (entry.src !== 'canon') ref.data = clone(entry.data);
   if (entry.src === 'custom' || entry.src === 'file') ref.src = entry.src;
   return ref;
@@ -303,6 +361,11 @@ function resolve(ref) {
   if (ref.t === 'text') return { t: 'text', key: ref.key, src: 'text', data: { Name: ref.name || 'Без названия', desc: ref.desc || '' }, cat: ref.cat };
   const map = { feat: DB.featByKey, equip: DB.equipByKey, gift: DB.giftByKey, arch: DB.archByKey }[ref.t];
   let e = map && map.get(ref.key);
+  if (ref.n && String(ref.key).startsWith('c') && (!e || lower(e.data?.Name) !== lower(ref.n))) {
+    const list = { feat: DB.feats, equip: DB.equip, gift: DB.gifts, arch: DB.archs }[ref.t] || [];
+    const byName = list.find((x) => x.src === 'canon' && lower(x.data?.Name) === lower(ref.n));
+    if (byName) { e = byName; ref.key = byName.key; } // чиним ссылку в состоянии
+  }
   if (!e && ref.t === 'feat' && ref.key && ref.key.startsWith('c:')) e = DB.featById.get(ref.key.slice(2));
   if (!e && ref.data) {
     e = { t: ref.t, key: ref.key, data: ref.data, src: ref.src || (String(ref.key).startsWith('f:') ? 'file' : 'custom'), meta: null, id: null, base: 'any', orphan: true };
@@ -859,7 +922,7 @@ function renderBasics() {
   $('char-level').value = R.L;
   $('char-base').innerHTML = Object.values(DB.bases).map((b) => `<option value="${esc(b.id)}"${b.id === S.base ? ' selected' : ''}>${esc(b.name)}</option>`).join('');
   $('char-race').innerHTML = `<option value="">-- Выберите Расу --</option>` + DB.races.map((r) => `<option value="${esc(r.id)}"${r.id === S.race ? ' selected' : ''}>${esc(r.name)}</option>`).join('');
-  const archs = DB.archs.filter((a) => a.base === S.base || a.base === 'any');
+  const archs = DB.archs.filter(archFits);
   const canon = archs.filter((a) => a.src === 'canon');
   const cust = archs.filter((a) => a.src !== 'canon');
   const cur = S.arch?.key || '';
@@ -1149,6 +1212,10 @@ function renderDossier() {
   if (S.stats.method === 'pointbuy' && pointsLeft() < 0) warns.push(T('Покупка очков: превышен бюджет'));
   if (warns.length) h += `<div class="dm-warn"><div class="dm-warn-t"><i class="fa-solid fa-triangle-exclamation"></i> ${esc(T('Требует внимания / на усмотрение ДМ-а'))}</div>${warns.map((w) => `<div>• ${esc(w)}</div>`).join('')}</div>`;
 
+  const levels = Array.isArray(S.levels) ? S.levels.filter((x) => x.level <= R.L) : [];
+  if (levels.length) {
+    h += `<div class="sheet-line lvl-history">${esc(T('Повышения уровня'))}: ${levels.map((x) => `${esc(x.level)} <small>(${esc(new Date(x.at).toLocaleDateString(window.I18N?.lang === 'en' ? 'en-US' : 'ru-RU'))})</small>`).join(', ')}</div>`;
+  }
   if (S.desc.trim()) h += block(T('БАЗОВАЯ ИНФОРМАЦИЯ'), 'var(--text-dim)', entryBlock(T('Биография и Описание'), esc(S.desc), 'var(--text-dim)'));
   if (R.race) {
     const ch = choiceSummary('race');
@@ -1305,6 +1372,56 @@ function closeModal() {
 }
 const MODAL = { onPick: null, items: [], ego: null, slotId: null };
 
+/* ---------- повышение уровня ---------- */
+/** Что изменится на следующем уровне: расчёт для L+1 без изменения персонажа. */
+function levelUpDiff() {
+  const now = R;
+  const keep = S.level;
+  S.level = now.L + 1;
+  let next;
+  try { next = compute(); } finally { S.level = keep; }
+  const talents = (src, list) => (Array.isArray(list) ? list : []).filter((t) => Number(t.level) === next.L).map((t) => ({ src, name: t.name || '', desc: t.desc || '' }));
+  return {
+    now, next,
+    slots: next.slots.filter((x) => !now.slotById.has(x.id)),
+    talents: [
+      ...talents(next.base.name, next.baseData.Talents),
+      ...(next.arch ? talents(entryName(next.arch), next.arch.data?.Talents) : []),
+    ],
+  };
+}
+function openLevelUp() {
+  if (R.L >= 20) { toast('Достигнут максимальный уровень'); return; }
+  const d = levelUpDiff();
+  const row = (label, a, b) => `<tr><td>${esc(T(label))}</td><td>${esc(a)}</td><td>${a === b ? '' : '<b>→ ' + esc(b) + '</b>'}</td></tr>`;
+  let h = `<table class="lvl-table">
+    ${row('Уровень', d.now.L, d.next.L)}
+    ${row('Хиты', d.now.hp, d.next.hp)}
+    ${row('Бонус мастерства', sign(d.now.pb), sign(d.next.pb))}
+    ${row('Свет', d.now.L >= 2 ? d.now.lightPool : '—', d.next.L >= 2 ? d.next.lightPool : '—')}
+    ${row('Скорость', d.now.speedTotal, d.next.speedTotal)}
+    ${row('СЛ', d.now.dcValue, d.next.dcValue)}
+  </table>`;
+  h += `<div class="lvl-sec">${esc(T('Новые выборы'))}</div>`;
+  h += d.slots.length ? `<ul class="lvl-list">${d.slots.map((x) => `<li>${esc(T(x.label))}</li>`).join('')}</ul>` : `<p class="hint">${esc(T('Новых выборов нет.'))}</p>`;
+  h += `<div class="lvl-sec">${esc(T('Новые способности'))}</div>`;
+  h += d.talents.length
+    ? d.talents.map((t) => `<details class="lvl-tal"><summary><b>${esc(t.name)}</b> <span class="hint">${esc(t.src)}</span></summary><div class="md">${md(t.desc)}</div></details>`).join('')
+    : `<p class="hint">${esc(T('Новых способностей нет.'))}</p>`;
+  if (S.hp.mode === 'roll') h += `<p class="hint">${esc(T('Хиты считаются по броскам: после повышения бросьте кость хитов нового уровня.'))}</p>`;
+  h += `<div class="lvl-actions"><button class="btn-mini lvl-go" data-levelup="go">${esc(T('ПОВЫСИТЬ ДО'))} ${d.next.L}</button></div>`;
+  openModal(`${T('Повышение уровня')}: ${d.now.L} → ${d.next.L}`, h, 'var(--color-yellow)');
+}
+function applyLevelUp() {
+  const from = R.L;
+  if (from >= 20) return;
+  S.level = from + 1;
+  S.levels = [...(Array.isArray(S.levels) ? S.levels : []), { level: from + 1, at: Date.now() }].slice(-20);
+  closeModal();
+  renderAll();
+  if (R.pending) openPending();
+}
+
 /* Окно выбора: items = [{ key, title, sub, desc, entry, ok, reasons, custom }] */
 function openPicker(title, items, onPick, opts = {}) {
   MODAL.onPick = onPick;
@@ -1363,7 +1480,7 @@ function openSlotPicker(slot) {
     openPicker('Раса', DB.races.map((r) => ({ key: r.id, title: r.name, desc: r.traits.map((t) => `**${t.name}.** ${t.desc}`).join('\n\n'), ok: true })),
       (it) => { S.race = it.key; closeModal(); renderAll(); }, { color: cat.color });
   } else if (slot.kind === 'arch') {
-    const items = DB.archs.filter((a) => a.base === S.base || a.base === 'any').map((a) => ({
+    const items = DB.archs.filter(archFits).map((a) => ({
       key: a.key, title: (a.no != null ? `[${a.no}] ` : '') + a.data.Name, sub: (a.data.Stats || []).join(', '),
       desc: (a.data.Talents || []).map((t) => `**${t.name}** (${T('ур.')} ${t.level})\n\n${t.desc}`).join('\n\n'), entry: a, ok: true,
       custom: isCustom(a), reasons: isCustom(a) ? ['Пользовательский объект — на усмотрение ДМ-а'] : [],
@@ -1543,8 +1660,8 @@ function openLink(target) {
     openModal(st.Name, `<div class="md">${md(st.Effect)}</div>${(st.SideEffects || []).map((se) => `<div class="status-se"><b>${esc(se.sideeffectname)}</b><div class="md">${md(se.sideeffect)}</div></div>`).join('')}`, '#45B3CB');
     return;
   }
-  for (const k of ['fixer', 'bloodfiend']) {
-    const tal = (DB.baseData[k].Talents || []).find((x) => lower(x.name) === t);
+  for (const k of Object.keys(DB.baseData)) {
+    const tal = (DB.baseData[k]?.Talents || []).find((x) => lower(x.name) === t);
     if (tal) { openModal(tal.name, `<div class="md">${md(tal.desc)}</div>`, '#45B3CB'); return; }
   }
   const arch = DB.archs.find((a) => lower(a.data.Name) === t);
@@ -1597,7 +1714,7 @@ function importPreset(p) {
     S.desc = p.desc || p.description || '';
     S.race = { human: 'human', bloodfiend: 'bloodfiend', half_distortion: 'half_distortion' }[p.race] || DB.races.find((r) => lower(r.name) === lower(p.race))?.id || '';
     const arch = DB.archs.find((a) => lower(a.data.Name) === lower(p.className));
-    if (arch) { S.base = arch.base === 'bloodfiend' ? 'bloodfiend' : 'fixer'; S.arch = makeRef(arch); }
+    if (arch) { S.base = DB.bases[arch.base] ? arch.base : 'fixer'; S.arch = makeRef(arch); }
     (p.feats || []).forEach((n) => {
       const f = DB.feats.find((x) => lower(x.data.Name) === lower(typeof n === 'string' ? n : n?.Name));
       if (f) S.extras.push({ id: uid(), ref: makeRef(f) });
@@ -1647,7 +1764,7 @@ function bind() {
   $('char-base').addEventListener('change', (e) => {
     S.base = e.target.value;
     const a = resolve(S.arch);
-    if (a && a.base !== S.base && a.base !== 'any') S.arch = null;
+    if (a && !archFits(a)) S.arch = null;
     renderAll();
   });
   $('char-arch').addEventListener('change', (e) => { const a = DB.archByKey.get(e.target.value); S.arch = a ? makeRef(a) : null; renderAll(); });
@@ -1661,6 +1778,8 @@ function bind() {
   }));
   $('custom-in').addEventListener('change', (ev) => readFile(ev, importCustomJson));
   $('btn-export').addEventListener('click', exportPreset);
+  $('btn-levelup').addEventListener('click', openLevelUp);
+  $('btn-print').addEventListener('click', () => window.print());
   $('btn-copy').addEventListener('click', () => {
     navigator.clipboard.writeText($('output-area').innerText).then(() => alert(T('Досье скопировано в буфер обмена!'))).catch((e) => console.error(e));
   });
@@ -1729,6 +1848,7 @@ function bind() {
       addExtra(it.ego ? { t: 'ego', ego: it.ego } : makeRef(it.entry));
       return;
     }
+    if (t.closest('[data-levelup]')) { applyLevelUp(); return; }
     const pick = t.closest('[data-pick]');
     if (pick && !t.closest('details') && MODAL.onPick) {
       const it = MODAL.items[Number(pick.dataset.pick)];
