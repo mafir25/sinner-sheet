@@ -722,7 +722,7 @@ import { doc, setDoc, getDocs, collection, deleteDoc, query, where }
   from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 import { db } from "./site/firebase.js";
 import { onAuth } from "./site/auth.js";
-import { DICT, SCHEMAS, fieldHtml as fieldHtmlBase, repeatRow as repeatRowBase, collectFields,
+import { DICT, SCHEMAS, fieldHtml as fieldHtmlBase, repeatRow as repeatRowBase, repeatMove, collectFields,
   CLASS_REGISTRY, classFileRel } from "./site/fields.js";
 
 /* ============================================================
@@ -4045,6 +4045,8 @@ document.addEventListener("click", async ev => {
       break;
     }
     case "repeat-del": el.closest(".b-entry")?.remove(); break;
+    case "repeat-up": repeatMove(el, -1); break;
+    case "repeat-down": repeatMove(el, 1); break;
   }
 });
 

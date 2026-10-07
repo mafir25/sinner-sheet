@@ -271,8 +271,12 @@ export function repeatRow(f, row, ctx = {}) {
   const inline = f.sub.filter((s) => s.t !== 'md');
   const blocks = f.sub.filter((s) => s.t === 'md');
   return `<div class="b-entry" data-orig="${esc(JSON.stringify(row || {}))}">
-    <button type="button" class="mini-btn danger" style="position:absolute;right:10px;top:10px" data-act="repeat-del"><i class="fa-solid fa-trash"></i></button>
-    <div class="b-row" style="width:calc(100% - 46px)">${inline.map((s) => fieldHtml(s, row, ctx)).join('')}</div>
+    <div style="position:absolute;right:10px;top:10px;display:flex;gap:4px">
+      <button type="button" class="mini-btn" data-act="repeat-up" title="Переместить выше"><i class="fa-solid fa-arrow-up"></i></button>
+      <button type="button" class="mini-btn" data-act="repeat-down" title="Переместить ниже"><i class="fa-solid fa-arrow-down"></i></button>
+      <button type="button" class="mini-btn danger" data-act="repeat-del" title="Удалить блок"><i class="fa-solid fa-trash"></i></button>
+    </div>
+    <div class="b-row" style="width:calc(100% - 110px)">${inline.map((s) => fieldHtml(s, row, ctx)).join('')}</div>
     ${blocks.map((s) => fieldHtml(s, row, ctx)).join('')}
   </div>`;
 }
@@ -338,10 +342,22 @@ export function collectFields(schema, scope, orig) {
   return merge(out, orig);
 }
 
-/** Обработчик кнопок «+ Добавить» / удалить для repeat-полей внутри scope. */
+/** Сдвинуть блок repeat-поля на одну позицию: dir = -1 (выше) или 1 (ниже). Возвращает true, если блок сдвинут. */
+export function repeatMove(el, dir) {
+  const row = el.closest('.b-entry');
+  const near = dir < 0 ? row?.previousElementSibling : row?.nextElementSibling;
+  if (!near?.classList.contains('b-entry')) return false;
+  if (dir < 0) near.before(row); else near.after(row);
+  el.focus();
+  row.scrollIntoView({ block: 'nearest' });
+  return true;
+}
+
+/** Обработчик кнопок «+ Добавить» / удалить / выше / ниже для repeat-полей внутри scope. */
 export function repeatAction(el, schema, ctx = {}) {
   const act = el.dataset.act;
   if (act === 'repeat-del') { el.closest('.b-entry')?.remove(); return true; }
+  if (act === 'repeat-up' || act === 'repeat-down') { repeatMove(el, act === 'repeat-up' ? -1 : 1); return true; }
   if (act !== 'repeat-add') return false;
   const find = (list) => list.reduce((hit, f) => hit || (f.t === 'row' ? find(f.of) : f.k === el.dataset.key && f.t === 'repeat' ? f : null), null);
   const f = find(schema);
