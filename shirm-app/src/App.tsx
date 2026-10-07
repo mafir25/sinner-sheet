@@ -6,7 +6,6 @@ import { type ListedScreen, createScreen, deleteScreen, listScreens, loadBaseWor
 import { BoardStore } from './state/boardStore';
 import { Panel } from './ui/Panel';
 import { NotesPanel } from './ui/NotesPanel';
-import { GmTools } from './ui/GmTools';
 import { AccessModal, NewScreenModal } from './ui/ScreenDialogs';
 import { DialogHost, Modal, confirmDialog } from './ui/dialogs';
 import { Toasts, toast } from './ui/toast';
@@ -110,7 +109,6 @@ function Workspace({ user }: { user: User }) {
           <button className={`btn${split ? ' btn-on' : ''}`} onClick={() => { setSplit(!split); LSset('shirm.split', split ? '0' : '1'); }}>◫ Сплит-экран</button>
         </nav>
         <div className="topbar-right">
-          <GmTools uid={user.uid} />
           <NotesPanel uid={user.uid} />
           <button className="btn" title="Режим показа: только доска на весь экран — для экрана игроков (Esc — выход)" onClick={() => setPresenting(true)}>▣ Показ</button>
           <button className="btn" onClick={() => setHelp(true)}>? Управление</button>
@@ -177,7 +175,7 @@ function HelpModal({ onClose }: { onClose: () => void }) {
     ['Правый клик', 'меню: создать, связать, скрыть, копировать…'], ['Ctrl+Z / Ctrl+Y', 'отменить / повторить'],
     ['Ctrl+C / Ctrl+V', 'копировать / вставить (можно между ширмами)'], ['Delete', 'удалить выделенное'],
     ['F', 'показать всё (или выделенное)'], ['/', 'поиск'], ['Esc', 'снять выделение, закрыть панель, выйти из показа'],
-    ['🎲 Мастер', 'кубики (2d6+3, 4d6kh3, 2d20kh1) и трекер инициативы'], ['▣ Показ', 'доска на весь экран для игроков'],
+    ['▣ Показ', 'доска на весь экран для игроков'],
   ];
   return (
     <Modal title="Управление" width={560} onClose={onClose}>

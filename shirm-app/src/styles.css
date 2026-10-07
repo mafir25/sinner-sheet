@@ -242,32 +242,6 @@ kbd { font-family: var(--head); color: var(--accent); }
 .draw-hint { position: absolute; left: 50%; top: 56px; transform: translateX(-50%); z-index: 14; background: rgba(0,0,0,.85); border: 1px solid var(--accent); padding: 5px 12px; font-size: .8rem; pointer-events: none; }
 .save-state:empty { display: none; }
 
-/* панель мастера: кубики и инициатива */
-.gm-tools { right: 390px; width: 420px; max-height: calc(100vh - 70px); display: flex; flex-direction: column; }
-@media (max-width: 900px) { .gm-tools { right: 8px; left: 8px; width: auto; } }
-.gm-tab { background: none; border: none; border-bottom: 2px solid transparent; color: var(--dim); font-family: var(--head); cursor: pointer; padding: 2px 4px; }
-.gm-tab.on { color: var(--accent); border-bottom-color: var(--accent); }
-.gm-body { padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
-.gm-row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
-.gm-row .input { flex: 1; min-width: 0; }
-.gm-quick { display: flex; gap: 4px; flex-wrap: wrap; }
-.gm-err { color: #ff6b6b; font-size: .8rem; }
-.gm-result { display: flex; gap: 10px; align-items: baseline; border: 1px solid var(--accent); padding: 6px 10px; }
-.gm-total { font-family: var(--head); font-size: 1.9rem; color: var(--yellow); }
-.gm-detail { color: var(--dim); font-size: .82rem; word-break: break-word; }
-.gm-log { display: flex; flex-direction: column; gap: 2px; font-size: .8rem; max-height: 220px; overflow-y: auto; }
-.gm-log-row b { color: var(--yellow); display: inline-block; min-width: 2.2em; }
-.gm-log-row span { color: var(--dim); }
-.gm-round b { color: var(--yellow); font-size: 1.1rem; }
-.gm-init-list { display: flex; flex-direction: column; gap: 4px; }
-.gm-init { display: grid; grid-template-columns: 52px 1fr 60px 1fr 26px; gap: 4px; align-items: center; padding: 3px; border: 1px solid #222; }
-.gm-init.now { border-color: var(--yellow); background: rgba(241,196,15,.08); }
-.gm-init.ally .gm-init-name { color: var(--accent); }
-.gm-init-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.gm-init .input { padding: 3px 5px; font-size: .82rem; }
-.gm-ally { display: flex; align-items: center; gap: 2px; color: var(--accent); cursor: pointer; }
-@media (max-width: 520px) { .gm-init { grid-template-columns: 46px 1fr 50px 26px; } .gm-init-note { display: none; } }
-
 /* режим показа */
 .app.presenting .topbar, .app.presenting .panel-head, .app.presenting .notes { display: none !important; }
 .app.presenting .workspace { padding: 0; gap: 0; }

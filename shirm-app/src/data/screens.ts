@@ -238,16 +238,7 @@ export async function loadNotes(uid: string): Promise<string | null> {
   return s.exists() ? String(s.data().text ?? '') : null;
 }
 export async function saveNotes(uid: string, text: string): Promise<void> {
-  // merge: в том же документе лежат инструменты мастера (tools)
-  await setDoc(doc(db, 'gm_notes', uid), { text, updatedAt: Date.now() }, { merge: true });
-}
-/** Инструменты мастера (трекер инициативы, журнал бросков) — поле tools в gm_notes/<uid>. */
-export async function loadGmTools(uid: string): Promise<unknown> {
-  const s = await getDoc(doc(db, 'gm_notes', uid));
-  return s.exists() ? s.data().tools ?? null : null;
-}
-export async function saveGmTools(uid: string, tools: unknown): Promise<void> {
-  await setDoc(doc(db, 'gm_notes', uid), { tools, toolsUpdatedAt: Date.now() }, { merge: true });
+  await setDoc(doc(db, 'gm_notes', uid), { text, updatedAt: Date.now() });
 }
 
 // ---------- Быстрый импорт из базы сайта

@@ -1779,7 +1779,6 @@ function bind() {
   $('custom-in').addEventListener('change', (ev) => readFile(ev, importCustomJson));
   $('btn-export').addEventListener('click', exportPreset);
   $('btn-levelup').addEventListener('click', openLevelUp);
-  $('btn-print').addEventListener('click', () => window.print());
   $('btn-copy').addEventListener('click', () => {
     navigator.clipboard.writeText($('output-area').innerText).then(() => alert(T('Досье скопировано в буфер обмена!'))).catch((e) => console.error(e));
   });
