@@ -189,8 +189,8 @@
         .md hr { border: none; border-top: 1px dashed var(--line-2); margin: 6px 0; }
 
         /* ---------- Правая колонка ---------- */
-        .tabs { display: flex; gap: 14px; flex-wrap: wrap; }
-        .tab-btn { font-family: 'Oswald'; font-size: 1.05rem; cursor: pointer; transition: 0.2s; color: var(--text-dim); background: none; border: none; border-bottom: 2px solid transparent;
+        .tabs { display: flex; gap: 4px 12px; flex-wrap: wrap; }
+        .tab-btn { font-family: 'Oswald'; font-size: 0.98rem; cursor: pointer; transition: 0.2s; color: var(--text-dim); background: none; border: none; border-bottom: 2px solid transparent;
             text-transform: uppercase; padding: 0 0 2px; }
         .tab-btn:hover { color: var(--text-main); }
         .tab-btn[aria-selected="true"] { color: var(--color-red); border-bottom-color: var(--color-red); }
@@ -205,6 +205,23 @@
         .item-tools { display: flex; gap: 2px; flex-shrink: 0; opacity: 0.35; transition: 0.2s; }
         .news-item:hover .item-tools, .news-item:focus-within .item-tools, .rep-item:hover .item-tools, .rep-item:focus-within .item-tools, .ledger-item:hover .item-tools, .ledger-item:focus-within .item-tools { opacity: 1; }
         @media (hover: none) { .item-tools { opacity: 1; } }
+        .session-item { border-left: 2px solid var(--color-cyan); padding-left: 10px; margin-bottom: 12px; }
+        .session-item:hover .item-tools, .session-item:focus-within .item-tools { opacity: 1; }
+        .session-toggle { background: none; border: none; color: var(--text-main); cursor: pointer; text-align: left; padding: 2px 0; display: flex; flex-wrap: wrap; gap: 6px; align-items: baseline; font-family: 'Oswald'; font-size: 0.95rem; min-width: 0; }
+        .session-num { color: var(--color-cyan); }
+        .session-body { display: none; padding-top: 4px; }
+        .session-item.open .session-body { display: block; }
+        .bank-chart { margin-bottom: 12px; }
+        .bank-chart svg { width: 100%; height: 70px; display: block; border-bottom: 1px dashed var(--line); }
+        .bank-chart polyline { fill: none; stroke-width: 1.6; vector-effect: non-scaling-stroke; }
+        .bank-chart .pos { stroke: var(--accent-primary); fill: var(--accent-primary); }
+        .bank-chart polyline.pos, .bank-chart polyline.neg { fill: none; }
+        .bank-chart .neg { stroke: var(--color-red); fill: var(--color-red); }
+        .bank-chart .zero { stroke: var(--text-dim); stroke-dasharray: 3 3; stroke-width: 1; vector-effect: non-scaling-stroke; opacity: 0.6; }
+        .chart-scale { display: flex; justify-content: space-between; font-size: 0.68rem; color: var(--text-dim); }
+        .office-stats { display: flex; gap: 14px; flex-wrap: wrap; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 10px; font-family: 'Oswald'; letter-spacing: 0.5px; }
+        .office-stats:empty { display: none; }
+        .office-stats .fa-circle-check { color: var(--accent-primary); } .office-stats .fa-skull { color: var(--color-red); } .office-stats .fa-coins { color: var(--color-yellow); }
         .editing-note { font-size: 0.75rem; color: var(--color-yellow); margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
 
         .rep-item { margin-bottom: 18px; }
@@ -413,6 +430,7 @@
                         <button class="btn yellow" data-act="quest-manager"><i class="fa-solid fa-list-check" aria-hidden="true"></i> УПРАВЛЕНИЕ</button>
                     </div>
                 </div>
+                <div class="office-stats" id="office-stats"></div>
                 <div id="grades-container"></div>
             </div>
         </section>
@@ -424,6 +442,7 @@
                 <div class="panel-title">
                     <div class="tabs" role="tablist" aria-label="Разделы">
                         <button class="tab-btn" role="tab" id="tab-news" aria-controls="wrapper-news" aria-selected="true" data-tab="news">СВОДКИ</button>
+                        <button class="tab-btn" role="tab" id="tab-journal" aria-controls="wrapper-journal" aria-selected="false" tabindex="-1" data-tab="journal">ЖУРНАЛ</button>
                         <button class="tab-btn" role="tab" id="tab-rep" aria-controls="wrapper-rep" aria-selected="false" tabindex="-1" data-tab="rep">РЕПУТАЦИЯ</button>
                         <button class="tab-btn" role="tab" id="tab-bank" aria-controls="wrapper-bank" aria-selected="false" tabindex="-1" data-tab="bank">КАЗНА</button>
                     </div>
@@ -446,6 +465,27 @@
                     <div id="news-container"></div>
                 </div>
 
+                <div id="wrapper-journal" role="tabpanel" aria-labelledby="tab-journal" hidden>
+                    <form class="section creator-only" id="session-form" autocomplete="off">
+                        <div class="editing-note" id="session-editing" hidden><span>РЕДАКТИРОВАНИЕ ЗАПИСИ</span><button type="button" class="icon-btn" data-act="session-cancel" aria-label="Отменить редактирование" title="Отменить"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div>
+                        <div class="row" style="margin-bottom: 8px;">
+                            <input type="number" id="session-num" class="field" placeholder="#1" min="1" step="1" aria-label="Номер сессии" style="flex: 0 0 72px; margin:0;">
+                            <input type="text" id="session-title" class="field" placeholder="Название сессии..." maxlength="120" aria-label="Название сессии" style="margin:0;">
+                        </div>
+                        <div class="row" style="margin-bottom: 8px;">
+                            <input type="text" id="session-date" class="field" placeholder="Дата (напр. День 14)..." maxlength="40" aria-label="Дата" style="margin:0;">
+                        </div>
+                        <div class="row" style="margin-bottom: 8px;">
+                            <input type="text" id="session-agents" class="field" placeholder="Участники через запятую..." aria-label="Участники" style="margin:0;">
+                            <button type="button" class="icon-btn" data-act="session-fill-agents" title="Подставить всех агентов" aria-label="Подставить всех агентов"><i class="fa-solid fa-users" aria-hidden="true"></i></button>
+                        </div>
+                        <textarea id="session-text" class="field" placeholder="Итоги сессии: что произошло, кого встретили, что нашли..." maxlength="20000" aria-label="Итоги сессии"></textarea>
+                        <p class="hint" style="margin-bottom: 8px;">Поддерживается Markdown.</p>
+                        <button class="btn red block" type="submit" id="session-submit"><i class="fa-solid fa-book" aria-hidden="true"></i> <span>ЗАПИСАТЬ СЕССИЮ</span></button>
+                    </form>
+                    <div id="journal-container"></div>
+                </div>
+
                 <div id="wrapper-rep" role="tabpanel" aria-labelledby="tab-rep" hidden>
                     <form class="section creator-only" id="rep-form" autocomplete="off">
                         <span class="label" style="color: var(--color-red);">УПРАВЛЕНИЕ РЕПУТАЦИЕЙ</span>
@@ -462,6 +502,7 @@
                     <span class="label" style="color: var(--color-red);">БАЛАНС ОФИСА</span>
                     <div class="balance" id="bank-balance">0 Ан</div>
                     <div class="balance-sub" id="bank-balance-sub"></div>
+                    <div class="bank-chart" id="bank-chart" hidden></div>
 
                     <form class="section creator-only" id="bank-form" autocomplete="off">
                         <input type="number" id="bank-amount" class="field" placeholder="Сумма в Анах..." min="1" step="1" aria-label="Сумма в Анах">
@@ -528,6 +569,10 @@
                         <input type="text" id="q-assignee" class="field" list="assignee-options" placeholder="Кто взял..." maxlength="80" style="margin:0;">
                     </div>
                 </div>
+
+                <label class="label" style="color: var(--color-yellow);" for="q-reward">НАГРАДА (АН)</label>
+                <input type="number" id="q-reward" class="field" placeholder="0 — без награды" min="0" step="1">
+                <p class="hint" style="margin-bottom: 8px;">Когда контракт отмечен «Выполнен», награда сама зачисляется в казну. Сняли отметку — выплата отменяется.</p>
 
                 <label class="label" style="color: var(--color-yellow);" for="q-icon-url">ИКОНКА МЕТКИ (ПРЯМАЯ ССЫЛКА ИЛИ ПРЕСЕТ)</label>
                 <input type="text" id="q-icon-url" class="field" placeholder="https://imgur.com/image.png (или выберите ниже)">

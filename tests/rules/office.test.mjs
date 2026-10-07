@@ -76,3 +76,18 @@ describe('приватность досье', () => {
     await assertSucceeds(setDoc(doc(db, 'offices/o1/cards/a2'), { name: 'NPC', description: 'секрет', order: 1, createdAt: 1, updatedAt: 1 }));
   });
 });
+
+describe('журнал сессий', () => {
+  const session = { num: 1, title: 'Переулок', date: 'День 1', text: 'итоги', agents: ['Ишмаэль'], createdAt: 1, updatedAt: 1, by: 'boss' };
+  it('пишет только менеджер, читают участники', async () => {
+    await assertSucceeds(setDoc(doc(as(env, 'boss'), 'offices/o1/sessions/s1'), session));
+    await assertFails(setDoc(doc(as(env, 'p1'), 'offices/o1/sessions/s2'), session));
+    await assertSucceeds(getDocs(collection(as(env, 'p2'), 'offices/o1/sessions')));
+    await assertFails(getDocs(collection(as(env, 'x'), 'offices/o1/sessions')));
+  });
+  it('лишние поля и слишком длинный текст отклоняются', async () => {
+    const db = as(env, 'boss');
+    await assertFails(setDoc(doc(db, 'offices/o1/sessions/s1'), { ...session, extra: 1 }));
+    await assertFails(setDoc(doc(db, 'offices/o1/sessions/s1'), { ...session, text: 'x'.repeat(20001) }));
+  });
+});

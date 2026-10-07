@@ -1205,7 +1205,7 @@ async function renderHidden(v) {
     if ((o = pick('data-office-del', off))) {
       if (!confirmName('Офис, все досье, контракты и казна будут удалены навсегда. Введите название офиса для подтверждения', o.name)) return;
       let n;
-      try { await deleteCollection(['offices', o.id, 'cards']); n = await deleteCollection(['offices', o.id, 'agents']); } catch (er) { return fail(er, 'Не удалось удалить офис'); }
+      try { await deleteCollection(['offices', o.id, 'sessions']); await deleteCollection(['offices', o.id, 'cards']); n = await deleteCollection(['offices', o.id, 'agents']); } catch (er) { return fail(er, 'Не удалось удалить офис'); }
       const { treasury, news, ...meta } = o;   // казну и сводки в журнал не тащим
       if (await logged('office.delete', `${o.name} (${o.id})`, JSON.stringify({ ...meta, agentsDeleted: n }, jsonReplacer),
         (b) => b.delete(doc(db, 'offices', o.id)), { ok: 'Офис удалён', failMsg: 'Не удалось удалить офис' })) openTab('hidden');

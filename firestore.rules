@@ -292,6 +292,22 @@ service cloud.firestore {
         allow delete: if signedIn() && (isHead() || isCreatorOf(office()));
       }
 
+      // Журнал сессий: пишет менеджер, читают участники.
+      match /sessions/{sid} {
+        function validSession(d) {
+          return d.keys().hasOnly(['num', 'title', 'date', 'text', 'agents', 'createdAt', 'updatedAt', 'by'])
+            && d.num is int && d.num >= 1
+            && isShortString(d.get('title', ''), 120)
+            && isShortString(d.get('date', ''), 40)
+            && isShortString(d.get('text', ''), 20000)
+            && d.get('agents', []) is list && d.get('agents', []).size() <= 30
+            && isShortString(d.get('by', ''), 40);
+        }
+        allow read: if signedIn() && (isHead() || isMemberOf(office()));
+        allow create, update: if signedIn() && notBanned() && isCreatorOf(office()) && validSession(request.resource.data);
+        allow delete: if signedIn() && (isHead() || isCreatorOf(office()));
+      }
+
       // Открытая карточка досье: копия разрешённых полей досье agents/<aid>. Пишется одной пачкой с досье
       // (и при смене настроек приватности). Каждое поле обязано совпадать с досье и быть разрешено charSettings.
       match /cards/{aid} {
