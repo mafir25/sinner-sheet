@@ -145,3 +145,16 @@ describe('ники', () => {
     await assertFails(setDoc(doc(db2, 'users/u2'), { nick: 'Fixer', nickId: 'fixer' }));
   });
 });
+
+describe('восстановление из журнала', () => {
+  const entry = { type: 'feat', data: { Name: 'X' }, isPrivate: false, creatorEmail: 'a@test.local', updatedAt: '2026-01-01' };
+  it('модератор восстанавливает чужую запись, обычный пользователь — нет', async () => {
+    await seed(env, (db) => setDoc(doc(db, 'roles/mod'), role({ moderate: true })));
+    await assertFails(setDoc(doc(as(env, 'b'), 'custom_content/r1'), entry));
+    await assertSucceeds(setDoc(doc(as(env, 'mod'), 'custom_content/r1'), entry));
+  });
+  it('Админ без права moderate не восстанавливает', async () => {
+    await seed(env, (db) => setDoc(doc(db, 'roles/mon'), role({ monitor: true })));
+    await assertFails(setDoc(doc(as(env, 'mon'), 'custom_content/r2'), entry));
+  });
+});

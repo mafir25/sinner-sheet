@@ -184,9 +184,10 @@ service cloud.firestore {
       // Именно isPrivate == false, а не .get('isPrivate', false): с .get() запрос без фильтра проходил
       // и отдавал чужие приватные записи. Записи без флага видят автор и модераторы (Модерация → «Проставить флаг»).
       allow read: if resource.data.isPrivate == false || isOwner() || can('moderate');
-      allow create: if signedIn() && notBanned()
-        && request.resource.data.creatorEmail == myEmail()
-        && validContent(request.resource.data);
+      // модератор может создать запись от имени автора — так из журнала восстанавливается удалённая запись
+      allow create: if validContent(request.resource.data) && (
+        (signedIn() && notBanned() && request.resource.data.creatorEmail == myEmail())
+        || can('moderate'));
       allow update: if ((isOwner() && notBanned()) || can('moderate'))
         && request.resource.data.creatorEmail == resource.data.creatorEmail
         && validContent(request.resource.data);
