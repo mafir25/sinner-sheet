@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build && node scripts/copy-static.mjs",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:rules": "npx -y firebase-tools@14 emulators:exec --only firestore --project demo-sinner \"vitest run --config tests/vitest.config.mjs --dir tests/rules\"",
+    "test": "vitest run --config tests/vitest.config.mjs --dir tests/unit"
   },
   "dependencies": {
     "d3-force": "^3.0.0",
@@ -20,6 +22,8 @@
     "zod": "^3.25.0"
   },
   "devDependencies": {
-    "vite": "^6.3.5"
+    "@firebase/rules-unit-testing": "^5.0.2",
+    "vite": "^6.3.5",
+    "vitest": "^3.2.7"
   }
 }

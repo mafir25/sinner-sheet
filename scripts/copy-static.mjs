@@ -6,7 +6,8 @@ import { join, extname } from 'node:path';
 const ROOT = process.cwd();
 const OUT = join(ROOT, 'dist');
 const SKIP = new Set(['node_modules', 'dist', 'shirm-app', 'scripts', '.git', '.github', '.vite',
-  'package.json', 'package-lock.json', 'vite.config.mjs', 'vercel.json', 'firestore.rules', '.gitignore', 'README.md']);
+  'package.json', 'package-lock.json', 'vite.config.mjs', 'vercel.json', 'firestore.rules', '.gitignore', 'README.md',
+  'tests', 'firebase.json', 'firestore-debug.log']);
 const EXT = new Set(['.html', '.json', '.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg', '.ico', '.css', '.js',
   '.txt', '.mp3', '.ogg', '.wav', '.ttf', '.otf', '.woff', '.woff2', '.pdf']);
 
