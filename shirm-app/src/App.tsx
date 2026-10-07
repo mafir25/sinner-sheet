@@ -6,6 +6,7 @@ import { type ListedScreen, createScreen, deleteScreen, listScreens, loadBaseWor
 import { BoardStore } from './state/boardStore';
 import { Panel } from './ui/Panel';
 import { NotesPanel } from './ui/NotesPanel';
+import { GmTools } from './ui/GmTools';
 import { AccessModal, NewScreenModal } from './ui/ScreenDialogs';
 import { DialogHost, Modal, confirmDialog } from './ui/dialogs';
 import { Toasts, toast } from './ui/toast';
@@ -42,6 +43,22 @@ function Workspace({ user }: { user: User }) {
   const [newOpen, setNewOpen] = useState(false);
   const [settingsFor, setSettingsFor] = useState<number | null>(null);
   const [help, setHelp] = useState(false);
+  const [presenting, setPresenting] = useState(false);
+
+  // режим показа: доска на весь экран без панелей; Esc или выход из полноэкранного режима — назад
+  useEffect(() => {
+    if (!presenting) return;
+    document.documentElement.requestFullscreen?.().catch(() => { /* браузер не разрешил — просто без полноэкранного */ });
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setPresenting(false); };
+    const onFs = () => { if (!document.fullscreenElement) setPresenting(false); };
+    window.addEventListener('keydown', onKey);
+    document.addEventListener('fullscreenchange', onFs);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      document.removeEventListener('fullscreenchange', onFs);
+      if (document.fullscreenElement) void document.exitFullscreen().catch(() => {});
+    };
+  }, [presenting]);
 
   const refresh = useCallback(async () => {
     const [base, mine] = await Promise.all([
@@ -84,7 +101,8 @@ function Workspace({ user }: { user: User }) {
   const nick = user.displayName || LS('custom_nickname') || email;
 
   return (
-    <div className="app">
+    <div className={`app${presenting ? ' presenting' : ''}`}>
+      {presenting && <button className="btn present-exit" onClick={() => setPresenting(false)}>✕ Выйти из показа</button>}
       <header className="topbar">
         <nav>
           <a className="btn" href="index.html">⌂ ХАБ</a>
@@ -92,7 +110,9 @@ function Workspace({ user }: { user: User }) {
           <button className={`btn${split ? ' btn-on' : ''}`} onClick={() => { setSplit(!split); LSset('shirm.split', split ? '0' : '1'); }}>◫ Сплит-экран</button>
         </nav>
         <div className="topbar-right">
+          <GmTools uid={user.uid} />
           <NotesPanel uid={user.uid} />
+          <button className="btn" title="Режим показа: только доска на весь экран — для экрана игроков (Esc — выход)" onClick={() => setPresenting(true)}>▣ Показ</button>
           <button className="btn" onClick={() => setHelp(true)}>? Управление</button>
           <button className="btn user notranslate" title="Аккаунт и настройки" onClick={() => openSiteUi('account')}>{nick}</button>
           <button className="btn btn-primary" onClick={() => setNewOpen(true)}>＋ Новая ширма</button>
@@ -156,7 +176,8 @@ function HelpModal({ onClose }: { onClose: () => void }) {
     ['Перетаскивание узла', 'переместить (если ты админ ширмы)'], ['Двойной клик', 'редактировать'],
     ['Правый клик', 'меню: создать, связать, скрыть, копировать…'], ['Ctrl+Z / Ctrl+Y', 'отменить / повторить'],
     ['Ctrl+C / Ctrl+V', 'копировать / вставить (можно между ширмами)'], ['Delete', 'удалить выделенное'],
-    ['F', 'показать всё (или выделенное)'], ['/', 'поиск'], ['Esc', 'снять выделение, закрыть панель'],
+    ['F', 'показать всё (или выделенное)'], ['/', 'поиск'], ['Esc', 'снять выделение, закрыть панель, выйти из показа'],
+    ['🎲 Мастер', 'кубики (2d6+3, 4d6kh3, 2d20kh1) и трекер инициативы'], ['▣ Показ', 'доска на весь экран для игроков'],
   ];
   return (
     <Modal title="Управление" width={560} onClose={onClose}>
