@@ -371,6 +371,14 @@
     start: start,
   };
 
+  // Офлайн-доступ и установка как приложения: /sw.js (только https; на localhost — с ?sw=1 для проверки).
+  try {
+    var local = /^(localhost|127\.0\.0\.1)$/.test(location.hostname);
+    if ('serviceWorker' in navigator && (location.protocol === 'https:' && !local || /[?&]sw=1/.test(location.search))) {
+      window.addEventListener('load', function () { navigator.serviceWorker.register('/sw.js').catch(function () {}); });
+    }
+  } catch (e) { /* без service worker сайт работает как обычно */ }
+
   // Словарь грузим синхронно, пока страница ещё парсится, — так нет «мигания» русского текста.
   if (lang !== 'ru') {
     document.write('<script src="' + SCRIPT_BASE + 'i18n-' + lang + '.js"><\/script>');

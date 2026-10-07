@@ -9,7 +9,7 @@ const SKIP = new Set(['node_modules', 'dist', 'shirm-app', 'scripts', '.git', '.
   'package.json', 'package-lock.json', 'vite.config.mjs', 'vercel.json', 'firestore.rules', '.gitignore', 'README.md',
   'tests', 'firebase.json', 'firestore-debug.log']);
 const EXT = new Set(['.html', '.json', '.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg', '.ico', '.css', '.js',
-  '.txt', '.mp3', '.ogg', '.wav', '.ttf', '.otf', '.woff', '.woff2', '.pdf']);
+  '.txt', '.webmanifest', '.mp3', '.ogg', '.wav', '.ttf', '.otf', '.woff', '.woff2', '.pdf']);
 
 let n = 0;
 for (const name of readdirSync(ROOT)) {
