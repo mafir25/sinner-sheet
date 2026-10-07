@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="manifest" href="/manifest.webmanifest">
+    <meta name="theme-color" content="#0a0a0a">
+    <link rel="apple-touch-icon" href="/Assets/App/icon-192.png">
     <meta name="robots" content="noindex">
     <title>Администрация / Administration</title>
 
@@ -171,6 +174,14 @@
             .files, .entries { max-height: 40vh; }
             .ellipsis { max-width: 160px; }
         }
+        .diff-wrap { max-height: 70vh; overflow: auto; border: 1px solid var(--line, #333); }
+        table.diff { width: 100%; border-collapse: collapse; font-family: ui-monospace, Consolas, monospace; font-size: .78rem; }
+        table.diff td { padding: 0 6px; white-space: pre-wrap; word-break: break-word; vertical-align: top; border: none; }
+        table.diff td.ln { color: var(--dim, #777); text-align: right; width: 1%; white-space: nowrap; user-select: none; }
+        table.diff td.sg { width: 1%; user-select: none; }
+        table.diff tr.add { background: rgba(46, 204, 113, .14); }
+        table.diff tr.del { background: rgba(231, 76, 60, .16); }
+        table.diff tbody.hunk + tbody.hunk tr:first-child td { border-top: 1px dashed var(--line, #444); }
     </style>
 
     <script src="site/i18n.js"></script>

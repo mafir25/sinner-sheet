@@ -1,5 +1,7 @@
 /* Офис (office.html).
-   Данные: offices/<id> в Firestore + подколлекция offices/<id>/agents (досье агентов).
+   Данные: offices/<id> в Firestore + подколлекция offices/<id>/agents (досье агентов)
+   + offices/<id>/cards (открытые карточки досье: только поля, разрешённые настройками приватности).
+   Полное досье читают менеджер и владелец досье, остальные участники — только карточки (это проверяют правила).
    Права проверяет firestore.rules: офис меняет создатель (менеджер); участник может добавить своё досье,
    обновлять досье, привязанные к нему, и покинуть офис.
 
@@ -84,10 +86,12 @@ const st = {
   offices: [],           // [{ id, name, creator }]
   officeId: null, office: null, isCreator: false,
   agents: [], agentsReady: false,
+  full: [], cards: [], fullReady: false, cardsReady: false, cardsSync: null,
+  sessions: [], sessionsState: 'loading',
   unsub: [], token: 0, normalized: new Set(),
   names: new Map(),      // uid → свежий ник
-  open: { grades: new Set(), quests: new Set(), agents: new Set() },
-  edit: { news: null, rep: null, quest: null, agent: null },
+  open: { grades: new Set(), quests: new Set(), agents: new Set(), sessions: new Set() },
+  edit: { news: null, rep: null, quest: null, agent: null, session: null },
 };
 
 /* ---------------- Уведомления ---------------- */
@@ -287,7 +291,8 @@ function openOffice(id) {
   st.officeId = id;
   st.office = null; st.agents = []; st.agentsReady = false;
   setCreator(false); // права появятся вместе с данными нового офиса
-  st.open = { grades: new Set(), quests: new Set(), agents: new Set() };
+  st.open = { grades: new Set(), quests: new Set(), agents: new Set(), sessions: new Set() };
+  st.sessions = []; st.sessionsState = 'loading';
   resetForms();
   $('empty-gate').hidden = true;
   $('office-workspace').hidden = false;
@@ -309,6 +314,7 @@ function openOffice(id) {
     const first = !st.office;
     st.office = snap.data();
     setCreator(amCreatorOf(st.office));
+    if (st.agentMode !== (st.isCreator ? 'creator' : 'member')) listenAgents(id, tok);
     const entry = st.offices.find((o) => o.id === id);
     if (entry && entry.name !== st.office.name) { entry.name = st.office.name; renderOfficeList(); }
     renderOffice();
@@ -325,19 +331,54 @@ function openOffice(id) {
     } else toast(`${T('Связь с офисом потеряна')}: ${errText(err)}`, 'error');
   }));
 
-  st.unsub.push(onSnapshot(collection(db, 'offices', id, 'agents'), (snap) => {
+  listenAgents(id, tok);
+
+  st.unsub.push(onSnapshot(collection(db, 'offices', id, 'sessions'), (snap) => {
     if (tok !== st.token) return;
-    st.agents = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
-      .sort((a, b) => (a.order ?? a.createdAt ?? 0) - (b.order ?? b.createdAt ?? 0));
-    st.agentsReady = true;
-    renderAgents();
-    renderAssigneeOptions();
+    st.sessions = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    st.sessionsState = 'ok';
+    renderSessions();
   }, (err) => {
     if (tok !== st.token) return;
     console.error(err);
-    st.agentsReady = true;
-    renderAgents();
+    st.sessionsState = 'err';
+    renderSessions();
   }));
+}
+
+/* Досье: менеджер слушает все полные досье; участник — свои полные досье и открытые карточки остальных.
+   Кто менеджер, становится ясно из документа офиса, поэтому подписки на досье пересоздаются при смене роли. */
+function listenAgents(id, tok) {
+  st.agentUnsub?.forEach((f) => { try { f(); } catch (e) { /* ignore */ } });
+  st.agentUnsub = [];
+  st.agentMode = st.isCreator ? 'creator' : 'member';
+  st.full = []; st.cards = []; st.fullReady = false; st.cardsReady = st.isCreator;
+  const sortAgents = (list) => list.sort((a, b) => (a.order ?? a.createdAt ?? 0) - (b.order ?? b.createdAt ?? 0));
+  const update = () => {
+    if (tok !== st.token) return;
+    const own = new Set(st.full.map((a) => a.id));
+    st.agents = sortAgents([...st.full.map((a) => ({ ...a, full: true })), ...st.cards.filter((c) => !own.has(c.id))]);
+    st.agentsReady = st.fullReady && st.cardsReady;
+    renderAgents();
+    renderAssigneeOptions();
+    if (st.agentsReady && st.isCreator) ensureCards(tok);
+  };
+  const fail = (err) => { if (tok !== st.token) return; console.error(err); st.fullReady = true; st.cardsReady = true; update(); };
+  const agentsCol = collection(db, 'offices', id, 'agents');
+  const q = st.isCreator ? agentsCol : query(agentsCol, where('ownerUid', '==', st.user.uid));
+  st.agentUnsub.push(onSnapshot(q, (snap) => {
+    st.full = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    st.fullReady = true;
+    update();
+  }, fail));
+  if (!st.isCreator) {
+    st.agentUnsub.push(onSnapshot(collection(db, 'offices', id, 'cards'), (snap) => {
+      st.cards = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      st.cardsReady = true;
+      update();
+    }, fail));
+  }
+  st.unsub.push(() => st.agentUnsub.forEach((f) => f()));
 }
 
 /* Перевод офиса на новый формат и починка старых данных. Делает менеджер; участник — только свою запись. */
@@ -353,18 +394,15 @@ async function normalizeOffice(tok) {
     if (st.isCreator) {
       // досье из старого массива characters → подколлекция agents (id детерминированные — повтор безопасен)
       const legacy = Array.isArray(d.characters) ? d.characters : [];
-      if (legacy.length) {
-        const batch = writeBatch(db);
-        legacy.forEach((c, i) => {
-          const raw = c.rawJson && typeof c.rawJson === 'object' ? c.rawJson : null;
-          batch.set(doc(db, 'offices', st.officeId, 'agents', `legacy_${String(c.id || '').replace(/[^\w-]/g, '')}_${i}`), cleanAgent({
-            name: c.name, race: c.race, className: c.className, level: raw?.level ?? null,
-            feats: featNames(c.feats), description: c.description || raw?.desc || '',
-            presetJson: raw ? JSON.stringify(raw) : '', ownerUid: '', ownerName: '',
-            createdAt: Number(c.id) || Date.now() + i, updatedAt: Date.now(), order: i,
-          }));
-        });
-        await batch.commit();
+      // по одному досье за пачку: правила карточки читают досье, а на пачку есть лимит обращений к документам
+      for (const [i, c] of legacy.entries()) {
+        const raw = c.rawJson && typeof c.rawJson === 'object' ? c.rawJson : null;
+        await putAgent(`legacy_${String(c.id || '').replace(/[^\w-]/g, '')}_${i}`, {
+          name: c.name, race: c.race, className: c.className, level: raw?.level ?? null,
+          feats: featNames(c.feats), description: c.description || raw?.desc || '',
+          presetJson: raw ? JSON.stringify(raw) : '', ownerUid: '', ownerName: '',
+          createdAt: Number(c.id) || Date.now() + i, updatedAt: Date.now(), order: i,
+        }, d);
       }
       await runTransaction(db, async (tx) => {
         const snap = await tx.get(ref);
@@ -450,6 +488,7 @@ function renderOffice() {
   renderAgents();
   renderBoard();
   renderNews();
+  renderSessions();
   renderReps();
   renderBank();
   renderAssigneeOptions();
@@ -546,7 +585,11 @@ document.querySelectorAll('[data-cs]').forEach((cb) => cb.addEventListener('chan
   if (!st.isCreator) return;
   const settings = {};
   document.querySelectorAll('[data-cs]').forEach((x) => { settings[x.dataset.cs] = x.checked; });
-  const ok = await run(() => updateDoc(doc(db, 'offices', st.officeId), { charSettings: settings }), { ok: 'Настройки приватности сохранены', fail: 'Ошибка сохранения настроек' });
+  // сначала настройки (правила сверяют карточки с ними), затем карточки всех досье
+  const ok = await run(async () => {
+    await updateDoc(doc(db, 'offices', st.officeId), { charSettings: settings });
+    await rebuildCards({ ...st.office, charSettings: settings });
+  }, { busy: 'Обновление карточек досье...', ok: 'Настройки приватности сохранены', fail: 'Ошибка сохранения настроек' });
   if (!ok) renderOffice();
 }));
 
@@ -565,6 +608,7 @@ async function createOffice() {
     logoUrl: '', news: [], customQuests: [], activeQuests: [], reputations: [],
     treasury: { balance: 0, log: [] },
     charSettings: { ...DEFAULT_CS },
+    privacy: 2,
   }), { busy: 'Создание офиса...', ok: 'Офис создан', fail: 'Ошибка создания офиса' });
   if (!ok) return;
   st.offices.push({ id: ref.id, name: clean, mine: true });
@@ -583,11 +627,13 @@ async function deleteOffice() {
   if (typed.trim().toUpperCase() !== name.trim().toUpperCase()) { toast('Название не совпадает — офис не удалён', 'error'); return; }
   const id = st.officeId;
   const ok = await run(async () => {
-    const agents = await getDocs(collection(db, 'offices', id, 'agents'));
-    for (let i = 0; i < agents.docs.length; i += 400) {
-      const batch = writeBatch(db);
-      agents.docs.slice(i, i + 400).forEach((a) => batch.delete(a.ref));
-      await batch.commit();
+    for (const sub of ['sessions', 'cards', 'agents']) {
+      const docs = (await getDocs(collection(db, 'offices', id, sub))).docs;
+      for (let i = 0; i < docs.length; i += 400) {
+        const batch = writeBatch(db);
+        docs.slice(i, i + 400).forEach((a) => batch.delete(a.ref));
+        await batch.commit();
+      }
     }
     stopListening();
     await deleteDoc(doc(db, 'offices', id));
@@ -650,32 +696,74 @@ function agentFieldsFromPreset(p) {
   };
 }
 const presetOf = (a) => { try { return a.presetJson ? JSON.parse(a.presetJson) : null; } catch (e) { return null; } };
-const canEditAgent = (a) => st.isCreator || (a.ownerUid && a.ownerUid === st.user.uid);
+
+/** Открытая карточка досье: только поля, разрешённые настройками приватности офиса (правила сверяют её с досье). */
+function cardOf(a, office = st.office) {
+  const cs = { ...DEFAULT_CS, ...(office?.charSettings || {}) };
+  const c = { order: a.order, createdAt: a.createdAt, updatedAt: a.updatedAt };
+  if (cs.name) c.name = a.name;
+  if (cs.race) c.race = a.race;
+  if (cs.class) { c.className = a.className; c.level = a.level; }
+  if (cs.feats) c.feats = a.feats;
+  if (cs.desc) c.description = a.description;
+  if (cs.download) c.presetJson = a.presetJson;
+  return c;
+}
+/** Записать досье целиком вместе с его карточкой (одной пачкой). */
+async function putAgent(id, data, office = st.office) {
+  const a = cleanAgent(data);
+  const batch = writeBatch(db);
+  batch.set(doc(db, 'offices', st.officeId, 'agents', id), a);
+  batch.set(doc(db, 'offices', st.officeId, 'cards', id), cardOf(a, office));
+  await batch.commit();
+  return a;
+}
+const fullAgent = (a) => { const { id, full, ...rest } = a; return rest; };
+
+/* Карточки всех досье — после смены настроек приватности и при первом открытии офиса после обновления
+   (флаг privacy: 2). Каждая карточка — отдельная запись (лимит обращений правил на пачку). */
+async function rebuildCards(office = st.office) {
+  for (const a of st.full) await setDoc(doc(db, 'offices', st.officeId, 'cards', a.id), cardOf(cleanAgent(fullAgent(a)), office));
+}
+async function ensureCards(tok) {
+  if (!st.isCreator || st.office?.privacy === 2 || st.cardsSync === st.officeId) return;
+  st.cardsSync = st.officeId;
+  try {
+    await rebuildCards();
+    if (tok === st.token) await updateDoc(doc(db, 'offices', st.officeId), { privacy: 2 });
+  } catch (e) {
+    st.cardsSync = null;
+    console.warn('Не удалось обновить карточки досье', e);
+  }
+}
+const canEditAgent = (a) => !!a.full && (st.isCreator || (a.ownerUid && a.ownerUid === st.user.uid));
 
 async function addAgentFromPreset(p, source) {
   const fields = agentFieldsFromPreset(p);
   const mine = !st.isCreator;
   const ref = doc(collection(db, 'offices', st.officeId, 'agents'));
   const maxOrder = st.agents.reduce((m, a) => Math.max(m, Number(a.order) || 0), 0);
-  await setDoc(ref, cleanAgent({
+  await putAgent(ref.id, {
     ...fields, ownerUid: mine ? st.user.uid : '', ownerName: mine ? myNick() : '',
     createdAt: Date.now(), updatedAt: Date.now(), order: maxOrder + 1,
-  }));
+  });
   st.open.agents.add(ref.id);
   return fields.name + (source ? ` (${T(source)})` : '');
 }
 async function updateAgentFromPreset(agent, p) {
   const fields = agentFieldsFromPreset(p);
-  await updateDoc(doc(db, 'offices', st.officeId, 'agents', agent.id), { ...pick(cleanAgent(fields), Object.keys(fields)), updatedAt: Date.now() });
+  await putAgent(agent.id, { ...fullAgent(agent), ...fields, updatedAt: Date.now() });
 }
-const pick = (o, keys) => Object.fromEntries(keys.map((k) => [k, o[k]]));
 
 function renderAgents() {
   const box = $('agents-container');
   renderBuilderCard();
   if (!st.office) { box.innerHTML = ''; return; }
   if (!st.agentsReady) { box.innerHTML = `<p class="hint">${esc(T('Загрузка...'))}</p>`; return; }
-  if (!st.agents.length) { box.innerHTML = `<p class="hint">${esc(T('Досье отсутствуют.'))}</p>`; return; }
+  // офис ещё не переведён на карточки (менеджер не открывал его после обновления) — чужие досье не видны
+  const pending = !st.isCreator && st.office.privacy !== 2
+    ? `<p class="hint">${esc(T('Досье других агентов появятся, когда менеджер откроет офис.'))}</p>` : '';
+  if (!st.agents.length) { box.innerHTML = pending || `<p class="hint">${esc(T('Досье отсутствуют.'))}</p>`; return; }
   const s = { ...DEFAULT_CS, ...(st.office.charSettings || {}) };
 
   box.innerHTML = st.agents.map((a) => {
@@ -720,7 +808,7 @@ function renderAgents() {
         </div>
         <div class="preset-desc">${details}</div>
       </div>`;
-  }).join('');
+  }).join('') + pending;
 }
 
 function downloadAgent(a) {
@@ -778,13 +866,18 @@ $('agent-form').addEventListener('submit', async (e) => {
     patch.ownerUid = uid;
     patch.ownerName = uid ? String(nameOf(uid)).slice(0, 40) : '';
   }
-  const ok = await run(() => updateDoc(doc(db, 'offices', st.officeId, 'agents', a.id), patch), { ok: 'Досье сохранено', fail: 'Ошибка сохранения досье' });
+  const ok = await run(() => putAgent(a.id, { ...fullAgent(a), ...patch }), { ok: 'Досье сохранено', fail: 'Ошибка сохранения досье' });
   if (ok) closeModal('agentModal');
 });
 
 async function deleteAgent(a) {
   if (!await confirmDlg(`${T('Удалить досье')} «${a.name}» ${T('из Офиса?')}`)) return;
-  await run(() => deleteDoc(doc(db, 'offices', st.officeId, 'agents', a.id)), { busy: 'Удаление досье...', ok: 'Досье удалено', fail: 'Ошибка удаления' });
+  await run(() => {
+    const batch = writeBatch(db);
+    batch.delete(doc(db, 'offices', st.officeId, 'cards', a.id));
+    batch.delete(doc(db, 'offices', st.officeId, 'agents', a.id));
+    return batch.commit();
+  }, { busy: 'Удаление досье...', ok: 'Досье удалено', fail: 'Ошибка удаления' });
 }
 
 const fileLabel = $('agent-file').closest('label');
@@ -892,8 +985,43 @@ function statusTag(q) {
   return `<span class="tag st-${s}"><i class="fa-solid ${STATUSES[s].icon}" aria-hidden="true"></i> ${esc(T(STATUSES[s].label).toUpperCase())}</span>`;
 }
 
+/* Награда контракта: при статусе «Выполнен» она одной транзакцией зачисляется в казну (paidId, paidAmount).
+   Сняли статус или изменили награду — прежняя выплата отменяется и при необходимости зачисляется заново. */
+function settleReward(d, q, patch) {
+  const want = statusOf(q) === 'done' ? Math.max(0, Math.round(Number(q.reward) || 0)) : 0;
+  const had = Number(q.paidAmount) || 0;
+  if (want === had) return q;
+  const t = patch.treasury || d.treasury || {};
+  let log = Array.isArray(t.log) ? t.log : [];
+  let balance = (Number(t.balance) || 0) - had;
+  if (q.paidId) log = log.filter((l) => l.id !== q.paidId);
+  const next = { ...q, paidId: '', paidAmount: 0 };
+  if (want > 0) {
+    const entry = { id: newId(log), ts: Date.now(), amount: want, note: `${T('Награда:')} ${q.name}`.slice(0, 200), by: myNick(), quest: q.id };
+    log = [...log, entry].slice(-LEDGER_MAX);
+    balance += want;
+    next.paidId = entry.id;
+    next.paidAmount = want;
+  }
+  patch.treasury = { balance, log };
+  return next;
+}
+
+function renderStats() {
+  const list = quests();
+  const done = list.filter((q) => statusOf(q) === 'done');
+  const failed = list.filter((q) => statusOf(q) === 'failed').length;
+  const earned = done.reduce((sum, q) => sum + (Number(q.paidAmount) || 0), 0);
+  $('office-stats').innerHTML = list.length
+    ? `<span title="${esc(T('Выполнено контрактов'))}"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> ${done.length}</span>
+       <span title="${esc(T('Провалено контрактов'))}"><i class="fa-solid fa-skull" aria-hidden="true"></i> ${failed}</span>
+       <span title="${esc(T('Заработано наградами'))}"><i class="fa-solid fa-coins" aria-hidden="true"></i> ${esc(fmtNum(earned))} ${esc(T('Ан'))}</span>`
+    : '';
+}
+
 function renderBoard() {
   const box = $('grades-container');
+  renderStats();
   if (!st.office) { box.innerHTML = ''; return; }
   const active = activeSet();
   const visible = quests().filter((q) => active.has(q.id));
@@ -931,6 +1059,8 @@ function questHtml(q) {
   const open = st.open.quests.has(q.id);
   const icon = safeUrl(q.Icon);
   const assignee = q.assignee ? `<span><i class="fa-solid fa-user" aria-hidden="true"></i> <span class="notranslate">${esc(q.assignee)}</span></span>` : '';
+  const reward = Number(q.reward) > 0
+    ? `<span title="${esc(T(q.paidAmount ? 'Награда зачислена в казну' : 'Награда'))}"><i class="fa-solid fa-coins" aria-hidden="true"></i> ${esc(fmtNum(q.reward))} ${esc(T('Ан'))}${q.paidAmount ? ` <i class="fa-solid fa-check" aria-hidden="true"></i>` : ''}</span>` : '';
   const admin = st.isCreator ? `
     <div class="quest-admin">
       <select class="field" data-act="quest-status" data-id="${esc(q.id)}" aria-label="${esc(T('Статус'))}">
@@ -949,7 +1079,7 @@ function questHtml(q) {
         ${s !== 'open' ? statusTag(q) : ''}
       </button>
       <div class="quest-body">
-        <div class="quest-meta">${statusTag(q)}${assignee}</div>
+        <div class="quest-meta">${statusTag(q)}${assignee}${reward}</div>
         <div class="md notranslate">${q.desc ? md(q.desc) : `<span class="muted">${esc(T('Без описания.'))}</span>`}</div>
         ${admin}
       </div>
@@ -968,7 +1098,9 @@ async function setQuestField(id, field, value) {
   await run(() => mutate((d) => {
     const list = listOf(d, 'customQuests');
     if (!list.some((q) => q.id === id)) throw new Error('gone');
-    return { customQuests: list.map((q) => (q.id === id ? { ...q, [field]: value, updatedAt: Date.now() } : q)) };
+    const patch = {};
+    patch.customQuests = list.map((q) => (q.id === id ? settleReward(d, { ...q, [field]: value, updatedAt: Date.now() }, patch) : q));
+    return patch;
   }), { ok: field === 'status' ? 'Статус контракта обновлён' : 'Исполнитель сохранён', fail: 'Ошибка сохранения контракта' });
 }
 
@@ -998,6 +1130,7 @@ function openQuestEditor(q = null, grade = null) {
   $('q-grade').value = String(q?.grade || grade || 1);
   $('q-status').value = q ? statusOf(q) : 'open';
   $('q-assignee').value = q?.assignee || '';
+  $('q-reward').value = q?.reward ? String(q.reward) : '';
   $('q-icon-url').value = q?.Icon || '';
   $('q-desc').value = q?.desc || '';
   $('q-visible').checked = q ? activeSet().has(q.id) : true;
@@ -1016,6 +1149,7 @@ $('quest-form').addEventListener('submit', async (e) => {
     name, grade: parseInt($('q-grade').value, 10) || 1, Icon: icon,
     desc: $('q-desc').value.trim().slice(0, 8000), status: $('q-status').value,
     assignee: $('q-assignee').value.trim().slice(0, 80), updatedAt: Date.now(),
+    reward: Math.max(0, Math.min(1e12, Math.round(parseFloat($('q-reward').value) || 0))),
   };
   const visible = $('q-visible').checked;
   const editId = st.edit.quest;
@@ -1023,23 +1157,24 @@ $('quest-form').addEventListener('submit', async (e) => {
     const list = listOf(d, 'customQuests');
     let active = listOf(d, 'activeQuests');
     let id = editId;
-    let next;
+    const patch = {};
     if (editId) {
       if (!list.some((q) => q.id === editId)) throw new Error('gone');
-      next = list.map((q) => (q.id === editId ? { ...q, ...data } : q));
+      patch.customQuests = list.map((q) => (q.id === editId ? settleReward(d, { ...q, ...data }, patch) : q));
     } else {
       id = newId(list, 'custom_');
-      next = [...list, { id, ...data }];
+      patch.customQuests = [...list, settleReward(d, { id, ...data }, patch)];
     }
     active = active.filter((x) => x !== id);
     if (visible) active.push(id);
-    return { customQuests: next, activeQuests: active };
+    patch.activeQuests = active;
+    return patch;
   }), { busy: 'Сохранение контракта в базу...', ok: editId ? 'Контракт обновлён' : 'Контракт успешно добавлен', fail: 'Ошибка сохранения контракта' });
   if (!ok) return;
   st.open.grades.add(data.grade);
   renderBoard();
   if (more && !editId) {
-    $('q-name').value = ''; $('q-desc').value = ''; $('q-assignee').value = '';
+    $('q-name').value = ''; $('q-desc').value = ''; $('q-assignee').value = ''; $('q-reward').value = '';
     $('q-name').focus();
   } else closeModal('questBuilderModal');
 });
@@ -1186,6 +1321,85 @@ async function deleteNews(id) {
   if (!await confirmDlg('Удалить сводку?')) return;
   await run(() => mutate((d) => ({ news: listOf(d, 'news').filter((n) => n.id !== id) })), { ok: 'Сводка удалена', fail: 'Ошибка удаления сводки' });
   if (st.edit.news === id) resetNewsForm();
+}
+
+/* ---------------- Журнал сессий ---------------- */
+// offices/<id>/sessions/<sid> = { title, date, text, agents, num, createdAt, updatedAt, by } — пишет менеджер, читают участники.
+const SESSION_TEXT_MAX = 20000;
+function renderSessions() {
+  const box = $('journal-container');
+  if (!box) return;
+  if (st.sessionsState === 'loading') { box.innerHTML = `<p class="hint">${esc(T('Загрузка...'))}</p>`; return; }
+  if (st.sessionsState === 'err') { box.innerHTML = `<p class="hint">${esc(T('Журнал сессий недоступен.'))}</p>`; return; }
+  if (!st.edit.session) $('session-num').placeholder = `#${(st.sessions.reduce((m, x) => Math.max(m, Number(x.num) || 0), 0) + 1)}`;
+  if (!st.sessions.length) { box.innerHTML = `<p class="hint">${esc(T('Сессий пока не записано.'))}</p>`; return; }
+  const list = [...st.sessions].sort((a, b) => (Number(b.num) || 0) - (Number(a.num) || 0) || (b.createdAt || 0) - (a.createdAt || 0));
+  box.innerHTML = list.map((x) => {
+    const open = st.open.sessions.has(x.id);
+    const tools = st.isCreator ? `<div class="item-tools">
+        <button class="icon-btn" data-act="session-edit" data-id="${esc(x.id)}" title="${esc(T('Редактировать'))}" aria-label="${esc(T('Редактировать'))}"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>
+        <button class="icon-btn danger" data-act="session-delete" data-id="${esc(x.id)}" title="${esc(T('Удалить запись'))}" aria-label="${esc(T('Удалить запись'))}"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
+      </div>` : '';
+    const who = Array.isArray(x.agents) && x.agents.length
+      ? `<div class="hint notranslate"><i class="fa-solid fa-users" aria-hidden="true"></i> ${esc(x.agents.join(', '))}</div>` : '';
+    return `<article class="session-item${open ? ' open' : ''}">
+      <div class="news-top">
+        <button class="session-toggle" data-act="session-toggle" data-id="${esc(x.id)}" aria-expanded="${open}">
+          <span class="session-num">#${esc(x.num || '?')}</span>
+          <span class="notranslate">${esc(x.title || T('Без названия'))}</span>
+          ${x.date ? `<span class="news-date notranslate">${esc(x.date)}</span>` : ''}
+        </button>${tools}
+      </div>
+      <div class="session-body">${who}<div class="news-text md notranslate">${md(x.text)}</div></div>
+    </article>`;
+  }).join('');
+}
+function resetSessionForm() {
+  st.edit.session = null;
+  $('session-form').reset();
+  $('session-editing').hidden = true;
+  $('session-submit').querySelector('span').textContent = T('ЗАПИСАТЬ СЕССИЮ');
+  $('session-num').placeholder = `#${(st.sessions.reduce((m, x) => Math.max(m, Number(x.num) || 0), 0) + 1)}`;
+}
+function editSession(id) {
+  const x = st.sessions.find((y) => y.id === id);
+  if (!x) return;
+  st.edit.session = id;
+  $('session-num').value = x.num || '';
+  $('session-title').value = x.title || '';
+  $('session-date').value = x.date || '';
+  $('session-agents').value = (x.agents || []).join(', ');
+  $('session-text').value = x.text || '';
+  $('session-editing').hidden = false;
+  $('session-submit').querySelector('span').textContent = T('СОХРАНИТЬ ИЗМЕНЕНИЯ');
+  switchTab('journal');
+  $('session-title').focus();
+}
+$('session-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (!st.isCreator) return;
+  const text = $('session-text').value.trim().slice(0, SESSION_TEXT_MAX);
+  const title = $('session-title').value.trim().slice(0, 120);
+  if (!text && !title) { toast('Введите название или итоги сессии', 'error'); return; }
+  const editId = st.edit.session;
+  const prev = editId ? st.sessions.find((y) => y.id === editId) : null;
+  const nextNum = st.sessions.reduce((m, x) => Math.max(m, Number(x.num) || 0), 0) + 1;
+  const num = Math.max(1, Math.min(100000, parseInt($('session-num').value, 10) || prev?.num || nextNum));
+  const data = {
+    num, title, text,
+    date: $('session-date').value.trim().slice(0, 40) || prev?.date || new Date().toLocaleDateString(LOCALE()),
+    agents: $('session-agents').value.split(',').map((v) => v.trim().slice(0, 80)).filter(Boolean).slice(0, 30),
+    createdAt: prev?.createdAt || Date.now(), updatedAt: Date.now(), by: myNick(),
+  };
+  const ref = editId ? doc(db, 'offices', st.officeId, 'sessions', editId) : doc(collection(db, 'offices', st.officeId, 'sessions'));
+  const ok = await run(() => setDoc(ref, data), { busy: 'Запись сессии...', ok: editId ? 'Запись обновлена' : 'Сессия записана', fail: 'Ошибка записи сессии' });
+  if (ok) { st.open.sessions.add(ref.id); resetSessionForm(); }
+});
+async function deleteSession(id) {
+  const x = st.sessions.find((y) => y.id === id);
+  if (!x || !await confirmDlg(`${T('Удалить запись о сессии')} «${x.title || '#' + x.num}»?`)) return;
+  await run(() => deleteDoc(doc(db, 'offices', st.officeId, 'sessions', id)), { ok: 'Запись удалена', fail: 'Ошибка удаления' });
+  if (st.edit.session === id) resetSessionForm();
 }
 
 /* ---------------- Репутация ---------------- */
@@ -1335,6 +1549,7 @@ function renderBank() {
   $('bank-balance').classList.toggle('neg', bal < 0);
   $('bank-balance-sub').textContent = `≈ ${fmtNum(bal / r.rub, 0)} ₽ · ≈ ${fmtNum(bal / r.usd, 2)} $`;
   const log = Array.isArray(t.log) ? [...t.log].sort((a, b) => (b.ts || 0) - (a.ts || 0)) : [];
+  renderBankChart(bal, log);
   $('bank-log').innerHTML = log.length ? log.map((x) => {
     const amt = Number(x.amount) || 0;
     const tools = st.isCreator ? `<div class="item-tools"><button class="icon-btn danger" data-act="bank-undo" data-id="${esc(x.id)}" title="${esc(T('Отменить операцию'))}" aria-label="${esc(T('Отменить операцию'))}"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i></button></div>` : '';
@@ -1344,6 +1559,30 @@ function renderBank() {
     </div>`;
   }).join('') : `<p class="hint" style="margin-bottom:8px;">${esc(T('Операций пока не было.'))}</p>`;
 }
+/** График баланса по журналу операций: баланс до первой записи = текущий − сумма всех записей журнала. */
+function renderBankChart(bal, newestFirst) {
+  const box = $('bank-chart');
+  const log = [...newestFirst].reverse();
+  if (log.length < 2) { box.hidden = true; box.innerHTML = ''; return; }
+  let cur = bal - log.reduce((s2, x) => s2 + (Number(x.amount) || 0), 0);
+  const pts = [cur];
+  log.forEach((x) => { cur += Number(x.amount) || 0; pts.push(cur); });
+  const W = 300, H = 70, P = 4;
+  const lo = Math.min(0, ...pts), hi = Math.max(0, ...pts);
+  const span = hi - lo || 1;
+  const xy = (v, i) => [P + (i * (W - 2 * P)) / (pts.length - 1), P + ((hi - v) * (H - 2 * P)) / span];
+  const line = pts.map((v, i) => xy(v, i).map((n) => n.toFixed(1)).join(',')).join(' ');
+  const zero = xy(0, 0)[1].toFixed(1);
+  const [lx, ly] = xy(pts[pts.length - 1], pts.length - 1);
+  box.hidden = false;
+  box.innerHTML = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="${esc(T('График баланса'))}">
+      <line x1="${P}" x2="${W - P}" y1="${zero}" y2="${zero}" class="zero"/>
+      <polyline points="${line}" class="${bal < 0 ? 'neg' : 'pos'}"/>
+      <circle cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="2.5" class="${bal < 0 ? 'neg' : 'pos'}"/>
+    </svg>
+    <div class="chart-scale"><span>${esc(fmtNum(lo))}</span><span>${esc(T('операций:'))} ${log.length}</span><span>${esc(fmtNum(hi))}</span></div>`;
+}
+
 $('bank-form').addEventListener('submit', async (e) => {
   e.preventDefault();
   const kind = e.submitter?.dataset.kind || 'in';
@@ -1366,12 +1605,16 @@ async function undoLedger(id) {
     const log = Array.isArray(t.log) ? t.log : [];
     const x = log.find((l) => l.id === id);
     if (!x) throw new Error('gone');
-    return { treasury: { balance: (Number(t.balance) || 0) - (Number(x.amount) || 0), log: log.filter((l) => l.id !== id) } };
+    const patch = { treasury: { balance: (Number(t.balance) || 0) - (Number(x.amount) || 0), log: log.filter((l) => l.id !== id) } };
+    // отменили выплату награды — контракт снова считается неоплаченным
+    const qs = listOf(d, 'customQuests');
+    if (qs.some((q) => q.paidId === id)) patch.customQuests = qs.map((q) => (q.paidId === id ? { ...q, paidId: '', paidAmount: 0 } : q));
+    return patch;
   }), { ok: 'Операция отменена', fail: 'Ошибка' });
 }
 
 /* ---------------- Вкладки ---------------- */
-const TABS = ['news', 'rep', 'bank'];
+const TABS = ['news', 'journal', 'rep', 'bank'];
 function switchTab(tab, focus = false) {
   if (!TABS.includes(tab)) tab = 'news';
   TABS.forEach((t) => {
@@ -1398,6 +1641,7 @@ try { switchTab(localStorage.getItem(LS_TAB) || 'news'); } catch (e) { switchTab
 
 function resetForms() {
   resetNewsForm();
+  resetSessionForm();
   resetRepForm();
   $('bank-form').reset();
   ['agentModal', 'questBuilderModal', 'questManagerModal', 'dialogModal'].forEach(closeModal);
@@ -1450,6 +1694,19 @@ const ACTIONS = {
   'news-edit': (b) => editNews(b.dataset.id),
   'news-delete': (b) => deleteNews(b.dataset.id),
   'news-cancel': resetNewsForm,
+  'session-toggle': (b) => {
+    const id = b.dataset.id;
+    if (st.open.sessions.has(id)) st.open.sessions.delete(id); else st.open.sessions.add(id);
+    b.closest('.session-item').classList.toggle('open', st.open.sessions.has(id));
+    b.setAttribute('aria-expanded', String(st.open.sessions.has(id)));
+  },
+  'session-edit': (b) => editSession(b.dataset.id),
+  'session-delete': (b) => deleteSession(b.dataset.id),
+  'session-cancel': resetSessionForm,
+  'session-fill-agents': () => {
+    const names = st.agents.map((a) => a.name).filter(Boolean);
+    $('session-agents').value = [...new Set(names)].join(', ');
+  },
   'rep-edit': (b) => editRep(b.dataset.id),
   'rep-delete': (b) => deleteRep(b.dataset.id),
   'rep-cancel': resetRepForm,

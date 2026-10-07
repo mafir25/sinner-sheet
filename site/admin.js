@@ -12,6 +12,7 @@ import {
   findUserByNick, normalizePerms, banActive,
 } from './auth.js';
 import * as Canon from './canon.js';
+import { diffLines, hunks, diffStats } from './diff.js';
 import {
   SCHEMAS, formHtml, collectFields, repeatAction, canonSchemaFor, classFileRel, CLASS_REGISTRY, FILE_NAME_RE,
 } from './fields.js';
@@ -51,7 +52,13 @@ function errText(e) {
 }
 function fail(e, what = 'Ошибка') { console.error(e); toast(`${T(what)}: ${T(errText(e))}`, 'err'); }
 
-const toDate = (ts) => (ts?.toDate ? ts.toDate() : ts instanceof Date ? ts : null);
+// Timestamp, Date, ISO-строка (так пишет updatedAt База знаний) или число миллисекунд
+const toDate = (ts) => {
+  if (ts?.toDate) return ts.toDate();
+  if (ts instanceof Date) return ts;
+  if (typeof ts === 'string' || typeof ts === 'number') { const d = new Date(ts); return Number.isNaN(d.getTime()) ? null : d; }
+  return null;
+};
 function fmt(ts) {
   const d = toDate(ts);
   return d ? d.toLocaleString(window.I18N?.lang === 'en' ? 'en-GB' : 'ru-RU', { dateStyle: 'short', timeStyle: 'short' }) : '—';
@@ -128,6 +135,38 @@ function jsonReplacer(_k, v) {
   if (v && typeof v === 'object' && typeof v.toDate === 'function') return v.toDate().toISOString();
   return v;
 }
+
+/* ---------- сравнение версий ---------- */
+/** JSON — в одинаковом виде (отступ 2), чтобы сравнение шло по смыслу, а не по форматированию. */
+function normText(text, rel) {
+  if (text == null) return '';
+  if (!Canon.isJson(rel)) return String(text);
+  try { return JSON.stringify(JSON.parse(text), null, 2); } catch { return String(text); }
+}
+function showDiff(title, before, after, { beforeLabel = 'было', afterLabel = 'стало' } = {}) {
+  const ops = diffLines(String(before).split('\n'), String(after).split('\n'));
+  const st = diffStats(ops);
+  const hs = hunks(ops, 3);
+  const MAX_ROWS = 4000;
+  let rows = 0;
+  const body = hs.length ? hs.map((h) => {
+    if (rows > MAX_ROWS) return '';
+    const lines = h.ops.map((o) => {
+      rows++;
+      const cls = o.op === '+' ? 'add' : o.op === '-' ? 'del' : '';
+      return `<tr class="${cls}"><td class="ln">${o.a ?? ''}</td><td class="ln">${o.b ?? ''}</td><td class="sg">${o.op === '=' ? ' ' : o.op}</td><td class="tx">${esc(o.line)}</td></tr>`;
+    }).join('');
+    return `<tbody class="hunk">${lines}</tbody>`;
+  }).join('') : '';
+  modal(title, hs.length
+    ? `<div class="row small" style="margin-bottom:8px"><span class="chip on">+${st.added}</span><span class="chip red">−${st.removed}</span>
+        <span class="muted">${esc(T(beforeLabel))} → ${esc(T(afterLabel))}</span></div>
+       <div class="diff-wrap"><table class="diff notranslate">${body}</table></div>
+       ${rows > MAX_ROWS ? `<p class="muted small">${esc(T('Показаны не все изменения — их слишком много.'))}</p>` : ''}`
+    : `<div class="notice">${esc(T('Различий нет.'))}</div>`, { wide: true });
+}
+/** Текст рабочей копии открытого файла канона. */
+const workingText = () => (Canon.isJson(CS.sel.rel) ? JSON.stringify(CS.data, null, 2) : String(CS.data ?? ''));
 
 /** Удалить все документы подколлекции пачками по 400. */
 async function deleteCollection(path) {
@@ -715,7 +754,7 @@ async function openFile(lang, rel) {
     return;
   }
   if (seq !== loadSeq || !ed.isConnected) return;   // пока грузили, открыли другой файл или ушли с вкладки
-  Object.assign(CS, { manifest, source });
+  Object.assign(CS, { manifest, source, originalText: text ?? null });
   try { setWorking(text ?? (Canon.isJson(rel) ? '[]' : '')); }
   catch (e) { ed.innerHTML = `<div class="notice err">${esc(T('Некорректный JSON'))}: ${esc(e.message)}</div>`; return; }
   renderEditor();
@@ -744,6 +783,7 @@ function renderEditor() {
           <button class="btn sm ghost" data-file="export"><i class="fa-solid fa-download"></i> Скачать</button>
           <label class="btn sm ghost"><i class="fa-solid fa-upload"></i> Загрузить файл<input type="file" id="ed-upload" hidden></label>
           <button class="btn sm ghost" data-file="static" title="${esc(T('Взять версию из репозитория (Assets/) в рабочую копию'))}"><i class="fa-solid fa-code-branch"></i> Из Assets</button>
+          <button class="btn sm ghost" data-file="diff-assets" title="${esc(T('Чем рабочая копия отличается от версии в репозитории (Assets/)'))}"><i class="fa-solid fa-code-compare"></i> Сравнить с Assets</button>
           ${lang !== 'Rus' ? '<button class="btn sm ghost" data-file="rus"><i class="fa-solid fa-language"></i> Копия русской</button>' : ''}
           ${CS.source === 'canon' ? '<button class="btn sm red" data-file="reset"><i class="fa-solid fa-trash"></i> Убрать из Firestore</button>' : ''}
         </div>
@@ -772,6 +812,11 @@ async function fileAction(act) {
   try {
     if (act === 'export') {
       if (!CS.apply || CS.apply()) Canon.download(rel.split('/').pop(), Canon.isJson(rel) ? JSON.stringify(CS.data, null, 2) + '\n' : CS.data);
+    } else if (act === 'diff-assets') {
+      if (CS.apply && !CS.apply()) return;
+      const t = await Canon.loadStatic(lang, rel);
+      if (t == null) return toast('В Assets/ нет такого файла', 'err');
+      showDiff(`${lang}/${rel}: Assets → ${T('рабочая копия')}`, normText(t, rel), normText(workingText(), rel), { beforeLabel: 'Assets/', afterLabel: 'рабочая копия' });
     } else if (act === 'static') {
       const t = await Canon.loadStatic(lang, rel);
       if (t == null) return toast('В Assets/ нет такого файла', 'err');
@@ -923,10 +968,17 @@ function renderDirtyBar() {
       <span class="muted small notranslate ellipsis" style="max-width:none;flex:1">${esc(list.slice(0, 8).join(' · '))}${list.length > 8 ? ' …' : ''}</span></div>
     <div class="row">
       <input class="in" id="sv-note" maxlength="300" placeholder="${esc(T('Комментарий к правке (попадёт в журнал)'))}" style="flex:1;min-width:200px" value="${esc(CS.note || '')}">
+      <button class="btn sm ghost" id="sv-diff"><i class="fa-solid fa-code-compare"></i> Сравнить</button>
       <button class="btn sm ghost" id="sv-discard">Отменить всё</button>
       <button class="btn sm green" id="sv-save"><i class="fa-solid fa-cloud-arrow-up"></i> Сохранить в Firestore</button>
     </div></div>`;
   $('#sv-note', box).oninput = (e) => { CS.note = e.target.value; };
+  $('#sv-diff', box).onclick = () => {
+    if (CS.apply && !CS.apply()) return;
+    const { lang, rel } = CS.sel;
+    showDiff(`${lang}/${rel}: ${T('несохранённые изменения')}`, normText(CS.originalText, rel), normText(workingText(), rel),
+      { beforeLabel: CS.manifest ? `Firestore v${CS.manifest.version}` : 'Assets/', afterLabel: 'рабочая копия' });
+  };
   $('#sv-discard', box).onclick = () => { if (confirm(T('Отменить все несохранённые изменения?'))) { CS.dirty = false; openFile(CS.sel.lang, CS.sel.rel); } };
   $('#sv-save', box).onclick = saveFile;
 }
@@ -1076,7 +1128,10 @@ function banDialog(u) {
 /* ============================================================
    Модерация пользовательской базы (custom_content)
    ============================================================ */
-const MS = { search: '', type: '', vis: 'all' };
+const MS = { search: '', type: '', vis: 'all', fresh: false };
+// «Новые» в модерации — изменённые после прошлого визита в раздел (время хранится в этом браузере)
+const LS_MOD_SEEN = 'admin.moderation.seen';
+const readSeen = () => { try { return Number(localStorage.getItem(LS_MOD_SEEN)) || 0; } catch { return 0; } };
 const CONTENT_TYPES = { status: 'Статус', baseclass: 'Класс', class: 'Архетип', feat: 'Черта', gift: 'Э.Г.О. гифт', equip: 'Снаряжение', bestiary: 'Бестиарий', rule: 'Правило', lore: 'Лор' };
 
 async function renderModeration(v) {
@@ -1087,6 +1142,9 @@ async function renderModeration(v) {
       email: x.creatorEmail || '', priv: x.isPrivate, at: x.updatedAt };
   }).sort((a, b) => (toDate(b.at)?.getTime() || 0) - (toDate(a.at)?.getTime() || 0));
   const broken = items.filter((i) => typeof i.priv !== 'boolean');
+  const seen = readSeen();
+  const isNew = (i) => (toDate(i.at)?.getTime() || 0) > seen;
+  const freshCount = seen ? items.filter(isNew).length : 0;
 
   v.innerHTML = `
     <div class="panel">
@@ -1098,6 +1156,8 @@ async function renderModeration(v) {
             ${Object.entries(CONTENT_TYPES).map(([k, l]) => `<option value="${k}" ${MS.type === k ? 'selected' : ''}>${esc(T(l))}</option>`).join('')}</select>
           <select class="in" id="md-vis" style="width:auto">
             ${[['all', 'Все'], ['public', 'Публичные'], ['private', 'Приватные']].map(([k, l]) => `<option value="${k}" ${MS.vis === k ? 'selected' : ''}>${esc(T(l))}</option>`).join('')}</select>
+          ${seen ? `<label class="row small" style="gap:4px"><input type="checkbox" id="md-fresh" ${MS.fresh ? 'checked' : ''}> ${esc(T('Новые с прошлого визита'))} (${freshCount})</label>` : ''}
+          <button class="btn sm ghost" id="md-seen" title="${esc(T('Отметить всё как просмотренное'))}"><i class="fa-solid fa-check-double"></i></button>
           ${broken.length ? `<button class="btn sm yellow" id="md-fix">${esc(T('Проставить флаг приватности'))} (${broken.length})</button>` : ''}
         </div>
       </div>
@@ -1108,12 +1168,12 @@ async function renderModeration(v) {
 
   const draw = () => {
     const q = MS.search.trim().toLowerCase();
-    const rows = items.filter((i) => (!MS.type || i.type === MS.type)
+    const rows = items.filter((i) => (!MS.type || i.type === MS.type) && (!MS.fresh || isNew(i))
       && (MS.vis === 'all' || (MS.vis === 'private' ? i.priv === true : i.priv !== true))
       && (!q || [i.name, i.creator, i.email, i.id].some((x) => String(x).toLowerCase().includes(q))));
     $('#md-body', v).innerHTML = rows.map((i) => `<tr>
       <td>${esc(T(CONTENT_TYPES[i.type] || i.type))}</td>
-      <td class="notranslate ellipsis">${esc(i.name)}</td>
+      <td class="notranslate ellipsis">${seen && isNew(i) ? `<span class="chip cyan">${esc(T('новое'))}</span> ` : ''}${esc(i.name)}</td>
       <td class="notranslate small">${esc(i.creator)}<div class="muted">${esc(i.email)}</div></td>
       <td>${i.priv === true ? `<span class="chip yellow">${esc(T('Приватная'))}</span>` : i.priv === false ? `<span class="chip">${esc(T('Публичная'))}</span>` : `<span class="chip red">${esc(T('без флага'))}</span>`}</td>
       <td class="small">${esc(fmt(i.at))}</td>
@@ -1127,6 +1187,13 @@ async function renderModeration(v) {
   $('#md-search', v).oninput = (e) => { MS.search = e.target.value; draw(); };
   $('#md-type', v).onchange = (e) => { MS.type = e.target.value; draw(); };
   $('#md-vis', v).onchange = (e) => { MS.vis = e.target.value; draw(); };
+  $('#md-fresh', v)?.addEventListener('change', (e) => { MS.fresh = e.target.checked; draw(); });
+  $('#md-seen', v).onclick = () => {
+    try { localStorage.setItem(LS_MOD_SEEN, String(Date.now())); } catch { /* приватный режим */ }
+    MS.fresh = false;
+    toast('Отмечено как просмотренное', 'ok');
+    openTab('moderation', { push: false });
+  };
   $('#md-fix', v)?.addEventListener('click', async () => {
     if (!confirm(`${T('Проставить isPrivate: false записям без флага')}: ${broken.length}?`)) return;
     for (let i = 0; i < broken.length; i += 300) {
@@ -1205,7 +1272,7 @@ async function renderHidden(v) {
     if ((o = pick('data-office-del', off))) {
       if (!confirmName('Офис, все досье, контракты и казна будут удалены навсегда. Введите название офиса для подтверждения', o.name)) return;
       let n;
-      try { n = await deleteCollection(['offices', o.id, 'agents']); } catch (er) { return fail(er, 'Не удалось удалить офис'); }
+      try { await deleteCollection(['offices', o.id, 'sessions']); await deleteCollection(['offices', o.id, 'cards']); n = await deleteCollection(['offices', o.id, 'agents']); } catch (er) { return fail(er, 'Не удалось удалить офис'); }
       const { treasury, news, ...meta } = o;   // казну и сводки в журнал не тащим
       if (await logged('office.delete', `${o.name} (${o.id})`, JSON.stringify({ ...meta, agentsDeleted: n }, jsonReplacer),
         (b) => b.delete(doc(db, 'offices', o.id)), { ok: 'Офис удалён', failMsg: 'Не удалось удалить офис' })) openTab('hidden');
@@ -1298,9 +1365,79 @@ const ACTIONS = {
   'role.grant': 'Доступ выдан', 'role.update': 'Доступ изменён', 'role.remove': 'Доступ снят',
   'ban.set': 'Блокировка', 'ban.remove': 'Снятие блокировки',
   'content.delete': 'Запись базы удалена', 'content.private': 'Видимость записи', 'content.fixflags': 'Флаги приватности',
-  'office.delete': 'Офис удалён', 'screen.delete': 'Ширма удалена',
+  'office.delete': 'Офис удалён', 'screen.delete': 'Ширма удалена', 'audit.revert': 'Откат действия',
 };
 const AS = { docs: [], last: null, end: false, filter: '' };
+
+/* Откат действия из журнала: по сохранённым прежним значениям. Сам откат тоже пишется в журнал (audit.revert).
+   Права проверяют правила Firestore — откатить можно только то, что вам разрешено делать. */
+const idFromTarget = (t) => /\(([^()]+)\)\s*$/.exec(String(t || ''))?.[1] || '';
+const parseDetails = (a) => { try { return JSON.parse(a.details); } catch { return null; } };
+/** Значение даты из журнала (JSON Timestamp: {seconds,…} или ISO-строка) → Timestamp. */
+function tsFromJson(v) {
+  if (v == null) return null;
+  if (typeof v === 'object' && Number.isFinite(v.seconds)) return new Timestamp(v.seconds, v.nanoseconds || 0);
+  const d = new Date(v);
+  return Number.isNaN(d.getTime()) ? null : Timestamp.fromDate(d);
+}
+const REVERT = {
+  'role.grant': (a) => ({ text: 'Снять выданный доступ', fill: (b) => b.delete(doc(db, 'roles', idFromTarget(a.target))) }),
+  'role.update': (a) => {
+    const d = parseDetails(a);
+    if (!d?.before) return null;
+    return { text: `Вернуть прежний доступ: ${d.before.role}`, fill: (b) => b.set(doc(db, 'roles', idFromTarget(a.target)), roleDoc(a, d.before)) };
+  },
+  'role.remove': (a) => {
+    const d = parseDetails(a);
+    if (!d?.before?.role) return null;
+    return { text: `Вернуть доступ: ${d.before.role}`, fill: (b) => b.set(doc(db, 'roles', idFromTarget(a.target)), roleDoc(a, d.before)) };
+  },
+  'ban.set': (a) => ({ text: 'Снять эту блокировку', fill: (b) => b.delete(doc(db, 'bans', idFromTarget(a.target))) }),
+  'ban.remove': (a) => {
+    const d = parseDetails(a);
+    if (!d?.before) return null;
+    const until = tsFromJson(d.before.until);
+    if (until && until.toMillis() < Date.now()) return null;   // блокировка уже истекла бы
+    return {
+      text: 'Вернуть блокировку',
+      fill: (b) => b.set(doc(db, 'bans', idFromTarget(a.target)), {
+        nick: String(d.before.nick || '').slice(0, 40), reason: String(d.before.reason || '').slice(0, 500),
+        until: until || null, by: S.user.uid, byNick: myNick().slice(0, 40), at: serverTimestamp(),
+      }),
+    };
+  },
+  'content.private': (a) => {
+    const d = parseDetails(a);
+    if (typeof d?.isPrivate !== 'boolean') return null;
+    return { text: d.isPrivate ? 'Сделать запись снова публичной' : 'Сделать запись снова приватной',
+      fill: (b) => b.update(doc(db, 'custom_content', idFromTarget(a.target)), { isPrivate: !d.isPrivate }) };
+  },
+  'content.delete': (a) => {
+    const d = parseDetails(a);
+    if (!d?.type || !d?.data || !d?.creatorEmail) return null;
+    const restored = {
+      type: d.type, data: d.data, isPrivate: d.isPrivate === true, creatorEmail: d.creatorEmail,
+      updatedAt: typeof d.updatedAt === 'string' ? d.updatedAt : new Date().toISOString(),
+      ...(d.creator ? { creator: String(d.creator).slice(0, 80) } : {}),
+    };
+    return { text: 'Восстановить удалённую запись', fill: (b) => b.set(doc(db, 'custom_content', idFromTarget(a.target)), restored) };
+  },
+};
+function roleDoc(a, before) {
+  return {
+    role: before.role, perms: normalizePerms(before.perms || {}), nick: String(/^(.*)\s\([^()]+\)\s*$/.exec(a.target)?.[1] || '').trim().slice(0, 40),
+    grantedBy: S.user.uid, grantedByNick: myNick().slice(0, 40), updatedAt: serverTimestamp(),
+  };
+}
+async function revertAudit(d) {
+  const a = d.data();
+  const plan = REVERT[a.action]?.(a);
+  if (!plan || !idFromTarget(a.target)) { toast('Это действие нельзя откатить автоматически — данных недостаточно', 'err'); return; }
+  if (!confirm(`${T(plan.text)}?\n${T(ACTIONS[a.action] || a.action)} · ${a.target}\n${fmt(a.at)} · ${a.nick || a.uid}`)) return;
+  const ok = await logged('audit.revert', `${a.action} · ${a.target}`, { of: d.id, action: a.action }, plan.fill,
+    { ok: 'Откат выполнен', failMsg: 'Не удалось откатить' });
+  if (ok) openTab('audit', { push: false });
+}
 
 function auditTable(docs) {
   return `<div class="table-wrap"><table><thead><tr><th>Когда</th><th>Кто</th><th>Действие</th><th>Объект</th><th></th></tr></thead><tbody>
@@ -1309,11 +1446,14 @@ function auditTable(docs) {
       <td class="notranslate">${esc(a.nick || a.uid)}</td>
       <td><span class="chip ${/delete|remove|reset|ban\.set/.test(a.action) ? 'red' : /canon/.test(a.action) ? 'cyan' : 'on'}">${esc(T(ACTIONS[a.action] || a.action))}</span></td>
       <td class="notranslate small ellipsis">${esc(a.target)}</td>
-      <td>${a.details ? `<button class="btn sm ghost" data-details="${i}"><i class="fa-solid fa-magnifying-glass"></i></button>` : ''}</td></tr>`; }).join('')}
+      <td><div class="row" style="flex-wrap:nowrap">${a.details ? `<button class="btn sm ghost" data-details="${i}" title="${esc(T('Подробности'))}"><i class="fa-solid fa-magnifying-glass"></i></button>` : ''}
+        ${REVERT[a.action] ? `<button class="btn sm ghost" data-revert="${i}" title="${esc(T('Откатить это действие'))}"><i class="fa-solid fa-rotate-left"></i></button>` : ''}</div></td></tr>`; }).join('')}
   </tbody></table></div>`;
 }
 function bindAuditDetails(box, docs) {
   box.onclick = (e) => {
+    const r = e.target.closest('[data-revert]');
+    if (r) { revertAudit(docs[Number(r.dataset.revert)]); return; }
     const b = e.target.closest('[data-details]');
     if (!b) return;
     const a = docs[Number(b.dataset.details)].data();
@@ -1328,9 +1468,9 @@ async function renderAudit(v) {
   v.innerHTML = `<div class="panel">
     <div class="row between" style="margin-bottom:10px"><h2 style="margin:0">Журнал действий</h2>
       <select class="in" id="au-filter" style="width:auto"><option value="">${esc(T('Все действия'))}</option>
-        ${[['canon', 'Канон'], ['role', 'Доступы'], ['ban', 'Блокировки'], ['content', 'Модерация'], ['office', 'Офисы'], ['screen', 'Ширмы']]
+        ${[['canon', 'Канон'], ['role', 'Доступы'], ['ban', 'Блокировки'], ['content', 'Модерация'], ['office', 'Офисы'], ['screen', 'Ширмы'], ['audit', 'Откаты']]
           .map(([k, l]) => `<option value="${k}" ${AS.filter === k ? 'selected' : ''}>${esc(T(l))}</option>`).join('')}</select></div>
-    <p class="muted small" style="margin-bottom:10px">Каждое действие в панели записывается сюда вместе с прежними значениями — по ним правку можно откатить вручную.</p>
+    <p class="muted small" style="margin-bottom:10px">Каждое действие в панели записывается сюда вместе с прежними значениями. Доступы, блокировки, видимость и удаление записей базы откатываются кнопкой <i class="fa-solid fa-rotate-left"></i>; правки канона — через «Сравнить» и «Из Assets» в разделе «Канон».</p>
     <div id="au-list"></div>
     <div class="row" style="margin-top:10px"><button class="btn sm ghost" id="au-more">Показать ещё</button></div></div>`;
   const more = async () => {

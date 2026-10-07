@@ -184,9 +184,10 @@ service cloud.firestore {
       // Именно isPrivate == false, а не .get('isPrivate', false): с .get() запрос без фильтра проходил
       // и отдавал чужие приватные записи. Записи без флага видят автор и модераторы (Модерация → «Проставить флаг»).
       allow read: if resource.data.isPrivate == false || isOwner() || can('moderate');
-      allow create: if signedIn() && notBanned()
-        && request.resource.data.creatorEmail == myEmail()
-        && validContent(request.resource.data);
+      // модератор может создать запись от имени автора — так из журнала восстанавливается удалённая запись
+      allow create: if validContent(request.resource.data) && (
+        (signedIn() && notBanned() && request.resource.data.creatorEmail == myEmail())
+        || can('moderate'));
       allow update: if ((isOwner() && notBanned()) || can('moderate'))
         && request.resource.data.creatorEmail == resource.data.creatorEmail
         && validContent(request.resource.data);
@@ -277,7 +278,10 @@ service cloud.firestore {
             && d.get('ownerUid', '') is string
             && d.get('presetJson', '') is string && d.get('presetJson', '').size() < 600000;
         }
-        allow read: if signedIn() && (isHead() || isMemberOf(office()));
+        // Полное досье читают только менеджер, владелец досье и Гл-Админ. Остальные участники видят
+        // карточку (cards/<aid>) — в ней только поля, разрешённые настройками приватности офиса.
+        allow read: if signedIn() && (isHead() || isCreatorOf(office())
+          || (isMemberOf(office()) && resource.data.get('ownerUid', '') == request.auth.uid));
         allow create: if signedIn() && notBanned() && validAgent(request.resource.data) && (
           isCreatorOf(office())
           || (isMemberOf(office()) && request.resource.data.ownerUid == request.auth.uid));
@@ -286,6 +290,53 @@ service cloud.firestore {
           || (isMemberOf(office()) && resource.data.ownerUid == request.auth.uid
               && request.resource.data.ownerUid == request.auth.uid));
         // офис мог быть уже удалён (Гл-Админ удаляет досье после офиса)
+        allow delete: if signedIn() && (isHead() || isCreatorOf(office()));
+      }
+
+      // Журнал сессий: пишет менеджер, читают участники.
+      match /sessions/{sid} {
+        function validSession(d) {
+          return d.keys().hasOnly(['num', 'title', 'date', 'text', 'agents', 'createdAt', 'updatedAt', 'by'])
+            && d.num is int && d.num >= 1
+            && isShortString(d.get('title', ''), 120)
+            && isShortString(d.get('date', ''), 40)
+            && isShortString(d.get('text', ''), 20000)
+            && d.get('agents', []) is list && d.get('agents', []).size() <= 30
+            && isShortString(d.get('by', ''), 40);
+        }
+        allow read: if signedIn() && (isHead() || isMemberOf(office()));
+        allow create, update: if signedIn() && notBanned() && isCreatorOf(office()) && validSession(request.resource.data);
+        allow delete: if signedIn() && (isHead() || isCreatorOf(office()));
+      }
+
+      // Открытая карточка досье: копия разрешённых полей досье agents/<aid>. Пишется одной пачкой с досье
+      // (и при смене настроек приватности). Каждое поле обязано совпадать с досье и быть разрешено charSettings.
+      match /cards/{aid} {
+        function agentAfter() { return getAfter(/databases/$(database)/documents/offices/$(oid)/agents/$(aid)).data; }
+        function csAfter() {
+          let cs = getAfter(/databases/$(database)/documents/offices/$(oid)).data.get('charSettings', {});
+          return {
+            'name': cs.get('name', true), 'race': cs.get('race', true), 'class': cs.get('class', true),
+            'feats': cs.get('feats', true), 'desc': cs.get('desc', true), 'download': cs.get('download', true),
+          };
+        }
+        function same(d, a, k) { return !(k in d) || d[k] == a.get(k, null); }
+        function validCard(d) {
+          let a = agentAfter();
+          let cs = csAfter();
+          return d.keys().hasOnly(['name', 'race', 'className', 'level', 'feats', 'description', 'presetJson', 'order', 'createdAt', 'updatedAt'])
+            && (!('name' in d) || cs.name) && (!('race' in d) || cs.race)
+            && (!('className' in d) || cs['class']) && (!('level' in d) || cs['class'])
+            && (!('feats' in d) || cs.feats) && (!('description' in d) || cs.desc)
+            && (!('presetJson' in d) || cs.download)
+            && same(d, a, 'name') && same(d, a, 'race') && same(d, a, 'className') && same(d, a, 'level')
+            && same(d, a, 'feats') && same(d, a, 'description') && same(d, a, 'presetJson')
+            && same(d, a, 'order') && same(d, a, 'createdAt') && same(d, a, 'updatedAt');
+        }
+        allow read: if signedIn() && (isHead() || isMemberOf(office()));
+        allow create, update: if signedIn() && notBanned() && validCard(request.resource.data) && (
+          isCreatorOf(office())
+          || (isMemberOf(office()) && agentAfter().get('ownerUid', '') == request.auth.uid));
         allow delete: if signedIn() && (isHead() || isCreatorOf(office()));
       }
     }

@@ -1,0 +1,21 @@
+{
+  "name": "Mephistopheles Terminal",
+  "short_name": "Терминал",
+  "description": "Project Moon 5e: база знаний, конструктор персонажа, Офис и Ширма",
+  "lang": "ru",
+  "start_url": "/index.html",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#0a0a0a",
+  "icons": [
+    { "src": "/Assets/App/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/Assets/App/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "shortcuts": [
+    { "name": "База знаний", "url": "/navigation.html" },
+    { "name": "Конструктор персонажа", "url": "/builder.html" },
+    { "name": "Офис", "url": "/office.html" },
+    { "name": "Ширма", "url": "/shirm.html" }
+  ]
+}
