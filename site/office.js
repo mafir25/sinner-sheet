@@ -1,5 +1,7 @@
 /* Офис (office.html).
-   Данные: offices/<id> в Firestore + подколлекция offices/<id>/agents (досье агентов).
+   Данные: offices/<id> в Firestore + подколлекция offices/<id>/agents (досье агентов)
+   + offices/<id>/cards (открытые карточки досье: только поля, разрешённые настройками приватности).
+   Полное досье читают менеджер и владелец досье, остальные участники — только карточки (это проверяют правила).
    Права проверяет firestore.rules: офис меняет создатель (менеджер); участник может добавить своё досье,
    обновлять досье, привязанные к нему, и покинуть офис.
 
@@ -84,6 +86,7 @@ const st = {
   offices: [],           // [{ id, name, creator }]
   officeId: null, office: null, isCreator: false,
   agents: [], agentsReady: false,
+  full: [], cards: [], fullReady: false, cardsReady: false, cardsSync: null,
   unsub: [], token: 0, normalized: new Set(),
   names: new Map(),      // uid → свежий ник
   open: { grades: new Set(), quests: new Set(), agents: new Set() },
@@ -309,6 +312,7 @@ function openOffice(id) {
     const first = !st.office;
     st.office = snap.data();
     setCreator(amCreatorOf(st.office));
+    if (st.agentMode !== (st.isCreator ? 'creator' : 'member')) listenAgents(id, tok);
     const entry = st.offices.find((o) => o.id === id);
     if (entry && entry.name !== st.office.name) { entry.name = st.office.name; renderOfficeList(); }
     renderOffice();
@@ -325,19 +329,42 @@ function openOffice(id) {
     } else toast(`${T('Связь с офисом потеряна')}: ${errText(err)}`, 'error');
   }));
 
-  st.unsub.push(onSnapshot(collection(db, 'offices', id, 'agents'), (snap) => {
+  listenAgents(id, tok);
+}
+
+/* Досье: менеджер слушает все полные досье; участник — свои полные досье и открытые карточки остальных.
+   Кто менеджер, становится ясно из документа офиса, поэтому подписки на досье пересоздаются при смене роли. */
+function listenAgents(id, tok) {
+  st.agentUnsub?.forEach((f) => { try { f(); } catch (e) { /* ignore */ } });
+  st.agentUnsub = [];
+  st.agentMode = st.isCreator ? 'creator' : 'member';
+  st.full = []; st.cards = []; st.fullReady = false; st.cardsReady = st.isCreator;
+  const sortAgents = (list) => list.sort((a, b) => (a.order ?? a.createdAt ?? 0) - (b.order ?? b.createdAt ?? 0));
+  const update = () => {
     if (tok !== st.token) return;
-    st.agents = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
-      .sort((a, b) => (a.order ?? a.createdAt ?? 0) - (b.order ?? b.createdAt ?? 0));
-    st.agentsReady = true;
+    const own = new Set(st.full.map((a) => a.id));
+    st.agents = sortAgents([...st.full.map((a) => ({ ...a, full: true })), ...st.cards.filter((c) => !own.has(c.id))]);
+    st.agentsReady = st.fullReady && st.cardsReady;
     renderAgents();
     renderAssigneeOptions();
-  }, (err) => {
-    if (tok !== st.token) return;
-    console.error(err);
-    st.agentsReady = true;
-    renderAgents();
-  }));
+    if (st.agentsReady && st.isCreator) ensureCards(tok);
+  };
+  const fail = (err) => { if (tok !== st.token) return; console.error(err); st.fullReady = true; st.cardsReady = true; update(); };
+  const agentsCol = collection(db, 'offices', id, 'agents');
+  const q = st.isCreator ? agentsCol : query(agentsCol, where('ownerUid', '==', st.user.uid));
+  st.agentUnsub.push(onSnapshot(q, (snap) => {
+    st.full = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    st.fullReady = true;
+    update();
+  }, fail));
+  if (!st.isCreator) {
+    st.agentUnsub.push(onSnapshot(collection(db, 'offices', id, 'cards'), (snap) => {
+      st.cards = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      st.cardsReady = true;
+      update();
+    }, fail));
+  }
+  st.unsub.push(() => st.agentUnsub.forEach((f) => f()));
 }
 
 /* Перевод офиса на новый формат и починка старых данных. Делает менеджер; участник — только свою запись. */
@@ -353,18 +380,15 @@ async function normalizeOffice(tok) {
     if (st.isCreator) {
       // досье из старого массива characters → подколлекция agents (id детерминированные — повтор безопасен)
       const legacy = Array.isArray(d.characters) ? d.characters : [];
-      if (legacy.length) {
-        const batch = writeBatch(db);
-        legacy.forEach((c, i) => {
-          const raw = c.rawJson && typeof c.rawJson === 'object' ? c.rawJson : null;
-          batch.set(doc(db, 'offices', st.officeId, 'agents', `legacy_${String(c.id || '').replace(/[^\w-]/g, '')}_${i}`), cleanAgent({
-            name: c.name, race: c.race, className: c.className, level: raw?.level ?? null,
-            feats: featNames(c.feats), description: c.description || raw?.desc || '',
-            presetJson: raw ? JSON.stringify(raw) : '', ownerUid: '', ownerName: '',
-            createdAt: Number(c.id) || Date.now() + i, updatedAt: Date.now(), order: i,
-          }));
-        });
-        await batch.commit();
+      // по одному досье за пачку: правила карточки читают досье, а на пачку есть лимит обращений к документам
+      for (const [i, c] of legacy.entries()) {
+        const raw = c.rawJson && typeof c.rawJson === 'object' ? c.rawJson : null;
+        await putAgent(`legacy_${String(c.id || '').replace(/[^\w-]/g, '')}_${i}`, {
+          name: c.name, race: c.race, className: c.className, level: raw?.level ?? null,
+          feats: featNames(c.feats), description: c.description || raw?.desc || '',
+          presetJson: raw ? JSON.stringify(raw) : '', ownerUid: '', ownerName: '',
+          createdAt: Number(c.id) || Date.now() + i, updatedAt: Date.now(), order: i,
+        }, d);
       }
       await runTransaction(db, async (tx) => {
         const snap = await tx.get(ref);
@@ -546,7 +570,11 @@ document.querySelectorAll('[data-cs]').forEach((cb) => cb.addEventListener('chan
   if (!st.isCreator) return;
   const settings = {};
   document.querySelectorAll('[data-cs]').forEach((x) => { settings[x.dataset.cs] = x.checked; });
-  const ok = await run(() => updateDoc(doc(db, 'offices', st.officeId), { charSettings: settings }), { ok: 'Настройки приватности сохранены', fail: 'Ошибка сохранения настроек' });
+  // сначала настройки (правила сверяют карточки с ними), затем карточки всех досье
+  const ok = await run(async () => {
+    await updateDoc(doc(db, 'offices', st.officeId), { charSettings: settings });
+    await rebuildCards({ ...st.office, charSettings: settings });
+  }, { busy: 'Обновление карточек досье...', ok: 'Настройки приватности сохранены', fail: 'Ошибка сохранения настроек' });
   if (!ok) renderOffice();
 }));
 
@@ -565,6 +593,7 @@ async function createOffice() {
     logoUrl: '', news: [], customQuests: [], activeQuests: [], reputations: [],
     treasury: { balance: 0, log: [] },
     charSettings: { ...DEFAULT_CS },
+    privacy: 2,
   }), { busy: 'Создание офиса...', ok: 'Офис создан', fail: 'Ошибка создания офиса' });
   if (!ok) return;
   st.offices.push({ id: ref.id, name: clean, mine: true });
@@ -583,11 +612,13 @@ async function deleteOffice() {
   if (typed.trim().toUpperCase() !== name.trim().toUpperCase()) { toast('Название не совпадает — офис не удалён', 'error'); return; }
   const id = st.officeId;
   const ok = await run(async () => {
-    const agents = await getDocs(collection(db, 'offices', id, 'agents'));
-    for (let i = 0; i < agents.docs.length; i += 400) {
-      const batch = writeBatch(db);
-      agents.docs.slice(i, i + 400).forEach((a) => batch.delete(a.ref));
-      await batch.commit();
+    for (const sub of ['cards', 'agents']) {
+      const docs = (await getDocs(collection(db, 'offices', id, sub))).docs;
+      for (let i = 0; i < docs.length; i += 400) {
+        const batch = writeBatch(db);
+        docs.slice(i, i + 400).forEach((a) => batch.delete(a.ref));
+        await batch.commit();
+      }
     }
     stopListening();
     await deleteDoc(doc(db, 'offices', id));
@@ -650,32 +681,74 @@ function agentFieldsFromPreset(p) {
   };
 }
 const presetOf = (a) => { try { return a.presetJson ? JSON.parse(a.presetJson) : null; } catch (e) { return null; } };
-const canEditAgent = (a) => st.isCreator || (a.ownerUid && a.ownerUid === st.user.uid);
+
+/** Открытая карточка досье: только поля, разрешённые настройками приватности офиса (правила сверяют её с досье). */
+function cardOf(a, office = st.office) {
+  const cs = { ...DEFAULT_CS, ...(office?.charSettings || {}) };
+  const c = { order: a.order, createdAt: a.createdAt, updatedAt: a.updatedAt };
+  if (cs.name) c.name = a.name;
+  if (cs.race) c.race = a.race;
+  if (cs.class) { c.className = a.className; c.level = a.level; }
+  if (cs.feats) c.feats = a.feats;
+  if (cs.desc) c.description = a.description;
+  if (cs.download) c.presetJson = a.presetJson;
+  return c;
+}
+/** Записать досье целиком вместе с его карточкой (одной пачкой). */
+async function putAgent(id, data, office = st.office) {
+  const a = cleanAgent(data);
+  const batch = writeBatch(db);
+  batch.set(doc(db, 'offices', st.officeId, 'agents', id), a);
+  batch.set(doc(db, 'offices', st.officeId, 'cards', id), cardOf(a, office));
+  await batch.commit();
+  return a;
+}
+const fullAgent = (a) => { const { id, full, ...rest } = a; return rest; };
+
+/* Карточки всех досье — после смены настроек приватности и при первом открытии офиса после обновления
+   (флаг privacy: 2). Каждая карточка — отдельная запись (лимит обращений правил на пачку). */
+async function rebuildCards(office = st.office) {
+  for (const a of st.full) await setDoc(doc(db, 'offices', st.officeId, 'cards', a.id), cardOf(cleanAgent(fullAgent(a)), office));
+}
+async function ensureCards(tok) {
+  if (!st.isCreator || st.office?.privacy === 2 || st.cardsSync === st.officeId) return;
+  st.cardsSync = st.officeId;
+  try {
+    await rebuildCards();
+    if (tok === st.token) await updateDoc(doc(db, 'offices', st.officeId), { privacy: 2 });
+  } catch (e) {
+    st.cardsSync = null;
+    console.warn('Не удалось обновить карточки досье', e);
+  }
+}
+const canEditAgent = (a) => !!a.full && (st.isCreator || (a.ownerUid && a.ownerUid === st.user.uid));
 
 async function addAgentFromPreset(p, source) {
   const fields = agentFieldsFromPreset(p);
   const mine = !st.isCreator;
   const ref = doc(collection(db, 'offices', st.officeId, 'agents'));
   const maxOrder = st.agents.reduce((m, a) => Math.max(m, Number(a.order) || 0), 0);
-  await setDoc(ref, cleanAgent({
+  await putAgent(ref.id, {
     ...fields, ownerUid: mine ? st.user.uid : '', ownerName: mine ? myNick() : '',
     createdAt: Date.now(), updatedAt: Date.now(), order: maxOrder + 1,
-  }));
+  });
   st.open.agents.add(ref.id);
   return fields.name + (source ? ` (${T(source)})` : '');
 }
 async function updateAgentFromPreset(agent, p) {
   const fields = agentFieldsFromPreset(p);
-  await updateDoc(doc(db, 'offices', st.officeId, 'agents', agent.id), { ...pick(cleanAgent(fields), Object.keys(fields)), updatedAt: Date.now() });
+  await putAgent(agent.id, { ...fullAgent(agent), ...fields, updatedAt: Date.now() });
 }
-const pick = (o, keys) => Object.fromEntries(keys.map((k) => [k, o[k]]));
 
 function renderAgents() {
   const box = $('agents-container');
   renderBuilderCard();
   if (!st.office) { box.innerHTML = ''; return; }
   if (!st.agentsReady) { box.innerHTML = `<p class="hint">${esc(T('Загрузка...'))}</p>`; return; }
-  if (!st.agents.length) { box.innerHTML = `<p class="hint">${esc(T('Досье отсутствуют.'))}</p>`; return; }
+  // офис ещё не переведён на карточки (менеджер не открывал его после обновления) — чужие досье не видны
+  const pending = !st.isCreator && st.office.privacy !== 2
+    ? `<p class="hint">${esc(T('Досье других агентов появятся, когда менеджер откроет офис.'))}</p>` : '';
+  if (!st.agents.length) { box.innerHTML = pending || `<p class="hint">${esc(T('Досье отсутствуют.'))}</p>`; return; }
   const s = { ...DEFAULT_CS, ...(st.office.charSettings || {}) };
 
   box.innerHTML = st.agents.map((a) => {
@@ -720,7 +793,7 @@ function renderAgents() {
         </div>
         <div class="preset-desc">${details}</div>
       </div>`;
-  }).join('');
+  }).join('') + pending;
 }
 
 function downloadAgent(a) {
@@ -778,13 +851,18 @@ $('agent-form').addEventListener('submit', async (e) => {
     patch.ownerUid = uid;
     patch.ownerName = uid ? String(nameOf(uid)).slice(0, 40) : '';
   }
-  const ok = await run(() => updateDoc(doc(db, 'offices', st.officeId, 'agents', a.id), patch), { ok: 'Досье сохранено', fail: 'Ошибка сохранения досье' });
+  const ok = await run(() => putAgent(a.id, { ...fullAgent(a), ...patch }), { ok: 'Досье сохранено', fail: 'Ошибка сохранения досье' });
   if (ok) closeModal('agentModal');
 });
 
 async function deleteAgent(a) {
   if (!await confirmDlg(`${T('Удалить досье')} «${a.name}» ${T('из Офиса?')}`)) return;
-  await run(() => deleteDoc(doc(db, 'offices', st.officeId, 'agents', a.id)), { busy: 'Удаление досье...', ok: 'Досье удалено', fail: 'Ошибка удаления' });
+  await run(() => {
+    const batch = writeBatch(db);
+    batch.delete(doc(db, 'offices', st.officeId, 'cards', a.id));
+    batch.delete(doc(db, 'offices', st.officeId, 'agents', a.id));
+    return batch.commit();
+  }, { busy: 'Удаление досье...', ok: 'Досье удалено', fail: 'Ошибка удаления' });
 }
 
 const fileLabel = $('agent-file').closest('label');

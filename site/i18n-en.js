@@ -356,6 +356,8 @@
     'Фиксер': 'Fixer',
     'ОШИБКА ФОРМАТА JSON': 'JSON FORMAT ERROR',
     'Досье отсутствуют.': 'No dossiers.',
+    'Досье других агентов появятся, когда менеджер откроет офис.': "Other agents' dossiers will appear once the manager opens the office.",
+    'Обновление карточек досье...': 'Updating dossier cards...',
     '[ СЕКРЕТНО ]': '[ CLASSIFIED ]',
     'Скачать пресет': 'Download preset',
     'РАСА:': 'RACE:',
