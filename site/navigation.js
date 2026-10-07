@@ -1,0 +1,3519 @@
+/* База знаний (navigation.html): разделы канона и пользовательской базы, конструктор записей,
+   автоссылки, калькуляторы, личный кабинет. Раньше этот код был встроен в navigation.html. */
+import { doc, setDoc, getDocs, collection, deleteDoc, query, where }
+  from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+import { db } from "./firebase.js";
+import { onAuth } from "./auth.js";
+import { DICT, SCHEMAS, fieldHtml as fieldHtmlBase, repeatRow as repeatRowBase, repeatMove, collectFields,
+  CLASS_REGISTRY, classFileRel } from "./fields.js";
+
+/* ============================================================
+   0. ИНИЦИАЛИЗАЦИЯ
+   ============================================================ */
+const COLL = "custom_content";
+
+marked.setOptions({ breaks: true, gfm: true });
+
+/* ============================================================
+   1. ХЕЛПЕРЫ
+   ============================================================ */
+const $  = s => document.querySelector(s);
+const ESC_MAP = { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" };
+const esc = v => String(v ?? "").replace(/[&<>"']/g, c => ESC_MAP[c]);
+/* Картинки в описаниях: [URL], [URL W:400], [URL H:200], [URL W:400 H:200].
+   Без размеров — вписывается в ширину блока с сохранением пропорций. */
+const IMG_TOKEN = /\[\s*([^\s\]<>"'`]+?)((?:\s+[WH]\s*:\s*\d+)*)\s*\]/gi;
+const IMG_OK = /^(https?:\/\/[^\s]+|\/[^\s]*|[\w.\-/]+\.(?:png|jpe?g|gif|webp|svg|avif))$/i;
+function mdImages(src){
+  return String(src).replace(IMG_TOKEN, (whole, url, opts) => {
+    if (!IMG_OK.test(url)) return whole;                 // не ссылка — оставляем текст как есть
+    const w = (/W\s*:\s*(\d+)/i.exec(opts) || [])[1];
+    const h = (/H\s*:\s*(\d+)/i.exec(opts) || [])[1];
+    const attrs = [w ? `width="${w}"` : "", h ? `height="${h}"` : ""].filter(Boolean).join(" ");
+    return `<img class="md-img" loading="lazy" alt="" src="${url.replace(/"/g, "%22")}" ${attrs}>`;
+  });
+}
+/* md() — текст карточек (с калькуляторами [calc:имя]); mdOut() — вывод калькулятора (без них) */
+const md    = v => injectCalcs(DOMPurify.sanitize(marked.parse(mdImages(String(v ?? "")))));
+const mdOut = v => DOMPurify.sanitize(marked.parse(String(v ?? "")));
+/* однострочные поля (требования, иммунитеты…): строчный Markdown, чтобы работали `ссылки` */
+const mdInline = v => `<span class="md-inline">${DOMPurify.sanitize(marked.parseInline(String(v ?? "")))}</span>`;
+const arr = v => Array.isArray(v) ? v : (v ? [v] : []);
+
+let toastTimer;
+function toast(msg){
+  const el = $("#toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("show"), 2200);
+}
+async function copyText(text){
+  try { await navigator.clipboard.writeText(text); toast("Скопировано в буфер"); }
+  catch { toast("Не удалось скопировать"); }
+}
+function downloadJson(data, filename){
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type:"application/json" });
+  const url  = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
+
+/* ============================================================
+   2. СЛОВАРИ — единственный источник правды
+   ============================================================ */
+/* DICT (словари типов, характеристик, меток…) — в site/fields.js, общий с админ-панелью */
+const ROMAN = ["I","II","III","IV","V"];
+const roman = n => ROMAN[Number(n)-1] || n;
+
+/* ---- Общие кусочки разметки ---- */
+function iconFor(c){
+  if (c.icon) return `<img src="${esc(c.icon)}" class="type-icon" alt="" onerror="this.style.display='none'">`;
+  if (c.fa)   return `<i class="fa-solid ${esc(c.fa)}"></i>`;
+  return "";
+}
+function badges(values, dictName, extraClass=""){
+  const d = DICT[dictName] || {};
+  return arr(values).map(k => {
+    const c = d[k] || { name:k, color:"var(--text-dim)" };
+    return `<div class="badge ${extraClass}" style="color:${esc(c.color)};border-color:${esc(c.color)}">${iconFor(c)}${esc(c.name)}</div>`;
+  }).join("");
+}
+function subBlock(name, desc, color, level, open){
+  return `<div class="sub-block${open?"":" collapsed"}" style="border-left-color:${esc(color||"var(--accent-primary)")}">
+    <div class="sub-head" data-act="toggle-sub">
+      <div class="sub-head-left">
+        <i class="fa-solid fa-chevron-down sub-icon"></i>
+        <span class="sub-name" style="color:${esc(color||"var(--accent-primary)")}">${esc(name)}</span>
+        ${level!=null && level!=="" ? `<span class="sub-level">Ур. ${esc(level)}</span>` : ""}
+      </div>
+    </div>
+    <div class="sub-desc-wrap"><div class="sub-desc md">${md(desc)}</div></div>
+  </div>`;
+}
+/* "16" → "16 (+3)"; уже готовое "16 (+3)" и прочий текст не трогаем */
+function statText(v){
+  const s = String(v ?? "").trim();
+  if (!/^-?\d+$/.test(s)) return s || "-";
+  const m = Math.floor((Number(s) - 10) / 2);
+  return `${s} (${m >= 0 ? "+" : ""}${m})`;
+}
+const statGrid = s => `<div class="stat-grid">${["STR","DEX","CON","INT","WIS","CHA"]
+  .map(k => `<div class="stat-col"><span class="stat-name">${k}</span><span class="stat-val">${esc(statText(s?.[k]))}</span></div>`).join("")}</div>`;
+/* Бонус мастерства по CR (правила 5e): CR 0–4 → +2, 5–8 → +3, … */
+function profFromCR(ch){
+  const m = /^\s*(\d+)(?:\s*\/\s*(\d+))?/.exec(String(ch ?? ""));
+  if (!m) return "";
+  const cr = m[2] ? Number(m[1]) / Number(m[2]) : Number(m[1]);
+  return "+" + (cr < 1 ? 2 : 2 + Math.floor((cr - 1) / 4));
+}
+/* Разделы стат-блока бестиария в порядке вывода */
+const BESTIARY_SECTIONS = [
+  { k:"Traits",           title:"Особенности",          color:"var(--color-yellow)" },
+  { k:"Actions",          title:"Действия",             color:"var(--color-red)" },
+  { k:"BonusActions",     title:"Бонусные действия",    color:"#E67E22" },
+  { k:"Reactions",        title:"Реакции",              color:"var(--color-cyan)" },
+  { k:"LegendaryActions", title:"Легендарные действия", color:"var(--color-magenta)", intro:"LegendaryIntro",
+    defIntro:"Существо может совершить 3 легендарных действия, выбирая из представленных ниже вариантов. "
+           + "За один раз можно использовать только одно легендарное действие, и только в конце хода другого существа. "
+           + "Существо восстанавливает потраченные легендарные действия в начале своего хода." },
+  { k:"LairActions",      title:"Действия логова",      color:"#27AE60", intro:"LairIntro",
+    defIntro:"При значении инициативы 20 (в случае ничьей проигрывает) существо совершает действие логова, "
+           + "вызывая один из эффектов ниже. Нельзя использовать один и тот же эффект два раунда подряд." }
+];
+
+/* ---- Текстовые категории (Правила, Лор): общий рендер ---- */
+function textCard(dictName){
+  return function(it){
+    let body = it.Intro ? `<div class="md" style="margin-bottom:12px">${md(it.Intro)}</div>` : "";
+    body += arr(it.Blocks).map(b =>
+      subBlock(b.Title + (b.Date ? ` · ${b.Date}` : ""), b.Body, "var(--accent-primary)", null, true)).join("");
+    return {
+      icon: it.Icon,
+      meta: it.Sub ? esc(it.Sub) : "", metaBelow: true,
+      title: it.Name,
+      badges: badges(it.Tags, dictName) + (it.Date ? `<div class="badge" style="color:var(--text-dim);border-color:var(--text-dim)"><i class="fa-solid fa-clock"></i>${esc(it.Date)}</div>` : ""),
+      body: body || `<div class="sidebar-empty">Текст не заполнен.</div>`
+    };
+  };
+}
+function textPlain(it){
+  let s = `=== ${it.Name} ===\n`;
+  if (it.Date) s += `${it.Date}\n`;
+  if (it.Sub) s += `${it.Sub}\n`;
+  if (it.Intro) s += `\n${it.Intro}\n`;
+  arr(it.Blocks).forEach(b => s += `\n--- ${b.Title}${b.Date ? " · " + b.Date : ""} ---\n${b.Body}\n`);
+  return s;
+}
+
+/* ============================================================
+   3. КОНФИГ КАТЕГОРИЙ
+   Добавить новую категорию = добавить объект сюда.
+   ============================================================ */
+const CATS = {
+  /* Архетипы выбранного основного класса. Классы — из реестра (см. «Реестр классов» ниже):
+     канонические архетипы лежат в файле класса, пользовательские ссылаются на класс полем Class. */
+  classes: {
+    label:"Архетипы", icon:"fa-book-journal-whills", color:"#1E3A8A", kind:"data",
+    title:"База данных: архетипы и классы", customType:"class", badgeModes:true,
+    systems:true,
+    filters:[
+      { key:"Type",  title:"Типы эффектов",  dict:"types", mode:"types" },
+      { key:"Stats", title:"Характеристики", dict:"stats", mode:"stats" }
+    ],
+    sort:(a,b)=>(a.No??9999)-(b.No??9999) || String(a.Name).localeCompare(String(b.Name)),
+    card(it){
+      return {
+        title: it.Name,
+        badges: classBadge(it) + badges(it.Type,"types","badge-type") + badges(it.Stats,"stats","badge-stat"),
+        body: (it.Desc ? `<div class="card-desc md">${md(it.Desc)}</div>` : "")
+              + (arr(it.Talents).length
+                  ? (it.Desc ? `<div class="section-sub" style="color:var(--accent-primary)">Способности</div>` : "")
+                    + arr(it.Talents).map(t => subBlock(t.name, t.desc, t.Color||t.color, t.level)).join("")
+                  : `<div class="sidebar-empty">Способности не указаны.</div>`)
+      };
+    },
+    plain(it){
+      let s = `=== ${it.Name} ===\n`;
+      if (it.Class) s += `Класс: ${sysLabel(it.Class) || it.Class}\n`;
+      s += `Типы: ${arr(it.Type).join(", ")} | Статы: ${arr(it.Stats).join(", ")}\n`;
+      if (it.Desc) s += `\n${it.Desc}\n`;
+      arr(it.Talents).forEach(t => s += `\n[Ур. ${t.level}] ${t.name}\n${t.desc}\n`);
+      return s;
+    },
+    /* Поле «Класс» — ссылка архетипа на основной класс; варианты подставляет openBuilder */
+    builder: [SCHEMAS.classes[0],
+      { t:"select", k:"Class", label:"Основной класс архетипа", opts:{}, dyn:"systems" },
+      ...SCHEMAS.classes.slice(1)]
+  },
+
+  /* Основные классы: канон — файлы основ из реестра, пользовательские — записи типа baseclass */
+  bases: {
+    label:"Классы", icon:"fa-sitemap", color:"#2E86AB", kind:"data",
+    title:"База данных: основные классы", customType:"baseclass", classList:true, xlCodeOnly:true,
+    sub:"Основа класса и его способности. Канонический архетип привязан к классу файлом, пользовательский — ссылкой на класс в самом архетипе.",
+    sort:(a,b)=>(a.__order ?? 9999)-(b.__order ?? 9999) || String(a.Name).localeCompare(String(b.Name)),
+    card(it){
+      const key = sysKeyOf(it), title = it.BaseTitle || it.__baseTitle;
+      return {
+        title: it.Name,
+        meta: title ? esc(title) : "", metaBelow:true,
+        body: (it.Desc ? `<div class="card-desc md">${md(it.Desc)}</div>` : "")
+              + (arr(it.Talents).length
+                  ? `<div class="section-sub" style="color:var(--accent-primary)">Классовые способности</div>`
+                    + arr(it.Talents).map(t => subBlock(t.name, t.desc, t.Color||t.color, t.level)).join("")
+                  : `<div class="sidebar-empty">Способности не указаны.</div>`)
+              + (key ? `<div style="margin-top:12px"><button class="action-btn ghost" data-act="open-class-archs" data-sys="${esc(key)}">
+                  <i class="fa-solid fa-book-journal-whills"></i> Архетипы класса</button></div>` : "")
+      };
+    },
+    plain(it){
+      let s = `=== ${it.Name} ===\n`;
+      if (it.BaseTitle || it.__baseTitle) s += `${it.BaseTitle || it.__baseTitle}\n`;
+      if (it.Desc) s += `\n${it.Desc}\n`;
+      arr(it.Talents).forEach(t => s += `\n[Ур. ${t.level}] ${t.name}\n${t.desc}\n`);
+      return s;
+    },
+    builder: SCHEMAS.baseclass
+  },
+
+  feats: {
+    label:"Черты", icon:"fa-dumbbell", color:"#C7243A", kind:"data",
+    title:"База данных: черты (feats)", customType:"feat", src:"feats.json",
+    filters:[ { key:"Base", title:"Базовые категории", dict:"featBases" } ],
+    sort:(a,b)=>String(a.Name).localeCompare(String(b.Name)),
+    card(it){
+      return {
+        title: it.Name,
+        badges: badges(it.Base,"featBases"),
+        body: (it.Need ? `<div class="req-text">Требования: ${mdInline(it.Need)}</div>` : "") + `<div class="md">${md(it.desc)}</div>`
+      };
+    },
+    plain: it => `=== ${it.Name} ===\n${it.Need ? `Требования: ${it.Need}\n` : ""}Категории: ${arr(it.Base).join(", ")}\n\n${it.desc||""}`,
+    builder: SCHEMAS.feats
+  },
+
+  equipment: {
+    label:"Снаряжение", icon:"fa-shield-halved", color:"#9B59B6", kind:"data",
+    title:"База снаряжения (equipment)", customType:"equip", src:"equipment.json",
+    sub:"Мастерские, аугментации, налоги и арсенал Фиксеров.",
+    article:{ label:"Лор и правила", src:"articles/equipment-lore.html" },
+    filters:[
+      { key:"ItemType", title:"Тип предмета", dict:"itemTypes" },
+      { key:"Type", title:"Типы урона (для оружия)", dict:"types" },
+      { key:"Stats", title:"Скейлинг", dict:"stats" },
+      { key:"Rarity", title:"Редкость", dict:"rarity" }
+    ],
+    sort:(a,b)=>(a.Level??0)-(b.Level??0) || String(a.Name).localeCompare(String(b.Name)),
+    card(it){
+      const r = DICT.rarity[it.Rarity] || { color:"var(--text-main)" };
+      return {
+        meta:`<span style="color:${esc(r.color)}">${esc(it.Rarity||"")}</span>`,
+        level:`Уровень ${esc(it.Level ?? "-")}`,
+        title: it.Name,
+        badges: badges(it.ItemType,"itemTypes") + (it.IsEGO ? `<div class="badge" style="color:#D94285;border-color:#D94285">Э.Г.О.</div>` : "")
+                + badges(it.Type,"types") + badges(it.Stats,"stats"),
+        body:(it.Need ? `<div class="req-text">Требования: ${mdInline(it.Need)}</div>` : "") + `<div class="md">${md(it.Desc)}</div>`
+      };
+    },
+    plain: it => `=== ${it.Name} ===\n[Ур. ${it.Level} | ${it.Rarity}] ${it.ItemType}${it.IsEGO?" | Э.Г.О.":""}\n`
+      + (it.Need ? `Требования: ${it.Need}\n` : "") + `Скейлинг: ${arr(it.Stats).join(", ")}\n\n${it.Desc||""}`,
+    builder: SCHEMAS.equipment
+  },
+
+  rules: {
+    label:"Правила", icon:"fa-scale-balanced", color:"#F1C40F", kind:"data",
+    title:"Правила и механики (вариантные)", customType:"rule", src:"rules.json",
+    sub:"Ни одно из этих правил не обязательно, но все они рекомендуются для полного погружения. С разрешения ДМа.",
+    filters:[ { key:"Tags", title:"Метки", dict:"ruleTags" } ],
+    card: textCard("ruleTags"), plain: textPlain, builder: SCHEMAS.rules
+  },
+
+  bestiary: {
+    label:"Бестиарий", icon:"fa-skull", color:"#8FCC2A", kind:"data",
+    title:"Бестиарий Города", customType:"bestiary", src:"bestiary.json",
+    filters:[ { key:"Category", title:"Уровень угрозы", dict:"bestiaryCats" } ],
+    sort:(a,b)=>String(a.Name).localeCompare(String(b.Name)),
+    /* Все поля, кроме Name, необязательны: старые записи (без новых полей)
+       отображаются как раньше, пустые разделы просто не выводятся. */
+    card(it){
+      const opt = (lbl,val) => String(val ?? "").trim()
+        ? `<div class="stat-line"><strong>${lbl}:</strong> ${esc(val)}</div>` : "";
+      const optL = (lbl,val) => String(val ?? "").trim()        // поле, где можно ставить `ссылки`
+        ? `<div class="stat-line"><strong>${lbl}:</strong> ${mdInline(val)}</div>` : "";
+      const pb = String(it.Proficiency ?? "").trim() || profFromCR(it.Challenge);
+      let body = `<div class="stat-line"><strong>КД:</strong> ${esc(it.ArmorClass||"-")}</div>
+        <div class="stat-line"><strong>Хиты:</strong> ${esc(it.HitPoints||"-")}</div>
+        <div class="stat-line"><strong>Скорость:</strong> ${esc(it.Speed||"-")}</div>
+        ${opt("Инициатива",it.Initiative)}
+        ${statGrid(it.Stats)}
+        ${opt("Спасброски",it.SavingThrows)}${opt("Навыки",it.Skills)}
+        ${optL("Уязвимость к урону",it.DamageVulnerabilities)}${optL("Сопротивление урону",it.DamageResistances)}
+        ${optL("Иммунитет к урону",it.DamageImmunities)}${optL("Иммунитет к состояниям",it.ConditionImmunities)}
+        ${optL("Чувства",it.Senses)}${opt("Языки",it.Languages)}
+        ${opt("Опасность (CR)",it.Challenge)}${opt("Бонус мастерства",pb)}`;
+      body += BESTIARY_SECTIONS.map(s => {
+        const list = arr(it[s.k]).filter(x => x && (x.name || x.desc));
+        const intro = s.intro ? String(it[s.intro] ?? "").trim() : "";
+        if (!list.length && !intro) return "";
+        const introHtml = s.intro ? `<div class="md" style="margin-bottom:10px;color:var(--text-dim)">${md(intro || s.defIntro)}</div>` : "";
+        return `<div class="section-sub" style="color:${s.color}">${s.title}</div>${introHtml}`
+             + list.map(a => subBlock(a.name, a.desc, s.color)).join("");
+      }).join("");
+      if (it.Lore)
+        body += `<div class="md" style="margin-top:14px;border-top:1px dashed #333;padding-top:14px">${md(it.Lore)}</div>`;
+      return { title:it.Name, meta:esc(it.Meta||""), metaItalic:true, metaBelow:true, badges:badges(it.Category,"bestiaryCats"), body };
+    },
+    plain(it){
+      const s = it.Stats || {};
+      const line = (lbl,val) => String(val ?? "").trim() ? `${lbl}: ${val}\n` : "";
+      let out = `=== ${it.Name} ===\n${it.Meta||""}\nКД: ${it.ArmorClass} | ХП: ${it.HitPoints} | Скорость: ${it.Speed}\n`
+        + line("Инициатива", it.Initiative)
+        + `STR ${statText(s.STR)}, DEX ${statText(s.DEX)}, CON ${statText(s.CON)}, INT ${statText(s.INT)}, WIS ${statText(s.WIS)}, CHA ${statText(s.CHA)}\n`
+        + line("Спасброски", it.SavingThrows) + line("Навыки", it.Skills)
+        + line("Уязвимость к урону", it.DamageVulnerabilities) + line("Сопротивление урону", it.DamageResistances)
+        + line("Иммунитет к урону", it.DamageImmunities) + line("Иммунитет к состояниям", it.ConditionImmunities)
+        + line("Чувства", it.Senses) + line("Языки", it.Languages) + line("Опасность", it.Challenge)
+        + line("Бонус мастерства", String(it.Proficiency ?? "").trim() || profFromCR(it.Challenge));
+      BESTIARY_SECTIONS.forEach(sec => {
+        const list = arr(it[sec.k]).filter(x => x && (x.name || x.desc));
+        const intro = sec.intro ? String(it[sec.intro] ?? "").trim() : "";
+        if (!list.length && !intro) return;
+        out += sec.k === "Traits" ? "" : `\n\n${sec.title.toUpperCase()}:`;
+        if (sec.intro) out += `\n${intro || sec.defIntro}`;
+        list.forEach(a => out += `\n${a.name}. ${a.desc}`);
+      });
+      if (it.Lore) out += `\n\nЛОР:\n${it.Lore}`;
+      return out;
+    },
+    builder: SCHEMAS.bestiary
+  },
+
+  gifts: {
+    label:"Э.Г.О. Гифты", icon:"fa-gem", color:"#E67E22", kind:"data",
+    title:"База данных: Э.Г.О. гифты", customType:"gift", src:"egogifts.json",
+    filters:[
+      { key:"Type", title:"Типы эффектов", dict:"types" },
+      { key:"Level", title:"Уровень", dict:"giftLevels" }
+    ],
+    sort:(a,b)=>(a.Level??0)-(b.Level??0) || String(a.Name).localeCompare(String(b.Name)),
+    card:it => ({
+      level:`Уровень ${roman(it.Level)}`,
+      title: it.Name,
+      badges: badges(it.Type,"types"),
+      body:`<div class="md">${md(it.Description)}</div>`
+    }),
+    plain: it => `=== ${it.Name} ===\n[Ур. ${roman(it.Level)}] Типы: ${arr(it.Type).join(", ")}\n\n${it.Description||""}`,
+    builder: SCHEMAS.gifts
+  },
+
+  statuses: {
+    label:"Статус-эффекты", icon:"fa-biohazard", color:"#45B3CB", kind:"data",
+    title:"База данных: статус-эффекты", customType:"status", src:"statuses.json",
+    filters:[],
+    sort:(a,b)=>String(a.Name).localeCompare(String(b.Name)),
+    card:it => ({
+      title: it.Name,
+      badges:"",
+      body:`<div class="md" style="margin-bottom:12px"><b>Эффект:</b><br>${md(it.Effect)}</div>`
+        + arr(it.SideEffects).map(se => subBlock(se.sideeffectname, se.sideeffect, "var(--color-yellow)")).join("")
+    }),
+    plain(it){
+      let s = `=== ${it.Name} ===\n${it.Effect||""}\n`;
+      if (arr(it.SideEffects).length){
+        s += `\n--- Сайд-эффекты ---\n`;
+        arr(it.SideEffects).forEach(se => s += `* ${se.sideeffectname}:\n${se.sideeffect}\n\n`);
+      }
+      return s;
+    },
+    builder: SCHEMAS.statuses
+  },
+
+  lore: {
+    label:"Время и история", icon:"fa-hourglass-half", color:"#27AE60", kind:"data",
+    title:"Время и история (лор)", customType:"lore", src:"lore.json",
+    sub:"Хронология событий Города, падение корпораций и устройство мира.",
+    filters:[ { key:"Tags", title:"Метки", dict:"loreTags" } ],
+    card: textCard("loreTags"), plain: textPlain, builder: SCHEMAS.lore
+  },
+
+  /* Личный кабинет: только записи текущего пользователя из всех разделов */
+  me: {
+    label:"Кабинет", icon:"fa-id-card", color:"#D94285", kind:"cabinet",
+    title:"Личный кабинет", sub:"Всё, что вы создали, — во всех разделах базы."
+  }
+};
+/* Схемы полей конструктора (builder) и поле «Синонимы» — в site/fields.js */
+const CAT_BY_CUSTOM = Object.fromEntries(
+  Object.entries(CATS).filter(([,c]) => c.customType).map(([id,c]) => [c.customType, id])
+);
+
+/* ============================================================
+   3b. РЕЕСТР КЛАССОВ
+   Канон: characters/systems.json — [{ id, Name, BaseTitle, Base, Archetypes }]; Base и Archetypes —
+   файлы в папке characters/ (правятся и создаются в admin.html → «Канон» → «Новый класс»).
+   Пользовательский класс — запись типа baseclass, его ключ — «c:<id записи>».
+   Пользовательский архетип ссылается на класс полем Class (ключ канона или «c:<id>»);
+   архетип без Class (старые записи) или со ссылкой на недоступный класс виден у всех классов.
+   ============================================================ */
+const DEFAULT_SYSTEMS = [
+  { id:"fixer", Name:"Фиксер", BaseTitle:"Фиксер (основной класс)", Base:"fixer.json", Archetypes:"classes.json" },
+  { id:"bloodfiend", Name:"Кровосос", BaseTitle:"Первородный кровосос (основной класс)", Base:"bloodfiend.json", Archetypes:"bloodarch.json" }
+];
+const SYS = { canon:null, p:null };
+function loadSystems(){
+  if (!SYS.p) SYS.p = (async () => {
+    let list = DEFAULT_SYSTEMS;
+    try {
+      const res = await I18N.fetchData(CLASS_REGISTRY);
+      if (res.ok){ const d = await res.json(); if (Array.isArray(d) && d.length) list = d; }
+    } catch(e){ console.warn("Реестр классов недоступен — беру встроенный", e); }
+    const out = {};
+    list.forEach((c, i) => {
+      const id = String(c?.id ?? "").trim();
+      if (!id || id.startsWith("c:") || out[id] || !c.Base || !c.Archetypes) return;
+      const name = String(c.Name || id);
+      out[id] = { id, label:name, list:classFileRel(c.Archetypes), base:classFileRel(c.Base),
+                  baseTitle:String(c.BaseTitle || `${name} (основной класс)`), order:i, canon:true };
+    });
+    SYS.canon = out;
+    return out;
+  })();
+  return SYS.p;
+}
+/* Пользовательские классы — все, что видит пользователь (не зависит от переключателя «Канон | Кастом») */
+const customSystems = () => (state.customCache || []).filter(x => x.__type === "baseclass").map(x => ({
+  id:"c:" + x.__id, label:String(x.Name || "Без названия"), custom:true, item:x,
+  baseTitle:String(x.BaseTitle || `${x.Name || "Класс"} (основной класс)`)
+}));
+/* Классы в переключателе: пользовательские — только в режимах «Кастом» и «Всё» */
+function shownSystems(){
+  const out = { ...(SYS.canon || {}) };
+  if (state.source !== "canon") customSystems().forEach(s => { out[s.id] = s; });
+  return out;
+}
+const curSys = () => shownSystems()[state.system] || null;
+const sysKeyOf = it => it.__origin === "custom" ? (it.__id ? "c:" + it.__id : null) : (it.__sys || null);
+function sysLabel(key){
+  if (!key) return "";
+  if (SYS.canon?.[key]) return SYS.canon[key].label;
+  return customSystems().find(s => s.id === key)?.label || "";
+}
+const knownSystem = key => !!(SYS.canon?.[key] || customSystems().some(s => s.id === key));
+/* Плашка «к какому классу» у пользовательского архетипа */
+function classBadge(it){
+  if (!it.Class || it.__origin !== "custom") return "";
+  const name = sysLabel(it.Class);
+  return `<div class="badge${name ? " notranslate" : ""}" style="color:var(--text-main);border-color:#555" title="Основной класс">
+    <i class="fa-solid fa-sitemap"></i>${esc(name || "класс недоступен")}</div>`;
+}
+/* Варианты поля «Класс» в конструкторе архетипа */
+function classOptions(){
+  const o = { "":"— без класса (виден у всех) —" };
+  Object.values(SYS.canon || {}).forEach(s => { o[s.id] = s.label; });
+  customSystems().forEach(s => { o[s.id] = `${s.label} — пользовательский (${s.item.__creator})`; });
+  return o;
+}
+/* Канонические классы как записи раздела «Классы»: данные основы + место в реестре */
+async function canonClassItems(){
+  const systems = Object.values(await loadSystems());
+  const res = await Promise.allSettled(systems.map(async s => {
+    const cls = (await loadJson(s.base))[0] || {};
+    return { ...cls, Name:cls.Name || s.label, __sys:s.id, __order:s.order, __baseTitle:s.baseTitle };
+  }));
+  return res.filter(r => r.status === "fulfilled").map(r => r.value);
+}
+/* Переключатель классов (раздел «Архетипы») */
+function renderSystemSelect(){
+  const all = shownSystems(), list = Object.values(all);
+  if (!all[state.system]) state.system = list[0]?.id || "fixer";
+  const opt = s => `<option value="${esc(s.id)}"${s.id === state.system ? " selected" : ""}${s.custom ? ' class="notranslate"' : ""}>${esc(s.label)}</option>`;
+  const cust = list.filter(s => s.custom);
+  $("#system-select").innerHTML = list.filter(s => !s.custom).map(opt).join("")
+    + (cust.length ? `<optgroup label="${esc(I18N.t("Пользовательские"))}">${cust.map(opt).join("")}</optgroup>` : "");
+}
+/* После смены источника или пользовательской базы: обновить переключатель и «Основу» */
+async function syncSystems(){
+  if (!catCfg().systems) return;
+  await loadSystems();
+  if (state.source !== "canon") await loadCustom();
+  const before = state.system;
+  renderSystemSelect();
+  if (state.system !== before || curSys()?.custom) loadBase();
+}
+
+/* ============================================================
+   4. СОСТОЯНИЕ
+   ============================================================ */
+const PICK_KEY = "pm_compendium_picks_v1";
+const state = {
+  cat: "classes",
+  system: "fixer",
+  source: "canon",          // canon | custom | all
+  badgeMode: "types",       // types | stats — только для Архетипов
+  subtab: "data",           // data | article
+  search: "",
+  filters: {},              // {filterKey: Set}
+  canonCache: {},           // filename -> array
+  customCache: null,        // array of normalized custom items
+  customLoaded: false,
+  picks: [],
+  user: null,
+  isAdmin: false,
+  editId: null,
+  draftCalcs: {}            // калькуляторы записи, открытой в конструкторе
+};
+try { state.picks = JSON.parse(localStorage.getItem(PICK_KEY) || "[]"); } catch { state.picks = []; }
+const savePicks = () => { try { localStorage.setItem(PICK_KEY, JSON.stringify(state.picks)); } catch {} };
+
+const catCfg = () => CATS[state.cat];
+const uidOf = (catId, it) => it.__origin === "custom"
+  ? `${catId}:c:${it.__id}`
+  : `${catId}:k:${it.__sys ? it.__sys + ":" : ""}${it.Name}`;
+
+/* ============================================================
+   5. ЗАГРУЗКА ДАННЫХ
+   ============================================================ */
+async function loadJson(file){
+  if (state.canonCache[file]) return state.canonCache[file];
+  const res = await I18N.fetchData(file);
+  if (!res.ok) throw new Error(`Файл ${file} не найден`);
+  const data = await res.json();
+  const list = (Array.isArray(data) ? data : [data]).map(x => ({ ...x, __origin:"canon" }));
+  state.canonCache[file] = list;
+  return list;
+}
+
+async function loadCustom(force=false){
+  if (state.customLoaded && !force) return state.customCache;
+  const who = (state.user?.email || "") + (state.isAdmin ? "#a" : "");
+  const sameUser = () => (state.user?.email || "") + (state.isAdmin ? "#a" : "") === who;
+  const seen = new Map();
+  const push = snap => snap.forEach(d => {
+    const raw = d.data();
+    seen.set(d.id, {
+      ...(raw.data || {}),
+      __origin:"custom", __id:d.id, __type:raw.type,
+      __creator:raw.creator || "—", __owner:raw.creatorEmail || "", __private:!!raw.isPrivate
+    });
+  });
+  try {
+    if (state.isAdmin){
+      push(await getDocs(collection(db, COLL)));            // админ видит всё
+    } else {
+      push(await getDocs(query(collection(db, COLL), where("isPrivate","==",false))));
+      if (state.user)
+        push(await getDocs(query(collection(db, COLL), where("creatorEmail","==",state.user.email))));
+    }
+    state.customCache = [...seen.values()];
+    state.customLoaded = sameUser();   // пользователь сменился во время загрузки — перечитаем в следующий раз
+  } catch(e){
+    console.error(e);
+    state.customCache = [];
+    state.customLoaded = true;
+    toast("Не удалось прочитать пользовательскую базу");
+  }
+  return state.customCache;
+}
+
+async function currentItems(){
+  const c = catCfg();
+  let canon = [], custom = [];
+  if (c.systems) await loadSystems();
+  if (state.source !== "custom"){
+    try {
+      if (c.systems){
+        const sys = curSys();
+        if (sys?.canon) canon = (await loadJson(sys.list)).map(x => ({ ...x, __sys:sys.id }));
+      }
+      else if (c.classList) canon = await canonClassItems();
+      else if (c.src) canon = await loadJson(c.src);
+    } catch(e){ canon = []; throw e; }
+  }
+  if (state.source !== "canon" && c.customType){
+    const all = await loadCustom();
+    custom = all.filter(x => x.__type === c.customType);
+    if (c.systems) custom = custom.filter(x => !x.Class || x.Class === state.system || !knownSystem(x.Class));
+  }
+  return [...canon, ...custom].sort(c.sort || ((a,b)=>0));
+}
+
+/* ============================================================
+   6. КАТЕГОРИИ И ТЕМА
+   ============================================================ */
+function renderTabs(){
+  $("#cat-tabs").innerHTML = Object.entries(CATS).map(([id,c]) =>
+    `<button class="cat-btn${id===state.cat?" active":""}" data-act="set-cat" data-cat="${id}"
+       style="${id===state.cat?`background:${c.color};border-color:${c.color}`:""}">
+       <i class="fa-solid ${c.icon}"></i> ${esc(c.label)}</button>`).join("");
+}
+function applyTheme(color){
+  const root = document.documentElement.style;
+  root.setProperty("--accent-primary", color);
+  root.setProperty("--accent-muted", color + "55");
+}
+async function setCategory(id){
+  state.cat = id;
+  state.search = "";
+  state.filters = {};
+  state.subtab = "data";
+  const c = catCfg();
+  applyTheme(c.color);
+  renderTabs();
+  $("#page-title").textContent = c.title;
+  $("#page-sub").textContent = c.sub || "";
+  $("#system-select").style.display = c.systems ? "" : "none";
+  $("#btn-base").style.display = c.systems ? "" : "none";
+  $("#src-switch").style.visibility = c.kind === "data" ? "visible" : "hidden";
+  renderSubtabs();
+  if (c.systems){
+    await loadSystems();
+    if (state.source !== "canon") await loadCustom();
+    renderSystemSelect();
+    loadBase();
+  }
+  await renderView();
+}
+function renderSubtabs(){
+  const c = catCfg(), el = $("#subtabs");
+  if (c.kind === "data" && c.article){
+    el.style.display = "flex";
+    el.innerHTML = `<button class="subtab${state.subtab==="data"?" active":""}" data-act="set-subtab" data-sub="data">База данных</button>
+      <button class="subtab${state.subtab==="article"?" active":""}" data-act="set-subtab" data-sub="article">${esc(c.article.label)}</button>`;
+  } else el.style.display = "none";
+}
+
+/* ============================================================
+   7. ФИЛЬТРЫ
+   ============================================================ */
+function renderFilters(){
+  const c = catCfg();
+  let html = `<div class="search-wrapper cut-tl"><div class="search-inner cut-tl">
+      <i class="fa-solid fa-magnifying-glass search-icon"></i>
+      <input type="text" id="search-input" class="search-input" value="${esc(state.search)}"
+             placeholder="Поиск по названию и описанию…">
+    </div></div>`;
+  (c.filters || []).forEach(f => {
+    if (f.mode && c.badgeModes && f.mode !== state.badgeMode) return;
+    const sel = state.filters[f.key] || new Set();
+    html += `<div class="filter-group-title">${esc(f.title)}
+        <span class="filter-hint">несколько значений — «или»; разные группы — «и»</span></div>
+      <div class="type-filters">
+        <button class="filter-btn${sel.size===0?" active":""}" data-act="clear-filter" data-key="${esc(f.key)}"
+          style="${sel.size===0?"border-color:var(--accent-primary);color:var(--accent-primary)":""}">Все</button>`;
+    Object.entries(DICT[f.dict]).forEach(([k,d]) => {
+      const on = sel.has(k);
+      html += `<button class="filter-btn${on?" active":""}" data-act="toggle-filter" data-key="${esc(f.key)}" data-val="${esc(k)}"
+        style="${on?`border-color:${esc(d.color)};color:${esc(d.color)}`:""}">${iconFor(d)} ${esc(d.name)}</button>`;
+    });
+    html += `</div>`;
+  });
+  $("#filters").innerHTML = html;
+}
+function matches(it){
+  const c = catCfg();
+  for (const f of (c.filters || [])){
+    const sel = state.filters[f.key];
+    if (!sel || sel.size === 0) continue;
+    const vals = arr(it[f.key]).map(String);
+    if (!vals.some(v => sel.has(v))) return false;
+  }
+  if (state.search){
+    const q = state.search.toLowerCase();
+    const hay = (String(it.Name || "") + " " + (c.plain ? c.plain(it) : "")).toLowerCase();
+    if (!hay.includes(q)) return false;
+  }
+  return true;
+}
+
+/* ============================================================
+   8. РЕНДЕР КАРТОЧЕК
+   ============================================================ */
+function canManage(it){
+  return it.__origin === "custom" && state.user &&
+         (state.isAdmin || it.__owner === state.user.email);
+}
+/* Реестр отрисованных карточек: uid → { it, cat }. Нужен, чтобы кнопки
+   работали и в обычной сетке, и в кабинете, и во всплывающем окне. */
+const REG = new Map();
+function cardHtml(it, catId = state.cat, opts = {}){
+  const c = CATS[catId], uid = uidOf(catId, it);
+  REG.set(uid, { it, cat:catId });
+  const v = withCalcs(uid, it.Calcs, () => c.card(it));
+  if (opts.showCat) v.badges = `<div class="badge badge-cat" style="color:${esc(c.color)};border-color:${esc(c.color)}">
+      <i class="fa-solid ${esc(c.icon)}"></i>${esc(c.label)}</div>` + (v.badges || "");
+  const picked = state.picks.some(p => p.uid === uid);
+  const metaHtml = v.meta ? `<div class="card-meta${v.metaItalic?" italic":""}">${v.meta}</div>` : "";
+  const titleIcon = v.icon ? `<i class="fa-solid ${esc(v.icon)}" style="margin-right:8px;opacity:.85"></i>` : "";
+  const left = [
+    v.level ? `<div class="level-badge">${v.level}</div>` : "",
+    v.metaBelow ? "" : metaHtml,
+    `<div class="card-title">${titleIcon}${esc(v.title)}</div>`,
+    v.metaBelow ? metaHtml : ""
+  ].join("");
+  const origin = (state.source === "all" && it.__origin === "custom" && !opts.showCat)
+    ? `<div class="badge badge-origin"><i class="fa-solid fa-users"></i> Пользовательское</div>` : "";
+  const priv = it.__private ? `<div class="badge badge-private"><i class="fa-solid fa-lock"></i> Приватно</div>` : "";
+
+  let ctrl = `<button class="ctrl-btn ctrl-pick${picked?" on":""}" data-act="pick" data-uid="${esc(uid)}">
+      <i class="fa-regular ${picked?"fa-square-check":"fa-square"}"></i> ${picked?"Выбрано":"Выбрать"}</button>
+    <button class="ctrl-btn ctrl-copy" data-act="copy-item" data-uid="${esc(uid)}"><i class="fa-regular fa-copy"></i> Текст</button>
+    <button class="ctrl-btn ctrl-dl" data-act="dl-item" data-uid="${esc(uid)}"><i class="fa-solid fa-download"></i> JSON</button>
+    <button class="ctrl-btn ctrl-copy" data-act="copy-link" data-uid="${esc(uid)}" title="Скопировать ссылку на запись"><i class="fa-solid fa-link"></i> Ссылка</button>`;
+  if (opts.showCat) ctrl += `
+    <button class="ctrl-btn ctrl-copy" data-act="open-in-base" data-uid="${esc(uid)}" title="Открыть в разделе базы"><i class="fa-solid fa-arrow-up-right-from-square"></i></button>`;
+  if (canManage(it)) ctrl += `
+    <button class="ctrl-btn ctrl-priv" data-act="toggle-priv" data-uid="${esc(uid)}" title="Скрыть/показать"><i class="fa-solid ${it.__private?"fa-eye":"fa-eye-slash"}"></i></button>
+    <button class="ctrl-btn ctrl-edit" data-act="edit-item" data-uid="${esc(uid)}"><i class="fa-solid fa-pen"></i></button>
+    <button class="ctrl-btn ctrl-copy" data-act="parse-item" data-uid="${esc(uid)}" title="Полный парсинг ссылок"><i class="fa-solid fa-wand-magic-sparkles"></i></button>
+    <button class="ctrl-btn ctrl-del" data-act="del-item" data-uid="${esc(uid)}"><i class="fa-solid fa-trash"></i></button>`;
+
+  return `<div class="panel-outer cut-tl card" data-uid="${esc(uid)}">
+    <div class="hazard-tape"></div>
+    <div class="panel-inner cut-tl" style="border-top:none">
+      <div class="card-head" data-act="toggle-card">
+        <i class="fa-solid fa-chevron-down expand-icon"></i>
+        <div class="card-title-row">
+          <div style="display:flex;flex-direction:column;min-width:0">${left}</div>
+          </div>
+        ${(v.badges || origin || priv) ? `<div class="badges">${origin}${priv}${v.badges}</div>` : ""}
+      </div>
+      <div class="card-body"><div class="card-body-inner">
+        ${v.body}
+        ${it.__origin === "custom" ? `<div class="creator-tag">Автор: ${esc(it.__creator)}</div>` : ""}
+        <div class="card-controls">${ctrl}</div>
+      </div></div>
+    </div>
+  </div>`;
+}
+
+let visible = [];
+async function renderView(){
+  const c = catCfg();
+  const dataView = $("#data-view"), artView = $("#article-view");
+  const showArticle = c.kind === "article" || state.subtab === "article";
+  dataView.style.display = showArticle ? "none" : "";
+  artView.style.display  = showArticle ? "flex" : "none";
+  if (showArticle) return renderArticle(c.article);
+  if (c.kind === "cabinet") return renderCabinetView();
+
+  const modeToggle = c.badgeModes ? `
+    <label class="mode-toggle" title="Показывать характеристики вместо типов эффектов">
+      <input type="checkbox" id="badge-mode" ${state.badgeMode==="stats"?"checked":""}> Режим характеристик
+    </label>` : "";
+  $("#action-bar").innerHTML = (c.customType ? `
+    <button class="action-btn" data-act="new-entry"><i class="fa-solid fa-plus"></i> Создать запись</button>
+    <label class="action-btn ghost" style="cursor:pointer">
+      <i class="fa-solid fa-file-import"></i> Загрузить JSON
+      <input type="file" id="json-upload" accept=".json" style="display:none">
+    </label>` : "") + modeToggle;
+  renderFilters();
+  await renderGrid();
+}
+
+async function renderGrid(){
+  if (catCfg().kind === "cabinet") return renderCabinet();
+  const c = catCfg(), grid = $("#grid");
+  grid.innerHTML = `<div class="notice">Установка соединения с базой данных…</div>`;
+  let items;
+  try { items = await currentItems(); }
+  catch(e){
+    grid.innerHTML = `<div class="notice error">Ошибка связи с базой данных.<br><span style="font-size:.8rem;color:var(--text-dim)">${esc(e.message)}</span></div>`;
+    $("#result-count").textContent = "";
+    return;
+  }
+  visible = items.filter(matches);
+  $("#result-count").textContent = `Показано ${visible.length} из ${items.length}`;
+  grid.innerHTML = visible.length
+    ? visible.map(it => cardHtml(it)).join("")
+    : `<div class="notice">Подходящие записи не найдены</div>`;
+  mountCalcs(grid);
+}
+
+const findItem = uid => REG.get(uid)?.it;
+const catOf    = uid => REG.get(uid)?.cat || state.cat;
+/* Перерисовать то, что сейчас на экране (сетку или кабинет) */
+async function refreshCurrent(){
+  const c = catCfg();
+  if (c.systems) await syncSystems();          // пользовательский класс могли создать, переименовать или удалить
+  if (c.kind === "cabinet") return renderCabinetView();
+  if (c.kind === "data" && state.subtab === "data") return renderGrid();
+}
+
+/* ============================================================
+   9. СТАТЬИ (лор снаряжения)
+   Текст статьи — отдельный HTML-фрагмент в Assets/<Rus|Eng>/articles/.
+   ============================================================ */
+const articleCache = {};
+async function renderArticle(a){
+  const host = $("#article-view");
+  if (articleCache[a.src]){ host.innerHTML = articleCache[a.src]; return; }
+  host.innerHTML = `<div class="notice">Загрузка материала…</div>`;
+  try {
+    const res = await I18N.fetchData(a.src);
+    if (!res.ok) throw new Error(`${a.src} недоступен`);
+    const html = DOMPurify.sanitize(await res.text());
+    articleCache[a.src] = html;
+    host.innerHTML = html;
+  } catch(e){
+    host.innerHTML = `<div class="notice error">Не удалось загрузить материал.<br>
+      <span style="font-size:.8rem;color:var(--text-dim)">${esc(e.message)}</span></div>`;
+  }
+}
+
+/* ============================================================
+   10. СБОРКА (выбранные элементы)
+   ============================================================ */
+function cleanCopy(it){
+  const o = {};
+  for (const k in it) if (!k.startsWith("__")) o[k] = it[k];
+  return o;
+}
+function togglePick(uid){
+  const i = state.picks.findIndex(p => p.uid === uid);
+  if (i >= 0){ state.picks.splice(i,1); toast("Убрано из сборки"); }
+  else {
+    const it = findItem(uid);
+    if (!it) return;
+    state.picks.push({ uid, cat:catOf(uid), name:it.Name, origin:it.__origin, data:cleanCopy(it) });
+    toast("Добавлено в сборку");
+  }
+  savePicks(); renderPicks();
+  document.querySelectorAll(`[data-act="pick"][data-uid="${CSS.escape(uid)}"]`).forEach(b => {
+    const on = state.picks.some(p => p.uid === uid);
+    b.classList.toggle("on", on);
+    b.innerHTML = `<i class="fa-regular ${on?"fa-square-check":"fa-square"}"></i> ${on?"Выбрано":"Выбрать"}`;
+  });
+}
+function pickPlain(p){
+  const c = CATS[p.cat];
+  return c && c.plain ? stripLinkTargets(withCalcText(c.plain(p.data), p.data.Calcs, p.uid)) : `=== ${p.name} ===`;
+}
+function renderPicks(){
+  $("#pick-count").textContent = state.picks.length;
+  const body = $("#picks-body");
+  if (!state.picks.length){
+    body.innerHTML = `<div class="sidebar-empty">Пока ничего не выбрано.<br><br>
+      Нажмите «Выбрать» на любой карточке — архетипе, черте, предмете, статусе — и элемент осядет здесь.
+      Сборка хранится в этом браузере и переживает перезагрузку страницы.</div>`;
+    return;
+  }
+  const byCat = {};
+  state.picks.forEach(p => (byCat[p.cat] = byCat[p.cat] || []).push(p));
+  body.innerHTML = Object.entries(byCat).map(([cat, list]) => {
+    const c = CATS[cat];
+    return `<div class="sidebar-h2" style="color:${esc(c.color)}"><i class="fa-solid ${c.icon}"></i> ${esc(c.label)}</div>`
+      + list.map(p => {
+        const v = withCalcs(p.uid, p.data.Calcs, () => c.card(p.data));
+        return `<div class="pick-entry card" data-uid="${esc(p.uid)}" style="border-left-color:${esc(c.color)}">
+          <div class="pick-top">
+            <div class="pick-name" data-act="toggle-card" style="cursor:pointer;flex:1">
+              <i class="fa-solid fa-chevron-down sub-icon"></i> ${esc(p.name)}</div>
+            <div class="pick-actions">
+              <button class="mini-btn" data-act="pick-copy" data-uid="${esc(p.uid)}">Копировать</button>
+              <button class="mini-btn danger" data-act="pick-remove" data-uid="${esc(p.uid)}">Убрать</button>
+            </div>
+          </div>
+          <div class="card-body"><div class="card-body-inner" style="padding-top:10px">${v.body}</div></div>
+        </div>`;
+      }).join("");
+  }).join("");
+  mountCalcs(body);
+}
+
+/* ============================================================
+   11. ОСНОВА КЛАССА (сайдбар для Архетипов)
+   ============================================================ */
+let baseSeq = 0;
+async function loadBase(){
+  const c = catCfg();
+  if (!c.systems) return;
+  const seq = ++baseSeq;
+  await loadSystems();
+  const sys = curSys(), box = $("#base-body");
+  if (seq !== baseSeq) return;
+  if (!sys){
+    $("#base-title").textContent = "Основной класс";
+    box.innerHTML = `<div class="sidebar-empty">Класс не выбран.</div>`;
+    return;
+  }
+  $("#base-title").textContent = sys.baseTitle;
+  box.innerHTML = `<div class="sidebar-empty">Загрузка основы…</div>`;
+  try {
+    const cls = sys.custom ? sys.item : ((await loadJson(sys.base))[0] || {});
+    if (seq !== baseSeq) return;
+    box.innerHTML = withCalcs(sys.custom ? uidOf("bases", sys.item) : `base:${sys.id}`, cls.Calcs, () =>
+      (cls.Desc ? `<div class="card-desc md">${md(cls.Desc)}</div>` : "")
+      + (arr(cls.Talents).length
+          ? `<div class="sidebar-h2">Классовые способности</div>`
+            + arr(cls.Talents).map(t => subBlock(t.name, t.desc, t.Color || t.color, t.level)).join("")
+          : `<div class="sidebar-empty">Нет данных о способностях основы.</div>`)
+      + (sys.custom ? `<div class="creator-tag">Пользовательский класс · автор: ${esc(cls.__creator)}</div>` : ""));
+    mountCalcs(box);
+    delete box.dataset.xl;
+    autolinkIn(box);
+  } catch(e){
+    if (seq === baseSeq) box.innerHTML = `<div class="sidebar-empty" style="color:var(--color-red)">Ошибка загрузки основы (${esc(sys.base)}).</div>`;
+  }
+}
+
+/* ============================================================
+   12. КОНСТРУКТОР
+   ============================================================ */
+/* ---- Панель Markdown ---- */
+const MD_TOOLS = [
+  { k:"bold",   h:"<b>Ж</b>",                              t:"Жирный  **текст**" },
+  { k:"italic", h:"<i>К</i>",                              t:"Курсив  *текст*" },
+  { k:"code",   h:'<i class="fa-solid fa-code"></i>',      t:"Моноширинный  `текст`" },
+  { k:"sep" },
+  { k:"h",      h:"H",                                     t:"Подзаголовок  ### текст" },
+  { k:"ul",     h:'<i class="fa-solid fa-list-ul"></i>',   t:"Маркированный список" },
+  { k:"ol",     h:'<i class="fa-solid fa-list-ol"></i>',   t:"Нумерованный список" },
+  { k:"quote",  h:'<i class="fa-solid fa-quote-left"></i>',t:"Цитата" },
+  { k:"hr",     h:'<i class="fa-solid fa-minus"></i>',     t:"Разделитель" },
+  { k:"sep" },
+  { k:"table",  h:'<i class="fa-solid fa-table"></i>',     t:"Редактор таблицы" },
+  { k:"image",  h:'<i class="fa-solid fa-image"></i>',     t:"Вставить картинку" },
+  { k:"calc",   h:'<i class="fa-solid fa-calculator"></i>',t:"Калькулятор (микро-код). Курсор на [calc:имя] — редактировать его" }
+];
+const mdToolbar = () => `<div class="md-toolbar">${MD_TOOLS.map(b =>
+    b.k === "sep" ? `<span class="md-sep"></span>`
+    : `<button type="button" data-act="md-ins" data-md="${b.k}" title="${esc(b.t)}">${b.h}</button>`).join("")}
+  <span class="md-spacer"></span>
+  <button type="button" class="on" data-act="md-preview" title="Показать или скрыть предпросмотр">
+    <i class="fa-solid fa-eye"></i></button></div>`;
+
+const mdField = (f, val) => `<div class="md-editor">${mdToolbar()}
+  <textarea class="cloud-input" data-f="${esc(f.k)}" placeholder="Поддерживается Markdown">${esc(val ?? "")}</textarea>
+  <div class="md-preview"${String(val ?? "").trim() ? "" : " hidden"}>
+    <div class="md-preview-label"><span>Предпросмотр</span></div>
+    <div class="md md-preview-body">${withCalcs("draft", state.draftCalcs, () => md(val ?? ""))}</div>
+  </div></div>`;
+
+/* uid записи, открытой в конструкторе (чтобы предпросмотр не ссылался на неё саму) */
+const draftUid = () => state.editId ? `${state.builderCat || state.cat}:c:${state.editId}` : null;
+function refreshPreview(ta){
+  const wrap = ta.closest(".md-editor"); if (!wrap) return;
+  const box = wrap.querySelector(".md-preview");
+  const btn = wrap.querySelector('[data-act="md-preview"]');
+  if (!box || !btn.classList.contains("on")) return;
+  const text = ta.value.trim();
+  box.hidden = !text;
+  if (text){
+    const body = wrap.querySelector(".md-preview-body");
+    body.innerHTML = withCalcs("draft", state.draftCalcs, () => md(ta.value));
+    mountCalcs(body);
+    delete body.dataset.xl;          // содержимое новое — ссылки проставляем заново
+    autolinkIn(body, draftUid());
+  }
+}
+
+function mdInsert(ta, kind){
+  const s = ta.selectionStart, e = ta.selectionEnd;
+  const sel = ta.value.slice(s, e);
+  const lines = t => (sel || t).split("\n");
+  let out, caret;
+
+  const inline = (mark, ph) => { out = mark + (sel || ph) + mark; caret = s + mark.length + (sel || ph).length; };
+  const block  = txt => {
+    const pre = (s > 0 && ta.value[s-1] !== "\n") ? "\n" : "";
+    out = pre + txt; caret = s + out.length;
+  };
+
+  switch(kind){
+    case "bold":   inline("**", "текст"); break;
+    case "italic": inline("*",  "текст"); break;
+    case "code":   inline("`",  "код");   break;
+    case "h":      block(lines("Подзаголовок").map(l => "### " + l).join("\n")); break;
+    case "ul":     block(lines("пункт").map(l => "- " + l).join("\n")); break;
+    case "ol":     block(lines("пункт").map((l,i) => `${i+1}. ${l}`).join("\n")); break;
+    case "quote":  block(lines("цитата").map(l => "> " + l).join("\n")); break;
+    case "hr":     block("\n---\n"); break;
+    default: return;
+  }
+  ta.value = ta.value.slice(0, s) + out + ta.value.slice(e);
+  ta.focus();
+  ta.setSelectionRange(caret, caret);
+  refreshPreview(ta);
+}
+
+/* ---- Редактор таблиц и вставка картинок ---- */
+const ALIGN_CYCLE = ["none","left","center","right"];
+const ALIGN_GLYPH = { none:"—", left:"⟵", center:"⟷", right:"⟶" };
+const ALIGN_MD    = { none:"---", left:":---", center:":---:", right:"---:" };
+let activeTA = null, toolKind = null, tbl = null, tblRange = null;
+
+function emptyTable(){ return { align:["none","none"], rows:[["Столбец 1","Столбец 2"],["",""],["",""]] }; }
+
+/* Ищем markdown-таблицу, внутри которой стоит курсор */
+function tableAtCursor(ta){
+  const text = ta.value, pos = ta.selectionStart;
+  const starts = [0]; for (let i = 0; i < text.length; i++) if (text[i] === "\n") starts.push(i+1);
+  const lineAt = p => { let i = 0; while (i+1 < starts.length && starts[i+1] <= p) i++; return i; };
+  const lineText = i => text.slice(starts[i], i+1 < starts.length ? starts[i+1]-1 : text.length);
+  const isRow = i => i >= 0 && i < starts.length && lineText(i).trim().startsWith("|");
+
+  let a = lineAt(pos); if (!isRow(a)) return null;
+  let b = a;
+  while (isRow(a-1)) a--;
+  while (isRow(b+1)) b++;
+  const raw = [];
+  for (let i = a; i <= b; i++) raw.push(lineText(i).trim());
+  if (raw.length < 2) return null;
+  const cells = l => l.replace(/^\||\|$/g,"").split("|").map(c => c.trim());
+  const sepCells = cells(raw[1]);
+  if (!sepCells.every(c => /^:?-{2,}:?$/.test(c))) return null;
+
+  const align = sepCells.map(c => c.startsWith(":") && c.endsWith(":") ? "center"
+                                : c.endsWith(":") ? "right"
+                                : c.startsWith(":") ? "left" : "none");
+  const rows = [cells(raw[0]), ...raw.slice(2).map(cells)];
+  const cols = align.length;
+  rows.forEach(r => { while (r.length < cols) r.push(""); r.length = cols; });
+  return { table:{ align, rows }, range:{ start:starts[a], end:starts[b] + raw[b-a].length } };
+}
+function tableToMd(t){
+  const line = cs => "| " + cs.map(c => String(c).replace(/\|/g,"\\|").trim() || " ").join(" | ") + " |";
+  return [line(t.rows[0]), "| " + t.align.map(a => ALIGN_MD[a]).join(" | ") + " |",
+          ...t.rows.slice(1).map(line)].join("\n");
+}
+function renderTableEditor(){
+  const cols = tbl.align.length;
+  const cell = (r,c) => `<input data-r="${r}" data-c="${c}" value="${esc(tbl.rows[r][c] ?? "")}">`;
+  let g = `<div class="tbl-hdr">${tbl.align.map((a,c) =>
+      `<div style="flex:1;display:flex;gap:3px;min-width:110px">${cell(0,c)}
+        <button type="button" class="tbl-align" data-act="tbl-align" data-c="${c}"
+          title="Выравнивание столбца">${ALIGN_GLYPH[a]}</button></div>`).join("")}</div>`;
+  g += `<div class="tbl-grid" style="grid-template-columns:repeat(${cols},minmax(110px,1fr));margin-top:4px">`;
+  for (let r = 1; r < tbl.rows.length; r++) for (let c = 0; c < cols; c++) g += cell(r,c);
+  g += `</div>`;
+  $("#tool-body").innerHTML = `
+    <div class="tool-hint">Первая строка — заголовок. Кнопка справа от заголовка переключает выравнивание столбца.
+      Если курсор стоял внутри существующей таблицы, она уже загружена сюда и будет заменена целиком.</div>
+    <div class="tbl-ctrls">
+      <button class="mini-btn" data-act="tbl-col-add">+ столбец</button>
+      <button class="mini-btn danger" data-act="tbl-col-del">− столбец</button>
+      <button class="mini-btn" data-act="tbl-row-add">+ строка</button>
+      <button class="mini-btn danger" data-act="tbl-row-del">− строка</button>
+    </div>
+    <div class="tbl-scroll">${g}</div>`;
+}
+function syncTable(){
+  $("#tool-body").querySelectorAll("input[data-r]").forEach(i => {
+    tbl.rows[+i.dataset.r][+i.dataset.c] = i.value;
+  });
+}
+function renderImageTool(){
+  $("#tool-body").innerHTML = `
+    <div class="tool-hint">Вставится как <code>[ссылка W:ширина H:высота]</code>. Оставьте размеры пустыми —
+      картинка впишется в ширину блока с сохранением пропорций. Указан только один размер — второй посчитается сам.</div>
+    <div class="tech-text" style="margin-bottom:4px">Ссылка на изображение</div>
+    <input type="text" id="img-url" class="cloud-input" placeholder="https://… или Assets/Icons/Burn.png">
+    <div class="b-row">
+      <div><div class="tech-text" style="margin-bottom:4px">Ширина, px</div>
+        <input type="number" id="img-w" class="cloud-input" placeholder="авто" min="1"></div>
+      <div><div class="tech-text" style="margin-bottom:4px">Высота, px</div>
+        <input type="number" id="img-h" class="cloud-input" placeholder="авто" min="1"></div>
+    </div>
+    <div class="img-preview" id="img-preview"><span class="tool-hint" style="margin:0">Предпросмотр появится здесь</span></div>`;
+}
+function openTool(kind, ta){
+  activeTA = ta; toolKind = kind; tblRange = null;
+  $("#tool-title").textContent = kind === "table" ? "Редактор таблицы" : "Вставка изображения";
+  if (kind === "table"){
+    const found = tableAtCursor(ta);
+    tbl = found ? found.table : emptyTable();
+    tblRange = found ? found.range : null;
+    renderTableEditor();
+  } else renderImageTool();
+  $("#toolModal").classList.add("active");
+}
+function applyTool(){
+  if (!activeTA) return;
+  let text;
+  if (toolKind === "table"){ syncTable(); text = tableToMd(tbl); }
+  else {
+    const url = $("#img-url").value.trim();
+    if (!url) return toast("Укажите ссылку на изображение");
+    const w = $("#img-w").value.trim(), h = $("#img-h").value.trim();
+    text = `[${url}${w ? " W:" + w : ""}${h ? " H:" + h : ""}]`;
+  }
+  const ta = activeTA;
+  if (toolKind === "table" && tblRange){
+    ta.value = ta.value.slice(0, tblRange.start) + text + ta.value.slice(tblRange.end);
+    ta.setSelectionRange(tblRange.start + text.length, tblRange.start + text.length);
+  } else {
+    const s = ta.selectionStart, e = ta.selectionEnd;
+    const pre = (s > 0 && ta.value[s-1] !== "\n") ? "\n" : "";
+    ta.value = ta.value.slice(0, s) + pre + text + "\n" + ta.value.slice(e);
+    const caret = s + pre.length + text.length + 1;
+    ta.setSelectionRange(caret, caret);
+  }
+  $("#toolModal").classList.remove("active");
+  ta.focus();
+  refreshPreview(ta);
+}
+
+/* Поля конструктора — site/fields.js; Markdown-поле здесь своё (панель, предпросмотр, калькуляторы) */
+const NAV_FIELDS = { md: (f, val) => mdField(f, val) };
+const fieldHtml = (f, data) => fieldHtmlBase(f, data, NAV_FIELDS);
+const repeatRow = (f, row) => repeatRowBase(f, row, NAV_FIELDS);
+const REPEAT_SPEC = {};
+function openBuilder(data=null, isPrivate=false, editId=null, catId=state.cat){
+  const c = CATS[catId];
+  if (!c?.builder) return;
+  if (!state.user) return toast("Для создания контента нужно войти");
+  state.builderCat = catId;
+  state.editId = editId;
+  /* Поле «Класс» у архетипа: варианты — классы реестра и пользовательские; новая запись — текущий класс */
+  state.builderSchema = c.builder.map(f => f.dyn === "systems" ? { ...f, opts:classOptions() } : f);
+  if (!data && c.systems) data = { Class: state.system };
+  FP.undo = null;
+  $("#fp-undo-btn").style.display = "none";
+  $("#builder-title").textContent = editId ? `Редактирование: ${c.label}` : `Создать: ${c.label}`;
+  $("#bf-private").checked = !!isPrivate;
+  c.builder.forEach(f => { if (f.t === "repeat") REPEAT_SPEC[f.k] = f; });
+  state.draftCalcs = JSON.parse(JSON.stringify(data?.Calcs || {}));
+  $("#builder-fields").innerHTML = state.builderSchema.map(f => fieldHtml(f, data || {})).join("");
+  $("#builderModal").classList.add("active");
+  mountCalcs($("#builder-fields"));
+  $("#builder-fields").querySelectorAll(".md-preview-body").forEach(b => autolinkIn(b, draftUid()));
+}
+function collectBuilder(){
+  const out = collectFields(state.builderSchema || CATS[state.builderCat || state.cat].builder, $("#builder-fields"));
+  // Калькуляторы: сохраняем только те, на которые остались ссылки [calc:имя] в тексте
+  const calcs = {};
+  for (const m of JSON.stringify(out).matchAll(CALC_TOKEN))
+    if (Object.hasOwn(state.draftCalcs, m[1])) calcs[m[1]] = state.draftCalcs[m[1]];
+  if (Object.keys(calcs).length) out.Calcs = calcs;
+  return out;
+}
+async function saveEntry(){
+  const c = CATS[state.builderCat || state.cat], data = collectBuilder();
+  if (!String(data.Name || "").trim()) return toast("Название обязательно");
+  const isPrivate = $("#bf-private").checked;
+  const payload = { type:c.customType, data, isPrivate, updatedAt:new Date().toISOString() };
+  if (!state.editId){
+    payload.creatorEmail = state.user.email;
+    payload.creator = myNick();
+  }
+  try {
+    const id = state.editId || `${c.customType}_${Date.now()}`;
+    await setDoc(doc(db, COLL, id), payload, { merge:true });
+    $("#builderModal").classList.remove("active");
+    state.editId = null;
+    await loadCustom(true);
+    await refreshCurrent();
+    toast("Сохранено");
+  } catch(e){
+    console.error(e);
+    toast("Ошибка сохранения — проверьте правила доступа Firestore");
+  }
+}
+
+/* ============================================================
+   12b. МИКРО-КОД: КАЛЬКУЛЯТОРЫ
+   В тексте: [calc:имя]. В JSON записи: "Calcs": { имя: { code, layout } }.
+   Код выполняет собственный интерпретатор — никакого eval, поэтому
+   чужая запись не может запустить JavaScript у читателя.
+   ============================================================ */
+
+/* ---- 12b.1 Ядро: разбор и выполнение (без DOM) ---- */
+class CalcErr extends Error { constructor(msg, line){ super(msg); this.line = line; } }
+const CALC_TOKEN = /\[calc:([\p{L}\p{N}_-]{1,40})\]/gu;
+const CALC_NAME_OK = /^[\p{L}\p{N}_-]{1,40}$/u;
+const EL_KINDS = new Set(["button","select","input","output"]);
+const CALC_RESERVED = new Set(["if","elif","else","on","var","pass","and","or","not","true","false","True","False",
+  "button","select","input","output"]);
+const hasOwn = (o, k) => o != null && Object.prototype.hasOwnProperty.call(o, k);
+
+function calcLex(src, line){
+  const out = [], two = ["==","!=","<=",">=","+=","-=","*=","/=","//"];
+  let i = 0;
+  while (i < src.length){
+    const ch = src[i];
+    if (ch === " " || ch === "\t" || ch === "\r"){ i++; continue; }
+    if (ch === "#") break;
+    if (ch === '"' || ch === "'" || ch === "«"){
+      const close = ch === "«" ? "»" : ch;
+      let j = i + 1, s = "";
+      while (j < src.length && src[j] !== close){
+        if (src[j] === "\\" && j + 1 < src.length){
+          const e = src[j+1]; s += e === "n" ? "\n" : e === "t" ? "\t" : e; j += 2;
+        } else s += src[j++];
+      }
+      if (j >= src.length) throw new CalcErr("Незакрытая строка — не хватает кавычки", line);
+      out.push({ t:"str", v:s }); i = j + 1; continue;
+    }
+    const rest = src.slice(i);
+    let m;
+    if ((m = /^(\d+\.?\d*|\.\d+)/.exec(rest))){ out.push({ t:"num", v:parseFloat(m[1]) }); i += m[1].length; continue; }
+    if ((m = /^[\p{L}_][\p{L}\p{N}_]*/u.exec(rest))){ out.push({ t:"id", v:m[0] }); i += m[0].length; continue; }
+    if (two.includes(rest.slice(0, 2))){ out.push({ t:"op", v:rest.slice(0, 2) }); i += 2; continue; }
+    if ("+-−*/%<>=(),.:[]".includes(ch)){ out.push({ t:"op", v: ch === "−" ? "-" : ch }); i++; continue; }
+    throw new CalcErr(`Непонятный символ «${ch}»`, line);
+  }
+  return out;
+}
+
+/* Строка с подстановками: "Урон {dmg}" ; {{ и }} — буквальные скобки */
+function calcTemplate(s, line){
+  const parts = [];
+  let buf = "", i = 0;
+  while (i < s.length){
+    const c = s[i];
+    if (c === "{" && s[i+1] === "{"){ buf += "{"; i += 2; continue; }
+    if (c === "}" && s[i+1] === "}"){ buf += "}"; i += 2; continue; }
+    if (c === "{"){
+      const j = s.indexOf("}", i);
+      if (j < 0) throw new CalcErr("В строке не закрыта «{»", line);
+      if (buf) parts.push(buf);
+      buf = "";
+      const p = new CalcParser(calcLex(s.slice(i + 1, j), line), line);
+      parts.push(p.expr()); p.done();
+      i = j + 1; continue;
+    }
+    buf += c; i++;
+  }
+  if (buf || !parts.length) parts.push(buf);
+  return parts.length === 1 && typeof parts[0] === "string" ? { k:"lit", v:parts[0] } : { k:"tpl", parts };
+}
+
+class CalcParser {
+  constructor(toks, line){ this.t = toks; this.i = 0; this.line = line; }
+  peek(o = 0){ return this.t[this.i + o]; }
+  is(v, o = 0){ const k = this.t[this.i + o]; return !!k && k.t !== "str" && k.t !== "num" && k.v === v; }
+  next(){ return this.t[this.i++]; }
+  end(){ return this.i >= this.t.length; }
+  err(msg){ throw new CalcErr(msg, this.line); }
+  expect(v){ if (!this.is(v)) this.err(`Ожидалось «${v}»` + (this.end() ? " в конце строки" : `, а стоит «${this.peek().v}»`)); return this.next(); }
+  ident(){ const k = this.next(); if (!k || k.t !== "id") this.err("Ожидалось имя"); return k.v; }
+  done(){ if (!this.end()) this.err(`Лишнее в строке: «${this.peek().v}»`); }
+  expr(){ return this.or(); }
+  or(){ let a = this.and(); while (this.is("or")){ this.next(); a = { k:"or", a, b:this.and() }; } return a; }
+  and(){ let a = this.not(); while (this.is("and")){ this.next(); a = { k:"and", a, b:this.not() }; } return a; }
+  not(){ if (this.is("not")){ this.next(); return { k:"not", a:this.not() }; } return this.cmp(); }
+  cmp(){
+    let a = this.add();
+    while (["==","!=","<",">","<=",">="].some(o => this.is(o))){ const op = this.next().v; a = { k:"bin", op, a, b:this.add() }; }
+    return a;
+  }
+  add(){ let a = this.mul(); while (this.is("+") || this.is("-")){ const op = this.next().v; a = { k:"bin", op, a, b:this.mul() }; } return a; }
+  mul(){
+    let a = this.un();
+    while (["*","/","//","%"].some(o => this.is(o))){ const op = this.next().v; a = { k:"bin", op, a, b:this.un() }; }
+    return a;
+  }
+  un(){
+    if (this.is("-")){ this.next(); return { k:"neg", a:this.un() }; }
+    if (this.is("+")){ this.next(); return this.un(); }
+    let a = this.prim();
+    while (this.is(".")){ this.next(); a = { k:"mem", o:a, f:this.ident() }; }
+    return a;
+  }
+  prim(){
+    const k = this.next();
+    if (!k) this.err("Выражение оборвалось");
+    if (k.t === "num") return { k:"lit", v:k.v };
+    if (k.t === "str") return calcTemplate(k.v, this.line);
+    if (k.t === "id"){
+      if (k.v === "true" || k.v === "True") return { k:"lit", v:true };
+      if (k.v === "false" || k.v === "False") return { k:"lit", v:false };
+      if (CALC_RESERVED.has(k.v)) this.err(`«${k.v}» нельзя использовать внутри выражения`);
+      if (this.is("(")){
+        this.next();
+        const args = [];
+        if (!this.is(")")) do { args.push(this.expr()); } while (this.is(",") && this.next());
+        this.expect(")");
+        return { k:"call", f:k.v, args };
+      }
+      return { k:"name", n:k.v };
+    }
+    if (k.v === "("){ const e = this.expr(); this.expect(")"); return e; }
+    this.err(`Неожиданное «${k.v}»`);
+  }
+}
+
+const CALC_CACHE = new Map();
+function compileCalc(code){
+  code = String(code ?? "");
+  if (CALC_CACHE.has(code)) return CALC_CACHE.get(code);
+  let res;
+  try { res = compileCalcRaw(code); }
+  catch(e){ if (!(e instanceof CalcErr)) throw e; res = { error:e, decls:[], byName:{}, handlers:{}, vars:new Set() }; }
+  if (CALC_CACHE.size > 300) CALC_CACHE.clear();
+  CALC_CACHE.set(code, res);
+  return res;
+}
+
+function compileCalcRaw(code){
+  const lines = [];
+  code.split("\n").forEach((raw, idx) => {
+    const lead = /^[ \t]*/.exec(raw)[0];
+    const toks = calcLex(raw.slice(lead.length), idx + 1);
+    if (toks.length) lines.push({ n:idx + 1, ind:lead.replace(/\t/g, "    ").length, toks });
+  });
+  const prog = { decls:[], byName:Object.create(null), handlers:Object.create(null), main:[], vars:new Set() };
+  let i = 0;
+
+  const checkName = (n, line) => {
+    if (CALC_RESERVED.has(n)) throw new CalcErr(`«${n}» — служебное слово, выберите другое имя`, line);
+    if (n.startsWith("__")) throw new CalcErr("Имя не может начинаться с «__»", line);
+  };
+  const block = (ind, top) => {
+    const out = [];
+    while (i < lines.length && lines[i].ind >= ind){
+      if (lines[i].ind > ind) throw new CalcErr("Лишний отступ", lines[i].n);
+      out.push(...stmt(lines[i], ind, top));
+    }
+    return out;
+  };
+  const child = L => {
+    if (i >= lines.length || lines[i].ind <= L.ind) throw new CalcErr("После «:» нужны строки с отступом (4 пробела)", L.n);
+    return block(lines[i].ind, false);
+  };
+  const optSpec = q => {
+    const k = q.next();
+    if (!k || !["id","str","num"].includes(k.t)) q.err("Ожидалось название варианта");
+    const o = { label:String(k.v), value:null, desc:null, fields:[], cond:null };
+    if (q.is("=")){ q.next(); o.value = q.expr(); }
+    if (q.peek()?.t === "str") o.desc = calcTemplate(q.next().v, q.line);
+    if (q.is("[")){
+      q.next();
+      if (!q.is("]")) do {
+        const f = q.ident(); checkName(f, q.line); q.expect("="); o.fields.push([f, q.expr()]);
+      } while (q.is(",") && q.next());
+      q.expect("]");
+    }
+    if (q.is("if")){ q.next(); o.cond = q.expr(); }
+    return o;
+  };
+  const decl = (p, L) => {
+    const name = p.ident(); checkName(name, L.n);
+    if (prog.byName[name]) throw new CalcErr(`Элемент «${name}» уже объявлен`, L.n);
+    p.expect("=");
+    const kind = p.ident();
+    const d = { name, kind, line:L.n, end:L.n, label:null, mods:Object.create(null), opts:[], type:"text" };
+    if (kind === "input" && (p.is("number") || p.is("text"))) d.type = p.next().v;
+    const MODS = ["min","max","default"];
+    if (!p.end() && !p.is(":") && !MODS.some(m => p.is(m))) d.label = p.expr();
+    while (!p.end() && MODS.some(m => p.is(m))){ const m = p.next().v; d.mods[m] = p.expr(); }
+    if (kind === "select"){
+      if (!p.is(":")) p.err("После select нужны «:» и варианты");
+      p.next();
+      if (p.end()){
+        if (i >= lines.length || lines[i].ind <= L.ind) throw new CalcErr("Нужен список вариантов с отступом", L.n);
+        const ind = lines[i].ind;
+        while (i < lines.length && lines[i].ind >= ind){
+          const O = lines[i];
+          if (O.ind > ind) throw new CalcErr("Лишний отступ", O.n);
+          const q = new CalcParser(O.toks, O.n);
+          d.opts.push(optSpec(q)); q.done();
+          d.end = O.n; i++;
+        }
+      } else {
+        do { d.opts.push(optSpec(p)); } while (p.is(",") && p.next());
+      }
+    }
+    p.done();
+    prog.decls.push(d); prog.byName[name] = d;
+  };
+  const stmt = (L, ind, top) => {
+    const p = new CalcParser(L.toks, L.n);
+    i++;
+    if (p.is("if")){
+      p.next();
+      const cond = p.expr(); p.expect(":"); p.done();
+      const node = { k:"if", line:L.n, arms:[{ cond, body:child(L) }], els:null };
+      while (i < lines.length && lines[i].ind === ind && lines[i].toks[0].t === "id" &&
+             (lines[i].toks[0].v === "elif" || lines[i].toks[0].v === "else")){
+        const E = lines[i], q = new CalcParser(E.toks, E.n);
+        i++;
+        if (q.next().v === "elif"){ const c = q.expr(); q.expect(":"); q.done(); node.arms.push({ cond:c, body:child(E) }); }
+        else { q.expect(":"); q.done(); node.els = child(E); break; }
+      }
+      return [node];
+    }
+    if (p.is("elif") || p.is("else")) p.err(`«${p.peek().v}» без «if» перед ним (проверьте отступы)`);
+    if (p.is("on")){
+      if (!top) p.err("«on» пишется без отступа, вне if");
+      p.next();
+      const name = p.ident(); p.expect(":"); p.done();
+      if (prog.handlers[name]) p.err(`Обработчик «on ${name}» уже есть`);
+      const body = child(L);
+      prog.handlers[name] = { body, line:L.n, end:lines[i-1].n };
+      return [];
+    }
+    if (p.is("pass")){ p.next(); p.done(); return []; }
+    if (p.is("var")){
+      p.next();
+      const name = p.ident(); checkName(name, L.n);
+      p.expect("=");
+      const e = p.expr(); p.done();
+      prog.vars.add(name);
+      return [{ k:"var", line:L.n, name, e }];
+    }
+    const t0 = p.peek(), t1 = p.peek(1), t2 = p.peek(2);
+    if (t0.t === "id" && t1?.t === "op" && t1.v === "=" && t2?.t === "id" && EL_KINDS.has(t2.v)){
+      if (!top) p.err("Элементы объявляются без отступа, вне if и on");
+      decl(p, L);
+      return [];
+    }
+    if (t0.t === "id" && t1?.t === "op" && ["=","+=","-=","*=","/="].includes(t1.v)){
+      const name = p.ident(); checkName(name, L.n);
+      const op = p.next().v, e = p.expr(); p.done();
+      return [{ k:"set", line:L.n, name, op, e }];
+    }
+    const e = p.expr(); p.done();
+    return [{ k:"expr", line:L.n, e }];
+  };
+
+  prog.main = block(0, true);
+  for (const [n, h] of Object.entries(prog.handlers))
+    if (!prog.byName[n]) throw new CalcErr(`«on ${n}»: элемент «${n}» не объявлен`, h.line);
+  return prog;
+}
+
+/* ---- Значения ---- */
+function calcFmt(v){
+  if (v == null) return "";
+  if (typeof v === "number") return Number.isFinite(v) ? String(Math.round(v * 100) / 100) : "∞";
+  if (typeof v === "boolean") return v ? "да" : "нет";
+  return String(v);
+}
+const calcNum = v => {
+  if (typeof v === "number") return v;
+  if (typeof v === "boolean") return v ? 1 : 0;
+  const n = parseFloat(v);
+  return Number.isFinite(n) ? n : 0;
+};
+const numLike = v => typeof v === "number" || typeof v === "boolean" || (typeof v === "string" && v.trim() !== "" && !isNaN(+v));
+const calcEq = (a, b) => numLike(a) && numLike(b) ? calcNum(a) === calcNum(b) : calcFmt(a) === calcFmt(b);
+
+function calcBin(op, a, b){
+  const nz = () => { if (calcNum(b) === 0) throw new Error("Деление на ноль"); };
+  switch(op){
+    case "+":  return (typeof a === "string" || typeof b === "string") ? calcFmt(a) + calcFmt(b) : calcNum(a) + calcNum(b);
+    case "-":  return calcNum(a) - calcNum(b);
+    case "*":  return calcNum(a) * calcNum(b);
+    case "/":  nz(); return calcNum(a) / calcNum(b);
+    case "//": nz(); return Math.floor(calcNum(a) / calcNum(b));
+    case "%":  { nz(); const m = calcNum(b); return ((calcNum(a) % m) + m) % m; }
+    case "==": return calcEq(a, b);
+    case "!=": return !calcEq(a, b);
+  }
+  const c = numLike(a) && numLike(b) ? calcNum(a) - calcNum(b) : calcFmt(a).localeCompare(calcFmt(b));
+  return op === "<" ? c < 0 : op === ">" ? c > 0 : op === "<=" ? c <= 0 : c >= 0;
+}
+
+/* ---- Кубы: лестница как в конструкторе Э.Г.О. ---- */
+const DICE_TIERS = [4, 6, 8, 10, 12];
+function parseDice(s){
+  const m = /^\s*(\d*)\s*[dдк]\s*(\d+)\s*$/i.exec(String(s));
+  if (!m) throw new Error(`«${calcFmt(s)}» — не кубы (нужно вида 2d8)`);
+  return [m[1] ? +m[1] : 1, +m[2]];
+}
+function upDice(s, steps = 1){
+  const [n, f] = parseDice(s);
+  let idx = DICE_TIERS.indexOf(f);
+  if (idx < 0) idx = 2;
+  const fin = Math.max(0, Math.min(5, idx + Math.trunc(calcNum(steps))));
+  return fin === 5 ? `${n * 2}d6` : `${n}d${DICE_TIERS[fin]}`;
+}
+function rollDice(s){
+  const src = String(s).replace(/\s+/g, "");
+  if (!/^[+-]?(\d*[dдк]\d+|\d+)([+-](\d*[dдк]\d+|\d+))*$/i.test(src)) throw new Error(`roll: не понимаю «${calcFmt(s)}»`);
+  let total = 0;
+  for (const m of src.matchAll(/([+-]?)(?:(\d*)[dдк](\d+)|(\d+))/gi)){
+    const sign = m[1] === "-" ? -1 : 1;
+    if (m[4] !== undefined){ total += sign * +m[4]; continue; }
+    const n = Math.min(m[2] ? +m[2] : 1, 1000), f = +m[3];
+    for (let k = 0; k < n; k++) total += sign * (f > 0 ? 1 + Math.floor(Math.random() * f) : 0);
+  }
+  return total;
+}
+
+const CALC_FN = {
+  min:   (...a) => Math.min(...a.map(calcNum)),
+  max:   (...a) => Math.max(...a.map(calcNum)),
+  clamp: (x, a, b) => Math.min(Math.max(calcNum(x), calcNum(a)), calcNum(b)),
+  floor: x => Math.floor(calcNum(x)),
+  ceil:  x => Math.ceil(calcNum(x)),
+  round: (x, d = 0) => { const k = 10 ** calcNum(d); return Math.round(calcNum(x) * k) / k; },
+  abs:   x => Math.abs(calcNum(x)),
+  iif:   (c, a, b) => c ? a : b,
+  str:   v => calcFmt(v),
+  num:   v => calcNum(v),
+  len:   v => calcFmt(v).length,
+  dice:  (n, f) => `${calcNum(n)}d${calcNum(f)}`,
+  upDice,
+  addDice: (s, k = 1) => { const [n, f] = parseDice(s); return `${Math.max(0, n + calcNum(k))}d${f}`; },
+  roll:  rollDice
+};
+const CALC_UI_FN = { hide:["hidden", true], show:["hidden", false], disable:["disabled", true], enable:["disabled", false] };
+
+/* ---- Выполнение ----
+   st  — сохраняемое состояние { el:{имя:значение}, vars:{var-переменные} }
+   mem — память между запусками (не сохраняется): последние значения переменных
+   event — { name, kind:"click"|"change"|"input", value } или null */
+function execCalc(prog, st, mem, event){
+  if (!st.el || typeof st.el !== "object") st.el = {};
+  if (!st.vars || typeof st.vars !== "object") st.vars = {};
+  const env = Object.create(null);
+  Object.assign(env, mem.last || {}, st.vars);
+  const R = { prog, st, env, ui:Object.create(null), out:Object.create(null) };
+  let error = null;
+  try {
+    const d = event && prog.byName[event.name];
+    if (d){
+      if (event.kind === "click") st.el[d.name] = calcClampBtn(R, d, calcNum(calcEl(R, d.name)) + 1);
+      else st.el[d.name] = event.value;
+      const h = prog.handlers[d.name];
+      if (h && event.kind !== "input") calcRun(R, h.body);
+    }
+    calcRun(R, prog.main);
+  } catch(e){
+    error = e instanceof CalcErr ? e : new CalcErr(e?.message || String(e), null);
+  }
+  mem.last = { ...env };
+  prog.vars.forEach(v => { if (v in env) st.vars[v] = env[v]; });
+  return { view:prog.decls.map(d => calcView(R, d)), error, out:R.out };
+}
+
+function calcRun(R, stmts){
+  for (const s of stmts){
+    try { calcStmt(R, s); }
+    catch(e){ throw e instanceof CalcErr ? e : new CalcErr(e?.message || String(e), s.line); }
+  }
+}
+function calcStmt(R, s){
+  switch(s.k){
+    case "var":
+      if (!hasOwn(R.st.vars, s.name)) R.env[s.name] = calcEval(R, s.e);
+      break;
+    case "set": {
+      const d = R.prog.byName[s.name];
+      let v = calcEval(R, s.e);
+      if (s.op !== "="){
+        if (!d && !(s.name in R.env)) throw new Error(`Переменная «${s.name}» ещё не задана`);
+        v = calcBin(s.op[0], d ? calcRead(R, d) : R.env[s.name], v);
+      }
+      if (d) calcWrite(R, d, v); else R.env[s.name] = v;
+      break;
+    }
+    case "expr": calcEval(R, s.e); break;
+    case "if": {
+      const arm = s.arms.find(a => calcEval(R, a.cond));
+      if (arm) calcRun(R, arm.body);
+      else if (s.els) calcRun(R, s.els);
+      break;
+    }
+  }
+}
+function calcEval(R, n){
+  switch(n.k){
+    case "lit": return n.v;
+    case "tpl": return n.parts.map(p => typeof p === "string" ? p : calcFmt(calcEval(R, p))).join("");
+    case "name": {
+      const d = R.prog.byName[n.n];
+      if (d) return calcRead(R, d);
+      if (n.n in R.env) return R.env[n.n];
+      throw new Error(`Неизвестное имя «${n.n}»`);
+    }
+    case "mem": {
+      if (n.o.k === "name" && R.prog.byName[n.o.n]) return calcMember(R, R.prog.byName[n.o.n], n.f);
+      const v = calcEval(R, n.o);
+      if (n.f === "length") return calcFmt(v).length;
+      throw new Error(`У значения нет поля «${n.f}»`);
+    }
+    case "call": {
+      if (hasOwn(CALC_UI_FN, n.f)){
+        const [key, val] = CALC_UI_FN[n.f];
+        if (!n.args.length) throw new Error(`${n.f}() — укажите элемент`);
+        n.args.forEach(a => {
+          if (a.k !== "name" || !R.prog.byName[a.n]) throw new Error(`${n.f}() принимает только имена элементов`);
+          (R.ui[a.n] ||= {})[key] = val;
+        });
+        return true;
+      }
+      if (!hasOwn(CALC_FN, n.f)) throw new Error(`Нет функции «${n.f}»`);
+      return CALC_FN[n.f](...n.args.map(a => calcEval(R, a)));
+    }
+    case "neg": return -calcNum(calcEval(R, n.a));
+    case "not": return !calcEval(R, n.a);
+    case "and": { const a = calcEval(R, n.a); return a ? calcEval(R, n.b) : a; }
+    case "or":  { const a = calcEval(R, n.a); return a ? a : calcEval(R, n.b); }
+    case "bin": return calcBin(n.op, calcEval(R, n.a), calcEval(R, n.b));
+  }
+}
+
+const calcEl = (R, n) => hasOwn(R.st.el, n) ? R.st.el[n] : undefined;
+function calcClampBtn(R, d, v){
+  const lo = d.mods.min ? calcNum(calcEval(R, d.mods.min)) : 0;
+  const hi = d.mods.max ? calcNum(calcEval(R, d.mods.max)) : Infinity;
+  return Math.min(Math.max(v, lo), hi);
+}
+function calcOpts(R, d){
+  const out = [];
+  for (const o of d.opts){
+    if (o.cond && !calcEval(R, o.cond)) continue;
+    const fields = Object.create(null);
+    o.fields.forEach(([k, e]) => fields[k] = calcEval(R, e));
+    out.push({ label:o.label, value:o.value ? calcEval(R, o.value) : o.label,
+               desc:o.desc ? calcFmt(calcEval(R, o.desc)) : "", fields });
+  }
+  return out;
+}
+function calcCur(R, d){
+  const list = calcOpts(R, d);
+  if (!list.length) return null;
+  const i = Math.max(0, list.findIndex(o => o.label === calcEl(R, d.name)));
+  return { ...list[i], index:i + 1, count:list.length };
+}
+function calcRead(R, d){
+  const v = calcEl(R, d.name);
+  switch(d.kind){
+    case "button": return calcNum(v ?? 0);
+    case "select": return calcCur(R, d)?.value ?? "";
+    case "input": {
+      const raw = hasOwn(R.st.el, d.name) ? v : (d.mods.default ? calcEval(R, d.mods.default) : (d.type === "number" ? 0 : ""));
+      return d.type === "number" ? calcNum(raw) : calcFmt(raw);
+    }
+    case "output": return R.out[d.name] ?? "";
+  }
+}
+function calcMember(R, d, f){
+  if (f === "title") return d.label ? calcFmt(calcEval(R, d.label)) : "";
+  if (d.kind === "select"){
+    const c = calcCur(R, d);
+    if (f === "count") return c ? c.count : 0;
+    if (!c) return "";
+    if (f === "label" || f === "value" || f === "desc" || f === "index") return c[f];
+    return hasOwn(c.fields, f) ? c.fields[f] : "";
+  }
+  if (f === "label") return d.label ? calcFmt(calcEval(R, d.label)) : "";
+  if (["value","count","text"].includes(f)) return calcRead(R, d);
+  throw new Error(`У «${d.name}» нет поля «${f}»`);
+}
+function calcWrite(R, d, v){
+  switch(d.kind){
+    case "button": R.st.el[d.name] = calcClampBtn(R, d, calcNum(v)); break;
+    case "select": {
+      const list = calcOpts(R, d);
+      const o = list.find(x => x.label === calcFmt(v)) || list.find(x => calcEq(x.value, v));
+      if (!o) throw new Error(`В «${d.name}» нет варианта «${calcFmt(v)}»`);
+      R.st.el[d.name] = o.label; break;
+    }
+    case "input":  R.st.el[d.name] = v; break;
+    case "output": R.out[d.name] = calcFmt(v); break;
+  }
+}
+function calcView(R, d){
+  const safe = (f, dflt) => { try { return f(); } catch { return dflt; } };
+  const ui = R.ui[d.name] || {};
+  const v = { name:d.name, kind:d.kind, hidden:!!ui.hidden, disabled:!!ui.disabled,
+              label:d.label ? safe(() => calcFmt(calcEval(R, d.label)), "?") : "" };
+  switch(d.kind){
+    case "button": v.count = calcNum(calcEl(R, d.name) ?? 0); break;
+    case "select": v.opts = safe(() => calcOpts(R, d), []); v.cur = safe(() => calcCur(R, d), null); break;
+    case "input":
+      v.type = d.type; v.value = safe(() => calcRead(R, d), "");
+      v.min = d.mods.min ? safe(() => calcNum(calcEval(R, d.mods.min)), null) : null;
+      v.max = d.mods.max ? safe(() => calcNum(calcEval(R, d.mods.max)), null) : null;
+      break;
+    case "output": v.text = R.out[d.name] ?? ""; break;
+  }
+  return v;
+}
+
+/* ---- 12b.2 Состояние, вставка в текст, копирование ---- */
+const CALC_STORE_KEY = "pm_calc_state_v1";
+let CALC_STORE = {};
+try { CALC_STORE = JSON.parse(localStorage.getItem(CALC_STORE_KEY) || "{}") || {}; } catch { CALC_STORE = {}; }
+let calcSaveTimer;
+function saveCalcStore(){
+  clearTimeout(calcSaveTimer);
+  calcSaveTimer = setTimeout(() => { try { localStorage.setItem(CALC_STORE_KEY, JSON.stringify(CALC_STORE)); } catch {} }, 250);
+}
+const DRAFT_CALC_STATE = {};     // черновики в конструкторе — только в памяти
+const CALC_MEM = new Map();
+function calcState(key, persist){
+  const bag = persist ? CALC_STORE : DRAFT_CALC_STATE;
+  if (!hasOwn(bag, key) || !bag[key] || typeof bag[key] !== "object") bag[key] = { el:{}, vars:{} };
+  return bag[key];
+}
+function calcMem(key){
+  if (!CALC_MEM.has(key)) CALC_MEM.set(key, {});
+  return CALC_MEM.get(key);
+}
+
+/* Во время рендера карточки md() знает, чьи калькуляторы подставлять */
+const CALC_REG = {};
+let CALC_CTX = null;
+function withCalcs(key, calcs, fn){
+  const prev = CALC_CTX;
+  CALC_CTX = { key, calcs:calcs || {} };
+  CALC_REG[key] = CALC_CTX.calcs;
+  try { return fn(); } finally { CALC_CTX = prev; }
+}
+function calcHostHtml(name){
+  if (!CALC_CTX || !hasOwn(CALC_CTX.calcs, name))
+    return `<span class="calc-missing"><i class="fa-solid fa-calculator"></i> калькулятор «${esc(name)}» не найден</span>`;
+  return `<div class="calc-host" data-ck="${esc(CALC_CTX.key)}" data-cn="${esc(name)}"></div>`;
+}
+function injectCalcs(html){
+  return html.replace(/<p>\s*\[calc:([\p{L}\p{N}_-]{1,40})\]\s*<\/p>/gu, (_, n) => calcHostHtml(n))
+             .replace(CALC_TOKEN, (_, n) => calcHostHtml(n));
+}
+function mountCalcs(root){
+  if (!root) return;
+  CALC_LIVE.forEach(w => { if (!w.host.isConnected){ calcRO?.unobserve(w.host); CALC_LIVE.delete(w); } });
+  root.querySelectorAll(".calc-host[data-cn]").forEach(h => {
+    if (h.__calc) return;
+    const key = h.dataset.ck, name = h.dataset.cn;
+    const prog = CALC_REG[key]?.[name];
+    if (prog) new CalcWidget(h, prog, { key:`${key}|${name}`, persist:!key.startsWith("draft") });
+  });
+}
+
+/* Текст для «Копировать»: вместо [calc:имя] — содержимое полей вывода */
+function calcPlain(prog, key){
+  const c = compileCalc(prog?.code);
+  if (!prog || c.error) return "[калькулятор: ошибка в коде]";
+  const st = JSON.parse(JSON.stringify(CALC_STORE[key] || { el:{}, vars:{} }));
+  const res = execCalc(c, st, { last:{ ...(CALC_MEM.get(key)?.last || {}) } }, null);
+  return res.view.filter(v => v.kind === "output" && !v.hidden && v.text)
+    .map(v => (v.label ? `${v.label}: ` : "") + v.text).join("\n");
+}
+function withCalcText(text, calcs, key){
+  return String(text).replace(CALC_TOKEN, (_, n) => hasOwn(calcs, n) ? calcPlain(calcs[n], `${key}|${n}`) : "");
+}
+
+/* ---- 12b.3 Виджет калькулятора (просмотр и редактор) ---- */
+const CALC_GRID = 10;
+const CALC_EDIT_PAD = { x:18, y:20 };    // место под ручку перетаскивания в редакторе
+const CALC_LIVE = new Set();
+const calcRO = typeof ResizeObserver !== "undefined"
+  ? new ResizeObserver(entries => entries.forEach(e => {
+      const w = e.target.__calc;
+      if (w && Math.abs((w._lastW || 0) - e.contentRect.width) > 1){ w._lastW = e.contentRect.width; w.fit(); }
+    }))
+  : null;
+const calcSnap = v => Math.round(v / CALC_GRID) * CALC_GRID;
+
+class CalcWidget {
+  /* o: { key, persist, edit, st, mem, onLayout, onDelete, onPick } */
+  constructor(host, prog, o = {}){
+    if (host.__calc) CALC_LIVE.delete(host.__calc);
+    this.host = host; this.o = o; this.key = o.key || "";
+    this.st  = o.st  || calcState(this.key, o.persist !== false);
+    this.mem = o.mem || calcMem(this.key);
+    host.__calc = this;
+    host.classList.add("calc-host");
+    this.root = document.createElement("div");
+    this.root.className = "calc" + (o.edit ? " calc-edit" : "");
+    host.innerHTML = "";
+    host.appendChild(this.root);
+    this.bind();
+    this.setProgram(prog);
+    CALC_LIVE.add(this);
+    calcRO?.observe(host);
+  }
+
+  setProgram(prog){
+    this.prog = prog;
+    if (this.o.edit) this.layout = (prog.layout ||= {});
+    else this.layout = JSON.parse(JSON.stringify(prog.layout || {}));
+    this.c = compileCalc(prog.code);
+    this.build();
+    this.run(null);
+  }
+
+  fillLayout(){
+    const est = { button:30, select:84, input:62, output:64 };
+    let y = 0;
+    this.c.decls.forEach(d => { const p = this.layout[d.name]; if (p) y = Math.max(y, (p.y || 0) + est[d.kind] + 10); });
+    this.c.decls.forEach(d => {
+      if (this.layout[d.name]) return;
+      this.layout[d.name] = { x:0, y:calcSnap(y) };
+      if (d.kind !== "button") this.layout[d.name].w = d.kind === "output" ? 320 : 220;
+      y += est[d.kind] + 20;
+    });
+  }
+
+  build(){
+    this.root.innerHTML = `<button type="button" class="calc-reset" title="Сбросить значения"><i class="fa-solid fa-rotate-left"></i></button>
+      <div class="calc-canvas"></div><div class="calc-err"></div>`;
+    this.canvas = this.root.querySelector(".calc-canvas");
+    this.errBox = this.root.querySelector(".calc-err");
+    this.els = {};
+    this.natW = {};
+    if (this.c.error) return;
+    this.fillLayout();
+    const L = n => this.layout[n] || { x:0, y:0 };
+    [...this.c.decls].sort((a, b) => (L(a.name).y - L(b.name).y) || (L(a.name).x - L(b.name).x)).forEach(d => {
+      const el = document.createElement("div");
+      el.className = `calc-el k-${d.kind}`;
+      el.dataset.n = d.name;
+      let h = "";
+      switch(d.kind){
+        case "button": h = `<button type="button" class="calc-btn" data-cb="${esc(d.name)}"></button>`; break;
+        case "select": h = `<div class="calc-lbl"></div><select class="cloud-select" data-cs="${esc(d.name)}"></select><div class="calc-desc md"></div>`; break;
+        case "input":  h = `<div class="calc-lbl"></div><input class="cloud-input" data-ci="${esc(d.name)}" type="${d.type === "number" ? "number" : "text"}">`; break;
+        case "output": h = `<div class="calc-lbl"></div><div class="calc-out"><div class="calc-out-body md"></div>
+            <button type="button" class="calc-copy" data-cc="${esc(d.name)}" title="Копировать"><i class="fa-regular fa-copy"></i></button></div>`; break;
+      }
+      if (this.o.edit)
+        h += `<span class="calc-grip" title="Перетащить"><i class="fa-solid fa-grip-vertical"></i></span>
+              <div class="calc-tag">${esc(d.name)} · ${d.kind}<button type="button" class="calc-del" title="Удалить элемент из кода">×</button></div>`
+          + (d.kind !== "button" ? `<span class="calc-rsz" title="Потяните, чтобы изменить ширину"></span>` : "");
+      el.innerHTML = h;
+      this.canvas.appendChild(el);
+      this.els[d.name] = el;
+      this.place(el, d.name);
+    });
+  }
+
+  place(el, n){
+    const p = this.layout[n] || { x:0, y:0 };
+    const pad = this.o.edit ? CALC_EDIT_PAD : { x:0, y:0 };
+    el.style.left = (p.x || 0) + pad.x + "px";
+    el.style.top  = (p.y || 0) + pad.y + "px";
+    el.style.width = p.w ? p.w + "px" : "";
+  }
+
+  bind(){
+    const r = this.root;
+    r.addEventListener("click", e => {
+      const b = e.target.closest("button");
+      if (!b || !r.contains(b)) return;
+      if (b.classList.contains("calc-reset")) return this.reset();
+      if (b.dataset.cb) return this.run({ name:b.dataset.cb, kind:"click" });
+      if (b.dataset.cc) return copyText(this.lastOut?.[b.dataset.cc] ?? "");
+      if (b.classList.contains("calc-del")) this.o.onDelete?.(b.closest(".calc-el").dataset.n);
+    });
+    r.addEventListener("change", e => {
+      const t = e.target;
+      if (t.dataset.cs) this.run({ name:t.dataset.cs, kind:"change", value:t.value });
+      if (t.dataset.ci){ clearTimeout(this._inT); this.run({ name:t.dataset.ci, kind:"change", value:this.inpVal(t) }); }
+    });
+    r.addEventListener("input", e => {
+      const t = e.target;
+      if (!t.dataset.ci) return;
+      clearTimeout(this._inT);
+      this._inT = setTimeout(() => this.run({ name:t.dataset.ci, kind:"input", value:this.inpVal(t) }), 160);
+    });
+    if (this.o.edit){
+      r.addEventListener("dblclick", e => {
+        const el = e.target.closest(".calc-el");
+        if (el && !e.target.closest("input,select,button")) this.o.onPick?.(el.dataset.n);
+      });
+      r.addEventListener("pointerdown", e => this.dragStart(e));
+    }
+  }
+  inpVal(t){ return t.type === "number" ? (t.value === "" ? 0 : parseFloat(t.value)) : t.value; }
+
+  run(event){
+    if (this.c.error){
+      this.errBox.textContent = `Строка ${this.c.error.line}: ${this.c.error.message}`;
+      this.fit();
+      return;
+    }
+    const res = execCalc(this.c, this.st, this.mem, event);
+    this.lastOut = res.out;
+    this.patch(res.view);
+    this.errBox.textContent = res.error ? (res.error.line ? `Строка ${res.error.line}: ` : "") + res.error.message : "";
+    if (this.o.persist !== false && !this.o.st) saveCalcStore();
+    this.fit();
+    if (event) CALC_LIVE.forEach(w => { if (w !== this && w.key === this.key && w.host.isConnected) w.run(null); });
+  }
+
+  reset(){
+    this.st.el = {};
+    this.st.vars = {};
+    this.mem.last = {};
+    this.run(null);
+    CALC_LIVE.forEach(w => { if (w !== this && w.key === this.key && w.host.isConnected) w.run(null); });
+  }
+
+  patch(view){
+    view.forEach(v => {
+      const el = this.els[v.name];
+      if (!el) return;
+      el.classList.toggle("is-hidden", v.hidden);
+      const lbl = el.querySelector(".calc-lbl");
+      if (lbl){ lbl.textContent = v.label; lbl.style.display = v.label ? "" : "none"; }
+      switch(v.kind){
+        case "button": {
+          const b = el.querySelector(".calc-btn");
+          b.textContent = v.label || v.name;
+          b.disabled = v.disabled;
+          b.title = `Нажатий: ${v.count}`;
+          break;
+        }
+        case "select": {
+          const s = el.querySelector("select");
+          const sig = v.opts.map(o => o.label).join("\u0001");
+          if (s.__sig !== sig){
+            s.innerHTML = v.opts.map(o => `<option value="${esc(o.label)}">${esc(o.label)}</option>`).join("");
+            s.__sig = sig;
+          }
+          s.value = v.cur ? v.cur.label : "";
+          s.disabled = v.disabled;
+          const dsc = el.querySelector(".calc-desc"), t = v.cur?.desc || "";
+          dsc.innerHTML = t ? mdOut(t) : "";
+          dsc.style.display = t ? "" : "none";
+          break;
+        }
+        case "input": {
+          const i = el.querySelector("input");
+          if (document.activeElement !== i) i.value = v.value ?? "";
+          i.disabled = v.disabled;
+          if (v.min != null) i.min = v.min; else i.removeAttribute("min");
+          if (v.max != null) i.max = v.max; else i.removeAttribute("max");
+          break;
+        }
+        case "output":
+          el.querySelector(".calc-out-body").innerHTML = v.text ? mdOut(v.text) : `<span class="calc-empty">—</span>`;
+          el.classList.toggle("is-disabled", v.disabled);
+          break;
+      }
+    });
+  }
+
+  /* Высота холста; на узком экране — переход в «поток» */
+  fit(){
+    const cv = this.canvas;
+    if (!cv) return;
+    const items = Object.entries(this.els);
+    if (!this.o.edit){
+      const need = Math.max(0, ...items.map(([n]) => {
+        const p = this.layout[n] || {};
+        return (p.x || 0) + (p.w || this.natW[n] || 0);
+      }));
+      const avail = cv.clientWidth || this.host.clientWidth;
+      const flow = avail > 0 && need > avail + 1;
+      this.root.classList.toggle("flow", flow);
+      if (flow){ cv.style.height = ""; return; }
+    }
+    let h = 0;
+    items.forEach(([n, el]) => {
+      if (!el.offsetParent) return;
+      h = Math.max(h, el.offsetTop + el.offsetHeight);
+      if (!this.layout[n]?.w) this.natW[n] = el.offsetWidth;
+    });
+    cv.style.height = (this.o.edit ? Math.max(h + 60, 240) : h + 2) + "px";
+  }
+  bottom(){
+    let h = 0;
+    Object.entries(this.els).forEach(([n, el]) => {
+      const p = this.layout[n] || {};
+      h = Math.max(h, (p.y || 0) + el.offsetHeight);
+    });
+    return h ? calcSnap(h + 15) : 0;
+  }
+
+  dragStart(e){
+    const grip = e.target.closest(".calc-grip, .calc-rsz");
+    if (!grip) return;
+    e.preventDefault();
+    const el = grip.closest(".calc-el"), n = el.dataset.n;
+    const p = this.layout[n] || (this.layout[n] = { x:0, y:0 });
+    const resize = grip.classList.contains("calc-rsz");
+    const sx = e.clientX, sy = e.clientY, ox = p.x || 0, oy = p.y || 0, ow = p.w || el.offsetWidth;
+    el.classList.add("dragging");
+    const move = ev => {
+      const dx = ev.clientX - sx, dy = ev.clientY - sy;
+      if (resize) p.w = Math.max(80, calcSnap(ow + dx));
+      else { p.x = Math.max(0, calcSnap(ox + dx)); p.y = Math.max(0, calcSnap(oy + dy)); }
+      this.place(el, n);
+      this.fit();
+    };
+    const up = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      el.classList.remove("dragging");
+      this.o.onLayout?.(this.layout);
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+  }
+}
+
+/* ---- 12b.4 Редактор: код ↔ превью ---- */
+const CE_DEFAULT = `# Пример — измените или удалите
+Rank = select "Ранг":
+    ZAYIN = 4 "Персональное Э.Г.О., без коррозии" [коррозия = 0]
+    TETH = 5 "Э.Г.О. аномалии" [коррозия = 1]
+Minus = button "−"
+Plus = button "+"
+Out = output "Итог"
+
+var pts = 0
+
+on Plus:
+    pts = min(pts + 1, Rank)
+on Minus:
+    pts = max(pts - 1, 0)
+
+if pts == Rank:
+    Out = "**Все очки распределены:** {pts} / {Rank}"
+else:
+    Out = "Потрачено очков: {pts} / {Rank}"
+if Rank.коррозия:
+    Out += "\\n\\n*Есть коррозия*"
+`;
+let CE = null;
+
+function calcTokenAt(ta){
+  const pos = ta.selectionStart;
+  for (const m of ta.value.matchAll(CALC_TOKEN)){
+    const s = m.index, e = s + m[0].length;
+    if (pos >= s && pos <= e) return { name:m[1], range:{ start:s, end:e } };
+  }
+  return null;
+}
+function openCalcEditor(ta){
+  const calcs = state.draftCalcs;
+  const found = calcTokenAt(ta);
+  let name = found?.name;
+  if (!name){ let k = 1; while (hasOwn(calcs, "calc" + k)) k++; name = "calc" + k; }
+  const exists = hasOwn(calcs, name);
+  const src = exists ? calcs[name] : { code:CE_DEFAULT, layout:{} };
+  CE = {
+    ta, orig:exists ? name : null, range:found ? found.range : null,
+    prog:{ code:String(src.code || ""), layout:JSON.parse(JSON.stringify(src.layout || {})) },
+    st:{ el:{}, vars:{} }, mem:{}, snips:[]
+  };
+  $("#ce-name").value = name;
+  $("#ce-code").value = CE.prog.code;
+  $("#ce-del-btn").style.display = CE.orig ? "" : "none";
+  $("#ce-apply-label").textContent = CE.orig ? "Сохранить" : "Вставить в текст";
+  $("#ce-menu").hidden = true;
+  $("#calcModal").classList.add("active");
+  CE.widget = new CalcWidget($("#ce-preview"), CE.prog, {
+    key:"ce", persist:false, edit:true, st:CE.st, mem:CE.mem,
+    onDelete:ceDeleteEl, onPick:cePick
+  });
+  ceShowErr();
+}
+function ceShowErr(){
+  const e = compileCalc(CE.prog.code).error, box = $("#ce-err");
+  box.textContent = e ? `Строка ${e.line}: ${e.message}` : "✓ Код разобран без ошибок";
+  box.classList.toggle("ok", !e);
+}
+let ceTimer;
+function ceSyncSoon(){ clearTimeout(ceTimer); ceTimer = setTimeout(ceSync, 220); }
+function ceSync(){
+  if (!CE) return;
+  clearTimeout(ceTimer);
+  CE.prog.code = $("#ce-code").value;
+  CE.widget.setProgram(CE.prog);
+  ceShowErr();
+}
+function ceFreeName(base){
+  const code = $("#ce-code").value;
+  let k = 1;
+  while (new RegExp(`(^|[^\\p{L}\\p{N}_])${base}${k}(?![\\p{L}\\p{N}_])`, "u").test(code)) k++;
+  return base + k;
+}
+function ceLineRange(ta, from, to){          // строки from..to (с 1) → позиции символов
+  const lines = ta.value.split("\n");
+  let s = 0;
+  for (let k = 0; k < from - 1; k++) s += lines[k].length + 1;
+  let e = s;
+  for (let k = from - 1; k < to; k++) e += lines[k].length + 1;
+  return [s, Math.min(e - 1, ta.value.length)];
+}
+
+const CE_ADD = {
+  button: n => `${n} = button "Кнопка"`,
+  select: n => `${n} = select "Выбор":\n    A = 1 "Описание варианта A"\n    B = 2 "Описание варианта B"`,
+  input:  n => `${n} = input number "Число" default 0`,
+  output: n => `${n} = output "Результат"`
+};
+const CE_BASE = { button:"Button", select:"Select", input:"Input", output:"Output" };
+function ceAdd(kind){
+  if (!CE) return;
+  const ta = $("#ce-code"), c = compileCalc(ta.value);
+  const name = ceFreeName(CE_BASE[kind]);
+  const lines = ta.value.split("\n");
+  const at = !c.error && c.decls.length ? Math.max(...c.decls.map(d => d.end)) : 0;
+  lines.splice(at, 0, CE_ADD[kind](name));
+  ta.value = lines.join("\n");
+  CE.prog.layout[name] = { x:0, y:CE.widget.bottom() };
+  if (kind !== "button") CE.prog.layout[name].w = kind === "output" ? 320 : 220;
+  ceSync();
+}
+function ceDeleteEl(name){
+  const ta = $("#ce-code"), c = compileCalc(ta.value);
+  if (c.error) return toast("Сначала исправьте ошибку в коде");
+  const d = c.byName[name];
+  if (!d) return;
+  const h = c.handlers[name];
+  if (!confirm(`Удалить элемент «${name}»${h ? ` и его блок «on ${name}»` : ""} из кода?`)) return;
+  const lines = ta.value.split("\n");
+  [[d.line, d.end], ...(h ? [[h.line, h.end]] : [])]
+    .sort((a, b) => b[0] - a[0])
+    .forEach(([s, e]) => lines.splice(s - 1, e - s + 1));
+  ta.value = lines.join("\n");
+  delete CE.prog.layout[name];
+  ceSync();
+}
+function cePick(name){
+  const ta = $("#ce-code"), d = compileCalc(ta.value).byName[name];
+  if (!d) return;
+  const [s, e] = ceLineRange(ta, d.line, d.end);
+  ta.focus();
+  ta.setSelectionRange(s, e);
+  const lh = parseFloat(getComputedStyle(ta).lineHeight) || 20;
+  ta.scrollTop = Math.max(0, (d.line - 3) * lh);
+}
+
+/* Вставка из меню «Вставить ▾»; § — где окажется курсор */
+function ceInsert(sn){
+  const ta = $("#ce-code");
+  const s = ta.selectionStart, e = ta.selectionEnd, v = ta.value;
+  const ls = v.lastIndexOf("\n", s - 1) + 1;
+  const cur = v.slice(ls, s);
+  const indent = /^ */.exec(cur)[0];
+  let text = sn.s;
+  if (sn.block){
+    text = text.split("\n").map((l, k) => k ? indent + l : l).join("\n");
+    if (cur.trim() !== "") text = "\n" + indent + text;
+  }
+  let caret = text.indexOf("§");
+  text = text.replace("§", "");
+  if (caret < 0) caret = text.length;
+  ta.focus();
+  ta.setSelectionRange(s, e);
+  if (!document.execCommand?.("insertText", false, text)) ta.setRangeText(text, s, e, "end");
+  ta.setSelectionRange(s + caret, s + caret);
+  ceSyncSoon();
+}
+function ceRenderMenu(){
+  const c = compileCalc($("#ce-code").value);
+  const els = c.decls || [];
+  const pick = kind => els.find(d => d.kind === kind)?.name;
+  const B = pick("button") || "Кнопка", S = pick("select") || "Выбор", A = els[0]?.name || "Элемент";
+  const nb = ceFreeName("Button"), ns = ceFreeName("Select"), ni = ceFreeName("Input"), no = ceFreeName("Output");
+  const nk = /\d+$/.exec(nb)[0];
+  const G = [
+    ["Элементы", [
+      [`${nb} = button "Текст"`, "Кнопка. Её значение — сколько раз нажали (Button = 2 после двух нажатий).", 1],
+      [`${nb} = button "+" max 5`, "Кнопка с пределом нажатий. min/max можно задать выражением: max Rank.", 1],
+      [`${ns} = select "Подпись": A = 1, B = 2, C = 3`, "Выбор в одну строку. Значение — значение выбранного варианта.", 1],
+      [`${ns} = select "Ранг":\n    ZAYIN = 4 "Описание" [коррозия = 0]\n    TETH = 5 "Описание" [коррозия = 1]`,
+        "Выбор блоком: у варианта есть описание (показывается под списком) и свои поля в [ ].", 1],
+      [`    ВАРИАНТ = 6 "Описание" [поле = 1] if §условие`, "Строка варианта, видимая только при условии (варианты из кода).", 1],
+      [`${ni} = input number "Подпись" default 0 min 0 max 10`, "Поле ввода числа.", 1],
+      [`${ni} = input "Подпись"`, "Поле ввода текста — названия, кастомные эффекты.", 1],
+      [`${no} = output "Подпись"`, "Поле вывода. Заполняется присваиванием: Out = \"текст {выражение}\" (поддерживает Markdown).", 1]
+    ]],
+    ["Логика", [
+      [`if §условие:\n    pass`, "Условие.", 1],
+      [`if §условие:\n    pass\nelse:\n    pass`, "Условие с «иначе».", 1],
+      [`if §условие:\n    pass\nelif условие:\n    pass\nelse:\n    pass`, "Цепочка условий.", 1],
+      [`on ${B}:\n    §pass`, "Код при нажатии кнопки (или при смене выбора / вводе). Пишется без отступа.", 1],
+      [`var §имя = 0`, "Переменная, которая помнит значение между нажатиями. Начальное значение задаётся один раз.", 1],
+      [`§имя += 1`, "Прибавить (есть также -=, *=, /=).", 1],
+      [`Minus${nk} = button "−"\nPlus${nk} = button "+"\nvar count${nk} = 0\non Plus${nk}:\n    count${nk} = min(count${nk} + 1, 5)\non Minus${nk}:\n    count${nk} = max(count${nk} - 1, 0)`,
+        "Готовая пара «− N +», как в конструкторе Э.Г.О.", 1],
+      [`hide(${A})`, "Спрятать элемент (show — показать). Пишите в if в основном коде.", 1],
+      [`disable(${A})`, "Сделать элемент неактивным (enable — вернуть).", 1],
+      [`# §`, "Комментарий — не выполняется.", 1]
+    ]],
+    ["Текст", [
+      [`"Текст {§}"`, "Строка с подстановкой: всё внутри { } вычисляется."],
+      [`\\n`, "Перенос строки внутри строки."],
+      [`**§**`, "Жирный текст в поле вывода (Markdown)."],
+      [`{{`, "Буквальная фигурная скобка в строке."]
+    ]],
+    ["Функции", [
+      ["min(§)", "Наименьшее из чисел: min(a, b, …)."],
+      ["max(§)", "Наибольшее из чисел."],
+      ["clamp(§x, 0, 10)", "Зажать число в границы."],
+      ["floor(§)", "Округлить вниз."],
+      ["ceil(§)", "Округлить вверх."],
+      ["round(§, 0)", "Округлить до N знаков."],
+      ["abs(§)", "Модуль числа."],
+      ["iif(§условие, \"да\", \"нет\")", "Значение по условию в одну строку."],
+      ["str(§)", "Превратить в текст."],
+      ["num(§)", "Превратить в число."],
+      ["len(§)", "Длина текста."],
+      ["dice(§2, 8)", "Собрать кубы: dice(2, 8) → 2d8."],
+      ["upDice(§\"2d8\", 1)", "Поднять тир куба: d4→d6→d8→d10→d12→2d6."],
+      ["addDice(§\"2d8\", 1)", "Добавить кубы: 2d8 → 3d8."],
+      ["roll(\"§1d20+3\")", "Случайный бросок. Лучше вызывать внутри on, иначе перебрасывается при каждом клике."]
+    ]],
+    ["Поля элементов", [
+      [`${S}.label`, "Название выбранного варианта (ZAYIN, TETH…)."],
+      [`${S}.title`, "Подпись самого элемента (\"Ранг\")."],
+      [`${S}.value`, "Значение выбранного варианта (то же, что просто имя)."],
+      [`${S}.desc`, "Описание выбранного варианта."],
+      [`${S}.index`, "Номер выбранного варианта, с 1."],
+      [`${S}.count`, "Сколько вариантов сейчас доступно."],
+      [`${S}.§поле`, "Своё поле варианта из [поле = …]."]
+    ]],
+    ["Операторы", [
+      [" and ", "И"], [" or ", "ИЛИ"], ["not ", "НЕ"],
+      [" == ", "Равно"], [" != ", "Не равно"], [" >= ", "Больше или равно"], [" <= ", "Меньше или равно"],
+      [" // ", "Целочисленное деление"], [" % ", "Остаток от деления"]
+    ]]
+  ];
+  const names = [
+    ...els.map(d => [d.name, { button:"кнопка — число нажатий", select:"выбор — значение варианта",
+                               input:"ввод — введённое значение", output:"вывод — текст" }[d.kind]]),
+    ...[...(c.vars || [])].map(v => [v, "переменная (var)"])
+  ];
+  if (names.length) G.push(["Имена в программе", names]);
+
+  CE.snips = [];
+  $("#ce-menu").innerHTML = G.map(([title, items]) => `<div class="ce-group">${esc(title)}</div>` + items.map(([s, d, block]) => {
+    const i = CE.snips.push({ s, block:!!block }) - 1;
+    return `<button type="button" class="ce-item" data-act="ce-snip" data-i="${i}"><code>${esc(s.replace("§", ""))}</code><span>${esc(d)}</span></button>`;
+  }).join("")).join("");
+}
+
+function ceApply(){
+  if (!CE) return;
+  const name = $("#ce-name").value.trim();
+  if (!CALC_NAME_OK.test(name)) return toast("Имя: буквы, цифры, _ и -, до 40 символов");
+  const calcs = state.draftCalcs;
+  if (name !== CE.orig && hasOwn(calcs, name)) return toast("Калькулятор с таким именем уже есть");
+  CE.prog.code = $("#ce-code").value;
+  const c = compileCalc(CE.prog.code);
+  if (!c.error) Object.keys(CE.prog.layout).forEach(k => { if (!c.byName[k]) delete CE.prog.layout[k]; });
+  if (CE.orig && CE.orig !== name) delete calcs[CE.orig];
+  calcs[name] = { code:CE.prog.code, layout:CE.prog.layout };
+  Object.keys(DRAFT_CALC_STATE).forEach(k => { if (k === `draft|${name}`) delete DRAFT_CALC_STATE[k]; });
+
+  const ta = CE.ta, token = `[calc:${name}]`;
+  if (CE.range){
+    ta.value = ta.value.slice(0, CE.range.start) + token + ta.value.slice(CE.range.end);
+    ta.setSelectionRange(CE.range.start + token.length, CE.range.start + token.length);
+  } else {
+    const s = ta.selectionStart, e = ta.selectionEnd;
+    const pre = (s > 0 && ta.value[s-1] !== "\n") ? "\n" : "";
+    ta.value = ta.value.slice(0, s) + pre + token + "\n" + ta.value.slice(e);
+    const caret = s + pre.length + token.length + 1;
+    ta.setSelectionRange(caret, caret);
+  }
+  if (CE.orig && CE.orig !== name)          // переименование — обновляем и другие ссылки
+    document.querySelectorAll("#builder-fields textarea").forEach(t => { t.value = t.value.split(`[calc:${CE.orig}]`).join(token); });
+  $("#calcModal").classList.remove("active");
+  document.querySelectorAll("#builder-fields .md-editor textarea").forEach(refreshPreview);
+  ta.focus();
+  if (c.error) toast(`Сохранено, но в коде ошибка (строка ${c.error.line})`);
+  CE = null;
+}
+function ceDeleteCalc(){
+  if (!CE?.orig) return;
+  if (!confirm(`Удалить калькулятор «${CE.orig}» и все ссылки на него из текста?`)) return;
+  delete state.draftCalcs[CE.orig];
+  const token = `[calc:${CE.orig}]`;
+  document.querySelectorAll("#builder-fields textarea").forEach(t => { t.value = t.value.split(token).join(""); });
+  $("#calcModal").classList.remove("active");
+  document.querySelectorAll("#builder-fields .md-editor textarea").forEach(refreshPreview);
+  CE = null;
+}
+
+/* Клавиши в поле кода: Tab / Shift+Tab — отступ, Enter — сохраняет отступ (+4 после «:») */
+$("#ce-code").addEventListener("keydown", e => {
+  const ta = e.target, s = ta.selectionStart, v = ta.value;
+  const ls = v.lastIndexOf("\n", s - 1) + 1;
+  const ins = t => { if (!document.execCommand?.("insertText", false, t)) ta.setRangeText(t, s, ta.selectionEnd, "end"); };
+  if (e.key === "Tab"){
+    e.preventDefault();
+    if (e.shiftKey){
+      const m = /^ {1,4}/.exec(v.slice(ls));
+      if (m){ ta.setSelectionRange(ls, ls + m[0].length); ins(""); ta.setSelectionRange(Math.max(ls, s - m[0].length), Math.max(ls, s - m[0].length)); }
+    } else ins("    ");
+    ceSyncSoon();
+  } else if (e.key === "Enter" && !e.ctrlKey && !e.metaKey){
+    e.preventDefault();
+    const line = v.slice(ls, s);
+    let indent = /^ */.exec(line)[0];
+    if (/:\s*$/.test(line.replace(/#.*$/, ""))) indent += "    ";
+    ins("\n" + indent);
+    ceSyncSoon();
+  }
+});
+
+/* ============================================================
+   12c. АВТОССЫЛКИ И ВСПЛЫВАЮЩЕЕ ОКНО
+   Названия записей из всех разделов (канон + доступный кастом)
+   находятся в тексте и становятся кликабельными — руками ничего
+   проставлять не нужно.
+   • `в обратных кавычках` — проверяется всегда, даже короткие названия;
+   • обычный текст — названия от 4 букв, только первое упоминание
+     в карточке, с поддержкой падежей («Кровотечением» → «Кровотечение»);
+     одиночное слово — только с заглавной буквы (см. plainOk).
+   Название «Рус (Eng)» ищется и целиком, и по каждой части.
+   Дополнительные варианты — поле «Синонимы» в конструкторе.
+   ============================================================ */
+const XL_MIN_PLAIN = 4;
+const XL_SKIP = "a,code,pre,h1,h2,h3,h4,h5,h6,button,input,textarea,select,.xref,.calc-host,.sub-head,.card-head";
+const xlNorm = s => String(s ?? "").toLowerCase().replace(/ё/g, "е").replace(/\s+/g, " ").trim();
+const reEsc  = s => s.replace(/[.*+?^${}()|[\]\\\/]/g, "\\$&");   // только синтаксические символы — так требует флаг u
+
+function aliasesOf(it){
+  const name = String(it.Name ?? "").trim();
+  if (!name) return [];
+  const out = new Set([name]);
+  const m = /^(.*?)\s*\(([^()]+)\)\s*$/.exec(name);
+  if (m){ if (m[1].trim()) out.add(m[1].trim()); out.add(m[2].trim()); }
+  String(it.Aliases ?? "").split(",").map(s => s.trim()).filter(Boolean).forEach(a => out.add(a));
+  return [...out].filter(a => xlNorm(a).length >= 2);
+}
+/* Русское слово от 4 букв: отрезаем до двух гласных на конце и разрешаем
+   до трёх любых букв окончания. «Горение» → Горен[а-яё]{0,3} */
+function aliasPattern(alias){
+  return alias.trim().split(/\s+/).map(w => {
+    let base = w, tail = "";
+    if (/^[а-яё]+$/i.test(w) && w.length >= 4){
+      const m = /^(.*?)([аеёиоуыэюяйь]{0,2})$/i.exec(w);
+      if (m[1].length >= 3){ base = m[1]; tail = "[а-яё]{0,3}"; }
+    }
+    return reEsc(base).replace(/[её]/gi, "[её]") + tail;
+  }).join("\\s+");
+}
+
+const XL = { canonP:null, canonRef:null, customRef:null, entries:[], byKey:new Map(), aliasText:new Map(), groups:[], re:null };
+/* Защита от ложных срабатываний в обычном тексте:
+   • название из одного слова — только если в тексте оно с заглавной («5 Потопления», но не «сила удара»);
+   • короткое название (до 5 букв) — не короче самого названия («Сил +6» не станет «Силой»). */
+function plainOk(k, found){
+  const a = XL.aliasText.get(k) || k;
+  if (!/\s/.test(a)){
+    const ch = found[0];
+    if (ch !== ch.toUpperCase() && ch === ch.toLowerCase()) return false;
+  }
+  if (a.length <= 5 && found.length < a.length) return false;
+  return true;
+}
+async function loadCanonIndex(){
+  const jobs = [];
+  for (const [catId, c] of Object.entries(CATS)){
+    if (c.kind !== "data") continue;
+    if (c.systems) Object.values(await loadSystems()).forEach(s =>
+      jobs.push(loadJson(s.list).then(l => l.map(it => ({ it:{ ...it, __sys:s.id }, cat:catId, sys:s.id })))));
+    else if (c.classList) jobs.push(canonClassItems().then(l => l.map(it => ({ it, cat:catId }))));
+    else if (c.src) jobs.push(loadJson(c.src).then(l => l.map(it => ({ it, cat:catId }))));
+  }
+  const out = [];
+  (await Promise.allSettled(jobs)).forEach(r => { if (r.status === "fulfilled") out.push(...r.value); });
+  return out;
+}
+async function getIndex(){
+  if (!XL.canonP) XL.canonP = loadCanonIndex();
+  const canon = await XL.canonP;
+  let custom = [];
+  try { custom = await loadCustom() || []; } catch {}
+  if (XL.re !== null && XL.canonRef === canon && XL.customRef === custom) return XL;
+  XL.canonRef = canon; XL.customRef = custom;
+
+  const entries = [...canon];
+  custom.forEach(it => { const cat = CAT_BY_CUSTOM[it.__type]; if (cat) entries.push({ it, cat }); });
+  const byKey = new Map(), aliasText = new Map();
+  /* Русские названия типов из фильтров («Уверенность», «Огонь»…) — синонимы статусов */
+  const TYPE_RU = Object.entries(DICT.types).filter(([k]) => k !== "None" && k !== "Other").map(([k, v]) => [xlNorm(k), v.name]);
+  entries.forEach(e => {
+    e.uid = uidOf(e.cat, e.it);
+    const al = aliasesOf(e.it);
+    if (e.cat === "statuses"){
+      const norm = al.map(xlNorm);
+      TYPE_RU.forEach(([en, ru]) => { if (norm.includes(en) && !norm.includes(xlNorm(ru))) al.push(ru); });
+    }
+    al.forEach(a => {
+      const k = xlNorm(a);
+      if (!byKey.has(k)){ byKey.set(k, []); aliasText.set(k, a); }
+      const l = byKey.get(k);
+      if (!l.some(x => x.uid === e.uid)) l.push(e);
+    });
+  });
+  /* Названия классов («Фиксер») встречаются в тексте постоянно — на них ссылаются только через `код` */
+  const keys = [...aliasText.keys()]
+    .filter(k => k.replace(/[^\p{L}\p{N}]/gu, "").length >= XL_MIN_PLAIN)
+    .filter(k => byKey.get(k).some(e => !CATS[e.cat].xlCodeOnly))
+    .sort((a, b) => b.length - a.length);              // длинные названия — первыми
+  XL.groups = keys;
+  XL.re = keys.length
+    ? new RegExp(`(?<!\\p{L})(?:${keys.map(k => `(${aliasPattern(aliasText.get(k))})`).join("|")})(?!\\p{L})`, "giu")
+    : false;
+  XL.byKey = byKey; XL.entries = entries; XL.aliasText = aliasText;
+  return XL;
+}
+const matchKey = m => { for (let i = 1; i < m.length; i++) if (m[i] !== undefined) return XL.groups[i-1]; return null; };
+
+function makeXref(el, k, selfUid){
+  el.classList.add("xref");
+  el.dataset.act = "xref";
+  el.dataset.k = k;
+  if (selfUid) el.dataset.self = selfUid;
+  el.title = "Показать карточку";
+}
+/* Проставляет ссылки внутри root. selfUid — запись, которой принадлежит текст
+   (на саму себя она не ссылается). Повторный вызов для того же root ничего не делает. */
+async function autolinkIn(root, selfUid = null){
+  if (!root || root.dataset.xl === "1") return;
+  root.dataset.xl = "1";
+  let ix;
+  try { ix = await getIndex(); } catch(e){ console.error(e); return; }
+  if (!root.isConnected) return;
+  const usable = k => (k && ix.byKey.get(k)?.some(e => e.uid !== selfUid)) ? k : null;
+
+  /* 1) `код` — точное совпадение или та же словоформа */
+  root.querySelectorAll("code").forEach(code => {
+    if (code.closest("pre") || code.classList.contains("xref") || code.closest(".calc-host")) return;
+    /* `как в тексте::Точное название` — показываем левую часть, ссылаемся на правую */
+    const raw = code.textContent, di = raw.lastIndexOf("::");
+    const text = (di > 0 ? raw.slice(di + 2) : raw).trim();
+    if (di > 0) code.textContent = raw.slice(0, di).trim();
+    let k = usable(xlNorm(text));
+    if (!k && ix.re){
+      ix.re.lastIndex = 0;
+      const m = ix.re.exec(text);
+      if (m && m.index === 0 && m[0].length === text.length) k = usable(matchKey(m));
+    }
+    if (k) makeXref(code, k, selfUid);
+  });
+
+  /* 2) обычный текст — только первое упоминание каждой записи */
+  if (!ix.re) return;
+  const done = new Set();
+  const scopes = root.matches(".md") ? [root] : [...root.querySelectorAll(".md")];
+  scopes.forEach(scope => {
+    const walker = document.createTreeWalker(scope, NodeFilter.SHOW_TEXT, {
+      acceptNode: n => n.parentElement?.closest(XL_SKIP) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT
+    });
+    const nodes = [];
+    for (let n; (n = walker.nextNode()); ) nodes.push(n);
+    nodes.forEach(node => {
+      const text = node.nodeValue;
+      if (text.length < XL_MIN_PLAIN) return;
+      ix.re.lastIndex = 0;
+      let m, last = 0, frag = null;
+      while ((m = ix.re.exec(text))){
+        const k = usable(matchKey(m));
+        if (!k || !plainOk(k, m[0])) continue;
+        const sig = ix.byKey.get(k).map(e => e.uid).join("|");
+        if (done.has(sig)) continue;
+        done.add(sig);
+        frag = frag || document.createDocumentFragment();
+        frag.append(text.slice(last, m.index));
+        const s = document.createElement("span");
+        s.textContent = m[0];
+        makeXref(s, k, selfUid);
+        frag.append(s);
+        last = m.index + m[0].length;
+      }
+      if (frag){ frag.append(text.slice(last)); node.replaceWith(frag); }
+    });
+  });
+}
+
+/* ---- Всплывающее окно ---- */
+const POP = { stack:[], anchor:null };
+const itemSlug = it => it.__origin === "custom" ? "c:" + it.__id : String(it.Name ?? "");
+const linkFor  = e => `${location.origin}${location.pathname}#${e.cat}/${encodeURIComponent(itemSlug(e.it))}`;
+
+function closePop(){
+  $("#xref-pop").classList.remove("open");
+  POP.stack = []; POP.anchor = null;
+}
+async function openXref(el){
+  const ix = await getIndex();
+  const self = el.dataset.self || null;
+  const list = (ix.byKey.get(el.dataset.k) || []).filter(e => e.uid !== self);
+  if (!list.length) return;
+  if (!el.closest("#xref-pop")){ POP.stack = []; POP.anchor = el; }
+  POP.stack.push(list.length === 1 ? { entry:list[0] } : { choices:list, label:el.textContent });
+  renderPop();
+}
+function renderPop(){
+  const pop = $("#xref-pop"), top = POP.stack[POP.stack.length - 1];
+  if (!top) return closePop();
+  const back = POP.stack.length > 1
+    ? `<button class="xp-back" data-act="xp-back" title="Назад"><i class="fa-solid fa-arrow-left"></i></button>` : "";
+  const close = `<button class="xp-x" data-act="xp-close" title="Закрыть"><i class="fa-solid fa-xmark"></i></button>`;
+
+  if (top.choices){
+    pop.style.setProperty("--pop-color", "#7fd3e6");
+    pop.innerHTML = `<div class="xp-head">${back}<div style="min-width:0">
+        <div class="xp-cat"><i class="fa-solid fa-link"></i> Несколько совпадений</div>
+        <div class="xp-title">${esc(top.label)}</div></div>${close}</div>
+      <div class="xp-body">${top.choices.map((e, i) => {
+        const c = CATS[e.cat];
+        return `<button class="xp-choice" style="--c:${esc(c.color)}" data-act="xp-choose" data-i="${i}">
+          <i class="fa-solid ${esc(c.icon)}" style="color:${esc(c.color)}"></i>${esc(e.it.Name)}
+          <small>${esc(c.label)}${e.it.__origin === "custom" ? " · кастом" : ""}</small></button>`;
+      }).join("")}</div>`;
+  } else {
+    const e = top.entry, c = CATS[e.cat];
+    REG.set(e.uid, { it:e.it, cat:e.cat });
+    const v = withCalcs(e.uid, e.it.Calcs, () => c.card(e.it));
+    const picked = state.picks.some(p => p.uid === e.uid);
+    pop.style.setProperty("--pop-color", c.color);
+    pop.innerHTML = `<div class="xp-head">${back}<div style="min-width:0">
+        <div class="xp-cat"><i class="fa-solid ${esc(c.icon)}"></i> ${esc(c.label)}${e.it.__origin === "custom" ? ` · автор: ${esc(e.it.__creator)}` : ""}</div>
+        <div class="xp-title">${esc(v.title)}</div>${v.meta ? `<div class="xp-meta">${v.meta}</div>` : ""}</div>${close}</div>
+      <div class="xp-body">${v.level ? `<div class="level-badge">${v.level}</div>` : ""}${v.badges ? `<div class="badges">${v.badges}</div>` : ""}${v.body}</div>
+      <div class="xp-foot">
+        <button class="ctrl-btn ctrl-copy" data-act="xp-open"><i class="fa-solid fa-arrow-up-right-from-square"></i> Открыть в базе</button>
+        <button class="ctrl-btn ctrl-pick${picked ? " on" : ""}" data-act="pick" data-uid="${esc(e.uid)}">
+          <i class="fa-regular ${picked ? "fa-square-check" : "fa-square"}"></i> ${picked ? "Выбрано" : "Выбрать"}</button>
+        <button class="ctrl-btn ctrl-dl" data-act="xp-link"><i class="fa-solid fa-link"></i> Ссылка</button>
+      </div>`;
+    const body = pop.querySelector(".xp-body");
+    body.querySelectorAll(".sub-block.collapsed").forEach(b => b.classList.remove("collapsed"));  // в окне всё сразу раскрыто
+    mountCalcs(body);
+    autolinkIn(body, e.uid);
+  }
+  pop.classList.add("open");
+  pop.querySelector(".xp-body").scrollTop = 0;
+  placePop();
+}
+function placePop(){
+  const pop = $("#xref-pop");
+  if (!pop.classList.contains("open")) return;
+  if (window.innerWidth < 640){ pop.classList.add("sheet"); return; }
+  pop.classList.remove("sheet");
+  const W = window.innerWidth, H = window.innerHeight, w = Math.min(480, W - 24);
+  pop.style.width = w + "px";
+  const a = POP.anchor;
+  const r = a && a.isConnected ? a.getBoundingClientRect() : { left:(W - w) / 2, top:80, bottom:80 };
+  const h = pop.offsetHeight;
+  const left = Math.min(Math.max(12, r.left), W - w - 12);
+  let top = r.bottom + 8;
+  if (top + h > H - 12) top = (r.top - 8 - h >= 12) ? r.top - 8 - h : Math.max(12, H - 12 - h);
+  pop.style.left = left + "px";
+  pop.style.top  = top + "px";
+}
+window.addEventListener("resize", placePop);
+window.addEventListener("scroll", placePop, { passive:true });
+document.addEventListener("keydown", ev => { if (ev.key === "Escape" && $("#xref-pop").classList.contains("open")) closePop(); });
+
+/* ---- Переход к записи в базе (из окна, из кабинета, по ссылке) ---- */
+function setSource(src){
+  state.source = src;
+  [...$("#src-switch").children].forEach(x => x.classList.toggle("active", x.dataset.src === src));
+}
+async function openInBase(e){
+  closePop(); closeSidebars();
+  const custom = e.it.__origin === "custom";
+  if ((custom && state.source === "canon") || (!custom && state.source === "custom")) setSource("all");
+  const sys = e.sys || (e.cat === "classes" && custom ? e.it.Class : null);
+  if (sys) state.system = sys;                    // переключатель перерисует setCategory
+  await setCategory(e.cat);                       // сбрасывает поиск и фильтры
+  state.search = String(e.it.Name ?? "");
+  renderFilters();
+  await renderGrid();
+  history.replaceState(null, "", "#" + e.cat + "/" + encodeURIComponent(itemSlug(e.it)));
+  const uid = e.uid || uidOf(e.cat, e.it);
+  const card = [...document.querySelectorAll("#grid .card")].find(c => c.dataset.uid === uid);
+  if (!card) return;
+  card.classList.add("expanded", "flash");
+  autolinkIn(card.querySelector(".card-body"), uid);
+  setTimeout(() => card.classList.remove("flash"), 1700);
+  card.scrollIntoView({ behavior:"smooth", block:"start" });
+}
+async function openFromHash(cat, slug){
+  const ix = await getIndex();
+  const e = ix.entries.find(x => x.cat === cat && itemSlug(x.it) === slug)
+         || ix.entries.find(x => x.cat === cat && xlNorm(x.it.Name) === xlNorm(slug));
+  if (e) await openInBase(e);
+  else toast("Запись по ссылке не найдена");
+}
+
+/* ============================================================
+   12c-2. ГЛОБАЛЬНЫЙ ПОИСК (Ctrl+K) — по всем разделам канона и пользовательской базы
+   ============================================================ */
+const GS = { results: [], sel: 0, timer: null };
+/** Текст записи для поиска: все строковые поля, включая вложенные (способности, действия…). */
+function gsText(v, out = [], depth = 0){
+  if (depth > 4 || v == null) return out;
+  if (typeof v === "string") out.push(v);
+  else if (Array.isArray(v)) v.forEach(x => gsText(x, out, depth + 1));
+  else if (typeof v === "object") for (const [k, x] of Object.entries(v)) if (!k.startsWith("__")) gsText(x, out, depth + 1);
+  return out;
+}
+async function gsSearch(q){
+  const ix = await getIndex();
+  const words = xlNorm(q).split(" ").filter(Boolean);
+  if (!words.length) return [];
+  const scored = [];
+  for (const e of ix.entries){
+    if (!e.gsName){ e.gsName = xlNorm(e.it.Name); e.gsAll = xlNorm(aliasesOf(e.it).join(" ") + " " + gsText(e.it).join(" ")); }
+    if (!words.every(w => e.gsAll.includes(w))) continue;
+    const full = xlNorm(q);
+    let score = 0;
+    if (e.gsName === full) score += 100;
+    else if (e.gsName.startsWith(full)) score += 60;
+    else if (e.gsName.includes(full)) score += 40;
+    score += words.filter(w => e.gsName.includes(w)).length * 10;
+    if (e.it.__origin !== "custom") score += 1;          // канон чуть выше при равенстве
+    scored.push([score, e]);
+  }
+  scored.sort((a, b) => b[0] - a[0] || String(a[1].it.Name).localeCompare(String(b[1].it.Name)));
+  return scored.slice(0, 60).map(x => x[1]);
+}
+function gsSnippet(e, q){
+  const words = xlNorm(q).split(" ").filter(Boolean);
+  // `текст::цель` — служебная разметка автоссылок: показываем только текст
+  const text = gsText(e.it).slice(1).join(" · ").replace(/`([^`\n]*?)::[^`\n]*`/g, "$1").replace(/\s+/g, " ");
+  const low = text.toLowerCase().replace(/ё/g, "е");
+  let at = -1;
+  for (const w of words){ at = low.indexOf(w); if (at >= 0) break; }
+  const from = Math.max(0, at - 40);
+  const cut = text.slice(from, from + 140).replace(/[*_`#>\[\]]/g, "");
+  let html = esc(cut);
+  words.forEach(w => { if (w.length > 1) html = html.replace(new RegExp(reEsc(esc(w)), "giu"), m => `<mark>${m}</mark>`); });
+  return (from > 0 ? "…" : "") + html + (from + 140 < text.length ? "…" : "");
+}
+async function gsRender(){
+  const q = $("#gs-input").value;
+  const box = $("#gs-results");
+  if (!q.trim()){ GS.results = []; box.innerHTML = `<div class="gs-hint">Ищет по названиям и тексту всех разделов: черты, классы, снаряжение, статусы, бестиарий, правила, лор…</div>`; return; }
+  GS.results = await gsSearch(q);
+  if ($("#gs-input").value !== q) return;            // пока искали, ввели другое
+  GS.sel = 0;
+  box.innerHTML = GS.results.length ? GS.results.map((e, i) => {
+    const c = CATS[e.cat];
+    return `<button class="gs-item${i === 0 ? " sel" : ""}" data-act="gs-go" data-i="${i}">
+      <span class="gs-cat" style="color:${esc(c.color)}"><i class="fa-solid ${esc(c.icon)}"></i> ${esc(c.label)}${e.it.__origin === "custom" ? " · кастом" : ""}</span>
+      <span class="gs-name">${esc(e.it.Name ?? "")}</span>
+      <span class="gs-snip">${gsSnippet(e, q)}</span>
+    </button>`;
+  }).join("") : `<div class="gs-hint">Ничего не найдено.</div>`;
+}
+function gsMove(d){
+  const items = [...document.querySelectorAll("#gs-results .gs-item")];
+  if (!items.length) return;
+  GS.sel = (GS.sel + d + items.length) % items.length;
+  items.forEach((x, i) => x.classList.toggle("sel", i === GS.sel));
+  items[GS.sel].scrollIntoView({ block: "nearest" });
+}
+function openGlobalSearch(){
+  closePop();
+  $("#gs").hidden = false;
+  $("#gs-input").select();
+  $("#gs-input").focus();
+  gsRender();
+}
+function closeGlobalSearch(){ $("#gs").hidden = true; }
+$("#gs-input").addEventListener("input", () => { clearTimeout(GS.timer); GS.timer = setTimeout(gsRender, 120); });
+$("#gs-input").addEventListener("keydown", async e => {
+  if (e.key === "ArrowDown"){ e.preventDefault(); gsMove(1); }
+  else if (e.key === "ArrowUp"){ e.preventDefault(); gsMove(-1); }
+  else if (e.key === "Enter"){ e.preventDefault(); const r = GS.results[GS.sel]; if (r){ closeGlobalSearch(); await openInBase(r); } }
+});
+$("#gs").addEventListener("mousedown", e => { if (e.target.id === "gs") closeGlobalSearch(); });
+document.addEventListener("keydown", e => {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k"){ e.preventDefault(); openGlobalSearch(); }
+  else if (e.key === "/" && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName) && !document.activeElement?.isContentEditable){ e.preventDefault(); openGlobalSearch(); }
+  else if (e.key === "Escape" && !$("#gs").hidden) closeGlobalSearch();
+});
+
+/* ============================================================
+   12d. ЛИЧНЫЙ КАБИНЕТ
+   ============================================================ */
+state.cab = { cat:"all", vis:"all" };
+const myItems = () => !state.user ? [] :
+  (state.customCache || []).filter(x => x.__owner === state.user.email && CAT_BY_CUSTOM[x.__type]);
+const CAT_ORDER = Object.keys(CATS);
+
+async function renderCabinetView(){
+  const creatable = Object.entries(CATS).filter(([, c]) => c.customType);
+  $("#action-bar").innerHTML = state.user ? `<div class="cab-create">
+      <select id="cab-new-cat" class="cloud-select">${creatable.map(([id, c]) =>
+        `<option value="${id}">${esc(c.label)}</option>`).join("")}</select>
+      <button class="action-btn" data-act="cab-new"><i class="fa-solid fa-plus"></i> Создать запись</button></div>` : "";
+  if (!state.user){
+    $("#filters").innerHTML = "";
+    $("#result-count").textContent = "";
+    $("#grid").innerHTML = `<div class="notice">Войдите, чтобы увидеть свои записи.<br>
+      <button class="action-btn" data-act="auth" style="margin-top:14px;display:inline-flex"><i class="fa-solid fa-user"></i> Вход</button></div>`;
+    return;
+  }
+  $("#filters").innerHTML = "";
+  $("#grid").innerHTML = `<div class="notice">Загрузка ваших записей…</div>`;
+  await loadCustom();
+  if (catCfg().kind !== "cabinet") return;
+  renderCabinetFilters();
+  renderCabinetGrid();
+}
+function renderCabinetFilters(){
+  const all = myItems();
+  const nick = myNick();
+  const pub = all.filter(x => !x.__private).length;
+  const counts = {};
+  all.forEach(x => { const c = CAT_BY_CUSTOM[x.__type]; counts[c] = (counts[c] || 0) + 1; });
+  const chip = (act, val, cur, label, color) => `<button class="filter-btn${cur === val ? " active" : ""}" data-act="${act}" data-val="${esc(val)}"
+      style="${cur === val ? `border-color:${color};color:${color}` : ""}">${label}</button>`;
+  const stat = (n, l) => `<div class="cab-stat"><b>${n}</b><span>${l}</span></div>`;
+  $("#filters").innerHTML = `
+    <div class="cab-head">
+      <div><div class="cab-user"><i class="fa-solid fa-id-card"></i> ${esc(nick)}</div>
+        <div class="cab-mail">${esc(state.user.email)}${state.isAdmin ? " · админ" : ""}</div></div>
+      <button class="action-btn ghost" data-act="check-links" title="Найти ссылки, цель которых удалена или переименована">
+        <i class="fa-solid fa-link-slash"></i> Проверить ссылки</button>
+      <div class="cab-stats">${stat(all.length, "Записей")}${stat(pub, "Публичных")}${stat(all.length - pub, "Приватных")}${stat(state.picks.length, "В сборке")}</div>
+    </div>
+    <div class="search-wrapper cut-tl"><div class="search-inner cut-tl">
+      <i class="fa-solid fa-magnifying-glass search-icon"></i>
+      <input type="text" id="search-input" class="search-input" value="${esc(state.search)}" placeholder="Поиск по своим записям…">
+    </div></div>
+    <div class="filter-group-title">Раздел</div>
+    <div class="type-filters">${chip("cab-cat", "all", state.cab.cat, "Все", "var(--accent-primary)")}${
+      Object.entries(CATS).filter(([, c]) => c.customType).map(([id, c]) =>
+        chip("cab-cat", id, state.cab.cat, `<i class="fa-solid ${esc(c.icon)}"></i> ${esc(c.label)} <span style="opacity:.6">${counts[id] || 0}</span>`, c.color)).join("")}</div>
+    <div class="filter-group-title">Видимость</div>
+    <div class="type-filters">${chip("cab-vis", "all", state.cab.vis, "Все", "var(--accent-primary)")}${
+      chip("cab-vis", "public", state.cab.vis, '<i class="fa-solid fa-eye"></i> Публичные', "var(--color-cyan)")}${
+      chip("cab-vis", "private", state.cab.vis, '<i class="fa-solid fa-lock"></i> Приватные', "var(--color-red)")}</div>`;
+}
+function renderCabinetGrid(){
+  if (!state.user) return;
+  const all = myItems(), q = state.search.toLowerCase();
+  const list = all.filter(x => {
+    const cat = CAT_BY_CUSTOM[x.__type];
+    if (state.cab.cat !== "all" && cat !== state.cab.cat) return false;
+    if (state.cab.vis === "public" && x.__private) return false;
+    if (state.cab.vis === "private" && !x.__private) return false;
+    if (q){
+      const c = CATS[cat];
+      if (!(String(x.Name || "") + " " + (c.plain ? c.plain(x) : "")).toLowerCase().includes(q)) return false;
+    }
+    return true;
+  }).sort((a, b) => CAT_ORDER.indexOf(CAT_BY_CUSTOM[a.__type]) - CAT_ORDER.indexOf(CAT_BY_CUSTOM[b.__type])
+                 || String(a.Name).localeCompare(String(b.Name)));
+  $("#result-count").textContent = `Показано ${list.length} из ${all.length}`;
+  $("#grid").innerHTML = list.length
+    ? list.map(x => cardHtml(x, CAT_BY_CUSTOM[x.__type], { showCat:true })).join("")
+    : `<div class="notice">${all.length ? "Ничего не найдено" : "Вы ещё ничего не создали.<br>Выберите раздел выше и нажмите «Создать запись»."}</div>`;
+  mountCalcs($("#grid"));
+}
+const renderCabinet = renderCabinetGrid;
+
+/* ============================================================
+   12e. ПОЛНЫЙ ПАРСИНГ (в конструкторе) — нечёткий поиск
+   Это ручная проверка, поэтому ищем «с запасом», как поиск YouTube:
+   • любые падежи и регистр, беглые гласные («Огня» → «Огонь»);
+   • опечатки (1 буква в коротких словах, 2 — в длинных);
+   • английские формы («Bleeding» → «Bleed»), аббревиатуры («ЭГО» = «Э.Г.О.» = «E.G.O.»);
+   • слова названия в другом порядке или через слово («силы аннулирование»);
+   • разметка посреди фразы (**жирный**, кавычки, `кривой код`), цифры вплотную («x3Тремора»);
+   • несколько подходящих записей — выбор из списка.
+   Ложные срабатывания не страшны: пользователь снимает лишние галочки.
+   Выбранное оборачивается в `…`. Если текст сам по себе не указывает
+   однозначно на выбранную запись (опечатка, несколько вариантов),
+   пишется `как в тексте::Точное название` — на сайте видно только
+   «как в тексте», а ссылка ведёт на выбранную запись.
+   ============================================================ */
+const FP = { items:[], groups:[], undo:null };
+const FP_TRIM  = /^[\s"'«»„“”‘’‚(\[*_~]+|[\s"'«»„“”‘’‚)\].,;:!?*_~]+$/g;
+/* аббревиатура с точками (Э.Г.О.) | слово | число — цифры отдельно от букв */
+const WORD_RE  = /\p{L}(?:\.\p{L})+\.?(?!\p{L})|\p{L}+(?:['’]\p{L}+)?|\p{N}+/gu;
+const GAP_OK   = /^[\s*_~"'«»„“”‘’.\-–—\/]*$/;          // что может стоять между словами одного названия
+const SENT_BREAK = /[.!?;:\n]/;                           // граница предложения — для перестановок
+const QUOTE_L  = /["'«„“‘‚]/, QUOTE_R = /["'»“”’]/;
+const RU_END = ["иями","ями","ами","ией","ого","его","ому","ему","ыми","ими","ой","ей","ий","ый","ая","яя","ое","ее",
+                "ую","юю","ом","ем","ам","ям","ах","ях","ов","ев","ию","ия","ие","ии","ью","ы","и","а","я","о","е","у","ю","ь","й"];
+const EN_END = ["ings","ing","edly","ed","es","s"];
+const LAT2CYR = { a:"а",b:"б",c:"к",d:"д",e:"э",f:"ф",g:"г",h:"х",i:"и",j:"дж",k:"к",l:"л",m:"м",n:"н",o:"о",p:"п",
+                  q:"к",r:"р",s:"с",t:"т",u:"у",v:"в",w:"в",x:"кс",y:"й",z:"з" };
+
+/* Грубая основа слова: «Кровотечением» → «кровотечени», «Спешки» → «спешк», «Bleeding» → «bleed» */
+function fpStem(w){
+  /* аббревиатуры: «Э.Г.О.», «ЭГО», «E.G.O.», «EGO» → «эго» (без отрезания окончаний) */
+  if (w.includes(".") || /^[A-ZА-ЯЁ]{2,4}$/.test(w)){
+    let s = w.replace(/\./g, "").toLowerCase().replace(/ё/g, "е");
+    if (/^[a-z]+$/.test(s)) s = [...s].map(c => LAT2CYR[c] || c).join("");
+    return s;
+  }
+  w = w.toLowerCase().replace(/ё/g, "е");
+  if (/^[а-я]+$/.test(w)){
+    /* у слов из 3 букв отрезаем только одну гласную: «Яда» → «яд», «Феи» → «фе» */
+    for (const e of RU_END)
+      if (w.endsWith(e) && w.length - e.length >= 2 && (w.length >= 4 || e.length === 1)) return w.slice(0, -e.length);
+    return w;
+  }
+  if (/^[a-z]+$/.test(w)){
+    for (const e of EN_END){
+      if (!w.endsWith(e) || w.length - e.length < 3) continue;
+      if ((e === "ed" || e === "edly") && w[w.length - e.length - 1] === "e") continue;   // «bleed», «speed» — не форма
+      if (e === "es" && !/(s|x|z|ch|sh)es$/.test(w)) return w.slice(0, -1);              // «flames» → «flame»
+      return w.slice(0, -e.length);
+    }
+    return w;
+  }
+  return w;
+}
+/* Расстояние Дамерау–Левенштейна (с перестановкой соседних букв), с ранним выходом */
+function osa(a, b, lim){
+  if (Math.abs(a.length - b.length) > lim) return lim + 1;
+  let p2 = null, p1 = Array.from({ length:b.length + 1 }, (_, j) => j);
+  for (let i = 1; i <= a.length; i++){
+    const cur = [i]; let rowMin = i;
+    for (let j = 1; j <= b.length; j++){
+      let v = Math.min(p1[j] + 1, cur[j-1] + 1, p1[j-1] + (a[i-1] === b[j-1] ? 0 : 1));
+      if (p2 && j > 1 && a[i-1] === b[j-2] && a[i-2] === b[j-1]) v = Math.min(v, p2[j-2] + 1);
+      cur.push(v); if (v < rowMin) rowMin = v;
+    }
+    if (rowMin > lim) return lim + 1;
+    p2 = p1; p1 = cur;
+  }
+  return p1[b.length];
+}
+/* Похожесть двух основ: 1 — совпали, 0 — не похожи */
+function wordSim(a, b){
+  if (a === b) return 1;
+  const L = Math.max(a.length, b.length), S = Math.min(a.length, b.length);
+  /* беглая гласная: «огон(ь)» ↔ «огн(я)», «когот(ь)» ↔ «когт(я)» */
+  if (L - S === 1 && S >= 2){
+    const lo = a.length > b.length ? a : b, sh = lo === a ? b : a;
+    for (let k = 1; k < lo.length; k++)
+      if ("оеё".includes(lo[k]) && lo.slice(0, k) + lo.slice(k + 1) === sh) return 0.9;
+  }
+  if (S <= 2) return 0;
+  /* короткие (3 буквы): «фея» ↔ «феи» — только при совпадении начала */
+  if (S === 3) return (L <= 4 && a.slice(0, 2) === b.slice(0, 2) && osa(a, b, 1) <= 1) ? 0.8 : 0;
+  const lim = L <= 5 ? 1 : 2;
+  const d = osa(a, b, lim);
+  return d <= lim ? 1 - d / (L + 1) : 0;
+}
+
+/* Модель для нечёткого поиска: названия, разбитые на основы.
+   byFirst — по первой букве первого слова; byAny — по первой букве любого слова (для перестановок) */
+let FZ = null;
+function fuzzyModel(ix){
+  if (FZ && FZ.map === ix.aliasText) return FZ;
+  const byFirst = new Map(), byAny = new Map();
+  const put = (m, f, r) => (m.get(f) || m.set(f, []).get(f)).push(r);
+  ix.aliasText.forEach((a, k) => {
+    const words = a.match(WORD_RE) || [];
+    if (!words.length) return;
+    const stems = words.map(fpStem);
+    if (stems.join("").length < 2) return;
+    const rec = { key:k, stems, n:stems.length };
+    put(byFirst, stems[0][0], rec);
+    if (rec.n >= 2) new Set(stems.map(s => s[0])).forEach(f => put(byAny, f, rec));
+  });
+  return (FZ = { map:ix.aliasText, byFirst, byAny });
+}
+function fpTokens(text){
+  const t = [];
+  for (const m of text.matchAll(WORD_RE)) t.push({ s:m.index, e:m.index + m[0].length, st:fpStem(m[0]) });
+  return t;
+}
+function fpCandidates(text, FZm, isProt){
+  const tokens = fpTokens(text), out = [];
+  const gap = (x, y) => text.slice(tokens[x].e, tokens[y].s);
+  for (let i = 0; i < tokens.length; i++){
+    const t0 = tokens[i];
+    if (isProt(t0.s, t0.e)) continue;
+
+    /* а) слова названия подряд и по порядку */
+    for (const r of FZm.byFirst.get(t0.st[0]) || []){
+      if (i + r.n > tokens.length) continue;
+      let sum = 0, ok = true;
+      for (let j = 0; j < r.n && ok; j++){
+        if (j && !GAP_OK.test(gap(i + j - 1, i + j))) ok = false;
+        else { const sim = wordSim(tokens[i+j].st, r.stems[j]); if (sim) sum += sim; else ok = false; }
+      }
+      if (!ok) continue;
+      const e = tokens[i + r.n - 1].e;
+      if (!isProt(t0.s, e)) out.push({ s:t0.s, e, key:r.key, score:sum / r.n });
+    }
+
+    /* б) все слова названия в окне из n+2 слов, в любом порядке, в пределах предложения.
+          Такие совпадения всегда «неточные» (не выше 85%) и по умолчанию не отмечены */
+    for (const r of FZm.byAny.get(t0.st[0]) || []){
+      const win = [i];
+      for (let x = i + 1; x < tokens.length && x < i + r.n + 2; x++){
+        if (SENT_BREAK.test(gap(x - 1, x)) || isProt(tokens[x].s, tokens[x].e)) break;
+        win.push(x);
+      }
+      if (win.length < r.n) continue;
+      let j0 = -1, s0 = 0;                              // первое слово окна обязано быть словом названия
+      r.stems.forEach((st, j) => { const s = wordSim(t0.st, st); if (s > s0){ s0 = s; j0 = j; } });
+      if (j0 < 0) continue;
+      const usedTok = new Set([i]);
+      let sum = s0, ok = true, maxX = i;
+      for (let j = 0; j < r.n && ok; j++){
+        if (j === j0) continue;
+        let bx = -1, bs = 0;
+        for (const x of win) if (!usedTok.has(x)){ const s = wordSim(tokens[x].st, r.stems[j]); if (s > bs){ bs = s; bx = x; } }
+        if (bx < 0) ok = false;
+        else { usedTok.add(bx); sum += bs; if (bx > maxX) maxX = bx; }
+      }
+      if (!ok) continue;
+      const e = tokens[maxX].e;
+      if (!isProt(t0.s, e)) out.push({ s:t0.s, e, key:r.key, score:Math.min(0.85, sum / r.n * 0.85), loose:true });
+    }
+  }
+  return out;
+}
+/* Кандидаты → варианты по конкретным записям (а не по названиям). Сама запись — не вариант */
+function fpVariants(ix, cands, selfUid){
+  const best = new Map();
+  cands.forEach(c => (ix.byKey.get(c.key) || []).forEach(en => {
+    if (en.uid === selfUid) return;
+    const v = best.get(en.uid), len = c.e - c.s;
+    if (!v || c.score > v.score || (c.score === v.score && len > v.e - v.s))
+      best.set(en.uid, { entry:en, s:c.s, e:c.e, score:c.score, key:c.key });
+  }));
+  return [...best.values()]
+    /* длиннее совпадение — важнее: «Аннулированием силы» → «Аннулирование силы», а не «Сила».
+       Перестановки (score ≤ 0.85) не перебивают точное совпадение той же длины */
+    .sort((a, b) => (b.e - b.s) - (a.e - a.s) || b.score - a.score || fpPrimary(b) - fpPrimary(a))
+    .slice(0, 8);
+}
+/* Совпало «настоящее» имя записи, а не пометка в скобках.
+   «Кровотечение (Bleed)» — в скобках перевод (другой алфавит) → считается именем;
+   «Devotion (Bleed)» — в скобках тип гифта → нет. */
+function fpPrimary(v){
+  const name = String(v.entry.it.Name ?? "").trim();
+  const m = /^(.*?)\s*\(([^()]+)\)\s*$/.exec(name);
+  if (!m || v.key === xlNorm(name) || v.key === xlNorm(m[1])) return 1;
+  if (v.key === xlNorm(m[2])) return /[а-яё]/i.test(m[1]) !== /[а-яё]/i.test(m[2]) ? 1 : 0;
+  return 1;                                        // синоним из поля «Синонимы» или подпись типа
+}
+
+/* То же правило, что у `кода` при просмотре: точное название или его словоформа */
+function resolveKey(ix, str){
+  const t = String(str).trim();
+  if (!t) return null;
+  if (ix.byKey.has(xlNorm(t))) return xlNorm(t);
+  if (ix.re){
+    ix.re.lastIndex = 0;
+    const m = ix.re.exec(t);
+    if (m && m.index === 0 && m[0].length === t.length) return matchKey(m);
+  }
+  return null;
+}
+/* `текст::Цель` — работает ли уже такой код */
+function resolveCode(ix, inner){
+  const i = inner.lastIndexOf("::");
+  return resolveKey(ix, i > 0 ? inner.slice(i + 2) : inner);
+}
+/* Название, по которому запись находится однозначно */
+function uniqueAlias(ix, en){
+  const al = aliasesOf(en.it);
+  return al.find(a => (ix.byKey.get(xlNorm(a)) || []).length === 1) || String(en.it.Name ?? "");
+}
+function fpRepl(ix, display, en){
+  const k = resolveKey(ix, display), list = k ? ix.byKey.get(k) : null;
+  if (list && list.length === 1 && list[0].uid === en.uid) return "`" + display + "`";
+  return "`" + display + "::" + uniqueAlias(ix, en) + "`";
+}
+/* Для копирования текстом: `Тримор::Тремор (Tremor)` → `Тримор` */
+const stripLinkTargets = s => String(s ?? "").replace(/`([^`\n]*?)::[^`\n]*`/g, "`$1`");
+
+function fpFieldLabel(el){
+  const anchor = el.closest(".md-editor") || el;
+  const prev = anchor.previousElementSibling;
+  let lbl = prev?.classList.contains("tech-text") ? prev.textContent.trim() : "Текст";
+  const entry = el.closest(".b-entry");
+  if (entry){
+    const n = entry.querySelector('[data-f="name"]')?.value?.trim();
+    const sec = entry.parentElement?.previousElementSibling?.querySelector(".tech-text")?.textContent?.trim();
+    lbl = `${sec || "Блок"}${n ? " · " + n : ""}`;
+  }
+  return lbl.replace(/\s*\(.*?\)\s*$/, "").replace(/\s*—.*$/, "");
+}
+
+function fpScan(text, ix, FZm, selfUid){
+  const items = [], prot = [];
+  const isProt = (a, b) => prot.some(([x, y]) => a < y && b > x);
+  for (const m of text.matchAll(/```[\s\S]*?```/g)) prot.push([m.index, m.index + m[0].length]);
+
+  /* 1) `код`: рабочий — пропускаем; с мусором, опечаткой или битой целью — ищем по видимому тексту */
+  for (const m of text.matchAll(/`([^`\n]+)`/g)){
+    const a = m.index, b = a + m[0].length;
+    if (isProt(a, b)) continue;
+    prot.push([a, b]);
+    if (resolveCode(ix, m[1])) continue;
+    const di = m[1].lastIndexOf("::");
+    const shown = di > 0 ? m[1].slice(0, di) : m[1];
+    const clean = shown.replace(FP_TRIM, "").replace(/[*_~]/g, "").trim();
+    if (!clean) continue;
+    const variants = fpVariants(ix, fpCandidates(clean, FZm, () => false), selfUid);
+    if (variants.length) items.push({ kind:"code", cs:a, ce:b, display:clean, broken:di > 0, variants });
+  }
+  /* 2) не трогаем: ссылки [текст](адрес), калькуляторы [calc:…], картинки [файл.png W:…], адреса, html.
+        Обычный текст в квадратных скобках — «[Спешка]» — сканируется как всё остальное */
+  for (const m of text.matchAll(/\[[^\]\n]*\]\([^)\n]*\)|https?:\/\/\S+|<[^>\n]+>/g))
+    prot.push([m.index, m.index + m[0].length]);
+  for (const m of text.matchAll(/\[\s*([^\s\]]+)[^\]\n]*\]/g))
+    if (/^calc:/i.test(m[1]) || IMG_OK.test(m[1])) prot.push([m.index, m.index + m[0].length]);
+
+  /* 3) обычный текст: самые длинные совпадения занимают место первыми,
+        всё, что с ними пересекается, становится вариантами */
+  const cands = fpCandidates(text, FZm, isProt)
+    .sort((x, y) => (y.e - y.s) - (x.e - x.s) || y.score - x.score);
+  /* место занимают сначала совпадения по порядку слов, и только потом — перестановки,
+     иначе «оружие, Слияние ЭГО» перехватит «Слияние ЭГО» */
+  const spans = [];
+  const overlaps = (c, sp) => c.s < sp.e && c.e > sp.s;
+  for (const pass of [false, true]) for (const c of cands){
+    if (!!c.loose !== pass || spans.some(sp => overlaps(c, sp))) continue;
+    if (!fpVariants(ix, [c], selfUid).length) continue;   // только ссылка на саму себя — место не занимает
+    spans.push({ s:c.s, e:c.e });
+  }
+  spans.forEach(sp => {
+    /* варианты — только те, что не залезают на соседние найденные места */
+    const mine = cands.filter(c => overlaps(c, sp) && !spans.some(o => o !== sp && overlaps(c, o)));
+    const variants = fpVariants(ix, mine, selfUid);
+    if (variants.length) items.push({ kind:"plain", variants });
+  });
+  return items;
+}
+
+/* Что именно и на что заменить. Разметка внутри фразы не ломается:
+   непарные маркеры выносятся за пределы ссылки —
+   «**Встреча с Рыдающей** жабой» → «**Встреча с `Рыдающей жабой`**» */
+function fpEdit(it){
+  const v = it.variants[it.sel];
+  if (it.kind === "code") return { a:it.cs, b:it.ce, repl:fpRepl(FP.ix, it.display, v.entry) };
+  const t = it.ta.value;
+  let a = v.s, b = v.e;
+  const slice = t.slice(a, b);
+  const stack = [];
+  for (const m of slice.matchAll(/[*_~]+/g)){
+    if (stack.length && stack[stack.length - 1] === m[0]) stack.pop(); else stack.push(m[0]);
+  }
+  let pre = "", post = "";
+  stack.forEach(r => {
+    const opened = (t.slice(0, a).split(r).length - 1) % 2 === 1;   // открыт раньше фразы → это закрывающий
+    if (opened) post += r; else pre += r;
+  });
+  const display = slice.replace(/[*_~]+/g, "").replace(/\s+/g, " ").trim();
+  if (QUOTE_L.test(t[a-1] || "") && QUOTE_R.test(t[b] || "")){ a--; b++; }
+  return { a, b, repl: pre + fpRepl(FP.ix, display, v.entry) + post };
+}
+
+/* Поля, которые сканируются: текст с Markdown + однострочные поля с пометкой data-link */
+const fpFields = () => [...$("#builder-fields").querySelectorAll(".md-editor textarea, input[data-link]")];
+
+async function forceParse(){
+  const els = fpFields();
+  if (!$("#builderModal").classList.contains("active") || !els.length) return;
+  $("#fp-body").innerHTML = `<div class="notice">Сканирование…</div>`;
+  $("#parseModal").classList.add("active");
+  const ix = await getIndex(), FZm = fuzzyModel(ix), selfUid = draftUid();
+
+  FP.ix = ix;
+  FP.items = [];
+  els.forEach(el => {
+    const where = fpFieldLabel(el);
+    fpScan(el.value, ix, FZm, selfUid).forEach(f => {
+      const top = f.variants[0];
+      const shown = f.kind === "code" ? f.display : el.value.slice(top.s, top.e);
+      const sure = f.kind === "code" ? top.score === 1 : (top.score === 1 && plainOk(top.key, shown));
+      FP.items.push({ ...f, ta:el, where, sel:0, on:sure, sure });
+    });
+  });
+  FP.items.sort((a, b) => els.indexOf(a.ta) - els.indexOf(b.ta) || fpEdit(a).a - fpEdit(b).a);
+  fpGroup();
+  fpRender();
+}
+/* Группа = запись, выбранная в варианте */
+function fpGroup(){
+  const byUid = new Map();
+  FP.items.forEach(it => {
+    const en = it.variants[it.sel].entry;
+    if (!byUid.has(en.uid)) byUid.set(en.uid, { entry:en, items:[] });
+    byUid.get(en.uid).items.push(it);
+  });
+  FP.groups = [...byUid.values()].sort((a, b) => b.items.length - a.items.length
+    || String(a.entry.it.Name).localeCompare(String(b.entry.it.Name)));
+}
+const fpPct = s => s === 1 ? "точно" : `≈${Math.round(s * 100)}%`;
+function fpRender(){
+  const body = $("#fp-body");
+  if (!FP.items.length){
+    body.innerHTML = `<div class="notice">Совпадений не найдено — всё, что можно, уже работает как ссылки.</div>`;
+    return fpSync();
+  }
+  body.innerHTML = FP.groups.map((g, gi) => {
+    const e = g.entry, c = CATS[e.cat] || { color:"#7fd3e6", label:"", icon:"fa-link" };
+    return `<div class="fp-group" style="--c:${esc(c.color)}">
+      <label class="fp-ghead"><input type="checkbox" data-fp-group="${gi}"><i class="fa-solid ${esc(c.icon)}"></i>
+        <span>${esc(e.it.Name)}</span> <span class="fp-cat">${esc(c.label)}${e.it.__origin === "custom" ? " · кастом" : ""}</span>
+        <small>${g.items.length} шт.</small></label>
+      ${g.items.map(it => {
+        const i = FP.items.indexOf(it), t = it.ta.value, v = it.variants[it.sel], ed = fpEdit(it), a = ed.a, b = ed.b;
+        const pre = t.slice(Math.max(0, a - 45), a), post = t.slice(b, b + 45);
+        const tags = [
+          it.kind === "code" ? `<span class="fp-tag code">${it.broken ? "битая ссылка" : "кривой код"}</span>` : "",
+          it.kind === "plain" && QUOTE_L.test(t[a] || "") && a < v.s ? `<span class="fp-tag quote">в кавычках</span>` : "",
+          v.score < 1 ? `<span class="fp-tag doubt">${fpPct(v.score)}</span>`
+            : (!it.sure ? `<span class="fp-tag doubt">сомнительно</span>` : "")
+        ].join("");
+        const pick = it.variants.length > 1
+          ? `<select class="cloud-select fp-var" data-fp-var="${i}">${it.variants.map((x, xi) =>
+              `<option value="${xi}" ${xi === it.sel ? "selected" : ""}>${esc(x.entry.it.Name)} · ${esc(CATS[x.entry.cat]?.label || "")}${x.entry.it.__origin === "custom" ? " (кастом)" : ""} · ${fpPct(x.score)}</option>`).join("")}</select>`
+          : "";
+        return `<div class="fp-item">
+          <input type="checkbox" data-fp-item="${i}" ${it.on ? "checked" : ""}>
+          <span class="fp-where" title="${esc(it.where)}">${esc(it.where)}</span>
+          <span class="fp-ctx">${a > 45 ? "…" : ""}${esc(pre).replace(/\n/g, " ")}<mark>${esc(t.slice(a, b))}</mark>${esc(post).replace(/\n/g, " ")}${b + 45 < t.length ? "…" : ""}${tags}
+            <span class="fp-res">→ <code>${esc(ed.repl)}</code></span>${pick}</span></div>`;
+      }).join("")}
+    </div>`;
+  }).join("");
+  fpSync();
+}
+/* Обновляем галочки групп и счётчик без перерисовки списка */
+function fpSync(){
+  document.querySelectorAll("[data-fp-group]").forEach(box => {
+    const its = FP.groups[+box.dataset.fpGroup].items, on = its.filter(x => x.on).length;
+    box.checked = on === its.length; box.indeterminate = on > 0 && on < its.length;
+  });
+  document.querySelectorAll("[data-fp-item]").forEach(box => box.checked = FP.items[+box.dataset.fpItem].on);
+  const n = FP.items.filter(x => x.on).length;
+  $("#fp-apply-label").textContent = n ? `Применить (${n})` : "Применить";
+}
+function fpToggle(box){
+  if (box.dataset.fpGroup !== undefined) FP.groups[+box.dataset.fpGroup].items.forEach(x => x.on = box.checked);
+  else FP.items[+box.dataset.fpItem].on = box.checked;
+  fpSync();
+}
+function fpChooseVariant(sel){
+  const it = FP.items[+sel.dataset.fpVar];
+  it.sel = +sel.value;
+  it.on = true;                                   // выбрал вариант руками — значит, хочет ссылку
+  const scroller = $("#parseModal"), y = scroller.scrollTop;
+  fpGroup(); fpRender();
+  scroller.scrollTop = y;
+}
+function fpSelect(mode){
+  FP.items.forEach(x => x.on = mode === "all" ? true : mode === "sure" ? x.sure : false);
+  fpSync();
+}
+function fpApply(){
+  const chosen = FP.items.filter(x => x.on);
+  if (!chosen.length) return toast("Ничего не выбрано");
+  /* снимок всех полей — для кнопки «Отменить парсинг» */
+  FP.undo = fpFields().map(el => [el, el.value]);
+  const byTa = new Map();
+  chosen.forEach(x => (byTa.get(x.ta) || byTa.set(x.ta, []).get(x.ta)).push(x));
+  let done = 0;
+  byTa.forEach((list, ta) => {
+    let v = ta.value, lastStart = Infinity;
+    list.map(fpEdit).sort((x, y) => y.a - x.a).forEach(({ a, b, repl }) => {
+      if (b > lastStart) return;                  // пересекается с уже заменённым — пропускаем
+      v = v.slice(0, a) + repl + v.slice(b);
+      lastStart = a; done++;
+    });
+    ta.value = v;
+    refreshPreview(ta);
+  });
+  $("#parseModal").classList.remove("active");
+  $("#fp-undo-btn").style.display = "";
+  toast(`Ссылок проставлено: ${done}. Не забудьте сохранить запись`);
+}
+function fpUndo(){
+  if (!FP.undo) return;
+  FP.undo.forEach(([el, val]) => { if (el.isConnected){ el.value = val; refreshPreview(el); } });
+  FP.undo = null;
+  $("#fp-undo-btn").style.display = "none";
+  toast("Парсинг отменён — текст как был");
+}
+
+/* ============================================================
+   12f. ПРОВЕРКА БИТЫХ ССЫЛОК (личный кабинет)
+   Ищет в своих записях `текст::Цель`, у которых цель больше не существует
+   (переименована, удалена, стала приватной).
+   ============================================================ */
+async function checkLinks(){
+  $("#link-body").innerHTML = `<div class="notice">Проверка…</div>`;
+  $("#linkModal").classList.add("active");
+  await loadCustom();
+  const ix = await getIndex();
+  const strings = (v, out = []) => {
+    if (typeof v === "string") out.push(v);
+    else if (Array.isArray(v)) v.forEach(x => strings(x, out));
+    else if (v && typeof v === "object")
+      Object.entries(v).forEach(([k, x]) => { if (!k.startsWith("__") && k !== "Calcs") strings(x, out); });
+    return out;
+  };
+  const rows = [];
+  myItems().forEach(it => {
+    const bad = [];
+    strings(it).forEach(s => {
+      for (const m of s.matchAll(/`([^`\n]+)`/g)){
+        const i = m[1].lastIndexOf("::");
+        if (i > 0 && !resolveKey(ix, m[1].slice(i + 2))) bad.push({ shown:m[1].slice(0, i), target:m[1].slice(i + 2) });
+      }
+    });
+    if (bad.length){
+      const cat = CAT_BY_CUSTOM[it.__type], uid = uidOf(cat, it);
+      REG.set(uid, { it, cat });
+      rows.push({ it, cat, uid, bad });
+    }
+  });
+  $("#link-body").innerHTML = !rows.length
+    ? `<div class="notice" style="color:#2ECC71"><i class="fa-solid fa-circle-check"></i> Битых ссылок нет — все цели на месте.</div>`
+    : `<div class="tool-hint">Найдено записей с битыми ссылками: ${rows.length}. «Исправить» откроет конструктор с полным парсингом —
+         он предложит новую цель для каждой битой ссылки.</div>` + rows.map(r => {
+      const c = CATS[r.cat];
+      return `<div class="fp-group" style="--c:${esc(c.color)}">
+        <div class="fp-ghead"><i class="fa-solid ${esc(c.icon)}"></i><span>${esc(r.it.Name)}</span>
+          <span class="fp-cat">${esc(c.label)}</span>
+          <button class="mini-btn" style="margin-left:auto" data-act="link-fix" data-uid="${esc(r.uid)}">Исправить</button></div>
+        ${r.bad.map(b => `<div class="fp-item" style="cursor:default"><span class="fp-ctx">«${esc(b.shown)}» → <s>${esc(b.target)}</s>
+          <span class="fp-tag doubt">цель не найдена</span></span></div>`).join("")}
+      </div>`;
+    }).join("");
+}
+
+/* ============================================================
+   13. АВТОРИЗАЦИЯ И АДМИНЫ
+   ============================================================ */
+/* Вход, регистрация, никнейм и права админа — общие для всего сайта: site/auth.js + окно настроек site/ui.js. */
+const myNick = () => state.nick || (state.user?.email || "").split("@")[0];
+
+onAuth(async a => {
+  state.user = a.user;
+  state.isAdmin = a.isAdmin;
+  state.nick = a.nick;
+  $("#user-info").textContent = a.user ? (a.isAdmin ? a.nick + " · админ" : a.nick) : "";
+  $("#auth-label").textContent = a.user ? "Профиль" : "Вход";
+  $("#admin-tools").style.display = a.isAdmin ? "" : "none";
+  state.customLoaded = false;
+  await refreshCurrent();
+});
+
+async function migrateFlags(){
+  if (!state.isAdmin) return;
+  try {
+    const snap = await getDocs(collection(db, COLL));
+    const broken = [];
+    snap.forEach(d => { if (typeof d.data().isPrivate !== "boolean") broken.push(d.id); });
+    if (!broken.length) return toast("Все записи в порядке");
+    if (!confirm(`Найдено записей без флага приватности: ${broken.length}. Проставить им isPrivate: false?`)) return;
+    for (const id of broken) await setDoc(doc(db, COLL, id), { isPrivate:false }, { merge:true });
+    toast(`Исправлено записей: ${broken.length}`);
+    await loadCustom(true); await renderGrid();
+  } catch(e){ console.error(e); toast("Не удалось выполнить проверку"); }
+}
+
+/* ============================================================
+   14. СОБЫТИЯ
+   ============================================================ */
+const closeSidebars = () => {
+  $("#sb-picks").classList.remove("active");
+  $("#sb-base").classList.remove("active");
+  $("#sb-overlay").classList.remove("active");
+};
+const openSidebar = id => { closeSidebars(); $(id).classList.add("active"); $("#sb-overlay").classList.add("active"); };
+
+document.addEventListener("click", async ev => {
+  if (!ev.target.closest(".ce-menu-wrap")) $("#ce-menu").hidden = true;
+  if ($("#xref-pop").classList.contains("open") && !ev.target.closest("#xref-pop") && !ev.target.closest(".xref")) closePop();
+  const el = ev.target.closest("[data-act]");
+  if (!el) return;
+  const act = el.dataset.act, uid = el.dataset.uid;
+
+  switch(act){
+    case "set-cat": await setCategory(el.dataset.cat); break;
+    case "set-subtab": state.subtab = el.dataset.sub; renderSubtabs(); await renderView(); break;
+
+    case "toggle-card": {
+      const card = el.closest(".card");
+      if (!card) break;
+      card.classList.toggle("expanded");
+      if (card.classList.contains("expanded")) autolinkIn(card.querySelector(".card-body"), card.dataset.uid || null);
+      break;
+    }
+
+    /* Автоссылки и всплывающее окно */
+    case "xref": ev.preventDefault(); ev.stopPropagation(); await openXref(el); break;
+    case "xp-close": closePop(); break;
+    case "xp-back": POP.stack.pop(); renderPop(); break;
+    case "xp-choose": {
+      const top = POP.stack[POP.stack.length - 1];
+      const e = top?.choices?.[+el.dataset.i];
+      if (e){ POP.stack.push({ entry:e }); renderPop(); }
+      break;
+    }
+    case "xp-open": { const e = POP.stack[POP.stack.length - 1]?.entry; if (e) await openInBase(e); break; }
+    case "xp-link": { const e = POP.stack[POP.stack.length - 1]?.entry; if (e) copyText(linkFor(e)); break; }
+
+    /* Личный кабинет */
+    case "cab-new": openBuilder(null, false, null, $("#cab-new-cat").value); break;
+    case "cab-cat": state.cab.cat = el.dataset.val; renderCabinetFilters(); renderCabinetGrid(); break;
+    case "cab-vis": state.cab.vis = el.dataset.val; renderCabinetFilters(); renderCabinetGrid(); break;
+    case "open-in-base": {
+      const r = REG.get(uid);
+      if (r) await openInBase({ it:r.it, cat:r.cat, uid, sys:r.it.__sys });
+      break;
+    }
+    case "toggle-sub": el.closest(".sub-block")?.classList.toggle("collapsed"); break;
+
+    case "toggle-filter": {
+      const k = el.dataset.key;
+      state.filters[k] = state.filters[k] || new Set();
+      state.filters[k].has(el.dataset.val) ? state.filters[k].delete(el.dataset.val) : state.filters[k].add(el.dataset.val);
+      renderFilters(); await renderGrid(); break;
+    }
+    case "clear-filter": state.filters[el.dataset.key] = new Set(); renderFilters(); await renderGrid(); break;
+
+    case "pick": togglePick(uid); break;
+    case "copy-item": { const it = findItem(uid); if (it) copyText(stripLinkTargets(withCalcText(CATS[catOf(uid)].plain(it), it.Calcs, uid))); break; }
+    case "copy-link": { const r = REG.get(uid); if (r) { copyText(linkFor({ it:r.it, cat:r.cat })); } break; }
+    case "gs-open": openGlobalSearch(); break;
+    case "gs-go": { const e = GS.results[+el.dataset.i]; if (e){ closeGlobalSearch(); await openInBase(e); } break; }
+    case "dl-item": { const it = findItem(uid); if (it) downloadJson([cleanCopy(it)], `${it.Name || "item"}.json`); break; }
+
+    case "open-picks": openSidebar("#sb-picks"); break;
+    case "open-base": openSidebar("#sb-base"); break;
+    case "open-class-archs": {
+      const key = el.dataset.sys; if (!key) break;
+      closePop(); closeSidebars();
+      if (key.startsWith("c:") && state.source === "canon") setSource("all");
+      state.system = key;
+      await setCategory("classes");
+      break;
+    }
+    case "close-sidebars": closeSidebars(); break;
+    case "pick-copy": { const p = state.picks.find(x => x.uid === uid); if (p) copyText(pickPlain(p)); break; }
+    case "pick-remove": {
+      state.picks = state.picks.filter(x => x.uid !== uid); savePicks(); renderPicks();
+      await refreshCurrent(); break;
+    }
+    case "picks-copy": copyText(state.picks.map(pickPlain).join("\n\n")); break;
+    case "picks-export": downloadJson(state.picks.map(p => ({ category:p.cat, ...p.data })), "my-build.json"); break;
+    case "picks-clear":
+      if (confirm("Очистить всю сборку?")){ state.picks = []; savePicks(); renderPicks(); await renderGrid(); }
+      break;
+
+    case "auth": window.SiteUI?.open("account"); break;
+    case "close-modal": el.closest(".modal-overlay").classList.remove("active"); break;
+    case "migrate": await migrateFlags(); break;
+
+    case "new-entry": openBuilder(); break;
+    case "edit-item": { const it = findItem(uid); if (it) openBuilder(cleanCopy(it), it.__private, it.__id, catOf(uid)); break; }
+    case "toggle-priv": {
+      const it = findItem(uid); if (!it) break;
+      try { await setDoc(doc(db, COLL, it.__id), { isPrivate: !it.__private }, { merge:true });
+            await loadCustom(true); await refreshCurrent(); }
+      catch(e){ toast("Не удалось изменить приватность"); } break;
+    }
+    case "del-item": {
+      const it = findItem(uid); if (!it) break;
+      const linked = it.__type === "baseclass"
+        ? (state.customCache || []).filter(x => x.__type === "class" && x.Class === "c:" + it.__id).length : 0;
+      if (!confirm(`Удалить «${it.Name}» навсегда?` + (linked
+        ? `\n\nНа этот класс ссылаются архетипы: ${linked}. Они останутся и будут видны у всех классов.` : ""))) break;
+      try { await deleteDoc(doc(db, COLL, it.__id)); await loadCustom(true); await refreshCurrent(); toast("Удалено"); }
+      catch(e){ toast("Ошибка удаления"); } break;
+    }
+    case "builder-save": await saveEntry(); break;
+    case "force-parse": await forceParse(); break;
+    case "parse-item": {
+      const it = findItem(uid); if (!it) break;
+      openBuilder(cleanCopy(it), it.__private, it.__id, catOf(uid));
+      await forceParse(); break;
+    }
+    case "fp-sel": fpSelect(el.dataset.mode); break;
+    case "fp-undo": fpUndo(); break;
+    case "check-links": await checkLinks(); break;
+    case "link-fix": {
+      const r = REG.get(uid); if (!r) break;
+      $("#linkModal").classList.remove("active");
+      openBuilder(cleanCopy(r.it), r.it.__private, r.it.__id, r.cat);
+      await forceParse(); break;
+    }
+    case "fp-apply": fpApply(); break;
+    case "builder-download": {
+      const d = collectBuilder();
+      downloadJson([d], `${d.Name || "entry"}.json`); break;
+    }
+    case "md-ins": {
+      ev.preventDefault();
+      const ta = el.closest(".md-editor")?.querySelector("textarea");
+      if (!ta) break;
+      if (el.dataset.md === "table" || el.dataset.md === "image") openTool(el.dataset.md, ta);
+      else if (el.dataset.md === "calc") openCalcEditor(ta);
+      else mdInsert(ta, el.dataset.md);
+      break;
+    }
+    case "ce-menu": { const m = $("#ce-menu"); if (m.hidden) ceRenderMenu(); m.hidden = !m.hidden; break; }
+    case "ce-snip": { const s = CE?.snips?.[+el.dataset.i]; $("#ce-menu").hidden = true; if (s) ceInsert(s); break; }
+    case "ce-add": ceAdd(el.dataset.kind); break;
+    case "ce-apply": ceApply(); break;
+    case "ce-delete": ceDeleteCalc(); break;
+    case "md-preview": {
+      ev.preventDefault();
+      el.classList.toggle("on");
+      const wrap = el.closest(".md-editor");
+      const box = wrap.querySelector(".md-preview");
+      if (el.classList.contains("on")) refreshPreview(wrap.querySelector("textarea"));
+      else box.hidden = true;
+      break;
+    }
+    case "tool-apply": applyTool(); break;
+    case "tbl-col-add": syncTable(); tbl.align.push("none"); tbl.rows.forEach(r => r.push("")); renderTableEditor(); break;
+    case "tbl-col-del":
+      if (tbl.align.length > 1){ syncTable(); tbl.align.pop(); tbl.rows.forEach(r => r.pop()); renderTableEditor(); }
+      break;
+    case "tbl-row-add": syncTable(); tbl.rows.push(tbl.align.map(() => "")); renderTableEditor(); break;
+    case "tbl-row-del":
+      if (tbl.rows.length > 2){ syncTable(); tbl.rows.pop(); renderTableEditor(); }
+      break;
+    case "tbl-align": {
+      syncTable();
+      const c = +el.dataset.c;
+      tbl.align[c] = ALIGN_CYCLE[(ALIGN_CYCLE.indexOf(tbl.align[c]) + 1) % ALIGN_CYCLE.length];
+      renderTableEditor(); break;
+    }
+    case "repeat-add": {
+      const f = REPEAT_SPEC[el.dataset.key];
+      document.querySelector(`[data-repeat="${CSS.escape(el.dataset.key)}"]`)
+        ?.insertAdjacentHTML("beforeend", repeatRow(f, {}));
+      break;
+    }
+    case "repeat-del": el.closest(".b-entry")?.remove(); break;
+    case "repeat-up": repeatMove(el, -1); break;
+    case "repeat-down": repeatMove(el, 1); break;
+  }
+});
+
+document.addEventListener("input", ev => {
+  if (ev.target.id === "ce-code") ceSyncSoon();
+  if (ev.target.matches(".md-editor textarea")){
+    clearTimeout(ev.target.__pv);
+    ev.target.__pv = setTimeout(() => refreshPreview(ev.target), 220);
+  }
+  if (ev.target.id === "img-url" || ev.target.id === "img-w" || ev.target.id === "img-h"){
+    const url = $("#img-url").value.trim();
+    const w = $("#img-w").value.trim(), h = $("#img-h").value.trim();
+    $("#img-preview").innerHTML = url
+      ? md(`[${url}${w ? " W:" + w : ""}${h ? " H:" + h : ""}]`)
+      : `<span class="tool-hint" style="margin:0">Предпросмотр появится здесь</span>`;
+  }
+  if (ev.target.id === "search-input"){
+    state.search = ev.target.value;
+    clearTimeout(window.__searchTimer);
+    window.__searchTimer = setTimeout(renderGrid, 180);
+  }
+});
+document.addEventListener("change", async ev => {
+  if (ev.target.matches("[data-fp-item], [data-fp-group]")) fpToggle(ev.target);
+  if (ev.target.matches("[data-fp-var]")) fpChooseVariant(ev.target);
+  if (ev.target.id === "system-select"){ state.system = ev.target.value; loadBase(); await renderGrid(); }
+  if (ev.target.id === "json-upload") await uploadJson(ev.target);
+  if (ev.target.id === "badge-mode"){
+    state.badgeMode = ev.target.checked ? "stats" : "types";
+    document.body.setAttribute("data-badge", state.badgeMode);
+    state.filters = {};                 // чтобы не остался невидимый активный фильтр
+    renderFilters();
+    await renderGrid();
+  }
+});
+$("#src-switch").addEventListener("click", async ev => {
+  const b = ev.target.closest("button[data-src]"); if (!b) return;
+  state.source = b.dataset.src;
+  [...$("#src-switch").children].forEach(x => x.classList.toggle("active", x === b));
+  await syncSystems();
+  await renderGrid();
+});
+
+async function uploadJson(input){
+  if (!state.user){ input.value = ""; return toast("Авторизуйтесь для загрузки"); }
+  const file = input.files[0]; if (!file) return;
+  const c = catCfg();
+  try {
+    const list = JSON.parse(await file.text());
+    if (!Array.isArray(list)) throw new Error("Ожидается массив [ {...} ]");
+    const nick = myNick();
+    for (const item of list){
+      const id = `${c.customType}_${Date.now()}_${Math.floor(Math.random()*1000)}`;
+      // архетип без ссылки на класс привязываем к классу, открытому сейчас
+      const data = c.systems && item && typeof item === "object" && !item.Class ? { ...item, Class:state.system } : item;
+      await setDoc(doc(db, COLL, id), {
+        type:c.customType, data, isPrivate:false,
+        creatorEmail:state.user.email, creator:nick, updatedAt:new Date().toISOString()
+      });
+    }
+    toast(`Загружено записей: ${list.length}`);
+    await loadCustom(true); await renderGrid();
+  } catch(e){ console.error(e); toast("Ошибка формата файла"); }
+  finally { input.value = ""; }
+}
+
+/* ============================================================
+   15. СТАРТ
+   ============================================================ */
+renderPicks();
+
+/* Диплинки: compendium.html#feats, #bestiary, #lore и т.д.
+   Позволяет оставить карточки в navigation.html — просто поменяйте href. */
+/* Ссылка на конкретную запись: #bestiary/Имя или #feats/c:<id> (кастом) */
+function parseHash(){
+  let h = location.hash.replace(/^#/, "");
+  try { h = decodeURIComponent(h); } catch {}
+  const i = h.indexOf("/");
+  const cat = i < 0 ? h : h.slice(0, i);
+  return { cat: CATS[cat] ? cat : "classes", item: i < 0 ? "" : h.slice(i + 1) };
+}
+window.addEventListener("hashchange", async () => {
+  const { cat, item } = parseHash();
+  if (item) await openFromHash(cat, item);
+  else if (cat !== state.cat) await setCategory(cat);
+});
+const _setCategory = setCategory;
+setCategory = async id => { await _setCategory(id); if (location.hash !== "#" + id) history.replaceState(null, "", "#" + id); };
+
+(async () => {
+  const { cat, item } = parseHash();
+  await setCategory(cat);
+  if (item) await openFromHash(cat, item);
+  getIndex().catch(() => {});        // заранее готовим словарь автоссылок
+})();
