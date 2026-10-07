@@ -1,14 +1,17 @@
 /* Service worker сайта: офлайн-доступ и установка как приложения (manifest.webmanifest).
    Свои файлы (страницы, site/, Assets/, сборка Ширмы) — «сначала сеть»: онлайн всегда свежая версия,
-   без сети — последняя сохранённая. Библиотеки и шрифты с CDN — из кэша с обновлением в фоне.
-   Firestore, вход и прочие API не трогаем: у них свой кэш (канон — Cache Storage в site/i18n.js). */
-const VERSION = 'v1';
+   без сети — последняя сохранённая. Firebase SDK с gstatic — из кэша с обновлением в фоне.
+   Firestore, вход и прочие API не трогаем: у них свой кэш (канон — Cache Storage в site/i18n.js).
+   ВАЖНО: запросы service worker подчиняются connect-src из CSP (vercel.json). Перехватывать можно только
+   хосты, разрешённые там; иначе запрос падает и ресурс не загружается вовсе (так ломались иконки Font Awesome
+   с cdnjs). Стили, шрифты и иконки с CDN оставлены браузеру — их кэширует обычный HTTP-кэш. */
+const VERSION = 'v2';
 const LOCAL = `mt-local-${VERSION}`;
 const CDN = `mt-cdn-${VERSION}`;
 const PRECACHE = ['/', '/index.html', '/navigation.html', '/builder.html', '/egobuilder.html', '/office.html', '/shirm.html',
   '/site/i18n.js', '/site/ui.js', '/manifest.webmanifest', '/Assets/App/icon-192.png'];
-// CDN, которые можно хранить: версия зашита в адрес, поэтому файл не меняется
-const CDN_OK = /^https:\/\/(www\.gstatic\.com\/firebasejs\/|cdnjs\.cloudflare\.com\/|fonts\.googleapis\.com\/|fonts\.gstatic\.com\/)/;
+// CDN, которые можно хранить: версия зашита в адрес, поэтому файл не меняется; хост обязан быть в connect-src
+const CDN_OK = /^https:\/\/www\.gstatic\.com\/firebasejs\//;
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(LOCAL).then((c) => Promise.all(PRECACHE.map((u) => c.add(u).catch(() => {})))).then(() => self.skipWaiting()));
