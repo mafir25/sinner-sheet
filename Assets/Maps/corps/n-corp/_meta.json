@@ -1,0 +1,14 @@
+{
+  "name": {
+    "ru": "Nagel und Hammer (N)",
+    "en": "Nagel und Hammer (N)"
+  },
+  "tags": [
+    "n-corp"
+  ],
+  "rules": {
+    "districts": [
+      "Крыло N"
+    ]
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "name": {
+    "ru": "TimeTrack (T)",
+    "en": "TimeTrack (T)"
+  },
+  "tags": [
+    "t-corp"
+  ],
+  "rules": {
+    "districts": [
+      "Крыло T"
+    ]
+  }
+}

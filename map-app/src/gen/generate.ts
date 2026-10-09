@@ -140,11 +140,14 @@ function paint(style: Style, fill: Fill): Style {
   return { ...style, wallColor: pal.wall(style.wallColor), light: pal.light };
 }
 
-/** Вывеска Крыла Района (scalable/signs/wings/<x>-corp/sign.svg) снаружи у входной двери. */
+/** Вывеска Крыла Района (corps/<x>-corp/signs/sign.* или scalable/signs/wings/<x>-corp/sign.svg) снаружи у входной двери. */
 function wingSign(ctx: Ctx, door: { a: Pt; b: Pt }, wing: string) {
-  const key = `canon:scalable/signs/wings/${wing.toLowerCase()}-corp/sign.svg`;
-  const e = ctx.kit.entryOf(key);
-  if (!e) return;
+  // вывеска из набора корпорации (corps/<x>-corp/signs/), иначе — из общих вывесок Крыльев
+  const x = wing.toLowerCase();
+  const key = [`canon:corps/${x}-corp/signs/sign.png`, `canon:corps/${x}-corp/signs/sign.svg`, `canon:scalable/signs/wings/${x}-corp/sign.svg`]
+    .find((k) => ctx.kit.entryOf(k));
+  const e = key ? ctx.kit.entryOf(key) : undefined;
+  if (!key || !e) return;
   const L = Math.hypot(door.b.x - door.a.x, door.b.y - door.a.y) || 1;
   const u = { x: (door.b.x - door.a.x) / L, y: (door.b.y - door.a.y) / L };
   const m = { x: (door.a.x + door.b.x) / 2, y: (door.a.y + door.b.y) / 2 };

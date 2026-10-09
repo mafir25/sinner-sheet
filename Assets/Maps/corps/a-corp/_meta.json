@@ -1,0 +1,14 @@
+{
+  "name": {
+    "ru": "Глава (A)",
+    "en": "The Head (A)"
+  },
+  "tags": [
+    "a-corp"
+  ],
+  "rules": {
+    "districts": [
+      "Крыло A"
+    ]
+  }
+}
