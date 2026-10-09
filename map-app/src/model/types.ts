@@ -130,6 +130,8 @@ export type Label = {
   font: 'head' | 'body';
   box: boolean;    // подложка
   gmOnly: boolean;
+  /** Ссылка на запись Базы знаний (или другую страницу сайта), открывается из свойств подписи. */
+  link?: string;
 };
 
 export type Roof = {
@@ -187,7 +189,15 @@ export type MapDoc = {
   floors: Floor[];
   createdAt: number;
   updatedAt: number;
+  /** Район Города (из world.json): палитра карты и контекст генерации. */
+  district?: District;
+  /** Ссылки карты: записи Базы знаний и др. страницы сайта. */
+  links?: SiteLink[];
 };
+
+/** Район Города: id узла-группы в world.json, цвет, буква Крыла, все имена для правил `districts`. */
+export type District = { id: string; name: string; color: string; wing?: string; faction?: string; aliases: string[] };
+export type SiteLink = { title: string; url: string };
 
 /** Запись ассета в наборе (см. map-app/src/assets/tree.js). */
 export type AssetKind = 'object' | 'floor' | 'wall' | 'door' | 'window' | 'terrain' | 'roof';

@@ -2,7 +2,8 @@
 import type { MapDoc } from '../model/types';
 
 const DB = 'pm-maps';
-const VERSION = 1;
+// 2: база могла появиться пустой (её открывала Ширма, site/site-links.js) — хранилища досоздаются
+const VERSION = 2;
 
 export type StoredMap = { id: string; name: string; updatedAt: number; thumb: string; doc: MapDoc };
 export type StoredPackFile = { path: string; blob: Blob; size: { w: number; h: number } | null };

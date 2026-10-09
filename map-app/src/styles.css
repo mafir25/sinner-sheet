@@ -202,3 +202,6 @@ kbd { font-family: ui-monospace, Consolas, monospace; font-size: .78rem; border:
 .gen-bar { position: absolute; left: 50%; bottom: 48px; transform: translateX(-50%); z-index: 5; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: center;
   background: rgba(0,0,0,.88); border: 1px solid var(--accent); padding: 6px 10px; max-width: calc(100% - 24px); }
 .gen-seed { font-family: ui-monospace, Consolas, monospace; color: var(--yellow); }
+
+/* ---------- этап 5: Район и ссылки */
+.swatch { width: 32px; height: 32px; border: 1px solid var(--line); flex: none; align-self: flex-end; }

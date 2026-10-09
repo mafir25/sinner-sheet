@@ -2,6 +2,7 @@
 import { useRef, useState } from 'react';
 import { Modal } from './dialogs';
 import { renderMarkdown } from '../model/markdown';
+import { MapPicker, askKbLink } from './SiteLinks';
 import { type FrameItem, type NodeItem, type Section, emptySection, parseItem } from '../model/schema';
 
 // ---------------------------------------------------------------- поле markdown с панелью
@@ -11,6 +12,7 @@ export function MarkdownField({ value, onChange, rows = 6, placeholder }: {
   const ta = useRef<HTMLTextAreaElement>(null);
   const [preview, setPreview] = useState(false);
   const [color, setColor] = useState('#C7243A');
+  const [mapPick, setMapPick] = useState(false);
   const wrap = (pre: string, post = '') => {
     const el = ta.current; if (!el) return;
     const a = el.selectionStart, b = el.selectionEnd;
@@ -28,6 +30,8 @@ export function MarkdownField({ value, onChange, rows = 6, placeholder }: {
         <button type="button" title="Цитата" onClick={() => wrap('\n> ')}>❝</button>
         <button type="button" title="Таблица" onClick={() => wrap('\n| Столбец | Столбец |\n|---|---|\n| | |\n')}>▦</button>
         <button type="button" title="Картинка по ссылке" onClick={() => wrap('![](', ')')}>🖼</button>
+        <button type="button" title="Ссылка на карту из Редактора карт" onClick={() => setMapPick(true)}>🗺</button>
+        <button type="button" title="Ссылка на запись Базы знаний" onClick={async () => { const md = await askKbLink(); if (md) wrap(md); }}>📖</button>
         <span className="sep" />
         <input type="color" value={color} onChange={(e) => setColor(e.target.value)} title="Цвет текста" />
         <button type="button" title="Покрасить выделенное" onClick={() => wrap(`{${color}}`, '{}')}>🎨</button>
@@ -37,6 +41,7 @@ export function MarkdownField({ value, onChange, rows = 6, placeholder }: {
       {preview
         ? <div className="md md-preview" dangerouslySetInnerHTML={{ __html: renderMarkdown(value) }} />
         : <textarea ref={ta} className="input" rows={rows} value={value} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} />}
+      {mapPick && <MapPicker onPick={(md) => wrap(md)} onClose={() => setMapPick(false)} />}
     </div>
   );
 }

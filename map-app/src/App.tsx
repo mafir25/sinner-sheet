@@ -16,6 +16,8 @@ import { Props } from './ui/Props';
 import { FloorsLayers } from './ui/FloorsLayers';
 import { ExportDialog, GridSelect, Help, MapSettings } from './ui/Dialogs';
 import { GenBar, GenDialog, type GenState } from './ui/GenDialog';
+import { LinksDialog } from './ui/LinksDialog';
+import { parseMapHash } from '../../site/site-links.js';
 import { Field, Modal, NumInput, Toasts, toast, useStore } from './ui/common';
 import { floorIssues } from './geom/place';
 
@@ -74,6 +76,18 @@ function StartScreen({ assets, onOpen }: { assets: AssetStore; onOpen(e: Editor)
   const [creating, setCreating] = useState(false);
   const refresh = useCallback(() => { mapDb.list().then(setList).catch((e) => { console.error(e); setList([]); }); }, []);
   useEffect(refresh, [refresh]);
+  // ссылка из Ширмы: maps.html#map=<id>
+  useEffect(() => {
+    const want = parseMapHash(location.hash);
+    if (!want) return;
+    mapDb.get(want.id).then((s) => {
+      if (s) onOpen(new Editor(s.doc));
+      else {
+        history.replaceState(null, '', location.pathname + location.search);
+        toast(tr('Карты «{0}» нет в этом браузере — открой её файл .pmmap.', want.name || want.id), 'error');
+      }
+    }).catch(console.error);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const fmt = (t: number) => new Date(t).toLocaleString(lang === 'en' ? 'en-GB' : 'ru-RU', { dateStyle: 'short', timeStyle: 'short' });
 
   return (
@@ -181,7 +195,12 @@ function Workspace({ ed, assets, user, onExit, onOpen }: { ed: Editor; assets: A
   const canUndo = useEditor(ed, (s) => s.canUndo);
   const canRedo = useEditor(ed, (s) => s.canRedo);
   const settings = useEditor(ed, (s) => s.settings);
-  const [dialog, setDialog] = useState<'export' | 'settings' | 'help' | 'gen' | null>(null);
+  const [dialog, setDialog] = useState<'export' | 'settings' | 'help' | 'gen' | 'links' | null>(null);
+  // адрес вкладки ведёт на открытую карту — его можно сохранить в закладки или вставить в Ширму
+  useEffect(() => {
+    history.replaceState(null, '', `${location.pathname}${location.search}#map=${encodeURIComponent(ed.doc.id)}`);
+    return () => history.replaceState(null, '', location.pathname + location.search);
+  }, [ed]);
   const [genLast, setGenLast] = useState<{ g: GenState; doc: MapDoc } | null>(null);
   const [saveState, setSaveState] = useState<'saved' | 'saving' | 'dirty'>('saved');
   const handle = useRef<SaveHandle>(null);
@@ -294,6 +313,7 @@ function Workspace({ ed, assets, user, onExit, onOpen }: { ed: Editor; assets: A
           <button className="btn" title={tr('Сохранить файл (Ctrl+S)')} onClick={() => saveFile(false)}>💾 {tr('Сохранить')}</button>
           <button className="btn" title={tr('Генерация: оформить набросок, здание, подземелье, улицы')} onClick={() => setDialog('gen')}>✦ {tr('Генерация')}</button>
           <button className="btn btn-primary" onClick={() => setDialog('export')}>⇩ {tr('Экспорт')}</button>
+          <button className="icon-btn" title={tr('Район и ссылки: палитра Района, ссылка для Ширмы, ссылки на Базу знаний')} onClick={() => setDialog('links')}>🔗</button>
           <button className="icon-btn" title={tr('Настройки карты')} onClick={() => setDialog('settings')}>⚙</button>
           <button className="icon-btn" title={tr('Управление')} onClick={() => setDialog('help')}>?</button>
           <button className="btn user" title={tr('Аккаунт и настройки')} onClick={() => openSiteUi('account')}>{nick}</button>
@@ -341,6 +361,7 @@ function Workspace({ ed, assets, user, onExit, onOpen }: { ed: Editor; assets: A
       {dialog === 'export' && <ExportDialog ed={ed} assets={assets} onClose={() => setDialog(null)} />}
       {dialog === 'settings' && <MapSettings ed={ed} assets={assets} onClose={() => setDialog(null)} />}
       {dialog === 'help' && <Help onClose={() => setDialog(null)} />}
+      {dialog === 'links' && <LinksDialog ed={ed} onClose={() => setDialog(null)} />}
       {dialog === 'gen' && <GenDialog ed={ed} assets={assets} onClose={() => setDialog(null)} initial={genLast?.g} replace={genLast?.doc}
         onDone={(g, res) => { setGenLast({ g, doc: res }); setDialog(null); }} />}
     </div>

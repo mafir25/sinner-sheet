@@ -461,6 +461,26 @@ const EN: Record<string, string> = {
   'Улицы Задворок': 'Backstreets',
   'Немного': 'A few',
   'Много': 'Many',
+  // этап 5: Районы и ссылки
+  'Карты «{0}» нет в этом браузере — открой её файл .pmmap.': 'Map “{0}” is not in this browser — open its .pmmap file.',
+  'Район и ссылки: палитра Района, ссылка для Ширмы, ссылки на Базу знаний': 'District and links: district palette, link for the Screen, Knowledge Base links',
+  'Скопируй вручную:': 'Copy manually:',
+  'Это не похоже на ссылку': 'That doesn\'t look like a link',
+  'Район и ссылки': 'District and links',
+  'Район Города': 'City District',
+  'Цвета Районов — с карты Города в Ширме (world.json). Район окрашивает карту и подсказывает генерации, что ставить: правила «Районы / фракции», оттенок стен и света, вывеска Крыла у входа.': 'District colors come from the City map in the Screen (world.json). The district tints the map and guides generation: “Districts / factions” rules, wall and light tint, the Wing\'s sign by the entrance.',
+  'Район': 'District',
+  'Не выбран': 'Not selected',
+  'Применить палитру: фон, цвет темноты, цвет новых подписей': 'Apply the palette: background, darkness color, color of new labels',
+  'Крыло {0}: вывески — Assets/Maps/scalable/signs/wings/{1}-corp/ (если есть).': 'Wing {0}: signs come from Assets/Maps/scalable/signs/wings/{1}-corp/ (if present).',
+  'Ссылка для Ширмы': 'Link for the Screen',
+  'Вставь в описание узла Ширмы (или нажми 🗺 в его редакторе). Карта откроется в этом браузере; на другом устройстве сначала открой её файл .pmmap.': 'Paste it into a Screen node description (or press 🗺 in its editor). The map opens in this browser; on another device open its .pmmap file first.',
+  'Ссылка скопирована': 'Link copied',
+  'Копировать': 'Copy',
+  'Ссылки карты': 'Map links',
+  'Записи Базы знаний (кнопка «Ссылка» у карточки) и другие страницы сайта, связанные с картой. Ссылку можно дать и отдельной подписи — в её свойствах.': 'Knowledge Base entries (the “Link” button on a card) and other site pages related to the map. A single label can have a link too — in its properties.',
+  'Вставь ссылку из Базы знаний…': 'Paste a Knowledge Base link…',
+  'Ссылка (База знаний)': 'Link (Knowledge Base)',
 };
 
 export function tr(ru: string, ...args: (string | number)[]): string {

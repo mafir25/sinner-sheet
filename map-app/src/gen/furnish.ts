@@ -1,6 +1,7 @@
 // Расстановка содержимого по правилам наборов (§5): мебель и комплекты, укрытия, ловушки,
 // следы состояния (грязь, трещины, мусор) и свет. Всё случайное — только через rnd (зерно).
-import type { AssetKey, Floor, GridType, MapObject, Pt, Room, TerrainStroke } from '../model/types';
+import type { AssetKey, District, Floor, GridType, MapObject, Pt, Room, TerrainStroke } from '../model/types';
+import { districtMatches } from '../data/world';
 import { uid } from '../model/doc';
 import { snapCenter } from '../geom/grid';
 import { pointInPoly, ringArea, segDist } from '../geom/poly';
@@ -10,7 +11,7 @@ import { type Cand, type Condition, type GenKit, ROOM_PROFILE } from './kit';
 import { type Rnd, between, chance, intBetween, pick, weighted } from './rng';
 
 export type GenLayers = { objects: string; above: string; decor: string; traps: string };
-export type Ctx = { f: Floor; kit: GenKit; rnd: Rnd; grid: GridType; layers: GenLayers; district?: string; width: number; height: number };
+export type Ctx = { f: Floor; kit: GenKit; rnd: Rnd; grid: GridType; layers: GenLayers; district?: District; width: number; height: number };
 
 export function roomArea(r: Room): number {
   return Math.abs(ringArea(r.poly[0])) - r.poly.slice(1).reduce((s, h) => s + Math.abs(ringArea(h)), 0);
@@ -181,12 +182,12 @@ function tryPlace(ctx: Ctx, c: Cand, room: Room | null, tries = 12): MapObject[]
 }
 
 /** Подходит ли кандидат к комнате данного типа, состоянию и району. */
-function fits(c: Cand, type: string | undefined, condition: Condition, district?: string, outside = false): boolean {
+function fits(c: Cand, type: string | undefined, condition: Condition, district?: District, outside = false): boolean {
   const r = c.rules;
   if (outside ? r.where === 'inside' : r.where === 'outside' || r.place === 'road') return false;
   if (!outside && r.rooms.length && !(type && r.rooms.includes(type))) return false;
   if (r.state.length && !r.state.includes(condition)) return false;
-  if (r.districts.length && district && !r.districts.includes(district)) return false;
+  if (!districtMatches(district, r.districts)) return false;
   return true;
 }
 

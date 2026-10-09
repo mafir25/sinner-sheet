@@ -1,6 +1,8 @@
 // Окно «Генерация» (этап 4): оформить набросок, здание, подземелье, улицы Задворок.
 // Результат — одно действие в истории; панель внизу карты перегенерирует его с другим зерном или оставляет.
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import type { District } from '../model/types';
+import { loadDistricts } from '../data/world';
 import type { AssetStore } from '../assets/store';
 import type { Editor } from '../state/editor';
 import type { MapDoc } from '../model/types';
@@ -24,7 +26,7 @@ export type GenState = {
 const LS_KEY = 'maps.gen';
 const DEF: GenState = {
   tab: 'decorate', seed: '', pack: '*', clear: true,
-  fill: { furnish: true, density: 1, cover: 1, traps: 0, weather: true, lights: false, numbers: false, condition: 'style', district: '' },
+  fill: { furnish: true, density: 1, cover: 1, traps: 0, weather: true, lights: false, numbers: false, condition: 'style' },
   style: 'backstreets', restyle: true, doors: true, windows: true,
   btype: 'office', bstyle: 'auto', width: 20, height: 14, rooms: 6, roof: false,
   drooms: 7, block: 16, plazas: 0.15, buildings: true, roofs: true,
@@ -41,7 +43,7 @@ export function runGen(ed: Editor, assets: AssetStore, g: GenState): MapDoc | nu
   const chosen = g.pack === '*' ? assets.packs : assets.packs.filter((p) => p.id === g.pack);
   const kit = makeKit(chosen.map((p) => ({ id: p.id, assets: p.assets, sets: p.sets })), assets.packs.map((p) => ({ id: p.id, assets: p.assets, sets: p.sets })));
   const fid = ed.state.floorId;
-  const fill = { ...g.fill, district: g.fill.district?.trim() || undefined };
+  const fill = g.fill;
   const common = { seed: g.seed, clear: g.clear, fill };
   const roomsSel = g.targets ?? [];
   try {
@@ -66,7 +68,14 @@ export function GenDialog({ ed, assets, onClose, onDone, initial, replace }: {
   initial?: GenState; replace?: MapDoc;
 }) {
   useStore(assets);
-  const [g, setG] = useState<GenState>(() => initial ?? load());
+  // Район по умолчанию — Район карты (⚙ → «Район и ссылки»)
+  const [g, setG] = useState<GenState>(() => {
+    if (initial) return initial;
+    const s = load();
+    return { ...s, fill: { ...s.fill, district: ed.doc.district ?? s.fill.district } };
+  });
+  const [districts, setDistricts] = useState<District[]>([]);
+  useEffect(() => { void loadDistricts(lang).then(setDistricts); }, []);
   const set = (patch: Partial<GenState>) => setG((x) => ({ ...x, ...patch }));
   const setFill = (patch: Partial<Fill>) => setG((x) => ({ ...x, fill: { ...x.fill, ...patch } }));
   const doc = ed.doc;
@@ -177,7 +186,13 @@ export function GenDialog({ ed, assets, onClose, onDone, initial, replace }: {
                 {['new', 'worn', 'ruined'].map((c) => <option key={c} value={c}>{tr(COND_LABEL[c])}</option>)}
               </select>
             </Field>
-            <Field label={tr('Район / фракция')}><input className="input" value={g.fill.district ?? ''} placeholder={tr('любой')} onChange={(e) => setFill({ district: e.target.value })} /></Field>
+            <Field label={tr('Район / фракция')}>
+              <select className="input" value={g.fill.district?.id ?? ''} onChange={(e) => setFill({ district: districts.find((d) => d.id === e.target.value) })}>
+                <option value="">{tr('любой')}</option>
+                {g.fill.district && !districts.some((d) => d.id === g.fill.district!.id) && <option value={g.fill.district.id}>{g.fill.district.name}</option>}
+                {districts.map((d) => <option key={d.id} value={d.id}>{d.name}{d.faction ? ` — ${d.faction}` : ''}</option>)}
+              </select>
+            </Field>
           </div>
           <Field label={tr('Наборы для мебели')}>
             <select className="input" value={g.pack} onChange={(e) => set({ pack: e.target.value })}>

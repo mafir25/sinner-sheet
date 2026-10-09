@@ -87,6 +87,7 @@ const floor = z.object({
   labels: z.array(z.object({
     id: z.string(), x: num, y: num, text: z.string(), size: num.positive().default(0.6), color: z.string().default('#ffffff'),
     rot: num.default(0), font: z.enum(['head', 'body']).default('head'), box: z.boolean().default(false), gmOnly: z.boolean().default(false),
+    link: z.string().max(2000).optional(),
   })).default([]),
   roofs: z.array(z.object({ id: z.string(), poly: z.array(ring).min(1), asset, color: z.string().default('#3a3a40') })).default([]),
   image: z.object({ asset: z.string(), x: num, y: num, ppc: num.positive(), opacity: num.min(0).max(1).default(1) }).nullable().default(null),
@@ -110,6 +111,11 @@ const docSchema = z.object({
   floors: z.array(floor).min(1),
   createdAt: num.default(0),
   updatedAt: num.default(0),
+  district: z.object({
+    id: z.string(), name: z.string(), color: z.string(), wing: z.string().optional(), faction: z.string().optional(),
+    aliases: z.array(z.string()).default([]),
+  }).optional(),
+  links: z.array(z.object({ title: z.string().max(200), url: z.string().max(2000) })).optional(),
 });
 
 /** Проверяет и дополняет документ из файла. Бросает ошибку с понятным текстом. */

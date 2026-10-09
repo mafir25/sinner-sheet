@@ -1,10 +1,11 @@
 // Генерация карт (этап 4, docs/map-editor.md §2, §5): оформление наброска, здания, подземелья, улицы Задворок.
 // Каждая функция меняет документ на месте (редактор зовёт её внутри ed.commit — одно действие в истории).
 // Одно и то же зерно + те же параметры + те же наборы = та же карта.
-import type { Floor, Layer, MapDoc, Pt, Room } from '../model/types';
+import type { District, Floor, Layer, MapDoc, Pt, Room } from '../model/types';
+import { districtPalette } from '../data/world';
 import { DEFAULT_PATH, uid } from '../model/doc';
 import { difference, pointInPoly, rectPoly, union } from '../geom/poly';
-import { placeAtRoad, placeAtWall, roomCenter } from '../geom/place';
+import { placeAtRoad, placeAtWall, roomCenter, rotFacing } from '../geom/place';
 import { normRules } from '../assets/tree.js';
 import { tr } from '../i18n';
 import { type BuildingType, BUILDINGS, type Condition, DUNGEON_ROOMS, type GenKit, type Style, type StyleId, styleById } from './kit';
@@ -18,7 +19,8 @@ export type Fill = {
   weather: boolean; lights: boolean; numbers: boolean;
   /** Состояние: от стиля или своё. */
   condition: Condition | 'style';
-  district?: string;
+  /** Район: контекст правил (`districts`), оттенок стен и света, вывеска Крыла у входа. */
+  district?: District;
 };
 export type Common = { seed: string; clear: boolean; fill: Fill };
 
@@ -83,14 +85,16 @@ const WIDE_DOOR = new Set(['warehouse', 'workshop', 'shop', 'bar']);
 const WINDOW_K: Record<string, number> = { bathroom: 0.3, corridor: 0.35, warehouse: 0.5, hideout: 0.5 };
 
 /** Двери, входы, окна и содержимое для готовых комнат. */
-function finish(ctx: Ctx, rooms: Room[], style: Style, fill: Fill, o: { doors: boolean; windows: boolean; entrances: number; toward?: Pt; loops?: number }) {
+function finish(ctx: Ctx, rooms: Room[], style: Style, fill: Fill, o: { doors: boolean; windows: boolean; entrances: number; toward?: Pt; loops?: number; signChance?: number }) {
   const { rnd, kit, f } = ctx;
   const doors = doorPicker(kit, style, rnd);
   if (o.doors) {
     connectRooms(f, rooms, rnd, () => doors.inner(), o.loops ?? 0.2);
     if (o.entrances > 0) {
       const wide = rooms.some((r) => WIDE_DOOR.has(r.type ?? ''));
+      const before = f.portals.length;
       addEntrances(f, rooms, rnd, o.entrances, (seg) => doors.outer(wide, seg), o.toward);
+      if (fill.district?.wing && chance(rnd, o.signChance ?? 1)) for (const p of f.portals.slice(before)) wingSign(ctx, p, fill.district.wing);
     }
   }
   if (o.windows) {
@@ -129,6 +133,34 @@ function newRoom(kit: GenKit, style: Style, rnd: Rnd, poly: Room['poly'], type: 
   return { id: uid('r'), poly, floor, wall: { asset: wall, color: style.wallColor, width: 0.25 }, type };
 }
 
+/** Стиль с оттенком Района: стены и свет чуть окрашены в его цвет. */
+function paint(style: Style, fill: Fill): Style {
+  if (!fill.district) return style;
+  const pal = districtPalette(fill.district.color);
+  return { ...style, wallColor: pal.wall(style.wallColor), light: pal.light };
+}
+
+/** Вывеска Крыла Района (scalable/signs/wings/<x>-corp/sign.svg) снаружи у входной двери. */
+function wingSign(ctx: Ctx, door: { a: Pt; b: Pt }, wing: string) {
+  const key = `canon:scalable/signs/wings/${wing.toLowerCase()}-corp/sign.svg`;
+  const e = ctx.kit.entryOf(key);
+  if (!e) return;
+  const L = Math.hypot(door.b.x - door.a.x, door.b.y - door.a.y) || 1;
+  const u = { x: (door.b.x - door.a.x) / L, y: (door.b.y - door.a.y) / L };
+  const m = { x: (door.a.x + door.b.x) / 2, y: (door.a.y + door.b.y) / 2 };
+  let n = { x: -u.y, y: u.x };
+  if (ctx.f.rooms.some((r) => pointInPoly({ x: m.x + n.x * 0.4, y: m.y + n.y * 0.4 }, r.poly))) n = { x: -n.x, y: -n.y };
+  const k = Math.min(1, 1.6 / e.footprint[0]), w = e.footprint[0] * k, h = e.footprint[1] * k;
+  for (const side of [1, -1]) {
+    const along = side * (L / 2 + w / 2 + 0.3);
+    const o = {
+      id: uid('o'), asset: key, layer: ctx.layers.above, w, h, rot: rotFacing({ x: -n.x, y: -n.y }),
+      x: m.x + u.x * along + n.x * (h / 2 + 0.15), y: m.y + u.y * along + n.y * (h / 2 + 0.15), flipX: false, flipY: false, opacity: 1,
+    };
+    if (outsideRooms(ctx, o)) { ctx.f.objects.push(o); return; }
+  }
+}
+
 // ---------- «наметить форму → оформить» и «раскраска стиля»
 /** Угадывает тип комнаты наброска по размеру и форме. */
 export function guessType(r: Room, rooms: Room[], style: Style, rnd: Rnd): string {
@@ -143,7 +175,7 @@ export function guessType(r: Room, rooms: Room[], style: Style, rnd: Rnd): strin
 }
 
 export function decorate(doc: MapDoc, floorId: string, kit: GenKit, o: DecorateOpts) {
-  const f = floorOf(doc, floorId), rnd = makeRnd(o.seed), style = styleById(o.style);
+  const f = floorOf(doc, floorId), rnd = makeRnd(o.seed), style = paint(styleById(o.style), o.fill);
   const ids = new Set(o.rooms);
   const rooms = f.rooms.filter((r) => !ids.size || ids.has(r.id));
   if (!rooms.length) return;
@@ -237,7 +269,7 @@ function buildRooms(ctx: Ctx, r: Rect, type: BuildingType, n: number, style: Sty
 export function building(doc: MapDoc, floorId: string, kit: GenKit, o: BuildingOpts) {
   const f = floorOf(doc, floorId), rnd = makeRnd(o.seed);
   if (o.clear) clearFloor(f);
-  const style = styleById(o.style === 'auto' ? BUILDINGS[o.type].style : o.style);
+  const style = paint(styleById(o.style === 'auto' ? BUILDINGS[o.type].style : o.style), o.fill);
   const W = Math.max(4, Math.min(doc.width - 2, Math.round(o.width))), H = Math.max(4, Math.min(doc.height - 2, Math.round(o.height)));
   const x0 = Math.floor((doc.width - W) / 2), y0 = Math.floor((doc.height - H) / 2);
   const r = { x0, y0, x1: x0 + W, y1: y0 + H };
@@ -251,7 +283,7 @@ export function building(doc: MapDoc, floorId: string, kit: GenKit, o: BuildingO
 
 // ---------- подземелья
 export function dungeon(doc: MapDoc, floorId: string, kit: GenKit, o: DungeonOpts) {
-  const f = floorOf(doc, floorId), rnd = makeRnd(o.seed), style = styleById(o.style);
+  const f = floorOf(doc, floorId), rnd = makeRnd(o.seed), style = paint(styleById(o.style), o.fill);
   if (o.clear) clearFloor(f);
   const ctx = makeCtx(doc, f, kit, rnd, o.fill);
   const W = doc.width, H = doc.height;
@@ -320,7 +352,7 @@ const polyArea = (p: Room['poly']) => p.reduce((s, ring, i) => {
 const STREET_BUILDINGS: [BuildingType, number][] = [['house', 4], ['bar', 1], ['workshop', 1], ['warehouse', 1], ['shop', 1.5], ['clinic', 0.5], ['hideout', 1]];
 
 export function streets(doc: MapDoc, floorId: string, kit: GenKit, o: StreetsOpts) {
-  const f = floorOf(doc, floorId), rnd = makeRnd(o.seed), style = styleById(o.style);
+  const f = floorOf(doc, floorId), rnd = makeRnd(o.seed), style = paint(styleById(o.style), o.fill);
   if (o.clear) clearFloor(f);
   const ctx = makeCtx(doc, f, kit, rnd, o.fill);
   const condition = conditionOf(o.fill, style);
@@ -376,12 +408,12 @@ export function streets(doc: MapDoc, floorId: string, kit: GenKit, o: StreetsOpt
         f.paths.push({ id: uid('pa'), layer: ctx.layers.decor, points: pts, smooth: false, closed: false, style: { ...DEFAULT_PATH, width: 1, asset: kit.pick('terrain', ['canon:terrain/dirt.svg']), color: '#3b3128', outline: null } });
       }
       const type = weighted(rnd, STREET_BUILDINGS, (x) => x[1])![0];
-      const bStyle = styleById(BUILDINGS[type].style === 'wing' ? o.style : BUILDINGS[type].style);
+      const bStyle = paint(styleById(BUILDINGS[type].style === 'wing' ? o.style : BUILDINGS[type].style), o.fill);
       const n = Math.max(1, Math.min(5, Math.round((rw(lot) * rh(lot)) / 18)));
       const rooms = buildRooms(ctx, lot, type, n, bStyle);
       allRooms.push(...rooms);
       const c = { x: (lot.x0 + lot.x1) / 2, y: (lot.y0 + lot.y1) / 2 };
-      finish(ctx, rooms, bStyle, { ...o.fill, condition: o.fill.condition === 'style' ? condition : o.fill.condition }, { doors: true, windows: true, entrances: 1, toward: towardStreet(b, c, W, H) });
+      finish(ctx, rooms, bStyle, { ...o.fill, condition: o.fill.condition === 'style' ? condition : o.fill.condition }, { doors: true, windows: true, entrances: 1, toward: towardStreet(b, c, W, H), signChance: 0.4 });
       if (o.roofs) f.roofs.push({ id: uid('rf'), poly: rectToPoly(lot), asset: kit.pick('roof', [pick(rnd, bStyle.roofs)]), color: '#3a3a40' });
     });
   }
