@@ -164,6 +164,7 @@ Assets/Maps/
 ├── terrain/             текстуры кистей местности (kind: terrain) — бесшовные, непрозрачные: форму задаёт кисть
 ├── roofs/               кровля (kind: roof)
 ├── objects/<категория>/ мебель, контейнеры, улица, офис, мастерская…
+├── corps/<x>-corp/      наборы Крыльев: walls, floors, doors, windows, roofs, signs, objects (правило «Район Крыла»)
 └── scalable/            масштабируемый контент: вывески, логотипы, плакаты…
     └── signs/associations/<ассоциация>/<вариант>.svg
 ```
