@@ -3,7 +3,7 @@
 import type { AssetStore } from '../assets/store';
 import type { Floor, MapDoc, MapObject, Portal, Poly, Pt } from '../model/types';
 import { drawGrid } from '../geom/grid';
-import { portalThickness, wallChains, type WallChain } from '../geom/walls';
+import { portalThickness, wallChains, wallFaces, type WallChain } from '../geom/walls';
 import type { BBox } from '../geom/poly';
 import { auxRes, drawLabel, drawLighting, drawPath, drawRoof, terrainCanvas } from './extras';
 
@@ -92,6 +92,8 @@ export function drawFloor(ctx: CanvasRenderingContext2D, doc: MapDoc, f: Floor, 
   const visible = f.layers.filter((l) => l.visible && (o.gm || !l.gmOnly));
   const below = visible.filter((l) => !l.aboveWalls).map((l) => l.id);
   const above = visible.filter((l) => l.aboveWalls).map((l) => l.id);
+  // грани объёмных стен — под объектами: шкаф у стены стоит «перед» её гранью
+  drawFaces(ctx, f, assets, o);
   drawLayers(ctx, f, below, assets, o);
   drawWalls(ctx, wallChains(f), assets, o, doc.lighting.wallShadows);
   for (const p of f.portals) drawPortal(ctx, f, p, assets, o);
@@ -195,13 +197,15 @@ export function drawWalls(ctx: CanvasRenderingContext2D, chains: WallChain[], as
     ctx.beginPath();
     chainPath(ctx, c);
     ctx.lineWidth = c.style.width;
-    ctx.strokeStyle = (c.style.asset && assets.pattern(ctx, c.style.asset, o.scale)) || c.style.color;
+    // объёмная стена — тонкая линия своего цвета, текстура уходит на грань
+    ctx.strokeStyle = (c.style.height ?? 0) > 0 ? c.style.color : (c.style.asset && assets.pattern(ctx, c.style.asset, o.scale)) || c.style.color;
     ctx.stroke();
   }
   ctx.restore();
 }
 
 export function drawPortal(ctx: CanvasRenderingContext2D, f: Floor, p: Portal, assets: AssetStore, o: RenderOpts) {
+  if (p.kind === 'gap') return; // проём без стены — рисовать нечего
   const dx = p.b.x - p.a.x, dy = p.b.y - p.a.y, L = Math.hypot(dx, dy);
   if (L < 1e-6) return;
   const th = portalThickness(f, p);
@@ -215,6 +219,32 @@ export function drawPortal(ctx: CanvasRenderingContext2D, f: Floor, p: Portal, a
   else {
     ctx.fillStyle = p.kind === 'door' ? '#6b4a2f' : '#9fdde9';
     ctx.fillRect(-L / 2, -th / 2, L, th);
+  }
+  ctx.restore();
+}
+
+/** Грани объёмных стен: текстура стены + затенение к дальнему краю + тёмная кромка. */
+export function drawFaces(ctx: CanvasRenderingContext2D, f: Floor, assets: AssetStore, o: RenderOpts) {
+  const faces = wallFaces(f);
+  if (!faces.length) return;
+  ctx.save();
+  for (const face of faces) {
+    const [p0, p1, p2, p3] = face.pts;
+    ctx.beginPath();
+    ctx.moveTo(p0.x, p0.y); ctx.lineTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.lineTo(p3.x, p3.y); ctx.closePath();
+    ctx.fillStyle = (face.style.asset && assets.pattern(ctx, face.style.asset, o.scale)) || face.style.color;
+    ctx.fill();
+    // у стены светлее, к основанию темнее — читается как вертикальная поверхность
+    const g = ctx.createLinearGradient(p0.x, p0.y, p0.x + face.v.x, p0.y + face.v.y);
+    g.addColorStop(0, 'rgba(255,255,255,0.06)');
+    g.addColorStop(1, 'rgba(0,0,0,0.45)');
+    ctx.fillStyle = g;
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(p3.x, p3.y); ctx.lineTo(p2.x, p2.y);
+    ctx.lineWidth = Math.max(0.025, 1.2 / o.scale);
+    ctx.strokeStyle = 'rgba(0,0,0,0.7)';
+    ctx.stroke();
   }
   ctx.restore();
 }

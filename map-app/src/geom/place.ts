@@ -1,7 +1,7 @@
 // Правила размещения (этап 3, docs/map-editor.md §5): куда «прилипает» объект и что с ним не так.
 // Соглашение: верх картинки — задняя сторона объекта (спинка стула, задняя стенка шкафа).
 // «Лицом к комнате» = верх картинки смотрит на стену. Генерация (этап 4) пользуется теми же функциями.
-import type { AssetEntry, Floor, MapObject, Pt, Room, Rules } from '../model/types';
+import type { AssetEntry, Floor, MapObject, Pt, Room, Rules, WallStyle } from '../model/types';
 import { matchTarget } from '../assets/tree.js';
 import { pointInPoly, ringArea, segDist } from './poly';
 import { nearestWall } from './walls';
@@ -59,6 +59,20 @@ export function roomCenter(r: Room): Pt {
   return { x: cx / (3 * a), y: cy / (3 * a) };
 }
 
+/**
+ * Насколько грань объёмной стены заходит в сторону n (единичная нормаль от стены): мебель встаёт к её основанию.
+ * inner — эта сторона внутри помещения (правило inner), иначе — outer.
+ */
+export function faceDepth(st: WallStyle, n: Pt, inner: boolean): number {
+  const h = st.height ?? 0;
+  if (h <= 0) return 0;
+  const dir = inner ? st.inner : st.outer;
+  if (dir === 'down') return n.y > 0.05 ? h * n.y : 0;
+  if (dir === 'up') return n.y < -0.05 ? -h * n.y : 0;
+  if (dir === 'normal') return h;
+  return 0;
+}
+
 /** Спиной к ближайшей стене, вдоль стены — с шагом в полклетки (snap). */
 export function placeAtWall(f: Floor, p: Pt, w: number, h: number, rot: number, r: Rules, snap: boolean): Placement | null {
   const hit = nearestWall(f, p, 1 + Math.max(w, h));
@@ -73,14 +87,15 @@ export function placeAtWall(f: Floor, p: Pt, w: number, h: number, rot: number, 
   let c = hit.t * L;
   if (snap) c = Math.round((c - hu) * 2) / 2 + hu;
   c = L >= 2 * hu ? Math.max(hu, Math.min(L - hu, c)) : L / 2;
-  const off = hit.seg.style.width / 2 + r.gap + hn;
+  const inRoom = !!roomAt(f, { x: hit.q.x + inward.x * 0.1, y: hit.q.y + inward.y * 0.1 });
+  const off = hit.seg.style.width / 2 + faceDepth(hit.seg.style, inward, inRoom) + r.gap + hn;
   return { x: a.x + u.x * c + inward.x * off, y: a.y + u.y * c + inward.y * off, rot: rr, guide: [a, b] };
 }
 
 /** В ближайший выпуклый угол комнаты: спиной к ближней стене, боком к другой. */
 export function placeInCorner(f: Floor, p: Pt, w: number, h: number, rot: number, r: Rules): Placement | null {
   const reach = 1.5 + Math.max(w, h);
-  let best: { v: Pt; pv: Pt; nv: Pt; d: number; width: number } | null = null;
+  let best: { v: Pt; pv: Pt; nv: Pt; d: number; width: number; style: WallStyle } | null = null;
   for (const room of f.rooms) {
     const ring = room.poly[0], sign = Math.sign(ringArea(ring));
     for (let i = 0; i < ring.length; i++) {
@@ -88,7 +103,7 @@ export function placeInCorner(f: Floor, p: Pt, w: number, h: number, rot: number
       const cross = (v.x - pv.x) * (nv.y - v.y) - (v.y - pv.y) * (nv.x - v.x);
       if (Math.sign(cross) !== sign) continue; // вогнутый угол — не угол комнаты
       const d = Math.hypot(p.x - v.x, p.y - v.y);
-      if (d < reach && (!best || d < best.d)) best = { v, pv, nv, d, width: room.wall.width };
+      if (d < reach && (!best || d < best.d)) best = { v, pv, nv, d, width: room.wall.width, style: room.wall };
     }
   }
   if (!best) return null;
@@ -101,11 +116,14 @@ export function placeInCorner(f: Floor, p: Pt, w: number, h: number, rot: number
   if (sinφ < 0.2) return null; // слишком острый угол
   const rr = r.face ? rotFacing({ x: -inward.x, y: -inward.y }) : rot;
   const hu = halfExtent(w, h, rr, u), hn = halfExtent(w, h, rr, inward);
+  // отступы от задней и боковой стены: полтолщины, грань объёмной стены и правило gap
+  const sideIn = norm({ x: u.x - side.x * cosφ, y: u.y - side.y * cosφ });
   const wall = best.width / 2 + r.gap;
-  const off = wall + hn;
+  const off = wall + faceDepth(best.style, inward, true) + hn;
+  const wallSide = wall + faceDepth(best.style, sideIn, true);
   // самый близкий к боковой стене угол рамки объекта должен отстоять от неё на толщину стены
   const yWorst = cosφ > 0 ? off + hn : off - hn;
-  const c = hu + (wall + yWorst * cosφ) / sinφ;
+  const c = hu + (wallSide + yWorst * cosφ) / sinφ;
   return { x: v.x + u.x * c + inward.x * off, y: v.y + u.y * c + inward.y * off, rot: rr, guide: [backEnd, v, sideEnd] };
 }
 

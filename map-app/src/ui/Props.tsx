@@ -1,7 +1,7 @@
 // Левая панель: настройки текущего инструмента и свойства выделенного.
 import type { AssetStore } from '../assets/store';
 import { dirOf, findDir, switchDir, variantChain } from '../assets/tree.js';
-import type { AssetKey, MapObject, Rules, WallStyle } from '../model/types';
+import type { AssetKey, FaceDir, MapObject, Rules, WallStyle } from '../model/types';
 import { ROOM_TYPES, checkObject } from '../geom/place';
 import { objectCorners } from '../tools/hit';
 import { ROTATE_LABEL, WHERE_LABEL, PLACE_LABEL, issueText, roomTypeName, targetName } from './issues';
@@ -9,18 +9,43 @@ import { type Editor, useEditor } from '../state/editor';
 import { nm, tr } from '../i18n';
 import { resizePortal } from '../geom/walls';
 import { BrushPanel, LabelPanel, LightPanel, PathPanel, RoofPanel, SelectionExtras } from './Props2';
-import { AssetPicker, ColorInput, Field, NumInput, SetThumb, Thumb, assetName, toast, useStore } from './common';
+import { AssetPicker, ColorInput, Field, NumInput, SetThumb, Slider, Thumb, assetName, toast, useStore } from './common';
+
+const FACE_DIRS: { id: FaceDir; label: string }[] = [
+  { id: 'down', label: 'Вниз ↓' },
+  { id: 'up', label: 'Вверх ↑' },
+  { id: 'normal', label: 'По периметру' },
+  { id: 'none', label: 'Нет' },
+];
 
 function WallStyleEditor({ assets, value, onChange }: { assets: AssetStore; value: WallStyle; onChange(v: WallStyle): void }) {
+  const h = value.height ?? 0;
+  const dirSelect = (v: FaceDir | undefined, set: (d: FaceDir) => void) => (
+    <select className="input" value={v ?? 'none'} onChange={(e) => set(e.target.value as FaceDir)}>
+      {FACE_DIRS.map((d) => <option key={d.id} value={d.id}>{tr(d.label)}</option>)}
+    </select>
+  );
   return (
     <div className="stack">
-      <Field label={tr('Текстура стены')}>
+      <Field label={h > 0 ? tr('Текстура грани стены') : tr('Текстура стены')}>
         <AssetPicker assets={assets} kind="wall" value={value.asset} allowNone noneLabel={tr('Без текстуры')} onChange={(asset) => onChange({ ...value, asset })} />
       </Field>
       <div className="row">
-        <Field label={tr('Цвет')} row><ColorInput value={value.color} onCommit={(color) => onChange({ ...value, color })} /></Field>
-        <Field label={tr('Толщина')} row><NumInput value={value.width} step={0.05} min={0.05} max={2} onCommit={(width) => onChange({ ...value, width })} /></Field>
+        <Field label={h > 0 ? tr('Цвет линии') : tr('Цвет')} row><ColorInput value={value.color} onCommit={(color) => onChange({ ...value, color })} /></Field>
+        <Field label={tr('Толщина')} row><NumInput value={value.width} step={0.05} min={0.02} max={2} onCommit={(width) => onChange({ ...value, width })} /></Field>
       </div>
+      <Field label={tr('Высота грани (0 — плоская стена)')}>
+        <Slider value={h} min={0} max={3} step={0.25} onCommit={(height) => onChange({ ...value, height, inner: value.inner ?? 'down', outer: value.outer ?? 'down' })} />
+      </Field>
+      {h > 0 && (
+        <p className="hint">{tr('Вниз — как в Enter the Gungeon: грань видна у стен, обращённых к зрителю. По периметру — у всех стен этой стороны.')}</p>
+      )}
+      {h > 0 && (
+        <div className="row">
+          <Field label={tr('Грань внутри помещения')}>{dirSelect(value.inner, (inner) => onChange({ ...value, inner }))}</Field>
+          <Field label={tr('Грань снаружи')}>{dirSelect(value.outer, (outer) => onChange({ ...value, outer }))}</Field>
+        </div>
+      )}
     </div>
   );
 }
@@ -219,6 +244,15 @@ export function Props({ ed, assets }: { ed: Editor; assets: AssetStore }) {
       {portals.length > 0 && (() => {
         const kind = portals[0].kind;
         const same = portals.every((p) => p.kind === kind);
+        if (same && kind === 'gap') {
+          return (
+            <div className="stack">
+              <p className="hint">{tr('Проём без стены: здесь стены нет (гараж, навес). Взгляд и свет проходят.')}</p>
+              <button className="btn btn-sm" onClick={() => ed.deleteSelection()}>{tr('Вернуть стену')}</button>
+            </div>
+          );
+        }
+        if (kind === 'gap') return null;
         return same && (
           <Field label={kind === 'door' ? tr('Вид двери') : tr('Вид окна')}>
             <AssetPicker assets={assets} kind={kind} value={portals[0].asset}

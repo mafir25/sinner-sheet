@@ -5,8 +5,8 @@ import type { AssetEntry, Floor, Label, Light, MapObject, MapPath, Poly, Portal,
 import type { Editor, SelItem, ToolId } from '../state/editor';
 import { uid } from '../model/doc';
 import { snapCenter, snapHalf, snapVertex } from '../geom/grid';
-import { difference, intersects, pointInPoly, rectPoly, ringArea, samePt, touches, union } from '../geom/poly';
-import { nearestWall, orphanPortals, portalOnWall } from '../geom/walls';
+import { difference, intersects, pointInPoly, rectPoly, ringArea, samePt, segDist, touches, union } from '../geom/poly';
+import { type WallSeg, nearestWall, orphanPortals, portalOnWall } from '../geom/walls';
 import { LIGHT_HIT, boxSelect, fromLocal, hitTest, labelCorners, objectCorners, toLocal } from './hit';
 import { curvePoints } from '../geom/curve';
 import { drawObject, polyPath } from '../render/render';
@@ -51,7 +51,8 @@ const shiftPoly = (p: Poly, d: Pt): Poly => p.map((r) => r.map((q) => add(q, d))
 export function applyRoom(ed: Editor, shape: Poly, subtract: boolean) {
   if (Math.abs(ringArea(shape[0])) < 1e-6) return;
   const { floor, wall } = ed.state.settings;
-  const sameStyle = (r: Floor['rooms'][number]) => r.floor === floor && r.wall.asset === wall.asset && r.wall.color === wall.color && r.wall.width === wall.width;
+  const sameStyle = (r: Floor['rooms'][number]) => r.floor === floor && r.wall.asset === wall.asset && r.wall.color === wall.color && r.wall.width === wall.width
+    && (r.wall.height ?? 0) === (wall.height ?? 0) && r.wall.inner === wall.inner && r.wall.outer === wall.outer;
   ed.commitFloor((f) => {
     const out: Floor['rooms'] = [];
     const merge: Floor['rooms'] = [];
@@ -717,9 +718,95 @@ function bulb(c: CanvasRenderingContext2D, p: Pt, color: string, scale: number) 
   c.restore();
 }
 
-/** Значки источников света — видны в редакторе, в экспорт не попадают. */
+/** Значки источников света и проёмов без стены — видны в редакторе, в экспорт не попадают. */
 export function drawGizmos(c: CanvasRenderingContext2D, f: Floor, scale: number) {
   for (const l of f.lights) bulb(c, l, l.color, scale);
+  const gaps = f.portals.filter((p) => p.kind === 'gap');
+  if (!gaps.length) return;
+  c.save();
+  c.strokeStyle = 'rgba(255,80,104,.7)';
+  c.lineWidth = 1.5 / scale;
+  c.setLineDash([4 / scale, 4 / scale]);
+  for (const g of gaps) { outlinePts(c, [g.a, g.b], false); c.stroke(); }
+  c.restore();
+}
+
+// ---------- убрать стену: проём без стены (гараж, навес)
+class WallCutTool implements Tool {
+  private hover: { seg: WallSeg; len: number; t: number } | null = null;
+  private gapHover: Portal | null = null;
+  private seg: WallSeg | null = null;
+  private start = 0;
+  private cur = 0;
+  constructor(private env: ToolEnv) {}
+  cursor() { return this.hover || this.gapHover ? 'pointer' : 'not-allowed'; }
+  private gapAt(p: Pt) { return this.env.ed.floor.portals.find((g) => g.kind === 'gap' && segDist(p, g.a, g.b).d < Math.max(0.15, 6 / this.env.ed.state.view.scale)) ?? null; }
+  private along(p: Pt, e: { ctrlKey?: boolean; metaKey?: boolean }) {
+    const s = this.seg!, L = Math.hypot(s.b.x - s.a.x, s.b.y - s.a.y);
+    let t = segDist(p, s.a, s.b).t * L;
+    if (this.env.snap(e)) t = Math.round(t * 2) / 2;
+    return Math.max(0, Math.min(L, t));
+  }
+  move(p: Pt, e: PointerEvent) {
+    if (this.seg) this.cur = this.along(p, e);
+    else {
+      this.gapHover = this.gapAt(p);
+      const h = this.gapHover ? null : nearestWall(this.env.ed.floor, p, 0.5);
+      this.hover = h ? { seg: h.seg, len: h.len, t: h.t * h.len } : null;
+    }
+    this.env.redraw();
+  }
+  down(p: Pt, e: PointerEvent) {
+    const g = this.gapAt(p);
+    if (g) { this.env.ed.commitFloor((f) => { f.portals = f.portals.filter((x) => x.id !== g.id); }); this.gapHover = null; return; }
+    const h = nearestWall(this.env.ed.floor, p, 0.5);
+    if (!h) return;
+    this.seg = h.seg;
+    this.start = this.cur = this.along(p, e);
+  }
+  up() {
+    const s = this.seg;
+    this.seg = null;
+    if (!s) return;
+    const L = Math.hypot(s.b.x - s.a.x, s.b.y - s.a.y);
+    // щелчок — вся стена от угла до угла, протяжка — участок
+    let t0 = Math.min(this.start, this.cur), t1 = Math.max(this.start, this.cur);
+    if ((t1 - t0) * this.env.ed.state.view.scale < 6) { t0 = 0; t1 = L; }
+    if (t1 - t0 < 0.1) return;
+    const at = (t: number): Pt => ({ x: s.a.x + ((s.b.x - s.a.x) * t) / L, y: s.a.y + ((s.b.y - s.a.y) * t) / L });
+    const gap: Portal = { id: uid('d'), kind: 'gap', a: at(t0), b: at(t1), asset: null };
+    this.env.ed.commitFloor((f) => {
+      // двери и окна внутри убранного участка исчезают вместе со стеной
+      f.portals = f.portals.filter((q) => {
+        const da = segDist(q.a, s.a, s.b), db = segDist(q.b, s.a, s.b);
+        if (da.d > 0.03 || db.d > 0.03) return true;
+        const q0 = Math.min(da.t, db.t) * L, q1 = Math.max(da.t, db.t) * L;
+        return q1 <= t0 + 0.01 || q0 >= t1 - 0.01;
+      });
+      f.portals.push(gap);
+    });
+    this.env.redraw();
+  }
+  cancel() { this.seg = null; this.hover = null; this.gapHover = null; this.env.redraw(); }
+  overlay(c: CanvasRenderingContext2D, scale: number) {
+    c.save();
+    c.lineWidth = Math.max(5 / scale, 0.15);
+    if (this.gapHover) {
+      c.strokeStyle = 'rgba(46,204,113,.85)';
+      outlinePts(c, [this.gapHover.a, this.gapHover.b], false); c.stroke();
+      label(c, tr('Вернуть стену'), { x: (this.gapHover.a.x + this.gapHover.b.x) / 2, y: (this.gapHover.a.y + this.gapHover.b.y) / 2 - 16 / scale }, scale, '#2ecc71');
+    } else if (this.seg) {
+      const s = this.seg, L = Math.hypot(s.b.x - s.a.x, s.b.y - s.a.y);
+      const at = (t: number): Pt => ({ x: s.a.x + ((s.b.x - s.a.x) * t) / L, y: s.a.y + ((s.b.y - s.a.y) * t) / L });
+      const whole = Math.abs(this.cur - this.start) * scale < 6;
+      c.strokeStyle = RED;
+      outlinePts(c, whole ? [s.a, s.b] : [at(this.start), at(this.cur)], false); c.stroke();
+    } else if (this.hover) {
+      c.strokeStyle = 'rgba(255,80,104,.6)';
+      outlinePts(c, [this.hover.seg.a, this.hover.seg.b], false); c.stroke();
+    }
+    c.restore();
+  }
 }
 
 // ---------- подпись
@@ -798,6 +885,7 @@ export function makeTool(id: ToolId, env: ToolEnv): Tool {
     case 'wall': return new PathTool(env, 'wall');
     case 'door': return new PortalTool(env, 'door');
     case 'window': return new PortalTool(env, 'window');
+    case 'cut': return new WallCutTool(env);
     case 'stamp': return new StampTool(env);
     case 'brush': return new BrushTool(env);
     case 'path': return new PathTool(env, 'path');

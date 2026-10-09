@@ -4,7 +4,7 @@ import { tr } from '../i18n';
 
 export const uid = (p = '') => `${p}${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
 
-export const DEFAULT_WALL: WallStyle = { asset: 'canon:walls/concrete.svg', color: '#1c1c1e', width: 0.25 };
+export const DEFAULT_WALL: WallStyle = { asset: 'canon:walls/concrete.svg', color: '#0c0c0e', width: 0.1, height: 1, inner: 'down', outer: 'down' };
 export const DEFAULT_FLOOR = 'canon:floors/concrete.svg';
 export const DEFAULT_LIGHTING: Lighting = { enabled: false, darkness: 0.7, color: '#05060a', wallShadows: true };
 export const DEFAULT_PATH: PathStyle = { width: 3, color: '#2a2b2e', asset: 'canon:floors/asphalt.svg', dash: 0, outline: '#141416', decor: null, decorMode: 'strip', decorScale: 1, spacing: 1, parallel: null };
@@ -44,6 +44,9 @@ const wallStyle = z.object({
   asset: z.string().nullable().default(null),
   color: z.string().default('#1c1c1e'),
   width: num.min(0.02).max(4).default(0.25),
+  height: num.min(0).max(6).optional(),
+  inner: z.enum(['none', 'down', 'up', 'normal']).optional(),
+  outer: z.enum(['none', 'down', 'up', 'normal']).optional(),
 });
 const layer = z.object({
   id: z.string(), name: z.string().default(''), visible: z.boolean().default(true),
@@ -64,7 +67,7 @@ const floor = z.object({
   visible: z.boolean().default(true),
   rooms: z.array(z.object({ id: z.string(), poly: z.array(ring).min(1), floor: z.string().nullable().default(null), wall: wallStyle, type: z.string().optional() })).default([]),
   walls: z.array(z.object({ id: z.string(), points: z.array(pt).min(2), closed: z.boolean().default(false), wall: wallStyle })).default([]),
-  portals: z.array(z.object({ id: z.string(), kind: z.enum(['door', 'window']), a: pt, b: pt, asset: z.string().nullable().default(null) })).default([]),
+  portals: z.array(z.object({ id: z.string(), kind: z.enum(['door', 'window', 'gap']), a: pt, b: pt, asset: z.string().nullable().default(null) })).default([]),
   objects: z.array(z.object({
     id: z.string(), asset: z.string(), layer: z.string(), x: num, y: num, w: num.positive(), h: num.positive(),
     rot: num.default(0), flipX: z.boolean().default(false), flipY: z.boolean().default(false), opacity: num.min(0).max(1).default(1),

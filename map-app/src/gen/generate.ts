@@ -3,7 +3,7 @@
 // Одно и то же зерно + те же параметры + те же наборы = та же карта.
 import type { District, Floor, Layer, MapDoc, Pt, Room } from '../model/types';
 import { districtPalette } from '../data/world';
-import { DEFAULT_PATH, uid } from '../model/doc';
+import { DEFAULT_PATH, DEFAULT_WALL, uid } from '../model/doc';
 import { difference, pointInPoly, rectPoly, union } from '../geom/poly';
 import { placeAtRoad, placeAtWall, roomCenter, rotFacing } from '../geom/place';
 import { normRules } from '../assets/tree.js';
@@ -130,7 +130,7 @@ function numberRooms(f: Floor, rooms: Room[]) {
 
 function newRoom(kit: GenKit, style: Style, rnd: Rnd, poly: Room['poly'], type: string, wall: string | null): Room {
   const floor = kit.pick('floor', [pick(rnd, style.floors[type] ?? style.floors['*'])]);
-  return { id: uid('r'), poly, floor, wall: { asset: wall, color: style.wallColor, width: 0.25 }, type };
+  return { id: uid('r'), poly, floor, wall: { ...DEFAULT_WALL, asset: wall, color: style.wallColor }, type };
 }
 
 /** Стиль с оттенком Района: стены и свет чуть окрашены в его цвет. */
@@ -185,7 +185,7 @@ export function decorate(doc: MapDoc, floorId: string, kit: GenKit, o: DecorateO
     if (!r.type) r.type = guessType(r, rooms, style, rnd);
     if (o.restyle) {
       r.floor = kit.pick('floor', [pick(rnd, style.floors[r.type] ?? style.floors['*'])]);
-      r.wall = { asset: wall, color: style.wallColor, width: r.wall.width };
+      r.wall = { ...r.wall, asset: wall, color: style.wallColor };
     }
   }
   if (o.restyle && style.ground && !f.ground) f.ground = kit.pick('floor', [style.ground]);

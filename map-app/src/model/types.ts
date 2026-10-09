@@ -19,8 +19,19 @@ export type Grid = {
 /** Ссылка на ассет: canon:<путь в Assets/Maps> или local:<id набора>/<путь>. */
 export type AssetKey = string;
 
-/** Стиль стены: текстура (ассет kind=wall) или null — сплошной цвет; ширина в клетках. */
-export type WallStyle = { asset: AssetKey | null; color: string; width: number };
+/**
+ * Куда стена отбрасывает «грань» (псевдо-3D, как в Enter the Gungeon):
+ * down — вниз по экрану (вид чуть сверху-спереди), up — вверх, normal — по всему периметру от стены, none — нет.
+ */
+export type FaceDir = 'none' | 'down' | 'up' | 'normal';
+
+/**
+ * Стиль стены. asset — текстура (ассет kind=wall) или null — сплошной цвет; width — толщина в клетках.
+ * height > 0 — объёмная стена: сама стена тонкая тёмная линия, текстура ложится гранью высотой height клеток
+ * по правилам inner (сторона внутри помещения) и outer (снаружи; у отдельных стен — обе стороны).
+ * height 0 или нет — плоская стена прежнего вида (толстая линия с текстурой).
+ */
+export type WallStyle = { asset: AssetKey | null; color: string; width: number; height?: number; inner?: FaceDir; outer?: FaceDir };
 
 export type Room = {
   id: string;
@@ -38,7 +49,8 @@ export type Wall = {
   wall: WallStyle;
 };
 
-export type PortalKind = 'door' | 'window';
+/** gap — проём без стены (гараж, навес): стены нет, двери тоже. */
+export type PortalKind = 'door' | 'window' | 'gap';
 
 export type Portal = {
   id: string;
