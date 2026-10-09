@@ -72,7 +72,7 @@ const EN: Record<string, string> = {
   'Привязка к сетке (зажать Ctrl — без привязки)': 'Snap to grid (hold Ctrl to disable)',
   'Режим: добавить или вырезать (Alt — вырезать)': 'Mode: add or cut out (Alt — cut out)',
   // подсказки инструментов
-  'Щелчок — выбрать, Shift — добавить к выбору, рамкой — выбрать несколько. Тащи — переместить.': 'Click to select, Shift to add, drag a box to select many. Drag to move.',
+  'Щелчок — выбрать, Shift — добавить к выбору, рамкой — выбрать несколько. Тащи — переместить. Щелчок по линии стены комнаты — выбрать только эту стену.': 'Click to select, Shift to add, drag a box to select many. Drag to move. Click a room wall line to select just that wall.',
   'Тяни прямоугольник. Комнаты одного стиля сливаются, Alt — вырезать.': 'Drag a rectangle. Rooms of the same style merge; Alt cuts out.',
   'Щелчками ставь вершины, двойной щелчок или Enter — замкнуть, Esc — отмена.': 'Click to place points; double-click or Enter closes, Esc cancels.',
   'Щелчками ставь точки стены, двойной щелчок или Enter — закончить, Esc — отмена.': 'Click to place wall points; double-click or Enter finishes, Esc cancels.',
@@ -504,6 +504,12 @@ const EN: Record<string, string> = {
   'Арка': 'Arch',
   'Ширина проёма': 'Opening width',
   'Форма проёма (перемычка, арка) видна на объёмной стене с гранью.': 'The opening shape (lintel, arch) shows on a 3D wall with a face.',
+  // отдельные стены комнаты
+  'Грань слева (по ходу стены)': 'Face on the left (along the wall)',
+  'Грань справа': 'Face on the right',
+  'Отдельная стена комнаты: настройки ниже — только для неё (Shift+щелчок — добавить ещё стены).': 'A single wall of the room: the settings below apply to it only (Shift+click adds more walls).',
+  'Как у всей комнаты': 'Same as the room',
+  'Убрать стену (Del)': 'Remove wall (Del)',
 };
 
 export function tr(ru: string, ...args: (string | number)[]): string {

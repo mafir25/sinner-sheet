@@ -2,7 +2,7 @@
 // инструмент отдаёт предпросмотр (preview), а в историю попадает одно изменение при отпускании.
 import type { AssetStore } from '../assets/store';
 import type { AssetEntry, Floor, Label, Light, MapObject, MapPath, Poly, Portal, Pt, Roof, Rules, TerrainStroke } from '../model/types';
-import type { Editor, SelItem, ToolId } from '../state/editor';
+import { type Editor, type SelItem, type ToolId, edgeOf } from '../state/editor';
 import { uid } from '../model/doc';
 import { snapCenter, snapHalf, snapVertex } from '../geom/grid';
 import { difference, intersects, pointInPoly, rectPoly, ringArea, samePt, segDist, touches, union } from '../geom/poly';
@@ -65,7 +65,9 @@ export function applyRoom(ed: Editor, shape: Poly, subtract: boolean) {
     if (!subtract) {
       const merged = union(shape, ...merge.map((r) => r.poly));
       merged.forEach((poly, i) => {
-        out.push({ id: merge[i]?.id ?? uid('r'), poly, floor, wall: { ...wall }, ...(merge[i]?.type ? { type: merge[i].type } : {}) });
+        // настройки отдельных стен переходят к слитой комнате (те, чьё ребро сохранилось)
+        const edgeStyles = merge.flatMap((m) => m.edgeStyles ?? []);
+        out.push({ id: merge[i]?.id ?? uid('r'), poly, floor, wall: { ...wall }, ...(merge[i]?.type ? { type: merge[i].type } : {}), ...(edgeStyles.length ? { edgeStyles } : {}) });
       });
     }
     f.rooms = out;
@@ -96,6 +98,12 @@ export function drawSelection(c: CanvasRenderingContext2D, f: Floor, sel: SelIte
   c.strokeStyle = ACCENT;
   c.setLineDash([6 * px, 4 * px]);
   for (const r of f.rooms) if (ids.has(r.id)) { c.beginPath(); polyPath(c, r.poly); c.stroke(); }
+  for (const s of sel) {
+    if (s.kind !== 'edge') continue;
+    const e = edgeOf(f, s.id);
+    if (!e) continue;
+    c.save(); c.setLineDash([]); c.lineWidth = 4 * px; c.strokeStyle = YELLOW; outlinePts(c, [e.a, e.b], false); c.stroke(); c.restore();
+  }
   for (const w of f.walls) if (ids.has(w.id)) { outlinePts(c, w.points, w.closed); c.stroke(); }
   for (const r of f.roofs) if (ids.has(r.id)) { c.beginPath(); polyPath(c, r.poly); c.stroke(); }
   for (const pa of f.paths) {
@@ -144,7 +152,10 @@ export function moveFloor(f: Floor, ids: Set<string>, att: Set<string>, d: Pt): 
   return {
     ...f,
     objects: f.objects.map((o) => (ids.has(o.id) ? { ...o, x: o.x + d.x, y: o.y + d.y } : o)),
-    rooms: f.rooms.map((r) => (ids.has(r.id) ? { ...r, poly: shiftPoly(r.poly, d) } : r)),
+    rooms: f.rooms.map((r) => (ids.has(r.id) ? {
+      ...r, poly: shiftPoly(r.poly, d),
+      ...(r.edgeStyles ? { edgeStyles: r.edgeStyles.map((e) => ({ ...e, a: add(e.a, d), b: add(e.b, d) })) } : {}),
+    } : r)),
     roofs: f.roofs.map((r) => (ids.has(r.id) ? { ...r, poly: shiftPoly(r.poly, d) } : r)),
     walls: f.walls.map((w) => (ids.has(w.id) ? { ...w, points: w.points.map(mv) } : w)),
     paths: f.paths.map((w) => (ids.has(w.id) ? { ...w, points: w.points.map(mv) } : w)),

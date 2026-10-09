@@ -1,11 +1,12 @@
 // Состояние редактора: документ карты, история (отмена/повтор), выделение, инструмент, вид.
 import { useSyncExternalStore } from 'react';
-import type { AssetKey, Floor, Label, Light, MapDoc, MapObject, MapPath, PathStyle, Portal, Roof, Room, Wall, WallStyle } from '../model/types';
+import type { AssetKey, Floor, Label, Light, MapDoc, MapObject, MapPath, PathStyle, Portal, Pt, Roof, Room, Wall, WallStyle } from '../model/types';
 import { DEFAULT_FLOOR, DEFAULT_PATH, DEFAULT_WALL, uid } from '../model/doc';
 import { orphanPortals } from '../geom/walls';
 
 export type ToolId = 'select' | 'room' | 'poly' | 'wall' | 'door' | 'window' | 'cut' | 'stamp' | 'brush' | 'path' | 'light' | 'label' | 'roof' | 'pan';
-export type SelKind = 'object' | 'portal' | 'wall' | 'room' | 'path' | 'light' | 'label' | 'roof';
+/** edge — отдельная стена комнаты: id «<id комнаты>|<кольцо>|<ребро>». */
+export type SelKind = 'object' | 'portal' | 'wall' | 'room' | 'path' | 'light' | 'label' | 'roof' | 'edge';
 export type SelItem = { kind: SelKind; id: string };
 export type View = { scale: number; ox: number; oy: number }; // px на клетку, сдвиг начала координат в px
 
@@ -151,6 +152,7 @@ export class Editor {
 
   // ---------- частые операции
   selected<K extends SelKind>(kind: K): SelType[K][] {
+    if (kind === 'edge') return this.state.sel.filter((s) => s.kind === 'edge').map((s) => edgeOf(this.floor, s.id)).filter(Boolean) as never;
     const ids = new Set(this.state.sel.filter((s) => s.kind === kind).map((s) => s.id));
     return (listOf(this.floor, kind) as { id: string }[]).filter((x) => ids.has(x.id)) as never;
   }
@@ -167,6 +169,12 @@ export class Editor {
       f.lights = f.lights.filter((x) => !ids.has(x.id));
       f.labels = f.labels.filter((x) => !ids.has(x.id));
       f.roofs = f.roofs.filter((x) => !ids.has(x.id));
+      // отдельная стена комнаты: «удалить» = убрать стену (проём без стены по всему ребру)
+      for (const s of this.state.sel) {
+        if (s.kind !== 'edge') continue;
+        const e = edgeOf(f, s.id);
+        if (e && !f.portals.some((p) => p.kind === 'gap' && samePts(p, e))) f.portals.push({ id: uid('d'), kind: 'gap', a: e.a, b: e.b, asset: null });
+      }
       const orphans = orphanPortals(f);
       f.portals = f.portals.filter((p) => !orphans.has(p.id));
     }, { keepSel: false });
@@ -191,15 +199,31 @@ function defaultLayer(f: Floor): string {
   return (below[1] ?? below[0] ?? f.layers[0]).id;
 }
 
-type SelType = { object: MapObject; portal: Portal; wall: Wall; room: Room; path: MapPath; light: Light; label: Label; roof: Roof };
+/** Отдельная стена комнаты по id выделения. */
+export type Edge = { id: string; room: Room; ring: number; index: number; a: Pt; b: Pt };
+export const edgeId = (roomId: string, ring: number, index: number) => `${roomId}|${ring}|${index}`;
+export function edgeOf(f: Floor, id: string): Edge | null {
+  const [rid, ri, ii] = id.split('|');
+  const room = f.rooms.find((r) => r.id === rid), ring = room?.poly[Number(ri)];
+  if (!room || !ring || !ring[Number(ii)]) return null;
+  const i = Number(ii);
+  return { id, room, ring: Number(ri), index: i, a: ring[i], b: ring[(i + 1) % ring.length] };
+}
+const samePts = (p: { a: Pt; b: Pt }, e: { a: Pt; b: Pt }) => {
+  const n = (u: Pt, v: Pt) => Math.abs(u.x - v.x) < 1e-4 && Math.abs(u.y - v.y) < 1e-4;
+  return (n(p.a, e.a) && n(p.b, e.b)) || (n(p.a, e.b) && n(p.b, e.a));
+};
+
+type SelType = { object: MapObject; portal: Portal; wall: Wall; room: Room; path: MapPath; light: Light; label: Label; roof: Roof; edge: Edge };
 export function listOf<K extends SelKind>(f: Floor, kind: K): SelType[K][] {
   const map: { [k in SelKind]: SelType[k][] } = {
-    object: f.objects, portal: f.portals, wall: f.walls, room: f.rooms, path: f.paths, light: f.lights, label: f.labels, roof: f.roofs,
+    object: f.objects, portal: f.portals, wall: f.walls, room: f.rooms, path: f.paths, light: f.lights, label: f.labels, roof: f.roofs, edge: [],
   };
   return map[kind] as SelType[K][];
 }
 
 function exists(f: Floor, s: SelItem) {
+  if (s.kind === 'edge') return !!edgeOf(f, s.id);
   return (listOf(f, s.kind) as { id: string }[]).some((x) => x.id === s.id);
 }
 

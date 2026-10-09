@@ -14,9 +14,37 @@ export type WallChain = { pts: Pt[]; closed: boolean; style: WallStyle; capStart
 const ON_LINE = 0.03;
 const touch = (a: Pt, b: Pt) => Math.abs(a.x - b.x) < 1e-6 && Math.abs(a.y - b.y) < 1e-6;
 
+const near = (a: Pt, b: Pt) => Math.abs(a.x - b.x) < 1e-4 && Math.abs(a.y - b.y) < 1e-4;
+
+/** Стиль ребра комнаты a→b: свой (настроен у отдельной стены комнаты) или общий стиль комнаты. */
+export function edgeStyle(room: Room, a: Pt, b: Pt): WallStyle {
+  const o = room.edgeStyles?.find((e) => (near(e.a, a) && near(e.b, b)) || (near(e.a, b) && near(e.b, a)));
+  return o ? { ...room.wall, ...o.style } : room.wall;
+}
+
+/** Кольцо комнаты → контуры: целиком (одинаковые стены) или кусками с одинаковым стилем. */
+function ringPaths(room: Room, ring: Pt[]): WallPath[] {
+  const n = ring.length;
+  const styles = ring.map((p, i) => edgeStyle(room, p, ring[(i + 1) % n]));
+  if (styles.every((st) => st === room.wall)) return [{ pts: ring, closed: true, style: room.wall, room }];
+  const key = styles.map((st) => JSON.stringify(st));
+  // начинаем с ребра, где стиль меняется, — тогда куски не разрываются на стыке начала кольца
+  let k = key.findIndex((x, i) => x !== key[(i - 1 + n) % n]);
+  if (k < 0) return [{ pts: ring, closed: true, style: styles[0], room }];
+  const out: WallPath[] = [];
+  let cur: Pt[] = [ring[k]], st = styles[k];
+  for (let j = 0; j < n; j++) {
+    const i = (k + j) % n;
+    if (key[i] !== JSON.stringify(st)) { out.push({ pts: cur, closed: false, style: st, room }); cur = [ring[i]]; st = styles[i]; }
+    cur.push(ring[(i + 1) % n]);
+  }
+  out.push({ pts: cur, closed: false, style: st, room });
+  return out;
+}
+
 export function floorPaths(f: Floor): WallPath[] {
   const out: WallPath[] = [];
-  for (const room of f.rooms) for (const ring of room.poly) out.push({ pts: ring, closed: true, style: room.wall, room });
+  for (const room of f.rooms) for (const ring of room.poly) out.push(...ringPaths(room, ring));
   for (const w of f.walls) out.push({ pts: w.points, closed: w.closed && w.points.length > 2, style: w.wall });
   return out;
 }
@@ -39,10 +67,12 @@ function portalSpan(seg: WallSeg, p: Portal): [number, number] | null {
   return t1 - t0 > 0.02 ? [t0, t1] : null;
 }
 
-/** Стены этажа, разрезанные проёмами указанных видов, — непрерывными ломаными. Проёмы без стены (gap) режут всегда. */
-export function wallChains(f: Floor, gapKinds: Set<Portal['kind']> = new Set(['door', 'window'])): WallChain[] {
-  // проём без стены и пустой проём (без картинки — арка, вырез) открыты всегда
-  const portals = f.portals.filter((p) => p.kind === 'gap' || !p.asset || gapKinds.has(p.kind));
+/**
+ * Стены этажа, разрезанные проёмами указанных видов, — непрерывными ломаными. Проёмы без стены (gap) режут всегда,
+ * пустые проёмы (без картинки — арка, вырез) — если openEmpty (для света и взгляда; верхнюю линию стены — нет).
+ */
+export function wallChains(f: Floor, gapKinds: Set<Portal['kind']> = new Set(['door', 'window']), openEmpty = true): WallChain[] {
+  const portals = f.portals.filter((p) => p.kind === 'gap' || (openEmpty && !p.asset) || gapKinds.has(p.kind));
   const out: WallChain[] = [];
   for (const path of floorPaths(f)) {
     // куски отрезков; joinA/joinB — конец лежит в вершине контура (а не на краю проёма)
@@ -135,47 +165,89 @@ export function resizePortal(p: Portal, len: number): { a: Pt; b: Pt } {
 }
 
 // ---------- объёмные стены (псевдо-3D)
-/** Грань стены: четырёхугольник p0, p1, p1+v, p0+v; v — куда и насколько она «поднимается». */
-export type WallFace = { pts: Pt[]; v: Pt; style: WallStyle };
+/**
+ * Грань стены: четырёхугольник (линия стены p0→p1, затем дальний край); v — куда «поднимается» грань.
+ * side — сторона стены: in (внутрь комнаты / первая сторона отдельной стены) или out; room — чья стена
+ * (грань «внутрь» видна только внутри этой комнаты, «наружу» — только снаружи).
+ */
+export type WallFace = { pts: Pt[]; v: Pt; style: WallStyle; side: 'in' | 'out'; room?: Room };
 
-/** Смещение грани для стороны с нормалью n (единичной) по правилу dir; null — грани нет. */
-function faceVector(dir: FaceDir | undefined, n: Pt, h: number): Pt | null {
+/** Смещение грани проекцией (вниз/вверх) для стороны с нормалью n; null — у этой стены граней нет. */
+function projVector(dir: FaceDir | undefined, n: Pt, h: number): Pt | null {
   if (dir === 'down') return n.y > 0.05 ? { x: 0, y: h } : null;
   if (dir === 'up') return n.y < -0.05 ? { x: 0, y: -h } : null;
-  if (dir === 'normal') return { x: n.x * h, y: n.y * h };
   return null;
 }
 
-/** Грани одного отрезка стены a→b по правилам стиля (сторона в комнату — inner, наружу — outer). */
-function segFaces(f: Floor, a: Pt, b: Pt, st: WallStyle, room: Room | undefined, out: WallFace[]) {
-  const h = st.height ?? 0, L = Math.hypot(b.x - a.x, b.y - a.y);
-  if (h <= 0 || L < 1e-6) return;
-  const step = 0.25;
-  const u = { x: (b.x - a.x) / L, y: (b.y - a.y) / L };
-  let nIn = { x: -u.y, y: u.x };
+/** Нормаль «внутрь»: у стены комнаты — в комнату, у отдельной — влево по ходу рисования. */
+function innerNormal(a: Pt, b: Pt, room?: Room): Pt {
+  const L = Math.hypot(b.x - a.x, b.y - a.y) || 1;
+  const n = { x: -(b.y - a.y) / L, y: (b.x - a.x) / L };
   if (room) {
-    const m = { x: (a.x + b.x) / 2 + nIn.x * 0.05, y: (a.y + b.y) / 2 + nIn.y * 0.05 };
-    if (!pointInPoly(m, room.poly)) nIn = { x: -nIn.x, y: -nIn.y };
+    const m = { x: (a.x + b.x) / 2 + n.x * 0.05, y: (a.y + b.y) / 2 + n.y * 0.05 };
+    if (!pointInPoly(m, room.poly)) return { x: -n.x, y: -n.y };
   }
-  const nOut = { x: -nIn.x, y: -nIn.y };
-  const sides: [Pt, FaceDir | undefined][] = room ? [[nIn, st.inner], [nOut, st.outer]] : [[nIn, st.outer], [nOut, st.outer]];
-  for (const [n, dir] of sides) {
-    const v = faceVector(dir, n, h);
-    if (!v) continue;
-    // снаружи комнаты: пропускаем куски, за которыми другая комната
-    const outside = room && n === nOut;
-    const at = (t: number): Pt => ({ x: a.x + u.x * t, y: a.y + u.y * t });
-    const free = (t: number) => !outside || !f.rooms.some((r) => r !== room && pointInPoly({ x: a.x + u.x * t + n.x * 0.05, y: a.y + u.y * t + n.y * 0.05 }, r.poly));
-    let start: number | null = null;
-    const n0 = Math.max(1, Math.ceil(L / step));
-    for (let k = 0; k <= n0; k++) {
-      const t0 = (k / n0) * L, t1 = Math.min(L, ((k + 1) / n0) * L);
-      const ok = k < n0 && free((t0 + t1) / 2);
-      if (ok && start === null) start = t0;
-      if ((!ok || k === n0) && start !== null) {
-        const p0 = at(start), p1 = at(ok ? t1 : t0);
-        out.push({ pts: [p0, p1, { x: p1.x + v.x, y: p1.y + v.y }, { x: p0.x + v.x, y: p0.y + v.y }], v, style: st });
-        start = null;
+  return n;
+}
+
+/** Куски [t0, t1] отрезка, где грань нужна: снаружи комнаты пропускаем места, за которыми другая комната. */
+function freePieces(f: Floor, a: Pt, b: Pt, n: Pt, room: Room | undefined, outside: boolean): [number, number][] {
+  const L = Math.hypot(b.x - a.x, b.y - a.y);
+  if (!outside || !room) return [[0, L]];
+  const u = { x: (b.x - a.x) / L, y: (b.y - a.y) / L }, step = 0.25;
+  const free = (t: number) => !f.rooms.some((r) => r !== room && pointInPoly({ x: a.x + u.x * t + n.x * 0.05, y: a.y + u.y * t + n.y * 0.05 }, r.poly));
+  const out: [number, number][] = [];
+  const n0 = Math.max(1, Math.ceil(L / step));
+  let start: number | null = null;
+  for (let k = 0; k <= n0; k++) {
+    const t0 = (k / n0) * L, t1 = Math.min(L, ((k + 1) / n0) * L);
+    const ok = k < n0 && free((t0 + t1) / 2);
+    if (ok && start === null) start = t0;
+    if ((!ok || k === n0) && start !== null) { out.push([start, ok ? t1 : t0]); start = null; }
+  }
+  return out;
+}
+
+/**
+ * Грани ломаной стены pts (closed — кольцо) по правилам стиля. «Вниз»/«вверх» — проекция: грань сдвинута по экрану,
+ * соседние грани сходятся сами. «По периметру» — полоса вдоль стены со стыками по биссектрисе угла
+ * (два треугольника на углу, без перекосов и пропусков).
+ */
+function chainFaces(f: Floor, pts0: Pt[], closed: boolean, st: WallStyle, room: Room | undefined, out: WallFace[]) {
+  const h = st.height ?? 0;
+  if (h <= 0 || pts0.length < 2) return;
+  const pts = closed ? [...pts0, pts0[0]] : pts0;
+  const m = pts.length - 1;
+  const nIn = Array.from({ length: m }, (_, i) => innerNormal(pts[i], pts[i + 1], room));
+  for (const side of ['in', 'out'] as const) {
+    const dir = side === 'in' ? st.inner : st.outer;
+    if (!dir || dir === 'none') continue;
+    const ns = nIn.map((n) => (side === 'in' ? n : { x: -n.x, y: -n.y }));
+    // для периметра — точки дальнего края с изломом по биссектрисе
+    let far: Pt[] | null = null;
+    if (dir === 'normal') {
+      far = pts.map((p, j) => {
+        const prev = j > 0 ? ns[j - 1] : closed ? ns[m - 1] : null, next = j < m ? ns[j] : closed ? ns[0] : null;
+        const a = prev ?? next!, b = next ?? prev!;
+        const s = { x: a.x + b.x, y: a.y + b.y }, sl = Math.hypot(s.x, s.y);
+        if (sl < 1e-6) return { x: p.x + b.x * h, y: p.y + b.y * h };
+        const mm = { x: s.x / sl, y: s.y / sl }, c = mm.x * b.x + mm.y * b.y;
+        const len = Math.min(h / Math.max(c, 0.2), h * 3);
+        return { x: p.x + mm.x * len, y: p.y + mm.y * len };
+      });
+    }
+    for (let i = 0; i < m; i++) {
+      const a = pts[i], b = pts[i + 1], L = Math.hypot(b.x - a.x, b.y - a.y);
+      if (L < 1e-6) continue;
+      const n = ns[i];
+      const v = far ? { x: n.x * h, y: n.y * h } : projVector(dir, n, h);
+      if (!v) continue;
+      const at = (t: number): Pt => ({ x: a.x + ((b.x - a.x) * t) / L, y: a.y + ((b.y - a.y) * t) / L });
+      const farAt = (t: number): Pt => (far
+        ? { x: far[i].x + ((far[i + 1].x - far[i].x) * t) / L, y: far[i].y + ((far[i + 1].y - far[i].y) * t) / L }
+        : { x: at(t).x + v.x, y: at(t).y + v.y });
+      for (const [t0, t1] of freePieces(f, a, b, n, room, side === 'out')) {
+        out.push({ pts: [at(t0), at(t1), farAt(t1), farAt(t0)], v, style: st, side, room });
       }
     }
   }
@@ -183,17 +255,13 @@ function segFaces(f: Floor, a: Pt, b: Pt, st: WallStyle, room: Room | undefined,
 
 /**
  * Грани объёмных стен этажа (стиль с height > 0). Двери, окна и проёмы без стены вырезают стену вместе с гранью:
- * грань проёма рисуется отдельно (portalFaces). У стены комнаты сторона внутрь — правило inner, наружу — outer;
+ * грань проёма рисуется отдельно (portalFaces). У стены комнаты сторона «внутри» — правило inner, «снаружи» — outer;
  * если снаружи за стеной другая комната, эта часть стены — её внутренняя, и гранью займётся она.
- * У отдельной стены обе стороны — outer.
+ * У отдельной стены inner — сторона слева по ходу рисования, outer — справа.
  */
 export function wallFaces(f: Floor): WallFace[] {
   const out: WallFace[] = [];
-  for (const c of wallChains(f)) {
-    if ((c.style.height ?? 0) <= 0) continue;
-    const pts = c.closed ? [...c.pts, c.pts[0]] : c.pts;
-    for (let i = 0; i < pts.length - 1; i++) segFaces(f, pts[i], pts[i + 1], c.style, c.room, out);
-  }
+  for (const c of wallChains(f)) chainFaces(f, c.pts, c.closed, c.style, c.room, out);
   return out;
 }
 
@@ -213,7 +281,7 @@ export function portalFaces(f: Floor, p: Portal): WallFace[] {
   const L = Math.hypot(w.seg.b.x - w.seg.a.x, w.seg.b.y - w.seg.a.y);
   const at = (t: number): Pt => ({ x: w.seg.a.x + ((w.seg.b.x - w.seg.a.x) * t) / L, y: w.seg.a.y + ((w.seg.b.y - w.seg.a.y) * t) / L });
   const out: WallFace[] = [];
-  segFaces(f, at(span[0]), at(span[1]), w.style, w.room, out);
+  chainFaces(f, [at(span[0]), at(span[1])], false, w.style, w.room, out);
   return out;
 }
 

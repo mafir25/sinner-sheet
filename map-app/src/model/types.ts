@@ -40,7 +40,10 @@ export type Room = {
   wall: WallStyle;
   /** Тип комнаты (склад, офис…) — для правил размещения и генерации; см. model/rules.ts. */
   type?: string;
+  /** Отдельные стены комнаты со своими настройками: ребро a–b (в любом порядке) и что в нём отличается. */
+  edgeStyles?: EdgeStyle[];
 };
+export type EdgeStyle = { a: Pt; b: Pt; style: Partial<WallStyle> };
 
 export type Wall = {
   id: string;

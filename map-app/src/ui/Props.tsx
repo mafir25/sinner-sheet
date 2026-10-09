@@ -1,13 +1,13 @@
 // Левая панель: настройки текущего инструмента и свойства выделенного.
 import type { AssetStore } from '../assets/store';
 import { dirOf, findDir, switchDir, variantChain } from '../assets/tree.js';
-import type { AssetKey, FaceDir, MapObject, Portal, Rules, WallStyle } from '../model/types';
+import type { AssetKey, FaceDir, MapObject, Portal, Pt, Rules, WallStyle } from '../model/types';
 import { ROOM_TYPES, checkObject } from '../geom/place';
 import { objectCorners } from '../tools/hit';
 import { ROTATE_LABEL, WHERE_LABEL, PLACE_LABEL, issueText, roomTypeName, targetName } from './issues';
 import { type Editor, useEditor } from '../state/editor';
 import { nm, tr } from '../i18n';
-import { portalFaces, portalShape, resizePortal } from '../geom/walls';
+import { edgeStyle, portalFaces, portalShape, resizePortal } from '../geom/walls';
 import { BrushPanel, LabelPanel, LightPanel, PathPanel, RoofPanel, SelectionExtras } from './Props2';
 import { AssetPicker, ColorInput, Field, NumInput, SetThumb, Slider, Thumb, assetName, toast, useStore } from './common';
 
@@ -18,7 +18,7 @@ const FACE_DIRS: { id: FaceDir; label: string }[] = [
   { id: 'none', label: 'Нет' },
 ];
 
-function WallStyleEditor({ assets, value, onChange }: { assets: AssetStore; value: WallStyle; onChange(v: WallStyle): void }) {
+function WallStyleEditor({ assets, value, onChange, standalone }: { assets: AssetStore; value: WallStyle; onChange(v: WallStyle): void; standalone?: boolean }) {
   const h = value.height ?? 0;
   const dirSelect = (v: FaceDir | undefined, set: (d: FaceDir) => void) => (
     <select className="input" value={v ?? 'none'} onChange={(e) => set(e.target.value as FaceDir)}>
@@ -32,7 +32,7 @@ function WallStyleEditor({ assets, value, onChange }: { assets: AssetStore; valu
       </Field>
       <div className="row">
         <Field label={h > 0 ? tr('Цвет линии') : tr('Цвет')} row><ColorInput value={value.color} onCommit={(color) => onChange({ ...value, color })} /></Field>
-        <Field label={tr('Толщина')} row><NumInput value={value.width} step={0.05} min={0.02} max={2} onCommit={(width) => onChange({ ...value, width })} /></Field>
+        <Field label={tr('Толщина')} row><NumInput value={value.width} step={0.05} min={0} max={2} onCommit={(width) => onChange({ ...value, width })} /></Field>
       </div>
       <Field label={tr('Дальность грани (0 — плоская стена)')}>
         <Slider value={h} min={0} max={3} step={0.05} onCommit={(height) => onChange({ ...value, height, inner: value.inner ?? 'down', outer: value.outer ?? 'down' })} />
@@ -42,8 +42,8 @@ function WallStyleEditor({ assets, value, onChange }: { assets: AssetStore; valu
       )}
       {h > 0 && (
         <div className="row">
-          <Field label={tr('Грань внутри помещения')}>{dirSelect(value.inner, (inner) => onChange({ ...value, inner }))}</Field>
-          <Field label={tr('Грань снаружи')}>{dirSelect(value.outer, (outer) => onChange({ ...value, outer }))}</Field>
+          <Field label={standalone ? tr('Грань слева (по ходу стены)') : tr('Грань внутри помещения')}>{dirSelect(value.inner, (inner) => onChange({ ...value, inner }))}</Field>
+          <Field label={standalone ? tr('Грань справа') : tr('Грань снаружи')}>{dirSelect(value.outer, (outer) => onChange({ ...value, outer }))}</Field>
         </div>
       )}
     </div>
@@ -154,7 +154,7 @@ export function Props({ ed, assets }: { ed: Editor; assets: AssetStore }) {
 
   // ---------- свойства выделенного
   if (!sel.length) return <p className="hint">{tr('Ничего не выбрано')}</p>;
-  const objs = ed.selected('object'), rooms = ed.selected('room'), walls = ed.selected('wall'), portals = ed.selected('portal');
+  const objs = ed.selected('object'), rooms = ed.selected('room'), walls = ed.selected('wall'), portals = ed.selected('portal'), edges = ed.selected('edge');
   const ids = new Set(sel.map((s) => s.id));
   const updObjs = (fn: (o: MapObject) => void) => ed.commitFloor((fl) => { for (const o of fl.objects) if (ids.has(o.id)) fn(o); });
   const actions = (
@@ -214,6 +214,37 @@ export function Props({ ed, assets }: { ed: Editor; assets: AssetStore }) {
           </Field>
         </>
       )}
+      {edges.length > 0 && (() => {
+        const e0 = edges[0];
+        const KEYS = ['asset', 'color', 'width', 'height', 'inner', 'outer'] as const;
+        const same = (x: { a: Pt; b: Pt }, e: { a: Pt; b: Pt }) => {
+          const n = (u: Pt, v: Pt) => Math.abs(u.x - v.x) < 1e-4 && Math.abs(u.y - v.y) < 1e-4;
+          return (n(x.a, e.a) && n(x.b, e.b)) || (n(x.a, e.b) && n(x.b, e.a));
+        };
+        const setEdges = (w: WallStyle | null) => ed.commitFloor((fl) => {
+          for (const e of edges) {
+            const r = fl.rooms.find((x) => x.id === e.room.id);
+            if (!r) continue;
+            const list = (r.edgeStyles ?? []).filter((x) => !same(x, e));
+            if (w) {
+              const diff: Partial<WallStyle> = {};
+              for (const k of KEYS) if (w[k] !== r.wall[k]) (diff as Record<string, unknown>)[k] = w[k];
+              if (Object.keys(diff).length) list.push({ a: { ...e.a }, b: { ...e.b }, style: diff });
+            }
+            if (list.length) r.edgeStyles = list; else delete r.edgeStyles;
+          }
+        });
+        return (
+          <>
+            <p className="hint">{tr('Отдельная стена комнаты: настройки ниже — только для неё (Shift+щелчок — добавить ещё стены).')}</p>
+            <WallStyleEditor assets={assets} value={edgeStyle(e0.room, e0.a, e0.b)} onChange={(w) => setEdges(w)} />
+            <div className="row wrap">
+              <button className="btn btn-sm" onClick={() => setEdges(null)}>{tr('Как у всей комнаты')}</button>
+              <button className="btn btn-sm btn-danger" onClick={() => ed.deleteSelection()}>{tr('Убрать стену (Del)')}</button>
+            </div>
+          </>
+        );
+      })()}
       {rooms.length > 0 && (
         <>
           <Field label={tr('Тип комнаты')}>
@@ -234,7 +265,7 @@ export function Props({ ed, assets }: { ed: Editor; assets: AssetStore }) {
       )}
       {walls.length > 0 && (
         <>
-          <WallStyleEditor assets={assets} value={walls[0].wall}
+          <WallStyleEditor assets={assets} value={walls[0].wall} standalone
             onChange={(w) => ed.commitFloor((fl) => { for (const x of fl.walls) if (ids.has(x.id)) x.wall = { ...w }; })} />
           {walls.length === 1 && walls[0].points.length > 2 && (
             <label className="check"><input type="checkbox" checked={walls[0].closed}
@@ -284,7 +315,7 @@ export function Props({ ed, assets }: { ed: Editor; assets: AssetStore }) {
         );
       })()}
       <SelectionExtras ed={ed} assets={assets} />
-      {actions}
+      {!sel.every((x) => x.kind === 'edge') && actions}
     </div>
   );
 }
