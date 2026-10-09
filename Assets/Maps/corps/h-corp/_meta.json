@@ -1,0 +1,14 @@
+{
+  "name": {
+    "ru": "Хунъюань (H)",
+    "en": "Hongyuan (H)"
+  },
+  "tags": [
+    "h-corp"
+  ],
+  "rules": {
+    "districts": [
+      "Крыло H"
+    ]
+  }
+}

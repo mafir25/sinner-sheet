@@ -481,6 +481,29 @@ const EN: Record<string, string> = {
   'Записи Базы знаний (кнопка «Ссылка» у карточки) и другие страницы сайта, связанные с картой. Ссылку можно дать и отдельной подписи — в её свойствах.': 'Knowledge Base entries (the “Link” button on a card) and other site pages related to the map. A single label can have a link too — in its properties.',
   'Вставь ссылку из Базы знаний…': 'Paste a Knowledge Base link…',
   'Ссылка (База знаний)': 'Link (Knowledge Base)',
+  // объёмные стены и проёмы без стены
+  'Вернуть стену': 'Restore wall',
+  'Текстура грани стены': 'Wall face texture',
+  'Цвет линии': 'Line color',
+  'Грань внутри помещения': 'Face inside the room',
+  'Грань снаружи': 'Face outside',
+  'Проём без стены: здесь стены нет (гараж, навес). Взгляд и свет проходят.': 'Open gap: there is no wall here (garage, canopy). Sight and light pass through.',
+  'Вниз — как в Enter the Gungeon: грань видна у стен, обращённых к зрителю. По периметру — у всех стен этой стороны.': 'Down — like Enter the Gungeon: the face shows on walls that face the viewer. All around — on every wall of this side.',
+  'Вниз ↓': 'Down ↓',
+  'Вверх ↑': 'Up ↑',
+  'По периметру': 'All around',
+  'Убрать стену (X)': 'Remove wall (X)',
+  'Щелчок по стене — убрать её от угла до угла, протяжка — только участок (гараж, навес). Щелчок по убранной — вернуть.': 'Click a wall to remove it corner to corner, drag to remove just a stretch (garage, canopy). Click a removed one to restore it.',
+  'Убрать стену (щелчок — целиком, протяжка — участок)': 'Remove wall (click — whole, drag — a stretch)',
+  // проёмы в объёмных стенах
+  'Дальность грани (0 — плоская стена)': 'Face depth (0 — flat wall)',
+  'Пустой проём (арка, вырез)': 'Empty opening (arch, cutout)',
+  'Проём вырезает стену вместе с гранью. ∅ — пустой проём: арка или вырез, взгляд и свет проходят. Форму меняй в свойствах проёма.': 'An opening cuts the wall together with its face. ∅ — empty opening: an arch or cutout, sight and light pass. Change its shape in the opening\'s properties.',
+  'Перемычка сверху': 'Lintel on top',
+  'Снизу (подоконник)': 'Bottom (sill)',
+  'Арка': 'Arch',
+  'Ширина проёма': 'Opening width',
+  'Форма проёма (перемычка, арка) видна на объёмной стене с гранью.': 'The opening shape (lintel, arch) shows on a 3D wall with a face.',
 };
 
 export function tr(ru: string, ...args: (string | number)[]): string {

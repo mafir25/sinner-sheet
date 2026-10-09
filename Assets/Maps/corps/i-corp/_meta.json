@@ -1,0 +1,14 @@
+{
+  "name": {
+    "ru": "Корпорация I",
+    "en": "I Corp"
+  },
+  "tags": [
+    "i-corp"
+  ],
+  "rules": {
+    "districts": [
+      "Крыло I"
+    ]
+  }
+}

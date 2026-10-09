@@ -4,7 +4,7 @@ import type { AssetKey, Floor, Label, Light, MapDoc, MapObject, MapPath, PathSty
 import { DEFAULT_FLOOR, DEFAULT_PATH, DEFAULT_WALL, uid } from '../model/doc';
 import { orphanPortals } from '../geom/walls';
 
-export type ToolId = 'select' | 'room' | 'poly' | 'wall' | 'door' | 'window' | 'stamp' | 'brush' | 'path' | 'light' | 'label' | 'roof' | 'pan';
+export type ToolId = 'select' | 'room' | 'poly' | 'wall' | 'door' | 'window' | 'cut' | 'stamp' | 'brush' | 'path' | 'light' | 'label' | 'roof' | 'pan';
 export type SelKind = 'object' | 'portal' | 'wall' | 'room' | 'path' | 'light' | 'label' | 'roof';
 export type SelItem = { kind: SelKind; id: string };
 export type View = { scale: number; ox: number; oy: number }; // px на клетку, сдвиг начала координат в px

@@ -3,7 +3,7 @@
 // Одно и то же зерно + те же параметры + те же наборы = та же карта.
 import type { District, Floor, Layer, MapDoc, Pt, Room } from '../model/types';
 import { districtPalette } from '../data/world';
-import { DEFAULT_PATH, uid } from '../model/doc';
+import { DEFAULT_PATH, DEFAULT_WALL, uid } from '../model/doc';
 import { difference, pointInPoly, rectPoly, union } from '../geom/poly';
 import { placeAtRoad, placeAtWall, roomCenter, rotFacing } from '../geom/place';
 import { normRules } from '../assets/tree.js';
@@ -130,7 +130,7 @@ function numberRooms(f: Floor, rooms: Room[]) {
 
 function newRoom(kit: GenKit, style: Style, rnd: Rnd, poly: Room['poly'], type: string, wall: string | null): Room {
   const floor = kit.pick('floor', [pick(rnd, style.floors[type] ?? style.floors['*'])]);
-  return { id: uid('r'), poly, floor, wall: { asset: wall, color: style.wallColor, width: 0.25 }, type };
+  return { id: uid('r'), poly, floor, wall: { ...DEFAULT_WALL, asset: wall, color: style.wallColor }, type };
 }
 
 /** Стиль с оттенком Района: стены и свет чуть окрашены в его цвет. */
@@ -140,11 +140,14 @@ function paint(style: Style, fill: Fill): Style {
   return { ...style, wallColor: pal.wall(style.wallColor), light: pal.light };
 }
 
-/** Вывеска Крыла Района (scalable/signs/wings/<x>-corp/sign.svg) снаружи у входной двери. */
+/** Вывеска Крыла Района (corps/<x>-corp/signs/sign.* или scalable/signs/wings/<x>-corp/sign.svg) снаружи у входной двери. */
 function wingSign(ctx: Ctx, door: { a: Pt; b: Pt }, wing: string) {
-  const key = `canon:scalable/signs/wings/${wing.toLowerCase()}-corp/sign.svg`;
-  const e = ctx.kit.entryOf(key);
-  if (!e) return;
+  // вывеска из набора корпорации (corps/<x>-corp/signs/), иначе — из общих вывесок Крыльев
+  const x = wing.toLowerCase();
+  const key = [`canon:corps/${x}-corp/signs/sign.png`, `canon:corps/${x}-corp/signs/sign.svg`, `canon:scalable/signs/wings/${x}-corp/sign.svg`]
+    .find((k) => ctx.kit.entryOf(k));
+  const e = key ? ctx.kit.entryOf(key) : undefined;
+  if (!key || !e) return;
   const L = Math.hypot(door.b.x - door.a.x, door.b.y - door.a.y) || 1;
   const u = { x: (door.b.x - door.a.x) / L, y: (door.b.y - door.a.y) / L };
   const m = { x: (door.a.x + door.b.x) / 2, y: (door.a.y + door.b.y) / 2 };
@@ -185,7 +188,7 @@ export function decorate(doc: MapDoc, floorId: string, kit: GenKit, o: DecorateO
     if (!r.type) r.type = guessType(r, rooms, style, rnd);
     if (o.restyle) {
       r.floor = kit.pick('floor', [pick(rnd, style.floors[r.type] ?? style.floors['*'])]);
-      r.wall = { asset: wall, color: style.wallColor, width: r.wall.width };
+      r.wall = { ...r.wall, asset: wall, color: style.wallColor };
     }
   }
   if (o.restyle && style.ground && !f.ground) f.ground = kit.pick('floor', [style.ground]);

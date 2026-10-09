@@ -1,0 +1,14 @@
+{
+  "name": {
+    "ru": "WARP (W)",
+    "en": "WARP (W)"
+  },
+  "tags": [
+    "w-corp"
+  ],
+  "rules": {
+    "districts": [
+      "Крыло W"
+    ]
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "name": {
+    "ru": "Корпорация L (павшая) — Lobotomy",
+    "en": "L Corp (fallen) — Lobotomy"
+  },
+  "tags": [
+    "l-corp"
+  ],
+  "rules": {
+    "districts": [
+      "Крыло L"
+    ]
+  }
+}

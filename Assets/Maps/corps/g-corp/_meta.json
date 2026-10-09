@@ -1,0 +1,14 @@
+{
+  "name": {
+    "ru": "Корпорация G (павшая)",
+    "en": "G Corp (fallen)"
+  },
+  "tags": [
+    "g-corp"
+  ],
+  "rules": {
+    "districts": [
+      "Крыло G"
+    ]
+  }
+}
