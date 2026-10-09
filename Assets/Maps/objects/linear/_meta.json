@@ -1,0 +1,38 @@
+{
+  "name": {
+    "ru": "Сегменты путей",
+    "en": "Path segments"
+  },
+  "files": {
+    "fence.svg": {
+      "name": {
+        "ru": "Забор-сетка",
+        "en": "Chain fence"
+      }
+    },
+    "rail.svg": {
+      "name": {
+        "ru": "Рельсы",
+        "en": "Rails"
+      }
+    },
+    "pipe-joint.svg": {
+      "name": {
+        "ru": "Стык трубы",
+        "en": "Pipe joint"
+      }
+    },
+    "cable-post.svg": {
+      "name": {
+        "ru": "Столб",
+        "en": "Cable post"
+      }
+    },
+    "barrier.svg": {
+      "name": {
+        "ru": "Отбойник",
+        "en": "Road barrier"
+      }
+    }
+  }
+}

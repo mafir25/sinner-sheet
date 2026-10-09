@@ -1,0 +1,26 @@
+{
+  "name": {
+    "ru": "Плакаты",
+    "en": "Posters"
+  },
+  "files": {
+    "wanted.svg": {
+      "name": {
+        "ru": "Розыск",
+        "en": "Wanted"
+      }
+    },
+    "ad.svg": {
+      "name": {
+        "ru": "Реклама",
+        "en": "Advert"
+      }
+    },
+    "notice.svg": {
+      "name": {
+        "ru": "Объявление",
+        "en": "Notice"
+      }
+    }
+  }
+}

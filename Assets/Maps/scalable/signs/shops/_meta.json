@@ -1,0 +1,44 @@
+{
+  "name": {
+    "ru": "Заведения",
+    "en": "Shops"
+  },
+  "files": {
+    "bar.svg": {
+      "name": {
+        "ru": "Бар",
+        "en": "Bar"
+      }
+    },
+    "clinic.svg": {
+      "name": {
+        "ru": "Клиника",
+        "en": "Clinic"
+      }
+    },
+    "workshop.svg": {
+      "name": {
+        "ru": "Мастерская",
+        "en": "Workshop"
+      }
+    },
+    "pawnshop.svg": {
+      "name": {
+        "ru": "Ломбард",
+        "en": "Pawnshop"
+      }
+    },
+    "noodles.svg": {
+      "name": {
+        "ru": "Лапшичная",
+        "en": "Noodle shop"
+      }
+    },
+    "office.svg": {
+      "name": {
+        "ru": "Офис фиксеров",
+        "en": "Fixer office"
+      }
+    }
+  }
+}

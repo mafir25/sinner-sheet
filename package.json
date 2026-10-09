@@ -5,10 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && node scripts/copy-static.mjs",
+    "dev:maps": "vite --config vite.maps.config.mjs",
+    "build": "node scripts/gen-map-assets.mjs && vite build && vite build --config vite.maps.config.mjs && node scripts/copy-static.mjs",
     "preview": "vite preview",
+    "gen:maps": "node scripts/gen-map-assets.mjs",
     "test:rules": "npx -y firebase-tools@14 emulators:exec --only firestore --project demo-sinner \"vitest run --config tests/vitest.config.mjs --dir tests/rules\"",
-    "test": "vitest run --config tests/vitest.config.mjs --dir tests/unit"
+    "test": "vitest run --config tests/vitest.config.mjs --dir tests/unit",
+    "typecheck:maps": "tsc -p map-app"
   },
   "dependencies": {
     "d3-force": "^3.0.0",
@@ -16,13 +19,18 @@
     "d3-zoom": "^3.0.0",
     "dompurify": "^3.2.6",
     "firebase": "^12.0.0",
+    "jszip": "^3.10.1",
     "marked": "^18.0.0",
+    "polygon-clipping": "^0.15.7",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "zod": "^3.25.0"
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^5.0.2",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "typescript": "^5.9.3",
     "vite": "^6.3.5",
     "vitest": "^3.2.7"
   }

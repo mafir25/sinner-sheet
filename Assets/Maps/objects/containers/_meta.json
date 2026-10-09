@@ -1,0 +1,32 @@
+{
+  "name": {
+    "ru": "Контейнеры",
+    "en": "Containers"
+  },
+  "files": {
+    "crate.svg": {
+      "name": {
+        "ru": "Ящик",
+        "en": "Crate"
+      }
+    },
+    "barrel.svg": {
+      "name": {
+        "ru": "Бочка",
+        "en": "Barrel"
+      }
+    },
+    "locker.svg": {
+      "name": {
+        "ru": "Шкафчик",
+        "en": "Locker"
+      }
+    },
+    "safe.svg": {
+      "name": {
+        "ru": "Сейф",
+        "en": "Safe"
+      }
+    }
+  }
+}

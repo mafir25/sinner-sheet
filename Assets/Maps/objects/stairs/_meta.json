@@ -1,0 +1,32 @@
+{
+  "name": {
+    "ru": "Лестницы",
+    "en": "Stairs"
+  },
+  "files": {
+    "stairs.svg": {
+      "name": {
+        "ru": "Лестница",
+        "en": "Stairs"
+      }
+    },
+    "spiral.svg": {
+      "name": {
+        "ru": "Винтовая лестница",
+        "en": "Spiral stairs"
+      }
+    },
+    "ladder.svg": {
+      "name": {
+        "ru": "Стремянка",
+        "en": "Ladder"
+      }
+    },
+    "hatch.svg": {
+      "name": {
+        "ru": "Люк",
+        "en": "Hatch"
+      }
+    }
+  }
+}

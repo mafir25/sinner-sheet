@@ -1,0 +1,24 @@
+{
+  "name": {
+    "ru": "Цвай",
+    "en": "Zwei"
+  },
+  "files": {
+    "sign.svg": {
+      "name": {
+        "ru": "Вывеска",
+        "en": "Sign"
+      }
+    },
+    "emblem.svg": {
+      "name": {
+        "ru": "Эмблема",
+        "en": "Emblem"
+      },
+      "footprint": [
+        1,
+        1
+      ]
+    }
+  }
+}

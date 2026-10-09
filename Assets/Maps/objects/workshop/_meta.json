@@ -1,0 +1,26 @@
+{
+  "name": {
+    "ru": "Мастерская",
+    "en": "Workshop"
+  },
+  "files": {
+    "workbench.svg": {
+      "name": {
+        "ru": "Верстак",
+        "en": "Workbench"
+      }
+    },
+    "tool-rack.svg": {
+      "name": {
+        "ru": "Стойка инструментов",
+        "en": "Tool rack"
+      }
+    },
+    "forge.svg": {
+      "name": {
+        "ru": "Горн",
+        "en": "Forge"
+      }
+    }
+  }
+}

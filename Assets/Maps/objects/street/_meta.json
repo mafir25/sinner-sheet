@@ -1,0 +1,50 @@
+{
+  "name": {
+    "ru": "Улица",
+    "en": "Street"
+  },
+  "files": {
+    "streetlamp.svg": {
+      "name": {
+        "ru": "Фонарь",
+        "en": "Street lamp"
+      }
+    },
+    "bench.svg": {
+      "name": {
+        "ru": "Скамейка",
+        "en": "Bench"
+      }
+    },
+    "trashcan.svg": {
+      "name": {
+        "ru": "Урна",
+        "en": "Trash can"
+      }
+    },
+    "vending.svg": {
+      "name": {
+        "ru": "Торговый автомат",
+        "en": "Vending machine"
+      }
+    },
+    "car.svg": {
+      "name": {
+        "ru": "Машина",
+        "en": "Car"
+      }
+    },
+    "hydrant.svg": {
+      "name": {
+        "ru": "Гидрант",
+        "en": "Hydrant"
+      }
+    },
+    "barricade.svg": {
+      "name": {
+        "ru": "Баррикада",
+        "en": "Barricade"
+      }
+    }
+  }
+}

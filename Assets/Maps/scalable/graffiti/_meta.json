@@ -1,0 +1,26 @@
+{
+  "name": {
+    "ru": "Граффити",
+    "en": "Graffiti"
+  },
+  "files": {
+    "tag-1.svg": {
+      "name": {
+        "ru": "Тег 1",
+        "en": "Tag 1"
+      }
+    },
+    "tag-2.svg": {
+      "name": {
+        "ru": "Тег 2",
+        "en": "Tag 2"
+      }
+    },
+    "rats.svg": {
+      "name": {
+        "ru": "Крысы",
+        "en": "Rats"
+      }
+    }
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "name": {
+    "ru": "Мебель",
+    "en": "Furniture"
+  },
+  "files": {
+    "table.svg": {
+      "name": {
+        "ru": "Стол",
+        "en": "Table"
+      }
+    },
+    "round-table.svg": {
+      "name": {
+        "ru": "Круглый стол",
+        "en": "Round table"
+      }
+    },
+    "chair.svg": {
+      "name": {
+        "ru": "Стул",
+        "en": "Chair"
+      }
+    },
+    "desk.svg": {
+      "name": {
+        "ru": "Рабочий стол",
+        "en": "Desk"
+      }
+    },
+    "sofa.svg": {
+      "name": {
+        "ru": "Диван",
+        "en": "Sofa"
+      }
+    },
+    "bed.svg": {
+      "name": {
+        "ru": "Кровать",
+        "en": "Bed"
+      }
+    },
+    "bookshelf.svg": {
+      "name": {
+        "ru": "Книжный шкаф",
+        "en": "Bookshelf"
+      }
+    },
+    "cabinet.svg": {
+      "name": {
+        "ru": "Тумба",
+        "en": "Cabinet"
+      }
+    }
+  }
+}

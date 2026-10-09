@@ -1,0 +1,33 @@
+{
+  "name": {
+    "ru": "Стены",
+    "en": "Walls"
+  },
+  "kind": "wall",
+  "files": {
+    "concrete.svg": {
+      "name": {
+        "ru": "Бетон",
+        "en": "Concrete"
+      }
+    },
+    "brick.svg": {
+      "name": {
+        "ru": "Кирпич",
+        "en": "Brick"
+      }
+    },
+    "metal.svg": {
+      "name": {
+        "ru": "Металл",
+        "en": "Metal"
+      }
+    },
+    "glass.svg": {
+      "name": {
+        "ru": "Стекло",
+        "en": "Glass"
+      }
+    }
+  }
+}
