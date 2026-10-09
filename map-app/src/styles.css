@@ -160,3 +160,39 @@ kbd { font-family: ui-monospace, Consolas, monospace; font-size: .78rem; border:
 .slider-val { font-family: ui-monospace, Consolas, monospace; font-size: .75rem; color: var(--dim); width: 36px; text-align: right; }
 .picker-scroll { max-height: 150px; overflow-y: auto; border: 1px solid var(--line); padding: 4px; }
 .modal .subsec { margin-top: 10px; }
+
+/* ---------- этап 3: правила, комплекты, разметка */
+.lib-item { position: relative; }
+.lib-badge { position: absolute; top: 3px; right: 4px; font-size: .62rem; color: #000; background: var(--yellow); padding: 0 4px; font-family: var(--head); }
+.issues { list-style: none; display: flex; flex-direction: column; gap: 3px; font-size: .78rem; color: #ff9aa6; border-left: 2px solid var(--red); padding-left: 8px; }
+.rules-sum { list-style: none; display: flex; flex-direction: column; gap: 2px; font-size: .74rem; color: var(--dim); border-left: 2px solid var(--accent); padding-left: 8px; }
+.modal-xl { width: min(1180px, 100%); }
+.meta-ed { display: grid; grid-template-columns: 210px minmax(0, 1fr) 380px; gap: 10px; height: min(70vh, 720px); }
+.meta-tree, .meta-files, .meta-form { overflow-y: auto; min-height: 0; border: 1px solid var(--line); background: var(--panel); }
+.meta-tree { padding: 4px 0; }
+.meta-dir { display: block; width: 100%; text-align: left; padding: 4px 6px; font-size: .8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.meta-dir:hover { color: var(--accent); }
+.meta-dir.on { background: rgba(64,224,208,.1); color: var(--accent); }
+.meta-dir.dirty::after { content: ' ✎'; color: var(--yellow); }
+.meta-files { display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: 6px; padding: 6px; align-content: start; }
+.meta-file { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px 4px; border: 1px solid var(--line); background: var(--surface); min-width: 0; }
+.meta-file:hover { border-color: var(--accent); }
+.meta-file.on { border-color: var(--yellow); background: rgba(241,196,15,.06); }
+.meta-hint { grid-column: 1 / -1; }
+.meta-form { padding: 10px; display: flex; flex-direction: column; gap: 10px; }
+.meta-form > h3 { color: var(--accent); text-transform: none; font-size: .95rem; word-break: break-all; }
+.meta-form .subsec h3 { margin-top: 2px; }
+.meta-json { min-height: 160px; font-family: ui-monospace, Consolas, monospace; font-size: .75rem; resize: vertical; }
+.meta-foot { margin-top: 10px; flex-wrap: wrap; }
+.chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.chip { border: 1px solid var(--line); padding: 3px 8px; font-size: .74rem; color: var(--dim); background: var(--surface); }
+.chip.on { border-color: var(--accent); color: var(--accent); }
+.chips-inh .chip.on { border-style: dashed; opacity: .75; }
+.chip-reset { color: var(--yellow); }
+.rel-dist { width: 70px; flex: none; }
+.color-chip { display: inline-flex; align-items: center; gap: 2px; }
+.set-row { border: 1px solid var(--line); padding: 6px; }
+@media (max-width: 900px) {
+  .meta-ed { grid-template-columns: 1fr; height: auto; }
+  .meta-tree, .meta-files { max-height: 26vh; }
+}

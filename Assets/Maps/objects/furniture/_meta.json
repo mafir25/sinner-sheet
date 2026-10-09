@@ -8,49 +8,173 @@
       "name": {
         "ru": "Стол",
         "en": "Table"
-      }
+      },
+      "tags": [
+        "table"
+      ]
     },
     "round-table.svg": {
       "name": {
         "ru": "Круглый стол",
         "en": "Round table"
+      },
+      "tags": [
+        "table"
+      ],
+      "rules": {
+        "place": "center"
       }
     },
     "chair.svg": {
       "name": {
         "ru": "Стул",
         "en": "Chair"
+      },
+      "tags": [
+        "seat"
+      ],
+      "rules": {
+        "near": [
+          {
+            "to": "#table",
+            "dist": 0.5
+          }
+        ],
+        "max": 12
       }
     },
     "desk.svg": {
       "name": {
         "ru": "Рабочий стол",
         "en": "Desk"
+      },
+      "tags": [
+        "table"
+      ],
+      "rules": {
+        "place": "wall",
+        "rooms": [
+          "office",
+          "living",
+          "lab"
+        ]
       }
     },
     "sofa.svg": {
       "name": {
         "ru": "Диван",
         "en": "Sofa"
+      },
+      "rules": {
+        "place": "wall",
+        "rooms": [
+          "living",
+          "office",
+          "bar",
+          "hideout"
+        ]
       }
     },
     "bed.svg": {
       "name": {
         "ru": "Кровать",
         "en": "Bed"
+      },
+      "rules": {
+        "place": "wall",
+        "rooms": [
+          "living",
+          "clinic",
+          "hideout"
+        ],
+        "max": 4
       }
     },
     "bookshelf.svg": {
       "name": {
         "ru": "Книжный шкаф",
         "en": "Bookshelf"
+      },
+      "rules": {
+        "place": "wall"
       }
     },
     "cabinet.svg": {
       "name": {
         "ru": "Тумба",
         "en": "Cabinet"
+      },
+      "rules": {
+        "place": "wall"
       }
+    }
+  },
+  "tags": [
+    "indoor"
+  ],
+  "rules": {
+    "where": "inside",
+    "clearDoors": true
+  },
+  "sets": {
+    "dining-4": {
+      "name": {
+        "ru": "Стол и 4 стула",
+        "en": "Table with 4 chairs"
+      },
+      "items": [
+        {
+          "file": "table.svg",
+          "x": 0,
+          "y": 0
+        },
+        {
+          "file": "chair.svg",
+          "x": -0.5,
+          "y": -1
+        },
+        {
+          "file": "chair.svg",
+          "x": 0.5,
+          "y": -1
+        },
+        {
+          "file": "chair.svg",
+          "x": -0.5,
+          "y": 1,
+          "rot": 180
+        },
+        {
+          "file": "chair.svg",
+          "x": 0.5,
+          "y": 1,
+          "rot": 180
+        }
+      ]
+    },
+    "round-2": {
+      "name": {
+        "ru": "Круглый стол на двоих",
+        "en": "Round table for two"
+      },
+      "items": [
+        {
+          "file": "round-table.svg",
+          "x": 0,
+          "y": 0
+        },
+        {
+          "file": "chair.svg",
+          "x": 0,
+          "y": -1
+        },
+        {
+          "file": "chair.svg",
+          "x": 0,
+          "y": 1,
+          "rot": 180
+        }
+      ]
     }
   }
 }

@@ -1,7 +1,7 @@
 // Инструменты холста. Координаты — в клетках. Пока идёт перетаскивание, документ не меняется:
 // инструмент отдаёт предпросмотр (preview), а в историю попадает одно изменение при отпускании.
 import type { AssetStore } from '../assets/store';
-import type { Floor, Label, Light, MapObject, MapPath, Poly, Portal, Pt, Roof, TerrainStroke } from '../model/types';
+import type { AssetEntry, Floor, Label, Light, MapObject, MapPath, Poly, Portal, Pt, Roof, Rules, TerrainStroke } from '../model/types';
 import type { Editor, SelItem, ToolId } from '../state/editor';
 import { uid } from '../model/doc';
 import { snapCenter, snapHalf, snapVertex } from '../geom/grid';
@@ -12,6 +12,9 @@ import { curvePoints } from '../geom/curve';
 import { drawObject, polyPath } from '../render/render';
 import { drawPath, drawStrokePreview } from '../render/extras';
 import { tr } from '../i18n';
+import { setBounds } from '../assets/tree.js';
+import { type Issue, checkObject, placeByRules, rollVariation } from '../geom/place';
+import { issueText } from '../ui/issues';
 
 export type ToolEnv = {
   ed: Editor;
@@ -61,7 +64,7 @@ export function applyRoom(ed: Editor, shape: Poly, subtract: boolean) {
     if (!subtract) {
       const merged = union(shape, ...merge.map((r) => r.poly));
       merged.forEach((poly, i) => {
-        out.push({ id: merge[i]?.id ?? uid('r'), poly, floor, wall: { ...wall } });
+        out.push({ id: merge[i]?.id ?? uid('r'), poly, floor, wall: { ...wall }, ...(merge[i]?.type ? { type: merge[i].type } : {}) });
       });
     }
     f.rooms = out;
@@ -490,46 +493,139 @@ class PortalTool implements Tool {
 }
 const near = (a: Pt, b: Pt) => Math.hypot(a.x - b.x, a.y - b.y) < 0.05;
 
-// ---------- объект из библиотеки
+// ---------- объект из библиотеки (или комплект)
+type Made = { objs: MapObject[]; guide?: Pt[]; issues: Issue[] };
+type Roll = ReturnType<typeof rollVariation> & { variant: string };
+const wrapDeg = (a: number) => ((a % 360) + 360) % 360;
+
 class StampTool implements Tool {
   private at: Pt | null = null;
+  private mods: { ctrlKey?: boolean; altKey?: boolean } = {};
+  private roll: Roll | null = null;
+  private rollFor = '';
   constructor(private env: ToolEnv) {}
-  cursor() { return this.env.ed.state.settings.stamp ? 'copy' : 'not-allowed'; }
-  /** Новый объект в точке p (с привязкой). */
-  private make(p: Pt, e: { ctrlKey?: boolean; metaKey?: boolean }): MapObject | null {
-    const ed = this.env.ed, s = ed.state.settings;
-    if (!s.stamp) return null;
-    const entry = this.env.assets.entry(s.stamp);
-    const [w, h] = entry?.footprint ?? [1, 1];
-    const c = this.env.snap(e) ? snapCenter(ed.doc.grid.type, p, w, h, s.stampRot) : p;
-    const f = ed.floor;
+  cursor() { const s = this.env.ed.state.settings; return s.stamp || s.stampSet ? 'copy' : 'not-allowed'; }
+
+  /** Слой: объекты «над стенами» — в слой над стенами, остальные — в текущий. */
+  private layerFor(e: AssetEntry | undefined): string {
+    const ed = this.env.ed, f = ed.floor;
     const cur = f.layers.find((l) => l.id === ed.state.layerId) ?? f.layers[0];
-    const wantAbove = entry?.layer === 'above';
-    const layer = cur.aboveWalls === wantAbove ? cur : (f.layers.find((l) => l.aboveWalls === wantAbove && !l.locked) ?? cur);
-    return { id: uid('o'), asset: s.stamp, layer: layer.id, x: c.x, y: c.y, w, h, rot: s.stampRot, flipX: s.stampFlip, flipY: false, opacity: 1 };
+    const wantAbove = e?.layer === 'above';
+    return (cur.aboveWalls === wantAbove ? cur : (f.layers.find((l) => l.aboveWalls === wantAbove && !l.locked) ?? cur)).id;
   }
-  private last: { ctrlKey?: boolean } = {};
-  move(p: Pt, e: PointerEvent) { this.at = p; this.last = { ctrlKey: e.ctrlKey || e.metaKey }; this.env.redraw(); }
+
+  /** Случайные вариации держатся, пока не поставили объект, — предпросмотр показывает то, что встанет. */
+  private currentRoll(key: string, rules: Rules | undefined): Roll {
+    const vary = this.env.ed.state.settings.vary;
+    const id = `${key}|${vary}`;
+    if (!this.roll || this.rollFor !== id) {
+      const variants = vary ? this.env.assets.variants(key) : [key];
+      this.roll = { ...rollVariation(vary ? rules : undefined), variant: variants[Math.floor(Math.random() * variants.length)] };
+      this.rollFor = id;
+    }
+    return this.roll;
+  }
+
+  /** Что встанет в точке p: объекты, направляющая правила (стена, угол) и нарушения правил. */
+  private make(p: Pt, e: { ctrlKey?: boolean; metaKey?: boolean; altKey?: boolean }): Made | null {
+    const ed = this.env.ed, s = ed.state.settings, assets = this.env.assets, f = ed.floor, type = ed.doc.grid.type;
+    const useRules = s.rules && !e.altKey, snap = this.env.snap(e);
+    const found = assets.set(s.stampSet);
+    if (found) {
+      const { pack, set } = found;
+      const b = setBounds(set, (path) => pack.byPath.get(path)?.footprint);
+      let rot = s.stampRot, c = snap ? snapCenter(type, p, b.w, b.h, rot) : p, guide: Pt[] | undefined;
+      const pl = useRules && set.rules ? placeByRules(f, p, b.w, b.h, rot, set.rules, snap) : null;
+      if (pl) { c = pl; rot = pl.rot; guide = pl.guide; }
+      const a = (rot * Math.PI) / 180, cos = Math.cos(a), sin = Math.sin(a);
+      const objs = set.items.map((it): MapObject => {
+        const ie = pack.byPath.get(it.path);
+        let lx = it.x - b.cx, irot = it.rot, iflip = it.flip;
+        const ly = it.y - b.cy;
+        if (s.stampFlip) { lx = -lx; irot = -irot; iflip = !iflip; }
+        const [fw, fh] = ie?.footprint ?? [1, 1];
+        return {
+          id: uid('o'), asset: assets.key(pack.id, it.path), layer: this.layerFor(ie),
+          x: c.x + lx * cos - ly * sin, y: c.y + lx * sin + ly * cos, w: fw * it.scale, h: fh * it.scale,
+          rot: wrapDeg(irot + rot), flipX: iflip, flipY: false, opacity: 1,
+        };
+      });
+      return { objs, guide, issues: [] };
+    }
+    if (!s.stamp) return null;
+    const entry = assets.entry(s.stamp);
+    const roll = this.currentRoll(s.stamp, entry?.rules);
+    const ve = assets.entry(roll.variant) ?? entry;
+    const [fw, fh] = ve?.footprint ?? [1, 1];
+    const w = fw * roll.scale, h = fh * roll.scale;
+    let rot = wrapDeg(s.stampRot + roll.rot), c = snap ? snapCenter(type, p, w, h, rot) : p, guide: Pt[] | undefined;
+    const pl = useRules && entry?.rules ? placeByRules(f, p, w, h, rot, entry.rules, snap) : null;
+    if (pl) { c = { x: pl.x, y: pl.y }; rot = pl.rot; guide = pl.guide; }
+    const o: MapObject = {
+      id: uid('o'), asset: roll.variant, layer: this.layerFor(ve), x: c.x, y: c.y, w, h, rot,
+      flipX: s.stampFlip !== roll.flip, flipY: false, opacity: 1, ...(roll.tint ? { tint: roll.tint } : {}),
+    };
+    const issues = useRules ? checkObject({ ...f, objects: [...f.objects, o] }, o, (k) => assets.entry(k)) : [];
+    return { objs: [o], guide, issues };
+  }
+
+  move(p: Pt, e: PointerEvent) { this.at = p; this.mods = { ctrlKey: e.ctrlKey || e.metaKey, altKey: e.altKey }; this.env.redraw(); }
   down(p: Pt, e: PointerEvent) {
-    const o = this.make(p, e);
-    if (!o) return;
-    this.env.ed.commitFloor((f) => { f.objects.push(o); });
+    const m = this.make(p, e);
+    if (!m) return;
+    this.env.ed.commitFloor((f) => { f.objects.push(...m.objs); });
+    this.roll = null; // следующий объект — с новыми вариациями
   }
   cancel() { this.at = null; }
   overlay(c: CanvasRenderingContext2D, scale: number) {
     if (!this.at) return;
-    const o = this.make(this.at, this.last);
-    if (!o) return;
+    const m = this.make(this.at, this.mods);
+    if (!m) return;
     c.save();
+    if (m.guide) {
+      c.strokeStyle = YELLOW;
+      c.lineWidth = 3 / scale;
+      c.setLineDash([6 / scale, 4 / scale]);
+      outlinePts(c, m.guide, m.guide.length > 3);
+      c.stroke();
+      c.setLineDash([]);
+    }
     c.globalAlpha = 0.6;
-    drawObject(c, o, this.env.assets, scale);
+    for (const o of m.objs) drawObject(c, o, this.env.assets, scale);
     c.globalAlpha = 1;
-    c.strokeStyle = ACCENT;
-    c.lineWidth = 1 / scale;
-    outlinePts(c, objectCorners(o), true);
-    c.stroke();
+    c.strokeStyle = m.issues.length ? RED : ACCENT;
+    c.lineWidth = (m.issues.length ? 2 : 1) / scale;
+    for (const o of m.objs) { outlinePts(c, objectCorners(o), true); c.stroke(); }
+    if (m.issues.length) {
+      const o = m.objs[0];
+      label(c, issueText(this.env.assets, m.issues[0]), { x: o.x, y: o.y - Math.max(o.w, o.h) / 2 - 14 / scale }, scale, '#ff9aa6');
+    }
     c.restore();
   }
+}
+
+/** Объекты с нарушенными правилами: красная рамка и «!». */
+export function drawIssues(c: CanvasRenderingContext2D, f: Floor, issues: Map<string, Issue[]>, scale: number) {
+  if (!issues.size) return;
+  const hidden = new Set(f.layers.filter((l) => !l.visible).map((l) => l.id));
+  c.save();
+  c.strokeStyle = RED;
+  c.lineWidth = 1.5 / scale;
+  c.setLineDash([4 / scale, 3 / scale]);
+  for (const o of f.objects) {
+    if (!issues.has(o.id) || hidden.has(o.layer)) continue;
+    const cs = objectCorners(o);
+    outlinePts(c, cs, true);
+    c.stroke();
+    const top = cs.reduce((a, b) => (b.y < a.y || (b.y === a.y && b.x > a.x) ? b : a));
+    dot(c, top, 7 / scale, RED);
+    c.fillStyle = '#fff';
+    c.font = `bold ${10 / scale}px Inter, sans-serif`;
+    c.textAlign = 'center';
+    c.textBaseline = 'middle';
+    c.fillText('!', top.x, top.y + 0.5 / scale);
+  }
+  c.restore();
 }
 
 // ---------- кисть местности

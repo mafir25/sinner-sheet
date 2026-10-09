@@ -6,7 +6,11 @@ const VERSION = 1;
 
 export type StoredMap = { id: string; name: string; updatedAt: number; thumb: string; doc: MapDoc };
 export type StoredPackFile = { path: string; blob: Blob; size: { w: number; h: number } | null };
-export type StoredPack = { id: string; label: string; createdAt: number; files: StoredPackFile[]; metas: Record<string, unknown> };
+export type StoredPack = {
+  id: string; label: string; createdAt: number; files: StoredPackFile[]; metas: Record<string, unknown>;
+  /** Папка на диске (Chrome/Edge): туда редактор разметки записывает _meta.json. */
+  handle?: FileSystemDirectoryHandle;
+};
 
 let dbp: Promise<IDBDatabase> | null = null;
 function open(): Promise<IDBDatabase> {

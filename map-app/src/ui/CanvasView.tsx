@@ -1,9 +1,10 @@
 // Холст редактора: отрисовка, панорама и масштаб (колесо, щипок), передача событий инструменту.
 import { useEffect, useMemo, useRef } from 'react';
 import type { AssetStore } from '../assets/store';
-import type { Pt } from '../model/types';
+import type { Floor, Pt } from '../model/types';
 import { type Editor, useEditor } from '../state/editor';
-import { drawGizmos, makeTool, type Tool, type ToolEnv } from '../tools/tools';
+import { drawGizmos, drawIssues, makeTool, type Tool, type ToolEnv } from '../tools/tools';
+import { type Issue, floorIssues } from '../geom/place';
 import { renderMap } from '../render/render';
 import { tr } from '../i18n';
 
@@ -23,6 +24,7 @@ export function CanvasView({ ed, assets, onFitRef }: { ed: Editor; assets: Asset
   const spaceDown = useRef(false);
   const cursorPt = useRef<Pt | null>(null);
   const frame = useRef(0);
+  const issueCache = useRef<{ f: Floor | null; v: number; map: Map<string, Issue[]> }>({ f: null, v: -1, map: new Map() });
 
   const env = useMemo<ToolEnv>(() => ({
     ed, assets,
@@ -63,6 +65,13 @@ export function CanvasView({ ed, assets, onFitRef }: { ed: Editor; assets: Asset
     ctx.lineWidth = 1 / view.scale;
     ctx.strokeRect(0, 0, doc.width, doc.height);
     drawGizmos(ctx, shown ?? ed.floor, view.scale);
+    if (ed.state.settings.showIssues) {
+      const f = shown ?? ed.floor;
+      if (issueCache.current.f !== f || issueCache.current.v !== assets.version) {
+        issueCache.current = { f, v: assets.version, map: floorIssues(f, (k) => assets.entry(k)) };
+      }
+      drawIssues(ctx, f, issueCache.current.map, view.scale);
+    }
     toolRef.current.overlay?.(ctx, view.scale);
   }
   function schedule() { if (!frame.current) frame.current = requestAnimationFrame(draw); }

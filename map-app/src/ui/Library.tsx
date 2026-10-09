@@ -1,5 +1,6 @@
 // Библиотека ассетов: наборы → папки → разновидности. Щелчок по ассету выбирает его для инструмента.
 import { useMemo, useState } from 'react';
+import { MetaEditor } from './MetaEditor';
 import { type AssetStore, pickFolder } from '../assets/store';
 import { findDir, firstAsset } from '../assets/tree.js';
 import type { AssetKey, DirNode } from '../model/types';
@@ -7,7 +8,7 @@ import type { Editor } from '../state/editor';
 import { useEditor } from '../state/editor';
 import { nm, tr } from '../i18n';
 import { resizePortal } from '../geom/walls';
-import { Thumb, toast, useStore } from './common';
+import { SetThumb, Thumb, toast, useStore } from './common';
 
 /** Выбор ассета: ставит его в настройки нужного инструмента и применяет к выделенному. */
 export function applyAsset(ed: Editor, assets: AssetStore, key: AssetKey) {
@@ -49,9 +50,15 @@ export function applyAsset(ed: Editor, assets: AssetStore, key: AssetKey) {
     if (ids.size) ed.commitFloor((f) => { for (const r of f.roofs) if (ids.has(r.id)) r.asset = key; });
     else ed.setTool('roof');
   } else {
-    ed.setSettings({ stamp: key });
+    ed.setSettings({ stamp: key, stampSet: null });
     ed.setTool('stamp');
   }
+}
+
+/** Комплект — в инструмент «Объект». */
+export function applySet(ed: Editor, key: string) {
+  ed.setSettings({ stampSet: key });
+  ed.setTool('stamp');
 }
 
 type Loc = { pack: string | null; path: string };
@@ -61,9 +68,10 @@ export function Library({ ed, assets }: { ed: Editor; assets: AssetStore }) {
   const settings = useEditor(ed, (s) => s.settings);
   const [loc, setLoc] = useState<Loc>({ pack: 'canon', path: '' });
   const [q, setQ] = useState('');
+  const [markup, setMarkup] = useState(false);
   const pack = loc.pack ? assets.pack(loc.pack) : undefined;
   const dir = pack ? findDir(pack.tree, loc.path) ?? pack.tree : null;
-  const current = new Set([settings.stamp, settings.floor, settings.wall.asset, settings.door, settings.window]);
+  const current = new Set([settings.stampSet ? null : settings.stamp, settings.floor, settings.wall.asset, settings.door, settings.window]);
 
   const found = useMemo(() => {
     const s = q.trim().toLowerCase();
@@ -76,7 +84,7 @@ export function Library({ ed, assets }: { ed: Editor; assets: AssetStore }) {
     const picked = await pickFolder();
     if (!picked) return;
     try {
-      const p = await assets.addLocalPack(picked.label, picked.files);
+      const p = await assets.addLocalPack(picked.label, picked.files, undefined, picked.handle);
       if (!p) { toast(tr('В папке нет картинок'), 'error'); return; }
       toast(tr('Набор «{0}» подключён: {1} картинок', p.label, p.assets.length));
       setLoc({ pack: p.id, path: '' });
@@ -100,12 +108,39 @@ export function Library({ ed, assets }: { ed: Editor; assets: AssetStore }) {
     });
   }
 
-  const assetTile = (key: AssetKey, name: string, title?: string) => (
-    <button key={key} className={`lib-item${current.has(key) ? ' on' : ''}`} title={title ?? name} onClick={() => applyAsset(ed, assets, key)}>
+  const assetTile = (key: AssetKey, name: string, title?: string, count = 1, on = current.has(key)) => (
+    <button key={key} className={`lib-item${on ? ' on' : ''}`} title={title ?? name} onClick={() => applyAsset(ed, assets, key)}>
       <Thumb assets={assets} k={key} size={56} />
       <span className="lib-name">{name}</span>
+      {count > 1 && <span className="lib-badge" title={tr('Вариантов: {0}', count)}>×{count}</span>}
     </button>
   );
+  /** Файлы папки: группа вариантов — одной плиткой (при установке берётся случайный вариант). */
+  const fileTiles = (packId: string, files: string[]) => {
+    const p = assets.pack(packId)!;
+    const seen = new Set<string>();
+    return files.map((path) => {
+      const e = p.byPath.get(path)!;
+      if (!e.group) return assetTile(assets.key(packId, path), nm(e.name));
+      if (seen.has(e.group)) return null;
+      seen.add(e.group);
+      const members = files.filter((x) => p.byPath.get(x)?.group === e.group);
+      // лицо группы — самый короткий файл (crate.svg, а не crate-steel.svg)
+      const face = [...members].sort((x, y) => x.length - y.length || x.localeCompare(y))[0], fe = p.byPath.get(face)!;
+      const on = members.some((x) => current.has(assets.key(packId, x)));
+      return assetTile(assets.key(packId, face), nm(fe.name), `${nm(fe.name)} — ${tr('Вариантов: {0}', members.length)}`, members.length, on);
+    });
+  };
+  const setTile = (packId: string, id: string) => {
+    const key = assets.setKey(packId, id), found = assets.set(key);
+    if (!found) return null;
+    return (
+      <button key={key} className={`lib-item${settings.stampSet === key ? ' on' : ''}`} title={`${nm(found.set.name)} — ${tr('Комплект')}`} onClick={() => applySet(ed, key)}>
+        <SetThumb assets={assets} k={key} size={56} />
+        <span className="lib-name">🧩 {nm(found.set.name)}</span>
+      </button>
+    );
+  };
   const dirTile = (d: DirNode, packId: string) => {
     const first = firstAsset(d);
     return (
@@ -120,7 +155,10 @@ export function Library({ ed, assets }: { ed: Editor; assets: AssetStore }) {
     <section className="side-sec lib">
       <div className="sec-head">
         <h3>{tr('Библиотека')}</h3>
-        <button className="btn btn-sm" onClick={addFolder} title={tr('Подключить папку с картинками (PNG, WebP, JPG, SVG). Файлы остаются в браузере.')}>＋ {tr('Подключить папку')}</button>
+        <div className="row">
+          {pack && <button className="btn btn-sm" onClick={() => setMarkup(true)} title={tr('Разметка набора: названия, размеры, правила размещения, комплекты — без ручного JSON')}>✎ {tr('Разметить')}</button>}
+          <button className="btn btn-sm" onClick={addFolder} title={tr('Подключить папку с картинками (PNG, WebP, JPG, SVG). Файлы остаются в браузере.')}>＋ {tr('Подключить папку')}</button>
+        </div>
       </div>
       <input className="input" placeholder={tr('Поиск…')} value={q} onChange={(e) => setQ(e.target.value)} />
       <div className="crumbs">
@@ -141,9 +179,11 @@ export function Library({ ed, assets }: { ed: Editor; assets: AssetStore }) {
           ))
             : dir && <>
               {dir.dirs.map((d) => dirTile(d, pack.id))}
-              {dir.files.map((path) => { const e = pack.byPath.get(path)!; return assetTile(assets.key(pack.id, path), nm(e.name)); })}
+              {dir.sets.map((id) => setTile(pack.id, id))}
+              {fileTiles(pack.id, dir.files)}
             </>}
       </div>
+      {markup && pack && <MetaEditor assets={assets} packId={pack.id} startDir={loc.path} onClose={() => setMarkup(false)} />}
     </section>
   );
 }

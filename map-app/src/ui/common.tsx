@@ -2,6 +2,8 @@ import { type ReactNode, useEffect, useRef, useState, useSyncExternalStore } fro
 import type { AssetStore } from '../assets/store';
 import type { AssetKey, AssetEntry } from '../model/types';
 import { nm, tr } from '../i18n';
+import { setBounds } from '../assets/tree.js';
+import { drawObject } from '../render/render';
 
 // ---------- уведомления
 type Toast = { id: number; text: string; kind: 'info' | 'error' };
@@ -19,7 +21,7 @@ export function Toasts() {
 }
 
 // ---------- окно
-export function Modal({ title, onClose, children, wide }: { title: string; onClose(): void; children: ReactNode; wide?: boolean }) {
+export function Modal({ title, onClose, children, wide, xl }: { title: string; onClose(): void; children: ReactNode; wide?: boolean; xl?: boolean }) {
   useEffect(() => {
     const k = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.stopPropagation(); onClose(); } };
     window.addEventListener('keydown', k, true);
@@ -27,7 +29,7 @@ export function Modal({ title, onClose, children, wide }: { title: string; onClo
   }, [onClose]);
   return (
     <div className="modal-ov" onPointerDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className={`modal${wide ? ' modal-wide' : ''}`} role="dialog" aria-label={title}>
+      <div className={`modal${wide ? ' modal-wide' : ''}${xl ? ' modal-xl' : ''}`} role="dialog" aria-label={title}>
         <div className="modal-head"><h2>{title}</h2><button className="icon-btn" onClick={onClose} title={tr('Закрыть')}>✕</button></div>
         <div className="modal-body">{children}</div>
       </div>
@@ -52,6 +54,28 @@ export function Thumb({ assets, k, size = 52 }: { assets: AssetStore; k: AssetKe
         style={e?.pixelated ? { imageRendering: 'pixelated' } : undefined} />
     </span>
   );
+}
+
+/** Миниатюра комплекта: предметы, нарисованные вместе. */
+export function SetThumb({ assets, k, size = 52 }: { assets: AssetStore; k: string; size?: number }) {
+  const v = useStore(assets);
+  const ref = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    const c = ref.current, found = assets.set(k);
+    if (!c || !found) return;
+    const dpr = window.devicePixelRatio || 1, px = size * dpr;
+    c.width = c.height = px;
+    const g = c.getContext('2d')!;
+    const { pack, set } = found;
+    const b = setBounds(set, (p) => pack.byPath.get(p)?.footprint);
+    const sc = (px * 0.92) / Math.max(b.w, b.h, 0.01);
+    g.setTransform(sc, 0, 0, sc, px / 2 - b.cx * sc, px / 2 - b.cy * sc);
+    for (const it of set.items) {
+      const [fw, fh] = pack.byPath.get(it.path)?.footprint ?? [1, 1];
+      drawObject(g, { id: '', asset: assets.key(pack.id, it.path), layer: '', x: it.x, y: it.y, w: fw * it.scale, h: fh * it.scale, rot: it.rot, flipX: it.flip, flipY: false, opacity: 1 }, assets, sc);
+    }
+  }, [assets, k, size, v]);
+  return <span className="thumb" style={{ width: size, height: size }}><canvas ref={ref} style={{ width: size, height: size }} /></span>;
 }
 
 export const assetName = (e: AssetEntry | undefined, key?: string | null) => (e ? nm(e.name) : key ? tr('Нет ассета') : '');

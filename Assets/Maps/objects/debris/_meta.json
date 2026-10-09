@@ -22,5 +22,13 @@
         "en": "Papers"
       }
     }
+  },
+  "rules": {
+    "rotate": "any",
+    "flip": true,
+    "scale": [
+      0.7,
+      1.3
+    ]
   }
 }

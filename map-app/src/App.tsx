@@ -15,7 +15,8 @@ import { Library } from './ui/Library';
 import { Props } from './ui/Props';
 import { FloorsLayers } from './ui/FloorsLayers';
 import { ExportDialog, GridSelect, Help, MapSettings } from './ui/Dialogs';
-import { Field, Modal, NumInput, Toasts, toast } from './ui/common';
+import { Field, Modal, NumInput, Toasts, toast, useStore } from './ui/common';
+import { floorIssues } from './geom/place';
 
 const openSiteUi = (section: string) => (window as unknown as { SiteUI?: { open(s: string): void } }).SiteUI?.open(section);
 
@@ -160,7 +161,7 @@ const HINTS: Record<ToolId, string> = {
   wall: 'Щелчками ставь точки стены, двойной щелчок или Enter — закончить, Esc — отмена.',
   door: 'Наведи на стену и щёлкни — проём встанет на стену.',
   window: 'Наведи на стену и щёлкни — проём встанет на стену.',
-  stamp: 'Щелчок — поставить объект. Q/E — поворот, F — отразить, Esc — выход.',
+  stamp: 'Щелчок — поставить объект или комплект. Правила сами прижмут его к стене, в угол или к дороге (Alt — без правил). Q/E — поворот, F — отразить.',
   pan: 'Тяни, чтобы двигать карту.',
   brush: 'Рисуй местность: грязь, кровь, воду. Alt — ластик.',
   path: 'Щелчками ставь точки пути, двойной щелчок или Enter — закончить, Esc — отмена.',
@@ -300,7 +301,7 @@ function Workspace({ ed, assets, user, onExit, onOpen }: { ed: Editor; assets: A
           <div className="tools">
             {TOOLS.map((t) => (
               <button key={t.id} className={`tool${tool === t.id ? ' on' : ''}`} title={tr(t.title)} aria-label={tr(t.title)}
-                disabled={t.id === 'stamp' && !settings.stamp} onClick={() => ed.setTool(t.id)}>{t.icon}</button>
+                disabled={t.id === 'stamp' && !settings.stamp && !settings.stampSet} onClick={() => ed.setTool(t.id)}>{t.icon}</button>
             ))}
           </div>
           <div className="props">
@@ -324,6 +325,7 @@ function Workspace({ ed, assets, user, onExit, onOpen }: { ed: Editor; assets: A
               <button className={`btn btn-sm${settings.showLight ? ' btn-on' : ''}`} title={tr('Показывать освещение в редакторе')}
                 onClick={() => ed.setSettings({ showLight: !settings.showLight })}>💡 {tr('Свет')}</button>
             )}
+            <IssuesButton ed={ed} assets={assets} />
             <button className="btn btn-sm" title={tr('Показать всю карту')} onClick={() => fit.current()}>⤢</button>
           </div>
         </section>
@@ -347,5 +349,23 @@ function NameInput({ value, onCommit }: { value: string; onCommit(v: string): vo
   return (
     <input className="input map-name" value={text} aria-label={tr('Название')} onChange={(e) => setText(e.target.value)} onBlur={commit}
       onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); if (e.key === 'Escape') { setText(value); (e.target as HTMLInputElement).blur(); } }} />
+  );
+}
+
+/** Сколько объектов этажа нарушают правила размещения; щелчок — выделить их, второй — скрыть подсветку. */
+function IssuesButton({ ed, assets }: { ed: Editor; assets: AssetStore }) {
+  const v = useStore(assets);
+  const doc = useEditor(ed, (s) => s.doc);
+  const floorId = useEditor(ed, (s) => s.floorId);
+  const on = useEditor(ed, (s) => s.settings.showIssues);
+  const issues = useMemo(() => floorIssues(ed.floor, (k) => assets.entry(k)), [doc, floorId, v]); // eslint-disable-line react-hooks/exhaustive-deps
+  if (!issues.size && on) return null;
+  return (
+    <button className={`btn btn-sm${on && issues.size ? ' btn-danger' : ''}`} title={tr('Объекты, нарушающие правила размещения: щелчок — выделить, Shift+щелчок — скрыть/показать подсветку')}
+      onClick={(e) => {
+        if (e.shiftKey || !on) { ed.setSettings({ showIssues: !on }); return; }
+        ed.setTool('select');
+        ed.setSel([...issues.keys()].map((id) => ({ kind: 'object' as const, id })));
+      }}>⚠ {on ? issues.size : tr('Правила')}</button>
   );
 }

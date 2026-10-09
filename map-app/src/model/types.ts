@@ -27,6 +27,8 @@ export type Room = {
   poly: Poly;
   floor: AssetKey | null;
   wall: WallStyle;
+  /** Тип комнаты (склад, офис…) — для правил размещения и генерации; см. model/rules.ts. */
+  type?: string;
 };
 
 export type Wall = {
@@ -58,6 +60,8 @@ export type MapObject = {
   flipX: boolean;
   flipY: boolean;
   opacity: number;
+  /** Оттенок (умножение цвета), null/нет — исходные цвета. */
+  tint?: string | null;
 };
 
 export type Layer = {
@@ -199,6 +203,37 @@ export type AssetEntry = {
   layer: 'below' | 'above';
   pixelated: boolean;
   tags: string[];
-  rules?: Record<string, unknown>;
+  /** Исходный размер картинки в пикселях (null — неизвестен). */
+  size: { w: number; h: number } | null;
+  /** Группа вариантов одного объекта внутри папки (ящик-1, ящик-2…). */
+  group?: string;
+  rules?: Rules;
 };
-export type DirNode = { path: string; name: { ru: string; en: string }; dirs: DirNode[]; files: string[] };
+export type DirNode = { path: string; name: { ru: string; en: string }; dirs: DirNode[]; files: string[]; sets: string[] };
+
+/** Правила размещения (docs/map-editor.md §5), уже с умолчаниями — см. normRules в assets/tree.js. */
+export type Place = 'free' | 'wall' | 'corner' | 'center' | 'road';
+export type Relation = { to: string; dist: number };
+export type Rules = {
+  place: Place;
+  where: 'any' | 'inside' | 'outside';
+  gap: number;
+  face: boolean;
+  clearDoors: boolean;
+  near: Relation[];
+  avoid: Relation[];
+  rooms: string[];
+  districts: string[];
+  state: string[];
+  weight: number;
+  min: number;
+  max: number;
+  rotate: 'none' | '90' | 'any';
+  flip: boolean;
+  scale: [number, number];
+  tint: string[];
+};
+
+/** Комплект: несколько ассетов, расставленных относительно друг друга (стол + 4 стула). */
+export type SetItem = { path: string; x: number; y: number; rot: number; flip: boolean; scale: number };
+export type SetEntry = { id: string; dir: string; key: string; name: { ru: string; en: string }; items: SetItem[]; rules?: Rules };

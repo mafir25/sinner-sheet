@@ -8,25 +8,84 @@
       "name": {
         "ru": "Стол с терминалом",
         "en": "Terminal desk"
+      },
+      "tags": [
+        "table"
+      ],
+      "rules": {
+        "place": "wall"
       }
     },
     "filing-cabinet.svg": {
       "name": {
         "ru": "Картотека",
         "en": "Filing cabinet"
+      },
+      "rules": {
+        "place": "wall",
+        "max": 8
       }
     },
     "whiteboard.svg": {
       "name": {
         "ru": "Доска",
         "en": "Whiteboard"
+      },
+      "rules": {
+        "place": "wall",
+        "clearDoors": false
       }
     },
     "plant.svg": {
       "name": {
         "ru": "Растение",
         "en": "Plant"
+      },
+      "rules": {
+        "place": "corner",
+        "rooms": [],
+        "rotate": "any",
+        "scale": [
+          0.85,
+          1.15
+        ]
       }
+    }
+  },
+  "tags": [
+    "indoor"
+  ],
+  "rules": {
+    "where": "inside",
+    "clearDoors": true,
+    "rooms": [
+      "office",
+      "lab",
+      "clinic"
+    ]
+  },
+  "sets": {
+    "workplace": {
+      "name": {
+        "ru": "Рабочее место",
+        "en": "Workstation"
+      },
+      "rules": {
+        "place": "wall"
+      },
+      "items": [
+        {
+          "file": "computer-desk.svg",
+          "x": 0,
+          "y": 0
+        },
+        {
+          "file": "../furniture/chair.svg",
+          "x": 0,
+          "y": 1,
+          "rot": 180
+        }
+      ]
     }
   }
 }

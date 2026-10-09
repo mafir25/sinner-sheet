@@ -36,8 +36,9 @@ const walk = (dir) => {
 };
 walk(ROOT);
 
-const { tree, assets } = buildPack(files, metas);
-const text = `${JSON.stringify({ version: 1, tree, assets })}\n`;
+const { tree, assets, sets } = buildPack(files, metas);
+// metas — исходные _meta.json: по ним редактор разметки (этап 3) показывает и правит настройки канона
+const text = `${JSON.stringify({ version: 1, tree, assets, sets, metas })}\n`;
 const old = existsSync(OUT) ? readFileSync(OUT, 'utf8') : '';
 if (old !== text) writeFileSync(OUT, text);
-console.log(`gen-map-assets: ${assets.length} ассетов${old === text ? ' (без изменений)' : ' → Assets/Maps/manifest.json'}`);
+console.log(`gen-map-assets: ${assets.length} ассетов, ${sets.length} комплектов${old === text ? ' (без изменений)' : ' → Assets/Maps/manifest.json'}`);
