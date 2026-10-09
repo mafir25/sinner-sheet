@@ -72,7 +72,7 @@ export function buildDd2vtt(doc: MapDoc, f: Floor, ppc: number, image: string, w
   const gaps = new Set<Portal['kind']>(windows === 'wall' ? ['door'] : ['door', 'window']);
   const los = wallChains(f, gaps).map((c) => { const pts = c.pts.map((q) => P(q.x, q.y)); return c.closed ? [...pts, pts[0]] : pts; });
   const portals = f.portals
-    .filter((p) => p.kind === 'door' || (p.kind === 'window' && windows === 'door'))
+    .filter((p) => !!p.asset && (p.kind === 'door' || (p.kind === 'window' && windows === 'door')))
     .map((p) => vttPortal(p, true));
   return {
     format: 0.3,

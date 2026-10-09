@@ -41,7 +41,8 @@ function portalSpan(seg: WallSeg, p: Portal): [number, number] | null {
 
 /** Стены этажа, разрезанные проёмами указанных видов, — непрерывными ломаными. Проёмы без стены (gap) режут всегда. */
 export function wallChains(f: Floor, gapKinds: Set<Portal['kind']> = new Set(['door', 'window'])): WallChain[] {
-  const portals = f.portals.filter((p) => p.kind === 'gap' || gapKinds.has(p.kind));
+  // проём без стены и пустой проём (без картинки — арка, вырез) открыты всегда
+  const portals = f.portals.filter((p) => p.kind === 'gap' || !p.asset || gapKinds.has(p.kind));
   const out: WallChain[] = [];
   for (const path of floorPaths(f)) {
     // куски отрезков; joinA/joinB — конец лежит в вершине контура (а не на краю проёма)
@@ -145,50 +146,81 @@ function faceVector(dir: FaceDir | undefined, n: Pt, h: number): Pt | null {
   return null;
 }
 
-/**
- * Грани объёмных стен этажа (стиль с height > 0). Стена в дверях и проёмах без стены граней не даёт.
- * У стены комнаты сторона внутрь — правило inner, наружу — outer; если снаружи за стеной другая комната,
- * эта часть стены — её внутренняя, и гранью займётся она. У отдельной стены обе стороны — outer.
- */
-export function wallFaces(f: Floor): WallFace[] {
-  const out: WallFace[] = [];
+/** Грани одного отрезка стены a→b по правилам стиля (сторона в комнату — inner, наружу — outer). */
+function segFaces(f: Floor, a: Pt, b: Pt, st: WallStyle, room: Room | undefined, out: WallFace[]) {
+  const h = st.height ?? 0, L = Math.hypot(b.x - a.x, b.y - a.y);
+  if (h <= 0 || L < 1e-6) return;
   const step = 0.25;
-  for (const c of wallChains(f, new Set(['door']))) {
-    const st = c.style, h = st.height ?? 0;
-    if (h <= 0) continue;
-    const pts = c.closed ? [...c.pts, c.pts[0]] : c.pts;
-    for (let i = 0; i < pts.length - 1; i++) {
-      const a = pts[i], b = pts[i + 1], L = Math.hypot(b.x - a.x, b.y - a.y);
-      if (L < 1e-6) continue;
-      const u = { x: (b.x - a.x) / L, y: (b.y - a.y) / L };
-      let nIn = { x: -u.y, y: u.x };
-      if (c.room) {
-        const m = { x: (a.x + b.x) / 2 + nIn.x * 0.05, y: (a.y + b.y) / 2 + nIn.y * 0.05 };
-        if (!pointInPoly(m, c.room.poly)) nIn = { x: -nIn.x, y: -nIn.y };
-      }
-      const nOut = { x: -nIn.x, y: -nIn.y };
-      const sides: [Pt, FaceDir | undefined][] = c.room ? [[nIn, st.inner], [nOut, st.outer]] : [[nIn, st.outer], [nOut, st.outer]];
-      for (const [n, dir] of sides) {
-        const v = faceVector(dir, n, h);
-        if (!v) continue;
-        // снаружи комнаты: пропускаем куски, за которыми другая комната
-        const outside = c.room && n === nOut;
-        const at = (t: number): Pt => ({ x: a.x + u.x * t, y: a.y + u.y * t });
-        const free = (t: number) => !outside || !f.rooms.some((r) => r !== c.room && pointInPoly({ x: a.x + u.x * t + n.x * 0.05, y: a.y + u.y * t + n.y * 0.05 }, r.poly));
-        let start: number | null = null;
-        const n0 = Math.max(1, Math.ceil(L / step));
-        for (let k = 0; k <= n0; k++) {
-          const t0 = (k / n0) * L, t1 = Math.min(L, ((k + 1) / n0) * L);
-          const ok = k < n0 && free((t0 + t1) / 2);
-          if (ok && start === null) start = t0;
-          if ((!ok || k === n0) && start !== null) {
-            const p0 = at(start), p1 = at(ok ? t1 : t0);
-            out.push({ pts: [p0, p1, { x: p1.x + v.x, y: p1.y + v.y }, { x: p0.x + v.x, y: p0.y + v.y }], v, style: st });
-            start = null;
-          }
-        }
+  const u = { x: (b.x - a.x) / L, y: (b.y - a.y) / L };
+  let nIn = { x: -u.y, y: u.x };
+  if (room) {
+    const m = { x: (a.x + b.x) / 2 + nIn.x * 0.05, y: (a.y + b.y) / 2 + nIn.y * 0.05 };
+    if (!pointInPoly(m, room.poly)) nIn = { x: -nIn.x, y: -nIn.y };
+  }
+  const nOut = { x: -nIn.x, y: -nIn.y };
+  const sides: [Pt, FaceDir | undefined][] = room ? [[nIn, st.inner], [nOut, st.outer]] : [[nIn, st.outer], [nOut, st.outer]];
+  for (const [n, dir] of sides) {
+    const v = faceVector(dir, n, h);
+    if (!v) continue;
+    // снаружи комнаты: пропускаем куски, за которыми другая комната
+    const outside = room && n === nOut;
+    const at = (t: number): Pt => ({ x: a.x + u.x * t, y: a.y + u.y * t });
+    const free = (t: number) => !outside || !f.rooms.some((r) => r !== room && pointInPoly({ x: a.x + u.x * t + n.x * 0.05, y: a.y + u.y * t + n.y * 0.05 }, r.poly));
+    let start: number | null = null;
+    const n0 = Math.max(1, Math.ceil(L / step));
+    for (let k = 0; k <= n0; k++) {
+      const t0 = (k / n0) * L, t1 = Math.min(L, ((k + 1) / n0) * L);
+      const ok = k < n0 && free((t0 + t1) / 2);
+      if (ok && start === null) start = t0;
+      if ((!ok || k === n0) && start !== null) {
+        const p0 = at(start), p1 = at(ok ? t1 : t0);
+        out.push({ pts: [p0, p1, { x: p1.x + v.x, y: p1.y + v.y }, { x: p0.x + v.x, y: p0.y + v.y }], v, style: st });
+        start = null;
       }
     }
   }
+}
+
+/**
+ * Грани объёмных стен этажа (стиль с height > 0). Двери, окна и проёмы без стены вырезают стену вместе с гранью:
+ * грань проёма рисуется отдельно (portalFaces). У стены комнаты сторона внутрь — правило inner, наружу — outer;
+ * если снаружи за стеной другая комната, эта часть стены — её внутренняя, и гранью займётся она.
+ * У отдельной стены обе стороны — outer.
+ */
+export function wallFaces(f: Floor): WallFace[] {
+  const out: WallFace[] = [];
+  for (const c of wallChains(f)) {
+    if ((c.style.height ?? 0) <= 0) continue;
+    const pts = c.closed ? [...c.pts, c.pts[0]] : c.pts;
+    for (let i = 0; i < pts.length - 1; i++) segFaces(f, pts[i], pts[i + 1], c.style, c.room, out);
+  }
   return out;
+}
+
+/** Стена, на которой стоит проём: её стиль и комната (если это стена комнаты). */
+export function portalWall(f: Floor, p: Portal): { style: WallStyle; room?: Room; seg: WallSeg } | null {
+  for (const path of floorPaths(f)) {
+    for (const seg of pathSegs(path)) if (portalSpan(seg, p)) return { style: path.style, room: path.room, seg };
+  }
+  return null;
+}
+
+/** Грани стены в пределах проёма (двери, окна) — туда вписывается картинка проёма. Пусто — стена плоская. */
+export function portalFaces(f: Floor, p: Portal): WallFace[] {
+  const w = portalWall(f, p);
+  if (!w || (w.style.height ?? 0) <= 0) return [];
+  const span = portalSpan(w.seg, p)!;
+  const L = Math.hypot(w.seg.b.x - w.seg.a.x, w.seg.b.y - w.seg.a.y);
+  const at = (t: number): Pt => ({ x: w.seg.a.x + ((w.seg.b.x - w.seg.a.x) * t) / L, y: w.seg.a.y + ((w.seg.b.y - w.seg.a.y) * t) / L });
+  const out: WallFace[] = [];
+  segFaces(f, at(span[0]), at(span[1]), w.style, w.room, out);
+  return out;
+}
+
+/** Форма проёма в грани: доли высоты грани — перемычка сверху и подоконник снизу, арка. */
+export function portalShape(p: Portal): { top: number; bottom: number; arch: boolean } {
+  const def = p.kind === 'window' ? { top: 0.3, bottom: 0.3 } : { top: 0.15, bottom: 0 };
+  const top = Math.max(0, Math.min(0.9, p.top ?? def.top));
+  const bottom = Math.max(0, Math.min(0.9 - top, p.bottom ?? def.bottom));
+  return { top, bottom, arch: !!p.arch };
 }

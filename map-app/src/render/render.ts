@@ -3,7 +3,7 @@
 import type { AssetStore } from '../assets/store';
 import type { Floor, MapDoc, MapObject, Portal, Poly, Pt } from '../model/types';
 import { drawGrid } from '../geom/grid';
-import { portalThickness, wallChains, wallFaces, type WallChain } from '../geom/walls';
+import { portalFaces, portalShape, portalThickness, wallChains, wallFaces, type WallChain, type WallFace } from '../geom/walls';
 import type { BBox } from '../geom/poly';
 import { auxRes, drawLabel, drawLighting, drawPath, drawRoof, terrainCanvas } from './extras';
 
@@ -205,7 +205,8 @@ export function drawWalls(ctx: CanvasRenderingContext2D, chains: WallChain[], as
 }
 
 export function drawPortal(ctx: CanvasRenderingContext2D, f: Floor, p: Portal, assets: AssetStore, o: RenderOpts) {
-  if (p.kind === 'gap') return; // проём без стены — рисовать нечего
+  // проём без стены и пустой проём — рисовать нечего; на объёмной стене проём вписан в грань (drawFaces)
+  if (p.kind === 'gap' || !p.asset || portalFaces(f, p).length) return;
   const dx = p.b.x - p.a.x, dy = p.b.y - p.a.y, L = Math.hypot(dx, dy);
   if (L < 1e-6) return;
   const th = portalThickness(f, p);
@@ -223,28 +224,99 @@ export function drawPortal(ctx: CanvasRenderingContext2D, f: Floor, p: Portal, a
   ctx.restore();
 }
 
-/** Грани объёмных стен: текстура стены + затенение к дальнему краю + тёмная кромка. */
+type FaceTex = { pat: CanvasPattern; w: number; h: number; fw: number };
+/** Своя копия узора текстуры: ей меняем привязку под каждую грань (общий узор полов не трогаем). */
+function faceTexture(ctx: CanvasRenderingContext2D, assets: AssetStore, key: string | null, scale: number, cache: Map<string, FaceTex | null>): FaceTex | null {
+  if (!key) return null;
+  if (cache.has(key)) return cache.get(key)!;
+  const src = assets.source(key, scale) as HTMLCanvasElement | HTMLImageElement | null;
+  let t: FaceTex | null = null;
+  if (src) {
+    const w = src instanceof HTMLImageElement ? src.naturalWidth : src.width, h = src instanceof HTMLImageElement ? src.naturalHeight : src.height;
+    const pat = w && h ? ctx.createPattern(src, 'repeat') : null;
+    if (pat) t = { pat, w, h, fw: assets.entry(key)?.footprint[0] ?? 1 };
+  }
+  cache.set(key, t);
+  return t;
+}
+
+/**
+ * Привязка текстуры к грани: по длине стены — плитка шириной в footprint клеток, поперёк — вся высота картинки
+ * на «дальность» грани (меньше дальность — картинка сжимается). Начало — на прямой стены, общее для соседних граней.
+ */
+function fitTexture(t: FaceTex, p0: Pt, p1: Pt, v: Pt) {
+  const L = Math.hypot(p1.x - p0.x, p1.y - p0.y) || 1, u = { x: (p1.x - p0.x) / L, y: (p1.y - p0.y) / L };
+  const along = p0.x * u.x + p0.y * u.y, o = { x: p0.x - u.x * along, y: p0.y - u.y * along };
+  const k = t.fw / t.w;
+  t.pat.setTransform(new DOMMatrix([u.x * k, u.y * k, v.x / t.h, v.y / t.h, o.x, o.y]));
+}
+
+function shadeFace(ctx: CanvasRenderingContext2D, p0: Pt, v: Pt) {
+  const g = ctx.createLinearGradient(p0.x, p0.y, p0.x + v.x, p0.y + v.y);
+  g.addColorStop(0, 'rgba(255,255,255,0.06)');
+  g.addColorStop(1, 'rgba(0,0,0,0.45)');
+  return g;
+}
+
+/** Контур проёма в грани (единичный квадрат: x — вдоль стены, y — от линии стены к основанию грани). */
+function openingShape(top: number, bottom: number, arch: boolean): Pt[] {
+  const y0 = top, y1 = 1 - bottom;
+  if (!arch) return [{ x: 0, y: y0 }, { x: 1, y: y0 }, { x: 1, y: y1 }, { x: 0, y: y1 }];
+  const ah = Math.min((y1 - y0) * 0.6, 0.5);
+  const pts: Pt[] = [{ x: 0, y: y1 }];
+  for (let i = 0; i <= 16; i++) {
+    const th = Math.PI - (i / 16) * Math.PI;
+    pts.push({ x: 0.5 + 0.5 * Math.cos(th), y: y0 + ah - ah * Math.sin(th) });
+  }
+  pts.push({ x: 1, y: y1 });
+  return pts;
+}
+
+/** Грани объёмных стен и вписанные в них двери, окна, арки. Рисуются под объектами. */
 export function drawFaces(ctx: CanvasRenderingContext2D, f: Floor, assets: AssetStore, o: RenderOpts) {
   const faces = wallFaces(f);
-  if (!faces.length) return;
+  const portals = f.portals.filter((p) => p.kind !== 'gap').map((p) => ({ p, faces: portalFaces(f, p) })).filter((x) => x.faces.length);
+  if (!faces.length && !portals.length) return;
+  const cache = new Map<string, FaceTex | null>();
+  const edge = Math.max(0.025, 1.2 / o.scale);
+  const quad = (pts: Pt[]) => { ctx.moveTo(pts[0].x, pts[0].y); for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y); ctx.closePath(); };
+  const material = (face: WallFace) => {
+    const t = faceTexture(ctx, assets, face.style.asset, o.scale, cache);
+    if (t) fitTexture(t, face.pts[0], face.pts[1], face.v);
+    return t?.pat ?? face.style.color;
+  };
   ctx.save();
   for (const face of faces) {
-    const [p0, p1, p2, p3] = face.pts;
-    ctx.beginPath();
-    ctx.moveTo(p0.x, p0.y); ctx.lineTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.lineTo(p3.x, p3.y); ctx.closePath();
-    ctx.fillStyle = (face.style.asset && assets.pattern(ctx, face.style.asset, o.scale)) || face.style.color;
-    ctx.fill();
-    // у стены светлее, к основанию темнее — читается как вертикальная поверхность
-    const g = ctx.createLinearGradient(p0.x, p0.y, p0.x + face.v.x, p0.y + face.v.y);
-    g.addColorStop(0, 'rgba(255,255,255,0.06)');
-    g.addColorStop(1, 'rgba(0,0,0,0.45)');
-    ctx.fillStyle = g;
-    ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(p3.x, p3.y); ctx.lineTo(p2.x, p2.y);
-    ctx.lineWidth = Math.max(0.025, 1.2 / o.scale);
-    ctx.strokeStyle = 'rgba(0,0,0,0.7)';
-    ctx.stroke();
+    const [p0, , p2, p3] = face.pts;
+    ctx.beginPath(); quad(face.pts);
+    ctx.fillStyle = material(face); ctx.fill();
+    ctx.fillStyle = shadeFace(ctx, p0, face.v); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(p3.x, p3.y); ctx.lineTo(p2.x, p2.y);
+    ctx.lineWidth = edge; ctx.strokeStyle = 'rgba(0,0,0,0.7)'; ctx.stroke();
+  }
+  // проёмы: стена вокруг выреза (перемычка, подоконник), картинка двери/окна в вырезе, кромка выреза
+  for (const { p, faces: pf } of portals) {
+    const shape = portalShape(p);
+    const src = p.asset ? assets.source(p.asset, o.scale * 4) : null;
+    for (const face of pf) {
+      const [p0, p1, p2, p3] = face.pts, ex = { x: p1.x - p0.x, y: p1.y - p0.y };
+      const M = (q: Pt): Pt => ({ x: p0.x + ex.x * q.x + face.v.x * q.y, y: p0.y + ex.y * q.x + face.v.y * q.y });
+      const hole = openingShape(shape.top, shape.bottom, shape.arch).map(M);
+      ctx.beginPath(); quad(face.pts); quad(hole);
+      ctx.fillStyle = material(face); ctx.fill('evenodd');
+      ctx.fillStyle = shadeFace(ctx, p0, face.v); ctx.fill('evenodd');
+      if (src) {
+        ctx.save();
+        ctx.beginPath(); quad(hole); ctx.clip();
+        ctx.transform(ex.x, ex.y, face.v.x, face.v.y, p0.x, p0.y);
+        ctx.imageSmoothingEnabled = !assets.entry(p.asset)?.pixelated;
+        ctx.drawImage(src, 0, shape.top, 1, 1 - shape.top - shape.bottom);
+        ctx.restore();
+      }
+      ctx.beginPath(); quad(hole);
+      ctx.lineWidth = edge; ctx.strokeStyle = 'rgba(0,0,0,0.75)'; ctx.stroke();
+      if (shape.bottom > 0.001 || !src) { ctx.beginPath(); ctx.moveTo(p3.x, p3.y); ctx.lineTo(p2.x, p2.y); ctx.stroke(); }
+    }
   }
   ctx.restore();
 }

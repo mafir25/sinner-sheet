@@ -1,7 +1,7 @@
 // Объёмные стены (грани в выбранных направлениях) и проёмы без стены.
 import { describe, it, expect } from 'vitest';
 import { rectPoly } from '../../map-app/src/geom/poly.ts';
-import { wallChains, wallFaces, orphanPortals } from '../../map-app/src/geom/walls.ts';
+import { wallChains, wallFaces, orphanPortals, portalFaces, portalShape } from '../../map-app/src/geom/walls.ts';
 import { blockingSegments } from '../../map-app/src/geom/light.ts';
 import { buildDd2vtt } from '../../map-app/src/export/export.ts';
 import { createDoc, parseDoc } from '../../map-app/src/model/doc.ts';
@@ -39,12 +39,34 @@ describe('грани объёмных стен', () => {
     // северная стена A внутрь, общая стена — внутрь B, южная стена B — наружу
     expect(faces).toEqual([[0, 0, 4, 1], [0, 3, 4, 4], [0, 6, 4, 7]].sort());
   });
-  it('в дверном проёме грани нет, окно грань не прерывает', () => {
+  it('двери и окна вырезают стену вместе с гранью; их грань — отдельно, по форме стены', () => {
     const w = wall3d('down', 'none');
-    const door = { id: 'd', kind: 'door', a: { x: 1, y: 0 }, b: { x: 2, y: 0 }, asset: null };
-    expect(wallFaces(floor([room('r', { x: 0, y: 0 }, { x: 4, y: 3 }, w)], [door])).map(box).sort()).toEqual([[0, 0, 1, 1], [2, 0, 4, 1]]);
-    const win = { ...door, kind: 'window' };
-    expect(wallFaces(floor([room('r', { x: 0, y: 0 }, { x: 4, y: 3 }, w)], [win])).map(box)).toEqual([[0, 0, 4, 1]]);
+    for (const kind of ['door', 'window']) {
+      const p = { id: 'd', kind, a: { x: 1, y: 0 }, b: { x: 2, y: 0 }, asset: 'canon:portals/doors/wood.svg' };
+      const f = floor([room('r', { x: 0, y: 0 }, { x: 4, y: 3 }, w)], [p]);
+      expect(wallFaces(f).map(box).sort()).toEqual([[0, 0, 1, 1], [2, 0, 4, 1]]);
+      expect(portalFaces(f, p).map(box)).toEqual([[1, 0, 2, 1]]);
+    }
+    // на плоской стене граней проёма нет — рисуется как раньше
+    const flat = floor([room('r', { x: 0, y: 0 }, { x: 4, y: 3 }, { asset: null, color: '#000', width: 0.25 })]);
+    expect(portalFaces(flat, { id: 'd', kind: 'door', a: { x: 1, y: 0 }, b: { x: 2, y: 0 }, asset: null })).toEqual([]);
+  });
+  it('форма проёма: умолчания двери и окна, границы', () => {
+    expect(portalShape({ kind: 'door' })).toEqual({ top: 0.15, bottom: 0, arch: false });
+    expect(portalShape({ kind: 'window' })).toEqual({ top: 0.3, bottom: 0.3, arch: false });
+    const s = portalShape({ kind: 'door', top: 0.8, bottom: 0.5, arch: true });
+    expect(s.top).toBe(0.8); expect(s.bottom).toBeCloseTo(0.1); expect(s.arch).toBe(true);
+  });
+  it('пустой проём (без картинки) — арка: свет проходит, в .dd2vtt нет портала', () => {
+    const w = wall3d('down', 'down');
+    const arch = { id: 'a', kind: 'door', a: { x: 1, y: 0 }, b: { x: 3, y: 0 }, asset: null, arch: true };
+    const closed = { id: 'c', kind: 'door', a: { x: 0, y: 1 }, b: { x: 0, y: 2 }, asset: 'canon:portals/doors/wood.svg' };
+    const f = floor([room('r', { x: 0, y: 0 }, { x: 4, y: 3 }, w)], [arch, closed]);
+    const segs = blockingSegments(f);
+    expect(segs.some(([a, b]) => a.y === 0 && b.y === 0 && Math.min(a.x, b.x) < 2 && Math.max(a.x, b.x) > 2)).toBe(false);
+    expect(segs.some(([a, b]) => a.x === 0 && b.x === 0 && Math.min(a.y, b.y) <= 1.5 && Math.max(a.y, b.y) >= 1.5)).toBe(true);
+    const d = createDoc({ name: 'X', width: 6, height: 6, grid: 'square', floorName: 'F' });
+    expect(buildDd2vtt(d, f, 70, '', 'gap').portals).toHaveLength(1);
   });
 });
 

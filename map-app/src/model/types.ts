@@ -57,7 +57,12 @@ export type Portal = {
   kind: PortalKind;
   a: Pt;
   b: Pt;
+  /** Картинка двери/окна; null — пустой проём (арка, вырез): взгляд и свет проходят. */
   asset: AssetKey | null;
+  /** На объёмной стене: доли высоты грани — перемычка сверху и подоконник снизу; arch — арка. */
+  top?: number;
+  bottom?: number;
+  arch?: boolean;
 };
 
 export type MapObject = {

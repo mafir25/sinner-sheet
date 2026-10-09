@@ -125,8 +125,8 @@ describe('документ и экспорт', () => {
   it('.dd2vtt: размер в клетках, стены ломаными, двери порталами, окна по настройке', () => {
     const d = createDoc({ name: 'X', width: 10, height: 8, grid: 'square', floorName: 'F1' });
     const f = floorWith([rectPoly({ x: 1, y: 1 }, { x: 5, y: 5 })], [
-      { id: 'd', kind: 'door', asset: null, a: { x: 2, y: 1 }, b: { x: 3, y: 1 } },
-      { id: 'w', kind: 'window', asset: null, a: { x: 1, y: 2 }, b: { x: 1, y: 3 } },
+      { id: 'd', kind: 'door', asset: 'canon:portals/doors/wood.svg', a: { x: 2, y: 1 }, b: { x: 3, y: 1 } },
+      { id: 'w', kind: 'window', asset: 'canon:portals/windows/glass.svg', a: { x: 1, y: 2 }, b: { x: 1, y: 3 } },
     ]);
     const gap = buildDd2vtt(d, f, 70, 'IMG', 'gap');
     expect(gap.resolution).toEqual({ map_origin: { x: 0, y: 0 }, map_size: { x: 10, y: 8 }, pixels_per_grid: 70 });
@@ -161,9 +161,9 @@ describe('этап 2: пути, свет, совместимость', async () 
     const far = (poly, dir) => Math.max(...poly.map((p) => (dir === 'x' ? p.x : -p.y)));
     const closed = visibility(inside, 10, blockingSegments(floorWith([room])));
     expect(far(closed, 'x')).toBeLessThanOrEqual(4 + 1e-6); // свет не выходит за правую стену
-    const door = floorWith([room], [{ id: 'd', kind: 'door', asset: null, a: { x: 4, y: 1.5 }, b: { x: 4, y: 2.5 } }]);
+    const door = floorWith([room], [{ id: 'd', kind: 'door', asset: 'canon:portals/doors/wood.svg', a: { x: 4, y: 1.5 }, b: { x: 4, y: 2.5 } }]);
     expect(far(visibility(inside, 10, blockingSegments(door)), 'x')).toBeLessThanOrEqual(4 + 1e-6);
-    const win = floorWith([room], [{ id: 'w', kind: 'window', asset: null, a: { x: 4, y: 1.5 }, b: { x: 4, y: 2.5 } }]);
+    const win = floorWith([room], [{ id: 'w', kind: 'window', asset: 'canon:portals/windows/glass.svg', a: { x: 4, y: 1.5 }, b: { x: 4, y: 2.5 } }]);
     expect(far(visibility(inside, 10, blockingSegments(win)), 'x')).toBeGreaterThan(8);
   });
   it('карта первого этапа открывается: новые поля получают значения по умолчанию', () => {
