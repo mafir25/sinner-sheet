@@ -37,7 +37,8 @@ export function objectCorners(o: MapObject): Pt[] {
 /** Полуширина пути для попадания курсором: линия или лента картинки, что шире. */
 export function pathHalfWidth(pa: MapPath, band: (key: string) => number) {
   const deco = pa.style.decor ? band(pa.style.decor) * (pa.style.decorScale || 1) : 0;
-  return Math.max(pa.style.width, deco, 0.2) / 2;
+  const par = pa.style.parallel ? pa.style.parallel.gap + pa.style.parallel.width : 0;
+  return Math.max(pa.style.width, deco, par, 0.2) / 2;
 }
 
 /** decorBand — ширина поперёк пути (клетки) для картинки вдоль пути. */

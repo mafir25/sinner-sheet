@@ -92,6 +92,8 @@ export type PathStyle = {
   decorMode: 'strip' | 'repeat';
   decorScale: number;      // масштаб картинки вдоль пути
   spacing: number;         // шаг объектов в режиме repeat (клетки)
+  /** Две параллельные линии по бокам пути (рельсы, двойная труба, бордюры); рисуются поверх картинки вдоль пути. */
+  parallel: { gap: number; width: number; color: string; outline: string | null } | null;
 };
 
 export type MapPath = {

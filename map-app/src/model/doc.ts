@@ -7,7 +7,7 @@ export const uid = (p = '') => `${p}${Date.now().toString(36)}${Math.random().to
 export const DEFAULT_WALL: WallStyle = { asset: 'canon:walls/concrete.svg', color: '#1c1c1e', width: 0.25 };
 export const DEFAULT_FLOOR = 'canon:floors/concrete.svg';
 export const DEFAULT_LIGHTING: Lighting = { enabled: false, darkness: 0.7, color: '#05060a', wallShadows: true };
-export const DEFAULT_PATH: PathStyle = { width: 3, color: '#2a2b2e', asset: 'canon:floors/asphalt.svg', dash: 0, outline: '#141416', decor: null, decorMode: 'strip', decorScale: 1, spacing: 1 };
+export const DEFAULT_PATH: PathStyle = { width: 3, color: '#2a2b2e', asset: 'canon:floors/asphalt.svg', dash: 0, outline: '#141416', decor: null, decorMode: 'strip', decorScale: 1, spacing: 1, parallel: null };
 
 export function defaultLayers(): Layer[] {
   return [
@@ -54,6 +54,9 @@ const pathStyle = z.object({
   width: num.min(0).max(50).default(1), color: z.string().default('#2a2b2e'), asset, dash: num.min(0).default(0),
   outline: z.string().nullable().default(null), decor: asset, spacing: num.min(0.1).default(1),
   decorMode: z.enum(['strip', 'repeat']).default('strip'), decorScale: num.min(0.05).max(20).default(1),
+  parallel: z.object({
+    gap: num.min(0.02).max(50), width: num.min(0.01).max(10), color: z.string(), outline: z.string().nullable().default(null),
+  }).nullable().default(null),
 });
 const floor = z.object({
   id: z.string(),

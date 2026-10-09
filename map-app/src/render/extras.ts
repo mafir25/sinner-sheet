@@ -2,7 +2,7 @@
 // Местность и карта освещения рисуются в отдельный холст размером с карту и кэшируются.
 import type { AssetStore } from '../assets/store';
 import type { Floor, Label, Lighting, MapPath, Pt, Roof, TerrainStroke } from '../model/types';
-import { curvePoints, roundCorners, walkAlong } from '../geom/curve';
+import { curvePoints, offsetPolyline, roundCorners, walkAlong } from '../geom/curve';
 import { blockingSegments, visibility } from '../geom/light';
 import { polyPath } from './render';
 
@@ -117,12 +117,15 @@ export function drawStrokePreview(ctx: CanvasRenderingContext2D, s: TerrainStrok
 
 // ---------- пути
 export function drawPath(ctx: CanvasRenderingContext2D, p: MapPath, assets: AssetStore, scale: number) {
-  const pts = curvePoints(p.points, p.smooth, p.closed);
-  if (pts.length < 2) return;
   const st = p.style;
+  let pts = curvePoints(p.points, p.smooth, p.closed);
+  if (pts.length < 2) return;
+  // у двух параллельных линий острый угол ломаной скругляем, иначе внутренняя линия завернётся петлёй
+  if (st.parallel && !p.smooth) pts = roundCorners(pts, Math.max(st.parallel.gap * 1.6, st.width / 2), p.closed);
   const line = () => { ctx.beginPath(); ctx.moveTo(pts[0].x, pts[0].y); for (const q of pts.slice(1)) ctx.lineTo(q.x, q.y); };
   ctx.save();
-  ctx.lineCap = st.dash ? 'butt' : 'round';
+  // у составных путей (рельсы) торцы прямые, как у самих линий
+  ctx.lineCap = st.dash || st.parallel ? 'butt' : 'round';
   ctx.lineJoin = 'round';
   if (st.dash) ctx.setLineDash([st.dash, st.dash * 0.6]);
   if (st.outline) {
@@ -156,6 +159,24 @@ export function drawPath(ctx: CanvasRenderingContext2D, p: MapPath, assets: Asse
         // лента: углы ломаной скругляем на полширины ленты, иначе на изломе будет разрыв
         drawStrip(ctx, p.smooth ? pts : roundCorners(pts, dh / 2, p.closed), src, dw, dh);
       }
+    }
+  }
+  if (st.parallel) {
+    const { gap, width, color, outline } = st.parallel;
+    ctx.lineCap = 'butt';
+    ctx.lineJoin = 'round';
+    for (const side of [-1, 1]) {
+      const q = offsetPolyline(pts, (side * gap) / 2);
+      const stroke = (w: number, c: string) => {
+        ctx.beginPath();
+        ctx.moveTo(q[0].x, q[0].y);
+        for (const r of q.slice(1)) ctx.lineTo(r.x, r.y);
+        ctx.lineWidth = w;
+        ctx.strokeStyle = c;
+        ctx.stroke();
+      };
+      if (outline) stroke(width + Math.max(0.04, width * 0.5), outline);
+      stroke(width, color);
     }
   }
   ctx.restore();

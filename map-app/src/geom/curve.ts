@@ -83,3 +83,26 @@ export function roundCorners(pts: Pt[], r: number, closed = false): Pt[] {
   if (closed) out.push(out[0]);
   return out;
 }
+
+/**
+ * Параллельная линия на расстоянии d (плюс — влево по ходу пути).
+ * Нормаль в вершине — средняя по соседним отрезкам, со стыком «в ус», чтобы ширина колеи не менялась на изгибах.
+ */
+export function offsetPolyline(pts: Pt[], d: number): Pt[] {
+  const n = pts.length;
+  if (n < 2) return pts.slice();
+  const normals: Pt[] = [];
+  for (let i = 0; i < n - 1; i++) {
+    const dx = pts[i + 1].x - pts[i].x, dy = pts[i + 1].y - pts[i].y, L = Math.hypot(dx, dy) || 1;
+    normals.push({ x: dy / L, y: -dx / L });
+  }
+  return pts.map((p, i) => {
+    const a = normals[Math.max(0, i - 1)], b = normals[Math.min(n - 2, i)];
+    let nx = a.x + b.x, ny = a.y + b.y;
+    const len = Math.hypot(nx, ny);
+    if (len < 1e-9) { nx = b.x; ny = b.y; } else { nx /= len; ny /= len; }
+    // удлинение на стыке (1 / cos половины угла), не больше 2 — на острых углах
+    const k = Math.min(2, 1 / Math.max(0.5, nx * b.x + ny * b.y));
+    return { x: p.x + nx * d * k, y: p.y + ny * d * k };
+  });
+}

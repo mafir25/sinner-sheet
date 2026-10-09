@@ -198,6 +198,10 @@ const EN: Record<string, string> = {
   'На планшете: два пальца — панорама и масштаб; кнопки «Привязка» и «Вырезать» внизу заменяют Ctrl и Alt.': 'On a tablet: two fingers pan and zoom; the “Snap” and “Cut out” buttons at the bottom replace Ctrl and Alt.',
   'В браузере нет места: {0}': 'Browser storage error: {0}',
   // этап 2
+  'Рельсы (лентой)': 'Rails (strip)',
+  'Две параллельные линии (рельсы, бордюры)': 'Two parallel lines (rails, curbs)',
+  'Между линиями': 'Gap between lines',
+  'Толщина линии': 'Line width',
   'Лентой': 'As a strip',
   'Отдельно': 'Separately',
   'Масштаб картинки': 'Image scale',

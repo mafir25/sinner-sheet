@@ -56,7 +56,15 @@ const PRESETS: { name: string; style: Partial<PathStyle>; smooth?: boolean }[] =
   { name: 'Труба', style: { width: 0.4, asset: null, color: '#6e767f', outline: '#2a2e33', dash: 0, decor: null }, smooth: false },
   { name: 'Провод', style: { width: 0.06, asset: null, color: '#111111', outline: null, dash: 0, decor: null } },
   { name: 'Забор', style: { ...STRIP, decor: 'canon:objects/linear/fence.svg' }, smooth: false },
-  { name: 'Рельсы', style: { ...STRIP, decor: 'canon:objects/linear/rail.svg' } },
+  {
+    name: 'Рельсы',
+    style: {
+      width: 1.6, asset: 'canon:terrain/gravel.svg', color: '#4a463f', outline: null, dash: 0,
+      decor: 'canon:objects/linear/sleeper.svg', decorMode: 'repeat', decorScale: 1, spacing: 0.55,
+      parallel: { gap: 0.9, width: 0.11, color: '#b4b8be', outline: '#2e3135' },
+    },
+  },
+  { name: 'Рельсы (лентой)', style: { ...STRIP, decor: 'canon:objects/linear/rail.svg' } },
   { name: 'Отбойник', style: { ...STRIP, decor: 'canon:objects/linear/barrier.svg' }, smooth: false },
   { name: 'Столбы', style: { ...STRIP, decor: 'canon:objects/linear/cable-post.svg', decorMode: 'repeat', spacing: 4 }, smooth: false },
 ];
@@ -82,6 +90,29 @@ export function PathStyleEditor({ assets, value, onChange }: { assets: AssetStor
           </span>
         </Field>
       </div>
+      <label className="check"><input type="checkbox" checked={!!value.parallel}
+        onChange={(e) => set({ parallel: e.target.checked ? { gap: 0.9, width: 0.11, color: '#b4b8be', outline: '#2e3135' } : null })} /> {tr('Две параллельные линии (рельсы, бордюры)')}</label>
+      {value.parallel && (() => {
+        const par = value.parallel;
+        const setPar = (patch: Partial<typeof par>) => set({ parallel: { ...par, ...patch } });
+        return (
+          <>
+            <div className="row">
+              <Field label={tr('Между линиями')} row><NumInput value={par.gap} step={0.05} min={0.02} max={50} onCommit={(gap) => setPar({ gap })} /></Field>
+              <Field label={tr('Толщина линии')} row><NumInput value={par.width} step={0.01} min={0.01} max={10} onCommit={(width) => setPar({ width })} /></Field>
+            </div>
+            <div className="row">
+              <Field label={tr('Цвет')} row><ColorInput value={par.color} onCommit={(color) => setPar({ color })} /></Field>
+              <Field label={tr('Обводка')} row>
+                <span className="row">
+                  <input type="checkbox" checked={!!par.outline} onChange={(e) => setPar({ outline: e.target.checked ? '#2e3135' : null })} />
+                  {par.outline && <ColorInput value={par.outline} onCommit={(outline) => setPar({ outline })} />}
+                </span>
+              </Field>
+            </div>
+          </>
+        );
+      })()}
       <Field label={tr('Объекты вдоль пути')}>
         <div className="picker-scroll">
           <AssetPicker assets={assets} kind="object" value={value.decor} allowNone noneLabel={tr('Без объектов')} onChange={(decor) => set({ decor })} />
@@ -113,7 +144,7 @@ export function PathPanel({ ed, assets }: { ed: Editor; assets: AssetStore }) {
         <div className="row wrap">
           {PRESETS.map((pr) => (
             <button key={pr.name} className="btn btn-sm"
-              onClick={() => ed.setSettings({ path: { style: { ...p.style, ...pr.style }, smooth: pr.smooth ?? true } })}>{tr(pr.name)}</button>
+              onClick={() => ed.setSettings({ path: { style: { ...p.style, parallel: null, ...pr.style }, smooth: pr.smooth ?? true } })}>{tr(pr.name)}</button>
           ))}
         </div>
       </Field>

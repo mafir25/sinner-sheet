@@ -33,6 +33,12 @@
         "ru": "Отбойник",
         "en": "Road barrier"
       }
+    },
+    "sleeper.svg": {
+      "name": {
+        "ru": "Шпала",
+        "en": "Railway sleeper"
+      }
     }
   }
 }

@@ -204,3 +204,24 @@ describe('пути: лента вдоль ломаной', async () => {
     expect(parseDoc(raw).floors[0].paths[0].style).toMatchObject({ decorMode: 'strip', decorScale: 1 });
   });
 });
+
+describe('составные пути: две параллельные линии', async () => {
+  const { offsetPolyline, curvePoints, roundCorners } = await import('../../map-app/src/geom/curve.ts');
+  const { polylineDist } = await import('../../map-app/src/geom/curve.ts');
+  it('линия держит расстояние до оси и на прямой, и на изгибе', () => {
+    const axis = curvePoints([{ x: 0, y: 0 }, { x: 5, y: 3 }, { x: 10, y: 0 }, { x: 14, y: 4 }], true, false);
+    for (const side of [-0.45, 0.45]) {
+      const off = offsetPolyline(axis, side);
+      for (const p of off) expect(polylineDist(p, axis)).toBeCloseTo(0.45, 1);
+    }
+  });
+  it('острый угол ломаной скругляется — внутренняя линия не заворачивается петлёй', () => {
+    const axis = roundCorners([{ x: 0, y: 0 }, { x: 6, y: 0 }, { x: 6, y: 6 }], 1.44);
+    const inner = offsetPolyline(axis, 0.45);
+    for (let i = 0; i < inner.length - 2; i++) {
+      const a = { x: inner[i + 1].x - inner[i].x, y: inner[i + 1].y - inner[i].y };
+      const b = { x: inner[i + 2].x - inner[i + 1].x, y: inner[i + 2].y - inner[i + 1].y };
+      expect(a.x * b.x + a.y * b.y).toBeGreaterThan(-1e-9); // соседние отрезки не смотрят назад
+    }
+  });
+});

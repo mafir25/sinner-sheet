@@ -52,6 +52,12 @@
         "ru": "Мох",
         "en": "Moss"
       }
+    },
+    "gravel.svg": {
+      "name": {
+        "ru": "Щебень",
+        "en": "Gravel"
+      }
     }
   }
 }
