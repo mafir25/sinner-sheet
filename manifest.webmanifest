@@ -16,7 +16,6 @@
     { "name": "База знаний", "url": "/navigation.html" },
     { "name": "Конструктор персонажа", "url": "/builder.html" },
     { "name": "Офис", "url": "/office.html" },
-    { "name": "Ширма", "url": "/shirm.html" },
-    { "name": "Редактор карт", "url": "/maps.html" }
+    { "name": "Ширма", "url": "/shirm.html" }
   ]
 }
