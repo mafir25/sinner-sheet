@@ -51,3 +51,35 @@ export function polylineDist(p: Pt, pts: Pt[]): number {
   for (let i = 0; i < pts.length - 1; i++) d = Math.min(d, segDist(p, pts[i], pts[i + 1]).d);
   return d;
 }
+
+/**
+ * Скругляет острые углы ломаной (r — радиус в клетках), чтобы лента вдоль пути не рвалась на углу.
+ * Углы мягче 10° не трогаются; на коротких отрезках радиус уменьшается.
+ */
+export function roundCorners(pts: Pt[], r: number, closed = false): Pt[] {
+  if (pts.length < 3 || r <= 0) return pts.slice();
+  const n = pts.length;
+  const ring = closed && Math.hypot(pts[0].x - pts[n - 1].x, pts[0].y - pts[n - 1].y) < 1e-9 ? pts.slice(0, -1) : pts;
+  const m = ring.length;
+  const out: Pt[] = [];
+  for (let i = 0; i < m; i++) {
+    const b = ring[i];
+    const edge = !closed && (i === 0 || i === m - 1);
+    if (edge) { out.push(b); continue; }
+    const a = ring[(i - 1 + m) % m], c = ring[(i + 1) % m];
+    const l1 = Math.hypot(b.x - a.x, b.y - a.y), l2 = Math.hypot(c.x - b.x, c.y - b.y);
+    if (l1 < 1e-9 || l2 < 1e-9) { out.push(b); continue; }
+    const u1 = { x: (b.x - a.x) / l1, y: (b.y - a.y) / l1 }, u2 = { x: (c.x - b.x) / l2, y: (c.y - b.y) / l2 };
+    const turn = Math.acos(Math.max(-1, Math.min(1, u1.x * u2.x + u1.y * u2.y)));
+    if (turn < (10 * Math.PI) / 180) { out.push(b); continue; }
+    const d = Math.min(r * Math.tan(turn / 2), l1 / 2, l2 / 2);
+    const p1 = { x: b.x - u1.x * d, y: b.y - u1.y * d }, p2 = { x: b.x + u2.x * d, y: b.y + u2.y * d };
+    const k = Math.max(4, Math.ceil(turn / (Math.PI / 24)));
+    for (let j = 0; j <= k; j++) {
+      const t = j / k, s = 1 - t; // квадратичная кривая Безье p1 → (b) → p2
+      out.push({ x: s * s * p1.x + 2 * s * t * b.x + t * t * p2.x, y: s * s * p1.y + 2 * s * t * b.y + t * t * p2.y });
+    }
+  }
+  if (closed) out.push(out[0]);
+  return out;
+}

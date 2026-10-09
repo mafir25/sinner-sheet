@@ -1,5 +1,5 @@
 // Что под курсором: объекты, проёмы, стены, комнаты. Порядок — как видно на экране (сверху вниз).
-import type { Floor, Label, MapObject, Pt } from '../model/types';
+import type { Floor, Label, MapObject, MapPath, Pt } from '../model/types';
 import type { SelItem } from '../state/editor';
 import { type BBox, pointInPoly, ptsBBox, segDist } from '../geom/poly';
 import { curvePoints, polylineDist } from '../geom/curve';
@@ -34,7 +34,14 @@ export function objectCorners(o: MapObject): Pt[] {
   return [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([sx, sy]) => fromLocal(o, { x: (sx * o.w) / 2, y: (sy * o.h) / 2 }));
 }
 
-export function hitTest(f: Floor, p: Pt, scale: number, roofs = false): SelItem | null {
+/** Полуширина пути для попадания курсором: линия или лента картинки, что шире. */
+export function pathHalfWidth(pa: MapPath, band: (key: string) => number) {
+  const deco = pa.style.decor ? band(pa.style.decor) * (pa.style.decorScale || 1) : 0;
+  return Math.max(pa.style.width, deco, 0.2) / 2;
+}
+
+/** decorBand — ширина поперёк пути (клетки) для картинки вдоль пути. */
+export function hitTest(f: Floor, p: Pt, scale: number, roofs = false, decorBand: (key: string) => number = () => 1): SelItem | null {
   const tol = 6 / scale;
   for (let i = f.labels.length - 1; i >= 0; i--) {
     const l = f.labels[i], { w, h } = labelSize(l);
@@ -56,7 +63,7 @@ export function hitTest(f: Floor, p: Pt, scale: number, roofs = false): SelItem 
       }
       for (let i = f.paths.length - 1; i >= 0; i--) {
         const pa = f.paths[i];
-        if (pa.layer === lid && polylineDist(p, curvePoints(pa.points, pa.smooth, pa.closed)) <= pa.style.width / 2 + tol) return { kind: 'path', id: pa.id };
+        if (pa.layer === lid && polylineDist(p, curvePoints(pa.points, pa.smooth, pa.closed)) <= pathHalfWidth(pa, decorBand) + tol) return { kind: 'path', id: pa.id };
       }
     }
     return null;

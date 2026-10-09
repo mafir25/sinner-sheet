@@ -185,3 +185,22 @@ describe('этап 2: пути, свет, совместимость', async () 
     expect(v.environment).toEqual({ baked_lighting: false, ambient_light: 'ff808080' });
   });
 });
+
+describe('пути: лента вдоль ломаной', async () => {
+  const { roundCorners } = await import('../../map-app/src/geom/curve.ts');
+  it('прямой угол скругляется, концы и прямые участки остаются на месте', () => {
+    const pts = [{ x: 0, y: 0 }, { x: 4, y: 0 }, { x: 4, y: 4 }];
+    const r = roundCorners(pts, 0.5);
+    expect(r[0]).toEqual(pts[0]);
+    expect(r.at(-1)).toEqual(pts[2]);
+    expect(r.some((p) => p.x === 4 && p.y === 0)).toBe(false); // острой вершины больше нет
+    expect(r.every((p) => Math.hypot(p.x - 4, p.y) >= 0.1)).toBe(true);
+    expect(roundCorners([{ x: 0, y: 0 }, { x: 2, y: 0 }, { x: 4, y: 0.01 }], 0.5)).toHaveLength(3); // почти прямая — без изменений
+  });
+  it('старые пути получают режим ленты по умолчанию', () => {
+    const d = createDoc({ name: 'X', width: 10, height: 8, grid: 'square', floorName: 'F1' });
+    const raw = JSON.parse(JSON.stringify(d));
+    raw.floors[0].paths = [{ id: 'p', layer: raw.floors[0].layers[0].id, points: [{ x: 0, y: 0 }, { x: 1, y: 1 }], style: { width: 0, decor: 'canon:objects/linear/rail.svg', spacing: 1 } }];
+    expect(parseDoc(raw).floors[0].paths[0].style).toMatchObject({ decorMode: 'strip', decorScale: 1 });
+  });
+});

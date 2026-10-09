@@ -2,7 +2,7 @@
 // Местность и карта освещения рисуются в отдельный холст размером с карту и кэшируются.
 import type { AssetStore } from '../assets/store';
 import type { Floor, Label, Lighting, MapPath, Pt, Roof, TerrainStroke } from '../model/types';
-import { curvePoints, walkAlong } from '../geom/curve';
+import { curvePoints, roundCorners, walkAlong } from '../geom/curve';
 import { blockingSegments, visibility } from '../geom/light';
 import { polyPath } from './render';
 
@@ -140,19 +140,64 @@ export function drawPath(ctx: CanvasRenderingContext2D, p: MapPath, assets: Asse
   ctx.setLineDash([]);
   if (st.decor) {
     const e = assets.entry(st.decor);
-    const [dw, dh] = e?.footprint ?? [1, 1];
-    const src = assets.source(st.decor, scale);
+    const k = st.decorScale > 0 ? st.decorScale : 1;
+    const [dw, dh] = (e?.footprint ?? [1, 1]).map((v) => v * k);
+    const src = assets.source(st.decor, scale * k);
     if (src) {
-      for (const { p: c, angle } of walkAlong(pts, st.spacing)) {
-        ctx.save();
-        ctx.translate(c.x, c.y);
-        ctx.rotate(angle);
-        ctx.drawImage(src, -dw / 2, -dh / 2, dw, dh);
-        ctx.restore();
+      if (st.decorMode === 'repeat') {
+        for (const { p: c, angle } of walkAlong(pts, st.spacing)) {
+          ctx.save();
+          ctx.translate(c.x, c.y);
+          ctx.rotate(angle);
+          ctx.drawImage(src, -dw / 2, -dh / 2, dw, dh);
+          ctx.restore();
+        }
+      } else {
+        // лента: углы ломаной скругляем на полширины ленты, иначе на изломе будет разрыв
+        drawStrip(ctx, p.smooth ? pts : roundCorners(pts, dh / 2, p.closed), src, dw, dh);
       }
     }
   }
   ctx.restore();
+}
+
+/**
+ * Картинка, изогнутая лентой вдоль ломаной: повторяется каждые tileLen клеток по длине,
+ * поперёк — высотой band. Рисуется тонкими срезами, повёрнутыми по касательной.
+ */
+export function drawStrip(ctx: CanvasRenderingContext2D, pts: Pt[], src: CanvasImageSource, tileLen: number, band: number) {
+  const sw = (src as HTMLCanvasElement).width, sh = (src as HTMLCanvasElement).height;
+  if (!sw || !sh || tileLen <= 0) return;
+  const step = Math.max(0.03, Math.min(0.12, tileLen / 8));
+  const seam = 0.012; // перекрытие срезов, чтобы не было щелей
+  // направления участков — чтобы закрыть клин на внешней стороне изгиба
+  const seg: { a: Pt; L: number; ux: number; uy: number; angle: number }[] = [];
+  for (let i = 0; i < pts.length - 1; i++) {
+    const a = pts[i], b = pts[i + 1];
+    const L = Math.hypot(b.x - a.x, b.y - a.y);
+    if (L >= 1e-9) seg.push({ a, L, ux: (b.x - a.x) / L, uy: (b.y - a.y) / L, angle: Math.atan2(b.y - a.y, b.x - a.x) });
+  }
+  let s = 0;
+  seg.forEach(({ a, L, ux, uy, angle }, i) => {
+    let turn = i + 1 < seg.length ? Math.abs(seg[i + 1].angle - angle) : 0;
+    if (turn > Math.PI) turn = Math.PI * 2 - turn;
+    const wedge = (band / 2) * Math.min(turn, 1.2);
+    let t = 0;
+    while (t < L - 1e-9) {
+      // срез не длиннее шага и не переходит границу плитки
+      const inTile = s % tileLen;
+      const len = Math.min(step, L - t, tileLen - inTile);
+      const last = t + len >= L - 1e-9;
+      const sx = (inTile / tileLen) * sw, sLen = Math.max(1e-3, (len / tileLen) * sw);
+      ctx.save();
+      ctx.translate(a.x + ux * t, a.y + uy * t);
+      ctx.rotate(angle);
+      ctx.drawImage(src, sx, 0, Math.min(sLen, sw - sx), sh, 0, -band / 2, len + seam + (last ? wedge : 0), band);
+      ctx.restore();
+      t += len;
+      s += len;
+    }
+  });
 }
 
 // ---------- освещение

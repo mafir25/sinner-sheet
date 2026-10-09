@@ -198,6 +198,12 @@ const EN: Record<string, string> = {
   'На планшете: два пальца — панорама и масштаб; кнопки «Привязка» и «Вырезать» внизу заменяют Ctrl и Alt.': 'On a tablet: two fingers pan and zoom; the “Snap” and “Cut out” buttons at the bottom replace Ctrl and Alt.',
   'В браузере нет места: {0}': 'Browser storage error: {0}',
   // этап 2
+  'Лентой': 'As a strip',
+  'Отдельно': 'Separately',
+  'Масштаб картинки': 'Image scale',
+  'Столбы': 'Posts',
+  'Картинка изгибается вдоль пути без разрывов: заборы, рельсы, отбойники': 'The image bends along the path without gaps: fences, rails, barriers',
+  'Отдельные объекты через равный шаг: столбы, фонари': 'Separate objects at equal spacing: posts, lamps',
   'Размер {0} × {1} — нажми «Применить»': 'Size {0} × {1} — press “Apply”',
   'Двойной щелчок — переименовать': 'Double-click to rename',
   'Alt — временно ластик. Кисть рисует поверх полов, под стенами и объектами.': 'Alt — temporary eraser. The brush paints over floors, under walls and objects.',

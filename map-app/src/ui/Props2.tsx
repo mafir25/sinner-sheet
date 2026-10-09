@@ -47,15 +47,18 @@ function GroundPicker({ ed, assets }: { ed: Editor; assets: AssetStore }) {
 }
 
 // ---------- пути
+/** Путь без линии, только картинка лентой. */
+const STRIP: Partial<PathStyle> = { width: 0, asset: null, outline: null, dash: 0, decorMode: 'strip', decorScale: 1 };
 const PRESETS: { name: string; style: Partial<PathStyle>; smooth?: boolean }[] = [
   { name: 'Дорога', style: { width: 3, asset: 'canon:floors/asphalt.svg', color: '#2a2b2e', outline: '#141416', dash: 0, decor: null } },
   { name: 'Разметка', style: { width: 0.12, asset: null, color: '#e8e1d2', outline: null, dash: 0.8, decor: null } },
   { name: 'Тропа', style: { width: 1.2, asset: 'canon:terrain/dirt.svg', color: '#4a3b2c', outline: null, dash: 0, decor: null } },
-  { name: 'Труба', style: { width: 0.4, asset: null, color: '#6e767f', outline: '#2a2e33', dash: 0, decor: null } },
+  { name: 'Труба', style: { width: 0.4, asset: null, color: '#6e767f', outline: '#2a2e33', dash: 0, decor: null }, smooth: false },
   { name: 'Провод', style: { width: 0.06, asset: null, color: '#111111', outline: null, dash: 0, decor: null } },
-  { name: 'Забор', style: { width: 0, asset: null, outline: null, dash: 0, decor: 'canon:objects/linear/fence.svg', spacing: 1 }, smooth: false },
-  { name: 'Рельсы', style: { width: 0, asset: null, outline: null, dash: 0, decor: 'canon:objects/linear/rail.svg', spacing: 1 } },
-  { name: 'Отбойник', style: { width: 0, asset: null, outline: null, dash: 0, decor: 'canon:objects/linear/barrier.svg', spacing: 1 }, smooth: false },
+  { name: 'Забор', style: { ...STRIP, decor: 'canon:objects/linear/fence.svg' }, smooth: false },
+  { name: 'Рельсы', style: { ...STRIP, decor: 'canon:objects/linear/rail.svg' } },
+  { name: 'Отбойник', style: { ...STRIP, decor: 'canon:objects/linear/barrier.svg' }, smooth: false },
+  { name: 'Столбы', style: { ...STRIP, decor: 'canon:objects/linear/cable-post.svg', decorMode: 'repeat', spacing: 4 }, smooth: false },
 ];
 
 export function PathStyleEditor({ assets, value, onChange }: { assets: AssetStore; value: PathStyle; onChange(v: PathStyle): void }) {
@@ -84,7 +87,20 @@ export function PathStyleEditor({ assets, value, onChange }: { assets: AssetStor
           <AssetPicker assets={assets} kind="object" value={value.decor} allowNone noneLabel={tr('Без объектов')} onChange={(decor) => set({ decor })} />
         </div>
       </Field>
-      {value.decor && <Field label={tr('Шаг объектов')} row><NumInput value={value.spacing} step={0.25} min={0.1} max={50} onCommit={(spacing) => set({ spacing })} /></Field>}
+      {value.decor && (
+        <>
+          <div className="seg">
+            <button className={value.decorMode !== 'repeat' ? 'on' : ''} title={tr('Картинка изгибается вдоль пути без разрывов: заборы, рельсы, отбойники')}
+              onClick={() => set({ decorMode: 'strip' })}>{tr('Лентой')}</button>
+            <button className={value.decorMode === 'repeat' ? 'on' : ''} title={tr('Отдельные объекты через равный шаг: столбы, фонари')}
+              onClick={() => set({ decorMode: 'repeat' })}>{tr('Отдельно')}</button>
+          </div>
+          <div className="row">
+            <Field label={tr('Масштаб картинки')} row><NumInput value={value.decorScale} step={0.25} min={0.05} max={20} onCommit={(decorScale) => set({ decorScale })} /></Field>
+            {value.decorMode === 'repeat' && <Field label={tr('Шаг объектов')} row><NumInput value={value.spacing} step={0.25} min={0.1} max={50} onCommit={(spacing) => set({ spacing })} /></Field>}
+          </div>
+        </>
+      )}
     </div>
   );
 }
