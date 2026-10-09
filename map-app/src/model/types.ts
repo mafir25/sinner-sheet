@@ -87,8 +87,13 @@ export type PathStyle = {
   asset: AssetKey | null;
   dash: number;            // 0 — сплошная, иначе длина штриха (в клетках)
   outline: string | null;  // цвет обводки
-  decor: AssetKey | null;  // объект, повторяемый вдоль пути
-  spacing: number;         // шаг объектов вдоль пути (клетки)
+  decor: AssetKey | null;  // картинка вдоль пути
+  /** strip — лентой, изгибается по пути (забор, рельсы); repeat — отдельными объектами с шагом (столбы, фонари). */
+  decorMode: 'strip' | 'repeat';
+  decorScale: number;      // масштаб картинки вдоль пути
+  spacing: number;         // шаг объектов в режиме repeat (клетки)
+  /** Две параллельные линии по бокам пути (рельсы, двойная труба, бордюры); рисуются поверх картинки вдоль пути. */
+  parallel: { gap: number; width: number; color: string; outline: string | null } | null;
 };
 
 export type MapPath = {

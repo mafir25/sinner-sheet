@@ -175,10 +175,11 @@ class SelectTool implements Tool {
       if (Math.hypot(p.x - h.rotate.x, p.y - h.rotate.y) < r) return 'grab';
       if (Math.hypot(p.x - h.scale.x, p.y - h.scale.y) < r) return 'nwse-resize';
     }
-    return hitTest(this.ed.floor, p, this.ed.state.view.scale, this.roofsOn()) ? 'pointer' : 'default';
+    return hitTest(this.ed.floor, p, this.ed.state.view.scale, this.roofsOn(), this.band) ? 'pointer' : 'default';
   }
 
   private roofsOn() { return this.ed.state.settings.showRoofs !== 'hide'; }
+  private band = (key: string) => this.env.assets.entry(key)?.footprint[1] ?? 1;
 
   private single(): MapObject | null {
     const s = this.ed.state.sel;
@@ -195,7 +196,7 @@ class SelectTool implements Tool {
       if (Math.hypot(p.x - h.rotate.x, p.y - h.rotate.y) < r) { this.mode = 'rotate'; this.target = o; this.edited = o; return; }
       if (Math.hypot(p.x - h.scale.x, p.y - h.scale.y) < r) { this.mode = 'scale'; this.target = o; this.edited = o; return; }
     }
-    const hit = hitTest(this.ed.floor, p, scale, this.roofsOn());
+    const hit = hitTest(this.ed.floor, p, scale, this.roofsOn(), this.band);
     if (!hit) {
       this.mode = 'box';
       if (!e.shiftKey) this.ed.setSel([]);
