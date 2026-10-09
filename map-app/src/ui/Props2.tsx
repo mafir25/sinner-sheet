@@ -4,6 +4,8 @@ import type { AssetStore } from '../assets/store';
 import type { Floor, Label, Light, MapPath, PathStyle, Roof } from '../model/types';
 import type { Editor } from '../state/editor';
 import { tr } from '../i18n';
+import { siteLink } from '../../../site/site-links.js';
+import { openLink } from './LinksDialog';
 import { AssetPicker, ColorInput, Field, NumInput, Slider } from './common';
 
 type LightStyle = Omit<Light, 'id' | 'x' | 'y'>;
@@ -292,6 +294,7 @@ export function SelectionExtras({ ed, assets }: { ed: Editor; assets: AssetStore
         return (
           <>
             {labels.length === 1 && <Field label={tr('Текст')}><TextArea value={text} onCommit={(t) => upd((f) => f.labels, (l: Label) => { l.text = t; })} /></Field>}
+            {labels.length === 1 && <LabelLink value={labels[0].link} onCommit={(link) => upd((f) => f.labels, (l: Label) => { if (link) l.link = link; else delete l.link; })} />}
             <LabelStyleEditor value={style} onChange={(v) => upd((f) => f.labels, (l: Label) => { Object.assign(l, v); })} />
             <Field label={tr('Поворот')} row><NumInput value={rot} step={15} digits={1} onCommit={(v) => upd((f) => f.labels, (l: Label) => { l.rot = ((v % 360) + 360) % 360; })} /></Field>
           </>
@@ -301,5 +304,27 @@ export function SelectionExtras({ ed, assets }: { ed: Editor; assets: AssetStore
         <RoofEditor assets={assets} value={roofs[0]} onChange={(v) => upd((f) => f.roofs, (r: Roof) => { r.asset = v.asset; r.color = v.color; })} />
       )}
     </>
+  );
+}
+
+/** Ссылка подписи на запись Базы знаний: вставить, открыть, убрать. */
+function LabelLink({ value, onCommit }: { value: string | undefined; onCommit(v: string | undefined): void }) {
+  const [t, setT] = useState(value ?? '');
+  useEffect(() => setT(value ?? ''), [value]);
+  const commit = () => {
+    const raw = t.trim();
+    if (!raw) { if (value) onCommit(undefined); return; }
+    const l = siteLink(raw);
+    if (!l) { setT(value ?? ''); return; }
+    if (l.url !== value) onCommit(l.url);
+  };
+  return (
+    <Field label={tr('Ссылка (База знаний)')}>
+      <div className="row">
+        <input className="input" value={t} placeholder={tr('Вставь ссылку из Базы знаний…')} onChange={(e) => setT(e.target.value)} onBlur={commit}
+          onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }} />
+        {value && <button className="btn btn-sm" title={value} onClick={() => openLink(value)}>↗</button>}
+      </div>
+    </Field>
   );
 }

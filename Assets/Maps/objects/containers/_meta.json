@@ -8,24 +8,110 @@
       "name": {
         "ru": "Ящик",
         "en": "Crate"
+      },
+      "group": "crate",
+      "tags": [
+        "crate",
+        "cover"
+      ],
+      "rules": {
+        "rotate": "90",
+        "flip": true,
+        "scale": [
+          0.9,
+          1.05
+        ],
+        "tint": [
+          "#f2e6d0",
+          "#e0d4c0",
+          "#d6dce0"
+        ]
       }
     },
     "barrel.svg": {
       "name": {
         "ru": "Бочка",
         "en": "Barrel"
+      },
+      "tags": [
+        "flammable",
+        "cover"
+      ],
+      "rules": {
+        "rotate": "any",
+        "scale": [
+          0.9,
+          1.1
+        ]
       }
     },
     "locker.svg": {
       "name": {
         "ru": "Шкафчик",
         "en": "Locker"
+      },
+      "rules": {
+        "place": "wall",
+        "where": "inside"
       }
     },
     "safe.svg": {
       "name": {
         "ru": "Сейф",
         "en": "Safe"
+      },
+      "rules": {
+        "place": "corner",
+        "where": "inside",
+        "max": 1
+      }
+    },
+    "crate-planks.svg": {
+      "name": {
+        "ru": "Ящик (доски)",
+        "en": "Crate (planks)"
+      },
+      "group": "crate",
+      "tags": [
+        "crate",
+        "cover"
+      ],
+      "rules": {
+        "rotate": "90",
+        "flip": true,
+        "scale": [
+          0.9,
+          1.05
+        ],
+        "tint": [
+          "#f2e6d0",
+          "#e0d4c0",
+          "#d6dce0"
+        ]
+      }
+    },
+    "crate-steel.svg": {
+      "name": {
+        "ru": "Ящик (окованный)",
+        "en": "Crate (banded)"
+      },
+      "group": "crate",
+      "tags": [
+        "crate",
+        "cover"
+      ],
+      "rules": {
+        "rotate": "90",
+        "flip": true,
+        "scale": [
+          0.9,
+          1.05
+        ],
+        "tint": [
+          "#f2e6d0",
+          "#e0d4c0",
+          "#d6dce0"
+        ]
       }
     }
   }

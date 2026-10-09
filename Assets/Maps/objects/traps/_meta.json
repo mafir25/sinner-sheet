@@ -1,0 +1,10 @@
+{
+  "name": { "ru": "Ловушки", "en": "Traps" },
+  "tags": ["trap"],
+  "rules": { "rotate": "any" },
+  "files": {
+    "bear-trap.svg": { "name": { "ru": "Капкан", "en": "Bear trap" } },
+    "mine.svg": { "name": { "ru": "Мина", "en": "Mine" } },
+    "spike-plate.svg": { "name": { "ru": "Плита с шипами", "en": "Spike plate" }, "rules": { "rotate": "90" } }
+  }
+}

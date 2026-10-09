@@ -8,19 +8,47 @@
       "name": {
         "ru": "Верстак",
         "en": "Workbench"
+      },
+      "rules": {
+        "place": "wall",
+        "clearDoors": true
       }
     },
     "tool-rack.svg": {
       "name": {
         "ru": "Стойка инструментов",
         "en": "Tool rack"
+      },
+      "rules": {
+        "place": "wall"
       }
     },
     "forge.svg": {
       "name": {
         "ru": "Горн",
         "en": "Forge"
+      },
+      "rules": {
+        "place": "corner",
+        "face": false,
+        "avoid": [
+          {
+            "to": "#flammable",
+            "dist": 2
+          }
+        ]
       }
     }
+  },
+  "tags": [
+    "indoor"
+  ],
+  "rules": {
+    "where": "inside",
+    "rooms": [
+      "workshop",
+      "warehouse",
+      "hideout"
+    ]
   }
 }

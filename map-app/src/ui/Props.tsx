@@ -1,12 +1,15 @@
 // Левая панель: настройки текущего инструмента и свойства выделенного.
 import type { AssetStore } from '../assets/store';
-import { findDir, switchDir, variantChain } from '../assets/tree.js';
-import type { AssetKey, MapObject, WallStyle } from '../model/types';
+import { dirOf, findDir, switchDir, variantChain } from '../assets/tree.js';
+import type { AssetKey, MapObject, Rules, WallStyle } from '../model/types';
+import { ROOM_TYPES, checkObject } from '../geom/place';
+import { objectCorners } from '../tools/hit';
+import { ROTATE_LABEL, WHERE_LABEL, PLACE_LABEL, issueText, roomTypeName, targetName } from './issues';
 import { type Editor, useEditor } from '../state/editor';
 import { nm, tr } from '../i18n';
 import { resizePortal } from '../geom/walls';
 import { BrushPanel, LabelPanel, LightPanel, PathPanel, RoofPanel, SelectionExtras } from './Props2';
-import { AssetPicker, ColorInput, Field, NumInput, Thumb, assetName, useStore } from './common';
+import { AssetPicker, ColorInput, Field, NumInput, SetThumb, Thumb, assetName, toast, useStore } from './common';
 
 function WallStyleEditor({ assets, value, onChange }: { assets: AssetStore; value: WallStyle; onChange(v: WallStyle): void }) {
   return (
@@ -86,15 +89,33 @@ export function Props({ ed, assets }: { ed: Editor; assets: AssetStore }) {
     );
   }
   if (tool === 'stamp') {
-    if (!settings.stamp) return <p className="hint">{tr('Щелчок — поставить объект. Q/E — поворот, F — отразить, Esc — выход.')}</p>;
+    const found = assets.set(settings.stampSet);
+    if (!settings.stamp && !found) return <p className="hint">{tr('Щелчок — поставить объект. Q/E — поворот, F — отразить, Esc — выход.')}</p>;
+    const entry = found ? undefined : assets.entry(settings.stamp);
+    const rules = found ? found.set.rules : entry?.rules;
     return (
       <div className="stack">
-        <div className="row"><Thumb assets={assets} k={settings.stamp} size={64} /><b>{assetName(assets.entry(settings.stamp), settings.stamp)}</b></div>
-        <Field label={tr('Разновидность')}><VariantPicker assets={assets} value={settings.stamp} onChange={(stamp) => ed.setSettings({ stamp })} /></Field>
+        {found ? (
+          <>
+            <div className="row"><SetThumb assets={assets} k={settings.stampSet!} size={64} /><b>🧩 {nm(found.set.name)}</b></div>
+            <p className="hint">{tr('Комплект: {0} предм.', found.set.items.length)}</p>
+            {settings.stamp && <button className="btn btn-sm" onClick={() => ed.setSettings({ stampSet: null })}>{tr('Ставить один объект')}</button>}
+          </>
+        ) : settings.stamp && (
+          <>
+            <div className="row"><Thumb assets={assets} k={settings.stamp} size={64} /><b>{assetName(entry, settings.stamp)}</b></div>
+            <Field label={tr('Разновидность')}><VariantPicker assets={assets} value={settings.stamp} onChange={(stamp) => ed.setSettings({ stamp })} /></Field>
+            {entry?.group && <p className="hint">{tr('Группа вариантов «{0}»: при включённых вариациях ставится случайный.', entry.group)}</p>}
+          </>
+        )}
         <div className="row">
           <Field label={tr('Поворот')} row><NumInput value={settings.stampRot} step={15} digits={1} onCommit={(v) => ed.setSettings({ stampRot: ((v % 360) + 360) % 360 })} /></Field>
           <button className={`btn btn-sm${settings.stampFlip ? ' btn-on' : ''}`} onClick={() => ed.setSettings({ stampFlip: !settings.stampFlip })}>{tr('Отразить ↔')}</button>
         </div>
+        <label className="check"><input type="checkbox" checked={settings.rules} onChange={(e) => ed.setSettings({ rules: e.target.checked })} /> {tr('Правила размещения (Alt — без них)')}</label>
+        <label className="check"><input type="checkbox" checked={settings.vary} onChange={(e) => ed.setSettings({ vary: e.target.checked })} /> {tr('Случайные вариации')}</label>
+        {rules ? <RuleSummary assets={assets} rules={rules} dir={found ? found.set.dir : entry?.dir ?? ''} />
+          : <p className="hint">{tr('У этого объекта правил нет — их задают в «✎ Разметить» библиотеки.')}</p>}
       </div>
     );
   }
@@ -137,6 +158,8 @@ export function Props({ ed, assets }: { ed: Editor; assets: AssetStore }) {
               <Field label={tr('Прозрачность')} row><NumInput value={o.opacity} step={0.1} min={0} max={1} onCommit={(opacity) => upd({ opacity })} /></Field>
             </div>
             {e && <button className="btn btn-sm" onClick={() => upd({ w: e.footprint[0], h: e.footprint[1] })}>{tr('Исходный размер')}</button>}
+            <Issues assets={assets} list={checkObject(f, o, (k) => assets.entry(k)).map((i) => issueText(assets, i))} />
+            {e?.rules && <RuleSummary assets={assets} rules={e.rules} dir={e.dir} />}
           </>
         );
       })()}
@@ -148,6 +171,14 @@ export function Props({ ed, assets }: { ed: Editor; assets: AssetStore }) {
             <button className="btn btn-sm" title={tr('Наверх')} onClick={() => ed.commitFloor((fl) => { fl.objects = [...fl.objects.filter((o) => !ids.has(o.id)), ...fl.objects.filter((o) => ids.has(o.id))]; })}>⤒ {tr('Наверх')}</button>
             <button className="btn btn-sm" title={tr('Вниз')} onClick={() => ed.commitFloor((fl) => { fl.objects = [...fl.objects.filter((o) => ids.has(o.id)), ...fl.objects.filter((o) => !ids.has(o.id))]; })}>⤓ {tr('Вниз')}</button>
           </div>
+          <Field label={tr('Оттенок')}>
+            <div className="row">
+              <ColorInput value={objs[0].tint ?? '#ffffff'} onCommit={(c) => updObjs((o) => { o.tint = c.toLowerCase() === '#ffffff' ? null : c; })} />
+              {objs.some((o) => o.tint) && <button className="btn btn-sm" onClick={() => updObjs((o) => { o.tint = null; })}>{tr('Без оттенка')}</button>}
+            </div>
+          </Field>
+          {objs.length > 1 && <button className="btn btn-sm" title={tr('Запомнить выбранные объекты как комплект набора — он появится в библиотеке')}
+            onClick={() => void saveAsSet(ed, assets, objs)}>🧩 {tr('Сохранить как комплект')}</button>}
           <Field label={tr('Слой')}>
             <select className="input" value={objs.every((o) => o.layer === objs[0].layer) ? objs[0].layer : ''}
               onChange={(e) => { const layer = e.target.value; if (layer) updObjs((o) => { o.layer = layer; }); }}>
@@ -159,6 +190,14 @@ export function Props({ ed, assets }: { ed: Editor; assets: AssetStore }) {
       )}
       {rooms.length > 0 && (
         <>
+          <Field label={tr('Тип комнаты')}>
+            <select className="input" value={rooms.every((r) => (r.type ?? '') === (rooms[0].type ?? '')) ? rooms[0].type ?? '' : '*'}
+              onChange={(e) => { const t = e.target.value; if (t === '*') return; ed.commitFloor((fl) => { for (const r of fl.rooms) if (ids.has(r.id)) { if (t) r.type = t; else delete r.type; } }); }}>
+              {!rooms.every((r) => (r.type ?? '') === (rooms[0].type ?? '')) && <option value="*">—</option>}
+              <option value="">{tr('Не задан')}</option>
+              {ROOM_TYPES.map((t) => <option key={t.id} value={t.id}>{roomTypeName(t.id)}</option>)}
+            </select>
+          </Field>
           <Field label={tr('Материал пола')}>
             <AssetPicker assets={assets} kind="floor" value={rooms[0].floor} allowNone noneLabel={tr('Без пола')}
               onChange={(k) => ed.commitFloor((fl) => { for (const r of fl.rooms) if (ids.has(r.id)) r.floor = k; })} />
@@ -198,4 +237,76 @@ export function Props({ ed, assets }: { ed: Editor; assets: AssetStore }) {
       {actions}
     </div>
   );
+}
+
+function Issues({ list }: { assets: AssetStore; list: string[] }) {
+  if (!list.length) return null;
+  return <ul className="issues">{list.map((t, i) => <li key={i}>⚠ {t}</li>)}</ul>;
+}
+
+/** Короткая сводка правил объекта или комплекта. */
+export function RuleSummary({ assets, rules: r, dir }: { assets: AssetStore; rules: Rules; dir: string }) {
+  const parts: string[] = [];
+  if (r.place !== 'free') parts.push(tr(PLACE_LABEL[r.place]) + (r.face ? ` · ${tr('лицом к комнате')}` : ''));
+  if (r.where !== 'any') parts.push(tr(WHERE_LABEL[r.where]));
+  if (r.rooms.length) parts.push(`${tr('Комнаты')}: ${r.rooms.map(roomTypeName).join(', ')}`);
+  for (const n of r.near) parts.push(tr('Рядом с «{0}» (до {1} кл.)', targetName(assets, n.to, dir), n.dist));
+  for (const n of r.avoid) parts.push(tr('Не ближе {1} кл. к «{0}»', targetName(assets, n.to, dir), n.dist));
+  if (r.clearDoors) parts.push(tr('Не загораживать двери'));
+  if (r.max) parts.push(tr('Не больше {0} на комнату', r.max));
+  const vary: string[] = [];
+  if (r.rotate !== 'none') vary.push(tr(ROTATE_LABEL[r.rotate]));
+  if (r.flip) vary.push(tr('отражение'));
+  if (r.scale[0] !== 1 || r.scale[1] !== 1) vary.push(tr('масштаб {0}–{1}', r.scale[0], r.scale[1]));
+  if (r.tint.length) vary.push(tr('оттенки: {0}', r.tint.length));
+  if (vary.length) parts.push(`${tr('Вариации')}: ${vary.join(', ')}`);
+  if (!parts.length) return null;
+  return <ul className="rules-sum">{parts.map((t, i) => <li key={i}>{t}</li>)}</ul>;
+}
+
+const r3 = (v: number) => Math.round(v * 1000) / 1000;
+
+/** Выбранные объекты → комплект в _meta.json общей папки их набора. */
+async function saveAsSet(ed: Editor, assets: AssetStore, objs: MapObject[]) {
+  const keys = objs.map((o) => assets.parse(o.asset));
+  const packId = keys[0]?.packId;
+  if (!packId || keys.some((k) => !k || k.packId !== packId)) { toast(tr('Комплект собирается из объектов одного набора'), 'error'); return; }
+  const pack = assets.pack(packId);
+  if (!pack) return;
+  const name = window.prompt(tr('Название комплекта'), '')?.trim();
+  if (!name) return;
+  // общая папка всех предметов
+  let parts = dirOf(keys[0]!.path).split('/').filter(Boolean);
+  for (const k of keys) {
+    const d = dirOf(k!.path).split('/').filter(Boolean);
+    let i = 0;
+    while (i < parts.length && i < d.length && parts[i] === d[i]) i++;
+    parts = parts.slice(0, i);
+  }
+  const dir = parts.join('/');
+  const cs = objs.flatMap(objectCorners);
+  const cx = (Math.min(...cs.map((q) => q.x)) + Math.max(...cs.map((q) => q.x))) / 2;
+  const cy = (Math.min(...cs.map((q) => q.y)) + Math.max(...cs.map((q) => q.y))) / 2;
+  const items = objs.map((o, i) => {
+    const path = keys[i]!.path, e = pack.byPath.get(path);
+    const scale = e ? o.w / e.footprint[0] : 1;
+    return {
+      file: dir ? path.slice(dir.length + 1) : path, x: r3(o.x - cx), y: r3(o.y - cy), rot: r3(o.rot),
+      ...(o.flipX ? { flip: true } : {}), ...(Math.abs(scale - 1) > 0.01 ? { scale: r3(scale) } : {}),
+    };
+  });
+  const metas = structuredClone(pack.metas) as Record<string, Record<string, unknown>>;
+  const m = metas[dir] ?? {};
+  const sets = { ...(m.sets as Record<string, unknown> | undefined) };
+  const base = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'set';
+  let key = base;
+  for (let n = 2; sets[key]; n++) key = `${base}-${n}`;
+  sets[key] = { name: { ru: name, en: name }, items };
+  metas[dir] = { ...m, sets };
+  await assets.updateMetas(packId, metas);
+  const setId = dir ? `${dir}#${key}` : `#${key}`;
+  ed.setSettings({ stampSet: assets.setKey(packId, setId) });
+  if (!pack.local) toast(tr('Комплект «{0}» добавлен в канон до перезагрузки. Чтобы сохранить — «✎ Разметить» → «Скачать _meta.json».', name));
+  else if (await assets.writeMetasToDisk(packId, [dir])) toast(tr('Комплект «{0}» сохранён в папку набора', name));
+  else toast(tr('Комплект «{0}» сохранён в браузере', name));
 }

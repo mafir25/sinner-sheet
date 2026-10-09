@@ -54,7 +54,8 @@ export function renderMarkdown(src: string): string {
     ALLOWED_TAGS: ['p', 'br', 'strong', 'em', 'del', 'code', 'pre', 'blockquote', 'ul', 'ol', 'li', 'a', 'img',
       'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hr', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'span'],
     ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'style', 'align'],
-    ALLOWED_URI_REGEXP: /^(?:https?:|\/|#)/i,
+    // свои страницы можно и без «/»: maps.html#map=…, navigation.html#feats/Имя
+    ALLOWED_URI_REGEXP: /^(?:https?:|\/|#|(?:maps|navigation|shirm|index|builder|egobuilder|office)\.html(?:[?#]|$))/i,
   });
   if (cache.size > 2000) cache.clear();
   cache.set(src, clean);

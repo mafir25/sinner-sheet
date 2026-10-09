@@ -1,4 +1,4 @@
-import type { AssetEntry, DirNode } from '../model/types';
+import type { AssetEntry, DirNode, Rules, SetEntry } from '../model/types';
 
 export const IMAGE_EXT: string[];
 export const KINDS: string[];
@@ -11,7 +11,17 @@ export function normName(n: unknown, fallback: string): { ru: string; en: string
 export function svgSize(text: string): { w: number; h: number } | null;
 export function pngSize(bytes: Uint8Array): { w: number; h: number } | null;
 export function footprintFor(size: { w: number; h: number } | null, ppc?: number): [number, number];
-export function buildPack(files: { path: string; size: { w: number; h: number } | null }[], metas?: Record<string, unknown>): { tree: DirNode; assets: AssetEntry[] };
+export const PLACES: Rules['place'][];
+export const WHERE: Rules['where'][];
+export const ROTATE: Rules['rotate'][];
+export const CONDITIONS: string[];
+export function normRules(r: unknown): Rules;
+export function resolveDirMeta(dir: string, metas: Record<string, unknown>): Record<string, unknown> & { tags: string[]; rules: Record<string, unknown> };
+export function resolvePath(dir: string, rel: string): string;
+export function buildPack(files: { path: string; size: { w: number; h: number } | null }[], metas?: Record<string, unknown>): { tree: DirNode; assets: AssetEntry[]; sets: SetEntry[] };
+export function setBounds(set: SetEntry, footprintOf: (path: string) => [number, number] | undefined): { w: number; h: number; cx: number; cy: number };
+export function groupMembers(assets: AssetEntry[], entry: AssetEntry): string[];
+export function matchTarget(target: string, entry: AssetEntry, fromDir?: string): boolean;
 export function findDir(tree: DirNode, path: string): DirNode | null;
 export type ChainLevel = { kind: 'dir' | 'file'; options: string[]; value: string; dir?: string };
 export function variantChain(tree: DirNode, assetPath: string): ChainLevel[];

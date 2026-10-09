@@ -120,7 +120,7 @@ function drawLayers(ctx: CanvasRenderingContext2D, f: Floor, layerOrder: string[
 
 export function drawObject(ctx: CanvasRenderingContext2D, ob: MapObject, assets: AssetStore, scale: number) {
   const pxPerCell = scale * Math.max(ob.w / (assets.entry(ob.asset)?.footprint[0] ?? ob.w), 0.01);
-  const src = assets.source(ob.asset, pxPerCell);
+  const src = assets.source(ob.asset, pxPerCell, ob.tint);
   ctx.save();
   ctx.translate(ob.x, ob.y);
   ctx.rotate((ob.rot * Math.PI) / 180);

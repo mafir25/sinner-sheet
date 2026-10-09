@@ -62,12 +62,13 @@ const floor = z.object({
   id: z.string(),
   name: z.string().default(''),
   visible: z.boolean().default(true),
-  rooms: z.array(z.object({ id: z.string(), poly: z.array(ring).min(1), floor: z.string().nullable().default(null), wall: wallStyle })).default([]),
+  rooms: z.array(z.object({ id: z.string(), poly: z.array(ring).min(1), floor: z.string().nullable().default(null), wall: wallStyle, type: z.string().optional() })).default([]),
   walls: z.array(z.object({ id: z.string(), points: z.array(pt).min(2), closed: z.boolean().default(false), wall: wallStyle })).default([]),
   portals: z.array(z.object({ id: z.string(), kind: z.enum(['door', 'window']), a: pt, b: pt, asset: z.string().nullable().default(null) })).default([]),
   objects: z.array(z.object({
     id: z.string(), asset: z.string(), layer: z.string(), x: num, y: num, w: num.positive(), h: num.positive(),
     rot: num.default(0), flipX: z.boolean().default(false), flipY: z.boolean().default(false), opacity: num.min(0).max(1).default(1),
+    tint: z.string().nullable().optional(),
   })).default([]),
   layers: z.array(layer).default([]),
   ground: asset,
@@ -86,6 +87,7 @@ const floor = z.object({
   labels: z.array(z.object({
     id: z.string(), x: num, y: num, text: z.string(), size: num.positive().default(0.6), color: z.string().default('#ffffff'),
     rot: num.default(0), font: z.enum(['head', 'body']).default('head'), box: z.boolean().default(false), gmOnly: z.boolean().default(false),
+    link: z.string().max(2000).optional(),
   })).default([]),
   roofs: z.array(z.object({ id: z.string(), poly: z.array(ring).min(1), asset, color: z.string().default('#3a3a40') })).default([]),
   image: z.object({ asset: z.string(), x: num, y: num, ppc: num.positive(), opacity: num.min(0).max(1).default(1) }).nullable().default(null),
@@ -109,6 +111,11 @@ const docSchema = z.object({
   floors: z.array(floor).min(1),
   createdAt: num.default(0),
   updatedAt: num.default(0),
+  district: z.object({
+    id: z.string(), name: z.string(), color: z.string(), wing: z.string().optional(), faction: z.string().optional(),
+    aliases: z.array(z.string()).default([]),
+  }).optional(),
+  links: z.array(z.object({ title: z.string().max(200), url: z.string().max(2000) })).optional(),
 });
 
 /** Проверяет и дополняет документ из файла. Бросает ошибку с понятным текстом. */

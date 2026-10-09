@@ -15,7 +15,11 @@ import { Library } from './ui/Library';
 import { Props } from './ui/Props';
 import { FloorsLayers } from './ui/FloorsLayers';
 import { ExportDialog, GridSelect, Help, MapSettings } from './ui/Dialogs';
-import { Field, Modal, NumInput, Toasts, toast } from './ui/common';
+import { GenBar, GenDialog, type GenState } from './ui/GenDialog';
+import { LinksDialog } from './ui/LinksDialog';
+import { parseMapHash } from '../../site/site-links.js';
+import { Field, Modal, NumInput, Toasts, toast, useStore } from './ui/common';
+import { floorIssues } from './geom/place';
 
 const openSiteUi = (section: string) => (window as unknown as { SiteUI?: { open(s: string): void } }).SiteUI?.open(section);
 
@@ -72,6 +76,18 @@ function StartScreen({ assets, onOpen }: { assets: AssetStore; onOpen(e: Editor)
   const [creating, setCreating] = useState(false);
   const refresh = useCallback(() => { mapDb.list().then(setList).catch((e) => { console.error(e); setList([]); }); }, []);
   useEffect(refresh, [refresh]);
+  // ссылка из Ширмы: maps.html#map=<id>
+  useEffect(() => {
+    const want = parseMapHash(location.hash);
+    if (!want) return;
+    mapDb.get(want.id).then((s) => {
+      if (s) onOpen(new Editor(s.doc));
+      else {
+        history.replaceState(null, '', location.pathname + location.search);
+        toast(tr('Карты «{0}» нет в этом браузере — открой её файл .pmmap.', want.name || want.id), 'error');
+      }
+    }).catch(console.error);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const fmt = (t: number) => new Date(t).toLocaleString(lang === 'en' ? 'en-GB' : 'ru-RU', { dateStyle: 'short', timeStyle: 'short' });
 
   return (
@@ -160,7 +176,7 @@ const HINTS: Record<ToolId, string> = {
   wall: 'Щелчками ставь точки стены, двойной щелчок или Enter — закончить, Esc — отмена.',
   door: 'Наведи на стену и щёлкни — проём встанет на стену.',
   window: 'Наведи на стену и щёлкни — проём встанет на стену.',
-  stamp: 'Щелчок — поставить объект. Q/E — поворот, F — отразить, Esc — выход.',
+  stamp: 'Щелчок — поставить объект или комплект. Правила сами прижмут его к стене, в угол или к дороге (Alt — без правил). Q/E — поворот, F — отразить.',
   pan: 'Тяни, чтобы двигать карту.',
   brush: 'Рисуй местность: грязь, кровь, воду. Alt — ластик.',
   path: 'Щелчками ставь точки пути, двойной щелчок или Enter — закончить, Esc — отмена.',
@@ -179,7 +195,13 @@ function Workspace({ ed, assets, user, onExit, onOpen }: { ed: Editor; assets: A
   const canUndo = useEditor(ed, (s) => s.canUndo);
   const canRedo = useEditor(ed, (s) => s.canRedo);
   const settings = useEditor(ed, (s) => s.settings);
-  const [dialog, setDialog] = useState<'export' | 'settings' | 'help' | null>(null);
+  const [dialog, setDialog] = useState<'export' | 'settings' | 'help' | 'gen' | 'links' | null>(null);
+  // адрес вкладки ведёт на открытую карту — его можно сохранить в закладки или вставить в Ширму
+  useEffect(() => {
+    history.replaceState(null, '', `${location.pathname}${location.search}#map=${encodeURIComponent(ed.doc.id)}`);
+    return () => history.replaceState(null, '', location.pathname + location.search);
+  }, [ed]);
+  const [genLast, setGenLast] = useState<{ g: GenState; doc: MapDoc } | null>(null);
   const [saveState, setSaveState] = useState<'saved' | 'saving' | 'dirty'>('saved');
   const handle = useRef<SaveHandle>(null);
   const fit = useRef<() => void>(() => {});
@@ -289,7 +311,9 @@ function Workspace({ ed, assets, user, onExit, onOpen }: { ed: Editor; assets: A
           <button className="icon-btn" disabled={!canRedo} title={tr('Повторить (Ctrl+Y)')} onClick={() => ed.redo()}>↷</button>
           <button className="btn" onClick={async () => { const e = await openFromFile(assets); if (e) onOpen(e); }}>{tr('Открыть файл')}</button>
           <button className="btn" title={tr('Сохранить файл (Ctrl+S)')} onClick={() => saveFile(false)}>💾 {tr('Сохранить')}</button>
+          <button className="btn" title={tr('Генерация: оформить набросок, здание, подземелье, улицы')} onClick={() => setDialog('gen')}>✦ {tr('Генерация')}</button>
           <button className="btn btn-primary" onClick={() => setDialog('export')}>⇩ {tr('Экспорт')}</button>
+          <button className="icon-btn" title={tr('Район и ссылки: палитра Района, ссылка для Ширмы, ссылки на Базу знаний')} onClick={() => setDialog('links')}>🔗</button>
           <button className="icon-btn" title={tr('Настройки карты')} onClick={() => setDialog('settings')}>⚙</button>
           <button className="icon-btn" title={tr('Управление')} onClick={() => setDialog('help')}>?</button>
           <button className="btn user" title={tr('Аккаунт и настройки')} onClick={() => openSiteUi('account')}>{nick}</button>
@@ -300,7 +324,7 @@ function Workspace({ ed, assets, user, onExit, onOpen }: { ed: Editor; assets: A
           <div className="tools">
             {TOOLS.map((t) => (
               <button key={t.id} className={`tool${tool === t.id ? ' on' : ''}`} title={tr(t.title)} aria-label={tr(t.title)}
-                disabled={t.id === 'stamp' && !settings.stamp} onClick={() => ed.setTool(t.id)}>{t.icon}</button>
+                disabled={t.id === 'stamp' && !settings.stamp && !settings.stampSet} onClick={() => ed.setTool(t.id)}>{t.icon}</button>
             ))}
           </div>
           <div className="props">
@@ -311,6 +335,7 @@ function Workspace({ ed, assets, user, onExit, onOpen }: { ed: Editor; assets: A
         </aside>
         <section className="center">
           <CanvasView ed={ed} assets={assets} onFitRef={(f) => { fit.current = f; }} />
+          {genLast && doc === genLast.doc && <GenBar ed={ed} assets={assets} last={genLast} onChange={setGenLast} onSettings={() => setDialog('gen')} />}
           <div className="bottombar">
             <button className={`btn btn-sm${settings.snap ? ' btn-on' : ''}`} title={tr('Привязка к сетке (зажать Ctrl — без привязки)')}
               onClick={() => ed.setSettings({ snap: !settings.snap })}>⌗ {tr('Привязка')}</button>
@@ -324,6 +349,7 @@ function Workspace({ ed, assets, user, onExit, onOpen }: { ed: Editor; assets: A
               <button className={`btn btn-sm${settings.showLight ? ' btn-on' : ''}`} title={tr('Показывать освещение в редакторе')}
                 onClick={() => ed.setSettings({ showLight: !settings.showLight })}>💡 {tr('Свет')}</button>
             )}
+            <IssuesButton ed={ed} assets={assets} />
             <button className="btn btn-sm" title={tr('Показать всю карту')} onClick={() => fit.current()}>⤢</button>
           </div>
         </section>
@@ -335,6 +361,9 @@ function Workspace({ ed, assets, user, onExit, onOpen }: { ed: Editor; assets: A
       {dialog === 'export' && <ExportDialog ed={ed} assets={assets} onClose={() => setDialog(null)} />}
       {dialog === 'settings' && <MapSettings ed={ed} assets={assets} onClose={() => setDialog(null)} />}
       {dialog === 'help' && <Help onClose={() => setDialog(null)} />}
+      {dialog === 'links' && <LinksDialog ed={ed} onClose={() => setDialog(null)} />}
+      {dialog === 'gen' && <GenDialog ed={ed} assets={assets} onClose={() => setDialog(null)} initial={genLast?.g} replace={genLast?.doc}
+        onDone={(g, res) => { setGenLast({ g, doc: res }); setDialog(null); }} />}
     </div>
   );
 }
@@ -347,5 +376,23 @@ function NameInput({ value, onCommit }: { value: string; onCommit(v: string): vo
   return (
     <input className="input map-name" value={text} aria-label={tr('Название')} onChange={(e) => setText(e.target.value)} onBlur={commit}
       onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); if (e.key === 'Escape') { setText(value); (e.target as HTMLInputElement).blur(); } }} />
+  );
+}
+
+/** Сколько объектов этажа нарушают правила размещения; щелчок — выделить их, второй — скрыть подсветку. */
+function IssuesButton({ ed, assets }: { ed: Editor; assets: AssetStore }) {
+  const v = useStore(assets);
+  const doc = useEditor(ed, (s) => s.doc);
+  const floorId = useEditor(ed, (s) => s.floorId);
+  const on = useEditor(ed, (s) => s.settings.showIssues);
+  const issues = useMemo(() => floorIssues(ed.floor, (k) => assets.entry(k)), [doc, floorId, v]); // eslint-disable-line react-hooks/exhaustive-deps
+  if (!issues.size && on) return null;
+  return (
+    <button className={`btn btn-sm${on && issues.size ? ' btn-danger' : ''}`} title={tr('Объекты, нарушающие правила размещения: щелчок — выделить, Shift+щелчок — скрыть/показать подсветку')}
+      onClick={(e) => {
+        if (e.shiftKey || !on) { ed.setSettings({ showIssues: !on }); return; }
+        ed.setTool('select');
+        ed.setSel([...issues.keys()].map((id) => ({ kind: 'object' as const, id })));
+      }}>⚠ {on ? issues.size : tr('Правила')}</button>
   );
 }

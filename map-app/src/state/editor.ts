@@ -15,8 +15,16 @@ export type ToolSettings = {
   door: AssetKey | null;
   window: AssetKey | null;
   stamp: AssetKey | null;
+  /** Комплект для инструмента «Объект» (ключ «<набор>|<id>», см. AssetStore.set); важнее stamp. */
+  stampSet: string | null;
   stampRot: number;
   stampFlip: boolean;
+  /** Правила размещения: прилипать к стенам, углам и т. п. (Alt — временно без них). */
+  rules: boolean;
+  /** Случайные вариации по правилам: поворот, отражение, масштаб, оттенок, вариант из группы. */
+  vary: boolean;
+  /** Подсвечивать объекты с нарушенными правилами. */
+  showIssues: boolean;
   subtract: boolean;
   snap: boolean;
   brush: { asset: AssetKey | null; size: number; softness: number; opacity: number; erase: boolean };
@@ -61,7 +69,7 @@ export class Editor {
       tool: 'select', sel: [], view: { scale: 48, ox: 40, oy: 40 },
       settings: {
         floor: DEFAULT_FLOOR, wall: { ...DEFAULT_WALL }, door: 'canon:portals/doors/wood.svg', window: 'canon:portals/windows/glass.svg',
-        stamp: null, stampRot: 0, stampFlip: false, subtract: false, snap: true,
+        stamp: null, stampSet: null, stampRot: 0, stampFlip: false, rules: true, vary: true, showIssues: true, subtract: false, snap: true,
         brush: { asset: 'canon:terrain/dirt.svg', size: 2, softness: 0.6, opacity: 0.9, erase: false },
         path: { style: { ...DEFAULT_PATH }, smooth: true },
         light: { radius: 6, color: '#ffd9a0', intensity: 0.9, shadows: true },

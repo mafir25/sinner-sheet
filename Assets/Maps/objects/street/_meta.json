@@ -8,43 +8,91 @@
       "name": {
         "ru": "Фонарь",
         "en": "Street lamp"
-      }
+      },
+      "rules": {
+        "place": "road",
+        "where": "outside"
+      },
+      "tags": [
+        "lamp"
+      ]
     },
     "bench.svg": {
       "name": {
         "ru": "Скамейка",
         "en": "Bench"
+      },
+      "rules": {
+        "place": "road",
+        "where": "outside",
+        "avoid": [
+          {
+            "to": "bench.svg",
+            "dist": 2
+          }
+        ]
       }
     },
     "trashcan.svg": {
       "name": {
         "ru": "Урна",
         "en": "Trash can"
+      },
+      "rules": {
+        "place": "road",
+        "where": "outside"
       }
     },
     "vending.svg": {
       "name": {
         "ru": "Торговый автомат",
         "en": "Vending machine"
+      },
+      "rules": {
+        "place": "wall"
       }
     },
     "car.svg": {
       "name": {
         "ru": "Машина",
         "en": "Car"
+      },
+      "rules": {
+        "place": "road",
+        "face": false,
+        "tint": [
+          "#ffffff",
+          "#c8d0dc",
+          "#e8c8c0",
+          "#c8e0c8"
+        ]
       }
     },
     "hydrant.svg": {
       "name": {
         "ru": "Гидрант",
         "en": "Hydrant"
+      },
+      "rules": {
+        "place": "road",
+        "where": "outside"
       }
     },
     "barricade.svg": {
       "name": {
         "ru": "Баррикада",
         "en": "Barricade"
+      },
+      "tags": [
+        "cover"
+      ],
+      "rules": {
+        "where": "outside",
+        "rotate": "90"
       }
     }
-  }
+  },
+  "tags": [
+    "street"
+  ]
 }
