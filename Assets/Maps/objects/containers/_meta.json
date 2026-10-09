@@ -11,7 +11,8 @@
       },
       "group": "crate",
       "tags": [
-        "crate"
+        "crate",
+        "cover"
       ],
       "rules": {
         "rotate": "90",
@@ -33,7 +34,8 @@
         "en": "Barrel"
       },
       "tags": [
-        "flammable"
+        "flammable",
+        "cover"
       ],
       "rules": {
         "rotate": "any",
@@ -71,7 +73,8 @@
       },
       "group": "crate",
       "tags": [
-        "crate"
+        "crate",
+        "cover"
       ],
       "rules": {
         "rotate": "90",
@@ -94,7 +97,8 @@
       },
       "group": "crate",
       "tags": [
-        "crate"
+        "crate",
+        "cover"
       ],
       "rules": {
         "rotate": "90",

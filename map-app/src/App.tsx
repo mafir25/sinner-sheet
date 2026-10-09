@@ -15,6 +15,7 @@ import { Library } from './ui/Library';
 import { Props } from './ui/Props';
 import { FloorsLayers } from './ui/FloorsLayers';
 import { ExportDialog, GridSelect, Help, MapSettings } from './ui/Dialogs';
+import { GenBar, GenDialog, type GenState } from './ui/GenDialog';
 import { Field, Modal, NumInput, Toasts, toast, useStore } from './ui/common';
 import { floorIssues } from './geom/place';
 
@@ -180,7 +181,8 @@ function Workspace({ ed, assets, user, onExit, onOpen }: { ed: Editor; assets: A
   const canUndo = useEditor(ed, (s) => s.canUndo);
   const canRedo = useEditor(ed, (s) => s.canRedo);
   const settings = useEditor(ed, (s) => s.settings);
-  const [dialog, setDialog] = useState<'export' | 'settings' | 'help' | null>(null);
+  const [dialog, setDialog] = useState<'export' | 'settings' | 'help' | 'gen' | null>(null);
+  const [genLast, setGenLast] = useState<{ g: GenState; doc: MapDoc } | null>(null);
   const [saveState, setSaveState] = useState<'saved' | 'saving' | 'dirty'>('saved');
   const handle = useRef<SaveHandle>(null);
   const fit = useRef<() => void>(() => {});
@@ -290,6 +292,7 @@ function Workspace({ ed, assets, user, onExit, onOpen }: { ed: Editor; assets: A
           <button className="icon-btn" disabled={!canRedo} title={tr('Повторить (Ctrl+Y)')} onClick={() => ed.redo()}>↷</button>
           <button className="btn" onClick={async () => { const e = await openFromFile(assets); if (e) onOpen(e); }}>{tr('Открыть файл')}</button>
           <button className="btn" title={tr('Сохранить файл (Ctrl+S)')} onClick={() => saveFile(false)}>💾 {tr('Сохранить')}</button>
+          <button className="btn" title={tr('Генерация: оформить набросок, здание, подземелье, улицы')} onClick={() => setDialog('gen')}>✦ {tr('Генерация')}</button>
           <button className="btn btn-primary" onClick={() => setDialog('export')}>⇩ {tr('Экспорт')}</button>
           <button className="icon-btn" title={tr('Настройки карты')} onClick={() => setDialog('settings')}>⚙</button>
           <button className="icon-btn" title={tr('Управление')} onClick={() => setDialog('help')}>?</button>
@@ -312,6 +315,7 @@ function Workspace({ ed, assets, user, onExit, onOpen }: { ed: Editor; assets: A
         </aside>
         <section className="center">
           <CanvasView ed={ed} assets={assets} onFitRef={(f) => { fit.current = f; }} />
+          {genLast && doc === genLast.doc && <GenBar ed={ed} assets={assets} last={genLast} onChange={setGenLast} onSettings={() => setDialog('gen')} />}
           <div className="bottombar">
             <button className={`btn btn-sm${settings.snap ? ' btn-on' : ''}`} title={tr('Привязка к сетке (зажать Ctrl — без привязки)')}
               onClick={() => ed.setSettings({ snap: !settings.snap })}>⌗ {tr('Привязка')}</button>
@@ -337,6 +341,8 @@ function Workspace({ ed, assets, user, onExit, onOpen }: { ed: Editor; assets: A
       {dialog === 'export' && <ExportDialog ed={ed} assets={assets} onClose={() => setDialog(null)} />}
       {dialog === 'settings' && <MapSettings ed={ed} assets={assets} onClose={() => setDialog(null)} />}
       {dialog === 'help' && <Help onClose={() => setDialog(null)} />}
+      {dialog === 'gen' && <GenDialog ed={ed} assets={assets} onClose={() => setDialog(null)} initial={genLast?.g} replace={genLast?.doc}
+        onDone={(g, res) => { setGenLast({ g, doc: res }); setDialog(null); }} />}
     </div>
   );
 }

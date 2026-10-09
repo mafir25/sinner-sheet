@@ -12,7 +12,10 @@
       "rules": {
         "place": "road",
         "where": "outside"
-      }
+      },
+      "tags": [
+        "lamp"
+      ]
     },
     "bench.svg": {
       "name": {
@@ -79,6 +82,13 @@
       "name": {
         "ru": "Баррикада",
         "en": "Barricade"
+      },
+      "tags": [
+        "cover"
+      ],
+      "rules": {
+        "where": "outside",
+        "rotate": "90"
       }
     }
   },

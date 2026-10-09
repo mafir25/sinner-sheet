@@ -150,7 +150,15 @@
           "y": 1,
           "rot": 180
         }
-      ]
+      ],
+      "rules": {
+        "rooms": [
+          "kitchen",
+          "living",
+          "bar",
+          "hideout"
+        ]
+      }
     },
     "round-2": {
       "name": {
@@ -174,7 +182,15 @@
           "y": 1,
           "rot": 180
         }
-      ]
+      ],
+      "rules": {
+        "rooms": [
+          "bar",
+          "kitchen",
+          "living",
+          "office"
+        ]
+      }
     }
   }
 }

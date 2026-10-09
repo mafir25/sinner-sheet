@@ -183,11 +183,13 @@ export function buildPack(files, metas = {}) {
         }))
         .filter((it) => byPath.has(it.path));
       if (!items.length) continue;
+      // правила комплекта: правила папки + свои (комплект мебели наследует «в комнате», «не загораживать двери»)
+      const rules = { ...resolveDirMeta(dir, metas).rules, ...(s.rules && typeof s.rules === 'object' ? s.rules : {}) };
       sets.push({
         id: dir ? `${dir}#${key}` : `#${key}`, dir, key,
         name: normName(s.name, prettyName(key)),
         items,
-        ...(hasRules(s.rules) ? { rules: normRules(s.rules) } : {}),
+        ...(hasRules(rules) ? { rules: normRules(rules) } : {}),
       });
     }
   }

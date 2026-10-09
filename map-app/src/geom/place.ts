@@ -149,8 +149,8 @@ export function placeByRules(f: Floor, p: Pt, w: number, h: number, rot: number,
 }
 
 // ---------- проверка правил
-type Box = { x: number; y: number; w: number; h: number; rot: number };
-function corners(o: Box): Pt[] {
+export type Box = { x: number; y: number; w: number; h: number; rot: number };
+export function corners(o: Box): Pt[] {
   const a = (o.rot * Math.PI) / 180, c = Math.cos(a), s = Math.sin(a);
   return [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([sx, sy]) => {
     const x = (sx * o.w) / 2, y = (sy * o.h) / 2;
@@ -181,6 +181,18 @@ export function boxGap(a: Box, b: Box): number {
   return Math.hypot(Math.max(0, p.x0 - q.x1, q.x0 - p.x1), Math.max(0, p.y0 - q.y1, q.y0 - p.y1));
 }
 
+/** Стоит ли объект в проходе у двери (по клетке с каждой стороны). */
+export function blocksDoor(f: Floor, o: Box): boolean {
+  const shrunk = { ...o, w: Math.max(0.01, o.w - 0.04), h: Math.max(0.01, o.h - 0.04) };
+  for (const d of f.portals) {
+    if (d.kind !== 'door') continue;
+    const L = Math.hypot(d.b.x - d.a.x, d.b.y - d.a.y);
+    const zone = { x: (d.a.x + d.b.x) / 2, y: (d.a.y + d.b.y) / 2, w: L, h: 2.2, rot: deg(Math.atan2(d.b.y - d.a.y, d.b.x - d.a.x)) };
+    if (boxesOverlap(shrunk, zone)) return true;
+  }
+  return false;
+}
+
 /** Нарушения правил у объекта o на этаже f (o может ещё не лежать на этаже — предпросмотр). */
 export function checkObject(f: Floor, o: MapObject, entryOf: (key: string) => AssetEntry | undefined): Issue[] {
   const e = entryOf(o.asset), r = e?.rules;
@@ -200,16 +212,7 @@ export function checkObject(f: Floor, o: MapObject, entryOf: (key: string) => As
   for (const rel of r.avoid) {
     if (matching(rel.to).some((x) => boxGap(o, x) < rel.dist - 1e-6)) out.push({ key: 'Слишком близко к: {0}', target: rel.to, dir: e.dir });
   }
-  if (r.clearDoors) {
-    const shrunk = { ...o, w: Math.max(0.01, o.w - 0.04), h: Math.max(0.01, o.h - 0.04) };
-    for (const d of f.portals) {
-      if (d.kind !== 'door') continue;
-      const L = Math.hypot(d.b.x - d.a.x, d.b.y - d.a.y);
-      // проход: по клетке с каждой стороны двери
-      const zone = { x: (d.a.x + d.b.x) / 2, y: (d.a.y + d.b.y) / 2, w: L, h: 2.2, rot: deg(Math.atan2(d.b.y - d.a.y, d.b.x - d.a.x)) };
-      if (boxesOverlap(shrunk, zone)) { out.push({ key: 'Загораживает дверь' }); break; }
-    }
-  }
+  if (r.clearDoors && blocksDoor(f, o)) out.push({ key: 'Загораживает дверь' });
   if (r.max > 0 && room) {
     const same = (x: MapObject) => {
       if (x.asset === o.asset) return true;
