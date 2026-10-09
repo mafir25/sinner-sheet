@@ -1,0 +1,333 @@
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { onAuthStateChanged, type User } from 'firebase/auth';
+import { auth } from './data/auth';
+import { AssetStore } from './assets/store';
+import { createDoc } from './model/doc';
+import type { GridType, MapDoc } from './model/types';
+import { Editor, type ToolId, useEditor } from './state/editor';
+import { maps as mapDb } from './storage/idb';
+import { EXT, buildPmmap, pickFile, readPmmap, safeName, saveBlob } from './storage/file';
+import { thumbnail } from './export/export';
+import { lang, tr } from './i18n';
+import { CanvasView, isTyping } from './ui/CanvasView';
+import { Library } from './ui/Library';
+import { Props } from './ui/Props';
+import { FloorsLayers } from './ui/FloorsLayers';
+import { ExportDialog, GridSelect, Help, MapSettings } from './ui/Dialogs';
+import { Field, Modal, NumInput, Toasts, toast } from './ui/common';
+
+const openSiteUi = (section: string) => (window as unknown as { SiteUI?: { open(s: string): void } }).SiteUI?.open(section);
+
+export function App() {
+  // в режиме разработки (npm run dev:maps) вход не нужен — редактор всё равно ничего не пишет на сервер
+  const [user, setUser] = useState<User | null | undefined>(import.meta.env.DEV ? ({ email: 'dev', uid: 'dev' } as User) : undefined);
+  useEffect(() => (import.meta.env.DEV ? undefined : onAuthStateChanged(auth, (u) => setUser(u))), []);
+  const assets = useMemo(() => new AssetStore(), []);
+  useEffect(() => { void assets.init(); }, [assets]);
+  const [ed, setEd] = useState<Editor | null>(null);
+
+  if (user === undefined) return <div className="splash">{tr('Загрузка…')}</div>;
+  if (user === null) {
+    return (
+      <div className="splash">
+        <h1>{tr('Редактор карт')}</h1>
+        <p>{tr('Чтобы рисовать карты, войди в аккаунт.')}</p>
+        <p className="hint">{tr('Карты хранятся у тебя: в браузере и в файлах. На сервер ничего не загружается.')}</p>
+        <button className="btn btn-primary" onClick={() => openSiteUi('login')}>{tr('Войти')}</button>
+      </div>
+    );
+  }
+  return (
+    <>
+      {ed ? <Workspace key={ed.key} ed={ed} assets={assets} user={user} onExit={() => setEd(null)} onOpen={setEd} />
+        : <StartScreen assets={assets} onOpen={setEd} />}
+      <Toasts />
+    </>
+  );
+}
+
+/** Открыть .pmmap: ассеты из файла, которых нет в браузере, подключаются как локальный набор. */
+async function openFromFile(assets: AssetStore): Promise<Editor | null> {
+  const file = await pickFile(`${EXT},.json,application/zip`);
+  if (!file) return null;
+  try {
+    const { doc, embedded } = await readPmmap(file);
+    for (const p of embedded) {
+      if (assets.pack(p.id)) continue;
+      const label = p.label && p.label !== p.id ? p.label : tr('Из карты «{0}»', doc.name);
+      await assets.addLocalPack(label, p.files, p.id);
+      toast(tr('Ассеты из файла добавлены как набор «{0}»', label));
+    }
+    return new Editor(doc);
+  } catch (e) {
+    console.error(e);
+    toast(tr('Не удалось открыть файл: {0}', e instanceof Error ? e.message : String(e)), 'error');
+    return null;
+  }
+}
+
+function StartScreen({ assets, onOpen }: { assets: AssetStore; onOpen(e: Editor): void }) {
+  const [list, setList] = useState<Awaited<ReturnType<typeof mapDb.list>> | null>(null);
+  const [creating, setCreating] = useState(false);
+  const refresh = useCallback(() => { mapDb.list().then(setList).catch((e) => { console.error(e); setList([]); }); }, []);
+  useEffect(refresh, [refresh]);
+  const fmt = (t: number) => new Date(t).toLocaleString(lang === 'en' ? 'en-GB' : 'ru-RU', { dateStyle: 'short', timeStyle: 'short' });
+
+  return (
+    <div className="start">
+      <header className="topbar">
+        <nav><a className="btn" href="index.html">{tr('⌂ ХАБ')}</a><h1 className="title">{tr('Редактор карт')}</h1></nav>
+        <div className="row">
+          <button className="btn" onClick={async () => { const e = await openFromFile(assets); if (e) onOpen(e); }}>{tr('Открыть файл')}</button>
+          <button className="btn btn-primary" onClick={() => setCreating(true)}>＋ {tr('Новая карта')}</button>
+        </div>
+      </header>
+      <main className="start-body">
+        <p className="hint">{tr('Карты хранятся у тебя: в браузере и в файлах. На сервер ничего не загружается.')}</p>
+        <h2>{tr('Недавние карты')}</h2>
+        {list && !list.length && <p className="hint">{tr('Пока пусто — создай первую карту.')}</p>}
+        <div className="cards">
+          {list?.map((m) => (
+            <div key={m.id} className="card">
+              <button className="card-open" onClick={async () => {
+                const s = await mapDb.get(m.id);
+                if (s) onOpen(new Editor(s.doc));
+              }}>
+                <span className="card-thumb">{m.thumb ? <img src={m.thumb} alt="" /> : null}</span>
+                <span className="card-name">{m.name || tr('Без названия')}</span>
+                <span className="hint">{tr('Изменено {0}', fmt(m.updatedAt))}</span>
+              </button>
+              <button className="icon-btn danger card-del" title={tr('Удалить')} onClick={async () => {
+                if (!window.confirm(tr('Удалить карту «{0}» из браузера? Файлы на диске не пострадают.', m.name))) return;
+                await mapDb.del(m.id);
+                refresh();
+              }}>✕</button>
+            </div>
+          ))}
+        </div>
+      </main>
+      {creating && <NewMapDialog onClose={() => setCreating(false)} onCreate={(doc) => onOpen(new Editor(doc))} />}
+    </div>
+  );
+}
+
+function NewMapDialog({ onClose, onCreate }: { onClose(): void; onCreate(d: MapDoc): void }) {
+  const [name, setName] = useState('');
+  const [w, setW] = useState(30);
+  const [h, setH] = useState(20);
+  const [grid, setGrid] = useState<GridType>('square');
+  return (
+    <Modal title={tr('Новая карта')} onClose={onClose}>
+      <form className="stack" onSubmit={(e) => {
+        e.preventDefault();
+        onCreate(createDoc({ name: name.trim() || tr('Без названия'), width: w, height: h, grid, floorName: tr('Этаж 1') }));
+      }}>
+        <Field label={tr('Название')}><input className="input" autoFocus value={name} onChange={(e) => setName(e.target.value)} placeholder={tr('Без названия')} /></Field>
+        <div className="row">
+          <Field label={tr('Ширина (клеток)')} row><NumInput value={w} step={1} min={1} max={500} digits={0} onCommit={(v) => setW(Math.round(v))} /></Field>
+          <Field label={tr('Высота (клеток)')} row><NumInput value={h} step={1} min={1} max={500} digits={0} onCommit={(v) => setH(Math.round(v))} /></Field>
+        </div>
+        <Field label={tr('Сетка')}><GridSelect value={grid} onChange={setGrid} /></Field>
+        <div className="row end">
+          <button type="button" className="btn" onClick={onClose}>{tr('Отмена')}</button>
+          <button type="submit" className="btn btn-primary">{tr('Создать')}</button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+const TOOLS: { id: ToolId; icon: string; title: string; key?: string }[] = [
+  { id: 'select', icon: '⬚', title: 'Выделение (V)', key: 'v' },
+  { id: 'room', icon: '▭', title: 'Комната (B)', key: 'b' },
+  { id: 'poly', icon: '⬠', title: 'Комната-многоугольник (P)', key: 'p' },
+  { id: 'wall', icon: '╱', title: 'Стена (W)', key: 'w' },
+  { id: 'door', icon: '🚪', title: 'Дверь (D)', key: 'd' },
+  { id: 'window', icon: '▤', title: 'Окно (O)', key: 'o' },
+  { id: 'stamp', icon: '✦', title: 'Объект (из библиотеки)' },
+  { id: 'pan', icon: '✋', title: 'Панорама (H)', key: 'h' },
+];
+const HINTS: Record<ToolId, string> = {
+  select: 'Щелчок — выбрать, Shift — добавить к выбору, рамкой — выбрать несколько. Тащи — переместить.',
+  room: 'Тяни прямоугольник. Комнаты одного стиля сливаются, Alt — вырезать.',
+  poly: 'Щелчками ставь вершины, двойной щелчок или Enter — замкнуть, Esc — отмена.',
+  wall: 'Щелчками ставь точки стены, двойной щелчок или Enter — закончить, Esc — отмена.',
+  door: 'Наведи на стену и щёлкни — проём встанет на стену.',
+  window: 'Наведи на стену и щёлкни — проём встанет на стену.',
+  stamp: 'Щелчок — поставить объект. Q/E — поворот, F — отразить, Esc — выход.',
+  pan: 'Тяни, чтобы двигать карту.',
+};
+
+type SaveHandle = Parameters<typeof saveBlob>[2];
+
+function Workspace({ ed, assets, user, onExit, onOpen }: { ed: Editor; assets: AssetStore; user: User; onExit(): void; onOpen(e: Editor): void }) {
+  const tool = useEditor(ed, (s) => s.tool);
+  const doc = useEditor(ed, (s) => s.doc);
+  const canUndo = useEditor(ed, (s) => s.canUndo);
+  const canRedo = useEditor(ed, (s) => s.canRedo);
+  const settings = useEditor(ed, (s) => s.settings);
+  const [dialog, setDialog] = useState<'export' | 'settings' | 'help' | null>(null);
+  const [saveState, setSaveState] = useState<'saved' | 'saving' | 'dirty'>('saved');
+  const handle = useRef<SaveHandle>(null);
+  const fit = useRef<() => void>(() => {});
+
+  // ---------- автосохранение в браузере
+  useEffect(() => {
+    let timer = 0;
+    const save = async () => {
+      timer = 0;
+      setSaveState('saving');
+      const d = ed.doc;
+      try {
+        await mapDb.put({ id: d.id, name: d.name, updatedAt: d.updatedAt || Date.now(), thumb: thumbnail(d, assets), doc: d });
+        setSaveState('saved');
+      } catch (e) {
+        console.error(e);
+        setSaveState('dirty');
+        toast(tr('В браузере нет места: {0}', String(e)), 'error');
+      }
+    };
+    const off = ed.onDoc(() => { setSaveState('dirty'); clearTimeout(timer); timer = window.setTimeout(save, 800); });
+    void save(); // новая или только что открытая карта сразу попадает в список
+    const flush = () => { if (timer) { clearTimeout(timer); void save(); } };
+    window.addEventListener('pagehide', flush);
+    document.addEventListener('visibilitychange', flush);
+    return () => { off(); flush(); window.removeEventListener('pagehide', flush); document.removeEventListener('visibilitychange', flush); };
+  }, [ed, assets]);
+
+  const saveFile = useCallback(async (askWhere: boolean) => {
+    try {
+      const blob = await buildPmmap(ed.doc, assets);
+      const r = await saveBlob(blob, `${safeName(ed.doc.name)}${EXT}`, handle.current, askWhere);
+      if (!r) return;
+      handle.current = r.handle;
+      ed.markSaved();
+      toast(tr('Файл сохранён: {0}', r.name));
+    } catch (e) {
+      console.error(e);
+      toast(tr('Не удалось сохранить: {0}', String(e)), 'error');
+    }
+  }, [ed, assets]);
+
+  // ---------- горячие клавиши
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (isTyping(e) || dialog) return;
+      const mod = e.ctrlKey || e.metaKey;
+      const k = e.key.toLowerCase();
+      if (mod) {
+        if (k === 'z' && !e.shiftKey) { e.preventDefault(); ed.undo(); }
+        else if (k === 'y' || (k === 'z' && e.shiftKey)) { e.preventDefault(); ed.redo(); }
+        else if (k === 's') { e.preventDefault(); void saveFile(e.shiftKey); }
+        else if (k === 'c') ed.copy();
+        else if (k === 'v') { ed.setTool('select'); ed.paste(); }
+        else if (k === 'd') { e.preventDefault(); ed.duplicate(); }
+        return;
+      }
+      if (e.altKey) return;
+      const t = TOOLS.find((x) => x.key === k);
+      if (t) { ed.setTool(t.id); return; }
+      const objs = ed.selected('object');
+      const ids = new Set(objs.map((o) => o.id));
+      if (k === 'delete' || (k === 'backspace' && ed.state.tool === 'select')) { e.preventDefault(); ed.deleteSelection(); return; }
+      if (k === 'q' || k === 'e') {
+        const d = (k === 'q' ? -1 : 1) * (e.shiftKey ? 90 : 15);
+        if (objs.length) ed.commitFloor((f) => { for (const o of f.objects) if (ids.has(o.id)) o.rot = (((o.rot + d) % 360) + 360) % 360; });
+        else if (ed.state.tool === 'stamp') ed.setSettings({ stampRot: (((ed.state.settings.stampRot + d) % 360) + 360) % 360 });
+        return;
+      }
+      if (k === 'f') {
+        if (objs.length) ed.commitFloor((f) => { for (const o of f.objects) if (ids.has(o.id)) o.flipX = !o.flipX; });
+        else if (ed.state.tool === 'stamp') ed.setSettings({ stampFlip: !ed.state.settings.stampFlip });
+        return;
+      }
+      const arrows: Record<string, [number, number]> = { arrowleft: [-1, 0], arrowright: [1, 0], arrowup: [0, -1], arrowdown: [0, 1] };
+      if (arrows[k] && ed.state.sel.length) {
+        e.preventDefault();
+        const step = e.shiftKey ? 0.25 : 1;
+        const dx = arrows[k][0] * step, dy = arrows[k][1] * step;
+        const all = new Set(ed.state.sel.map((s) => s.id));
+        const mv = (p: { x: number; y: number }) => ({ x: p.x + dx, y: p.y + dy });
+        ed.commitFloor((f) => {
+          for (const o of f.objects) if (all.has(o.id)) { o.x += dx; o.y += dy; }
+          for (const r of f.rooms) if (all.has(r.id)) r.poly = r.poly.map((ring) => ring.map(mv));
+          for (const w of f.walls) if (all.has(w.id)) w.points = w.points.map(mv);
+          for (const p of f.portals) if (all.has(p.id)) { p.a = mv(p.a); p.b = mv(p.b); }
+        });
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [ed, dialog, saveFile]);
+
+  const nick = user.displayName || user.email || '';
+  const saveLabel = saveState === 'saved' ? tr('Сохранено в браузере') : saveState === 'saving' ? tr('Сохраняется…') : tr('Не сохранено');
+
+  return (
+    <div className="app">
+      <header className="topbar">
+        <nav>
+          <a className="btn" href="index.html">{tr('⌂ ХАБ')}</a>
+          <button className="btn" onClick={onExit}>☰ {tr('Карты')}</button>
+          <NameInput value={doc.name} onCommit={(name) => ed.commit((d) => { d.name = name; })} />
+          <span className={`save-state s-${saveState}`}>{saveLabel}</span>
+        </nav>
+        <div className="row">
+          <button className="icon-btn" disabled={!canUndo} title={tr('Отменить (Ctrl+Z)')} onClick={() => ed.undo()}>↶</button>
+          <button className="icon-btn" disabled={!canRedo} title={tr('Повторить (Ctrl+Y)')} onClick={() => ed.redo()}>↷</button>
+          <button className="btn" onClick={async () => { const e = await openFromFile(assets); if (e) onOpen(e); }}>{tr('Открыть файл')}</button>
+          <button className="btn" title={tr('Сохранить файл (Ctrl+S)')} onClick={() => saveFile(false)}>💾 {tr('Сохранить')}</button>
+          <button className="btn btn-primary" onClick={() => setDialog('export')}>⇩ {tr('Экспорт')}</button>
+          <button className="icon-btn" title={tr('Настройки карты')} onClick={() => setDialog('settings')}>⚙</button>
+          <button className="icon-btn" title={tr('Управление')} onClick={() => setDialog('help')}>?</button>
+          <button className="btn user" title={tr('Аккаунт и настройки')} onClick={() => openSiteUi('account')}>{nick}</button>
+        </div>
+      </header>
+      <main className="work">
+        <aside className="left">
+          <div className="tools">
+            {TOOLS.map((t) => (
+              <button key={t.id} className={`tool${tool === t.id ? ' on' : ''}`} title={tr(t.title)} aria-label={tr(t.title)}
+                disabled={t.id === 'stamp' && !settings.stamp} onClick={() => ed.setTool(t.id)}>{t.icon}</button>
+            ))}
+          </div>
+          <div className="props">
+            <h3>{tr(TOOLS.find((t) => t.id === tool)?.title ?? '')}</h3>
+            <p className="hint">{tr(HINTS[tool])}</p>
+            <Props ed={ed} assets={assets} />
+          </div>
+        </aside>
+        <section className="center">
+          <CanvasView ed={ed} assets={assets} onFitRef={(f) => { fit.current = f; }} />
+          <div className="bottombar">
+            <button className={`btn btn-sm${settings.snap ? ' btn-on' : ''}`} title={tr('Привязка к сетке (зажать Ctrl — без привязки)')}
+              onClick={() => ed.setSettings({ snap: !settings.snap })}>⌗ {tr('Привязка')}</button>
+            {(tool === 'room' || tool === 'poly') && (
+              <button className={`btn btn-sm${settings.subtract ? ' btn-danger' : ''}`} title={tr('Режим: добавить или вырезать (Alt — вырезать)')}
+                onClick={() => ed.setSettings({ subtract: !settings.subtract })}>{settings.subtract ? `− ${tr('Вырезать')}` : `＋ ${tr('Добавить')}`}</button>
+            )}
+            <button className="btn btn-sm" onClick={() => fit.current()}>⤢</button>
+          </div>
+        </section>
+        <aside className="right">
+          <Library ed={ed} assets={assets} />
+          <FloorsLayers ed={ed} />
+        </aside>
+      </main>
+      {dialog === 'export' && <ExportDialog ed={ed} assets={assets} onClose={() => setDialog(null)} />}
+      {dialog === 'settings' && <MapSettings ed={ed} onClose={() => setDialog(null)} />}
+      {dialog === 'help' && <Help onClose={() => setDialog(null)} />}
+    </div>
+  );
+}
+
+/** Название карты: в историю попадает одно изменение — при выходе из поля или Enter. */
+function NameInput({ value, onCommit }: { value: string; onCommit(v: string): void }) {
+  const [text, setText] = useState(value);
+  useEffect(() => setText(value), [value]);
+  const commit = () => { const v = text.trim(); if (v && v !== value) onCommit(v); else setText(value); };
+  return (
+    <input className="input map-name" value={text} aria-label={tr('Название')} onChange={(e) => setText(e.target.value)} onBlur={commit}
+      onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); if (e.key === 'Escape') { setText(value); (e.target as HTMLInputElement).blur(); } }} />
+  );
+}

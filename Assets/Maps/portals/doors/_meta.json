@@ -1,0 +1,41 @@
+{
+  "name": {
+    "ru": "Двери",
+    "en": "Doors"
+  },
+  "kind": "door",
+  "files": {
+    "wood.svg": {
+      "name": {
+        "ru": "Деревянная",
+        "en": "Wooden"
+      }
+    },
+    "metal.svg": {
+      "name": {
+        "ru": "Металлическая",
+        "en": "Metal"
+      }
+    },
+    "double.svg": {
+      "name": {
+        "ru": "Двустворчатая",
+        "en": "Double"
+      },
+      "footprint": [
+        2,
+        0.25
+      ]
+    },
+    "shutter.svg": {
+      "name": {
+        "ru": "Рольставня",
+        "en": "Roller shutter"
+      },
+      "footprint": [
+        2,
+        0.25
+      ]
+    }
+  }
+}

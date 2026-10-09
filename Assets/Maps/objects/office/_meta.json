@@ -1,0 +1,32 @@
+{
+  "name": {
+    "ru": "Офис",
+    "en": "Office"
+  },
+  "files": {
+    "computer-desk.svg": {
+      "name": {
+        "ru": "Стол с терминалом",
+        "en": "Terminal desk"
+      }
+    },
+    "filing-cabinet.svg": {
+      "name": {
+        "ru": "Картотека",
+        "en": "Filing cabinet"
+      }
+    },
+    "whiteboard.svg": {
+      "name": {
+        "ru": "Доска",
+        "en": "Whiteboard"
+      }
+    },
+    "plant.svg": {
+      "name": {
+        "ru": "Растение",
+        "en": "Plant"
+      }
+    }
+  }
+}

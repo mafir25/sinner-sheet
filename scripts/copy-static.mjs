@@ -1,11 +1,11 @@
-// Копирует страницы сайта (*.html в корне), site/ и Assets/ в dist/ после сборки Ширмы.
+// Копирует страницы сайта (*.html в корне), site/ и Assets/ в dist/ после сборки Ширмы и редактора карт.
 // Новые html/json/картинки можно класть туда же — они попадут на сайт как есть.
 import { cpSync, readdirSync, statSync } from 'node:fs';
 import { join, extname } from 'node:path';
 
 const ROOT = process.cwd();
 const OUT = join(ROOT, 'dist');
-const SKIP = new Set(['node_modules', 'dist', 'shirm-app', 'scripts', '.git', '.github', '.vite',
+const SKIP = new Set(['node_modules', 'dist', 'shirm-app', 'map-app', 'docs', 'scripts', 'CLAUDE.md', 'vite.maps.config.mjs', '.git', '.github', '.vite',
   'package.json', 'package-lock.json', 'vite.config.mjs', 'vercel.json', 'firestore.rules', '.gitignore', 'README.md',
   'tests', 'firebase.json', 'firestore-debug.log']);
 const EXT = new Set(['.html', '.json', '.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg', '.ico', '.css', '.js',
@@ -17,7 +17,7 @@ for (const name of readdirSync(ROOT)) {
   const src = join(ROOT, name);
   const isDir = statSync(src).isDirectory();
   if (!isDir && !EXT.has(extname(name).toLowerCase())) continue;
-  if (name === 'shirm.html') continue; // новая Ширма уже собрана Vite
+  if (name === 'shirm.html' || name === 'maps.html') continue; // Ширма и редактор карт уже собраны Vite
   cpSync(src, join(OUT, name), { recursive: true });
   n++;
 }

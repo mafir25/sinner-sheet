@@ -1,0 +1,26 @@
+{
+  "name": {
+    "ru": "Мусор и следы",
+    "en": "Debris & marks"
+  },
+  "files": {
+    "rubble.svg": {
+      "name": {
+        "ru": "Обломки",
+        "en": "Rubble"
+      }
+    },
+    "blood.svg": {
+      "name": {
+        "ru": "Кровь",
+        "en": "Blood"
+      }
+    },
+    "papers.svg": {
+      "name": {
+        "ru": "Бумаги",
+        "en": "Papers"
+      }
+    }
+  }
+}

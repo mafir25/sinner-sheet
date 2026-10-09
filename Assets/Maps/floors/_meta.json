@@ -1,0 +1,51 @@
+{
+  "name": {
+    "ru": "Полы",
+    "en": "Floors"
+  },
+  "kind": "floor",
+  "files": {
+    "concrete.svg": {
+      "name": {
+        "ru": "Бетон",
+        "en": "Concrete"
+      }
+    },
+    "tiles.svg": {
+      "name": {
+        "ru": "Плитка",
+        "en": "Tiles"
+      }
+    },
+    "wood.svg": {
+      "name": {
+        "ru": "Доски",
+        "en": "Wood planks"
+      }
+    },
+    "asphalt.svg": {
+      "name": {
+        "ru": "Асфальт",
+        "en": "Asphalt"
+      }
+    },
+    "metal.svg": {
+      "name": {
+        "ru": "Рифлёный металл",
+        "en": "Diamond plate"
+      }
+    },
+    "carpet.svg": {
+      "name": {
+        "ru": "Ковролин",
+        "en": "Carpet"
+      }
+    },
+    "lab.svg": {
+      "name": {
+        "ru": "Лабораторная плитка",
+        "en": "Lab tiles"
+      }
+    }
+  }
+}

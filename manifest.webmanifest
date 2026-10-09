@@ -1,7 +1,7 @@
 {
   "name": "Mephistopheles Terminal",
   "short_name": "Терминал",
-  "description": "Project Moon 5e: база знаний, конструктор персонажа, Офис и Ширма",
+  "description": "Project Moon 5e: база знаний, конструктор персонажа, Офис, Ширма и редактор карт",
   "lang": "ru",
   "start_url": "/index.html",
   "scope": "/",
@@ -16,6 +16,7 @@
     { "name": "База знаний", "url": "/navigation.html" },
     { "name": "Конструктор персонажа", "url": "/builder.html" },
     { "name": "Офис", "url": "/office.html" },
-    { "name": "Ширма", "url": "/shirm.html" }
+    { "name": "Ширма", "url": "/shirm.html" },
+    { "name": "Редактор карт", "url": "/maps.html" }
   ]
 }

@@ -5,10 +5,10 @@
    ВАЖНО: запросы service worker подчиняются connect-src из CSP (vercel.json). Перехватывать можно только
    хосты, разрешённые там; иначе запрос падает и ресурс не загружается вовсе (так ломались иконки Font Awesome
    с cdnjs). Стили, шрифты и иконки с CDN оставлены браузеру — их кэширует обычный HTTP-кэш. */
-const VERSION = 'v2';
+const VERSION = 'v3';
 const LOCAL = `mt-local-${VERSION}`;
 const CDN = `mt-cdn-${VERSION}`;
-const PRECACHE = ['/', '/index.html', '/navigation.html', '/builder.html', '/egobuilder.html', '/office.html', '/shirm.html',
+const PRECACHE = ['/', '/index.html', '/navigation.html', '/builder.html', '/egobuilder.html', '/office.html', '/shirm.html', '/maps.html', '/Assets/Maps/manifest.json',
   '/site/i18n.js', '/site/ui.js', '/manifest.webmanifest', '/Assets/App/icon-192.png'];
 // CDN, которые можно хранить: версия зашита в адрес, поэтому файл не меняется; хост обязан быть в connect-src
 const CDN_OK = /^https:\/\/www\.gstatic\.com\/firebasejs\//;
