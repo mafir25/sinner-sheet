@@ -75,14 +75,14 @@ export function FloorsLayers({ ed }: { ed: Editor }) {
           {floor.layers.map((l, i) => ({ l, i })).reverse().map(({ l, i }) => (
             <li key={l.id} className={l.id === layerId ? 'on' : ''}>
               <button className="mini" title={tr('Показать/скрыть')} onClick={() => updLayer(l.id, { visible: !l.visible })}>{l.visible ? '👁' : '◌'}</button>
-              <button className="list-main" onClick={() => ed.setLayer(l.id)} onDoubleClick={() => renameLayer(l.id, l.name)}>
+              <button className="list-main" title={tr('Двойной щелчок — переименовать')} onClick={() => ed.setLayer(l.id)} onDoubleClick={() => renameLayer(l.id, l.name)}>
                 {l.name}{l.aboveWalls && <span className="tag" title={tr('Над стенами — слой рисуется поверх стен')}>▲▦</span>}
               </button>
               <button className={`mini${l.aboveWalls ? ' on' : ''}`} title={tr('Над стенами — слой рисуется поверх стен')} onClick={() => updLayer(l.id, { aboveWalls: !l.aboveWalls })}>▦</button>
+              <button className={`mini${l.gmOnly ? ' on' : ''}`} title={tr('Только для мастера — слоя нет в версии для игроков')} onClick={() => updLayer(l.id, { gmOnly: !l.gmOnly })}>Ⓜ</button>
               <button className={`mini${l.locked ? ' on' : ''}`} title={tr('Заблокировать')} onClick={() => updLayer(l.id, { locked: !l.locked })}>{l.locked ? '🔒' : '🔓'}</button>
               <button className="mini" title={tr('Выше')} disabled={i === floor.layers.length - 1} onClick={() => ed.commitFloor((f) => { f.layers = move(f.layers, i, 1); })}>▲</button>
               <button className="mini" title={tr('Ниже')} disabled={i === 0} onClick={() => ed.commitFloor((f) => { f.layers = move(f.layers, i, -1); })}>▼</button>
-              <button className="mini" title={tr('Переименовать')} onClick={() => renameLayer(l.id, l.name)}>✎</button>
               <button className="mini danger" title={tr('Удалить')} onClick={() => delLayer(l.id, l.name)}>✕</button>
             </li>
           ))}

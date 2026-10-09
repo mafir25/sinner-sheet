@@ -8,7 +8,16 @@ import { safeName, usedAssetKeys } from '../storage/file';
 
 export type ExportFormat = 'png' | 'jpg' | 'webp' | 'dd2vtt';
 export type WindowMode = 'gap' | 'wall' | 'door';
-export type ExportOpts = { format: ExportFormat; ppc: number; grid: boolean; floors: 'current' | 'all'; windows: WindowMode; quality: number };
+export type ExportOpts = {
+  format: ExportFormat; ppc: number; grid: boolean; floors: 'current' | 'all'; windows: WindowMode; quality: number;
+  /** Крыши поверх карты (вид снаружи). */
+  roofs: boolean;
+  /** Запечь освещение в картинку. Для VTT с динамическим светом обычно выключают. */
+  bakeLight: boolean;
+  /** Мастерская версия: с подписями и слоями «только для мастера». */
+  gm: boolean;
+};
+export type RenderFlags = Pick<ExportOpts, 'roofs' | 'bakeLight' | 'gm'>;
 
 /** Ограничение браузеров на размер холста. */
 export const MAX_SIDE = 16384;
@@ -18,7 +27,7 @@ export const fits = (doc: MapDoc, ppc: number) =>
 
 const MIME: Record<Exclude<ExportFormat, 'dd2vtt'>, string> = { png: 'image/png', jpg: 'image/jpeg', webp: 'image/webp' };
 
-export async function renderFloorCanvas(doc: MapDoc, floorId: string, assets: AssetStore, ppc: number, grid: boolean): Promise<HTMLCanvasElement> {
+export async function renderFloorCanvas(doc: MapDoc, floorId: string, assets: AssetStore, ppc: number, grid: boolean, flags: RenderFlags): Promise<HTMLCanvasElement> {
   await assets.whenLoaded([...usedAssetKeys(doc)]);
   const c = document.createElement('canvas');
   c.width = Math.round(doc.width * ppc);
@@ -29,6 +38,7 @@ export async function renderFloorCanvas(doc: MapDoc, floorId: string, assets: As
   renderMap(ctx, doc, floorId, assets, {
     scale: ppc, view: { x0: 0, y0: 0, x1: doc.width, y1: doc.height }, grid, ghost: false,
     gridPx: Math.max(1, Math.round(ppc / 70)),
+    roofs: flags.roofs ? 'show' : 'hide', lighting: flags.bakeLight, gm: flags.gm, exporting: true,
   });
   return c;
 }
@@ -55,8 +65,10 @@ function vttPortal(p: Portal, closed: boolean) {
   };
 }
 
-/** Документ Universal VTT для этажа. image — PNG в base64. */
-export function buildDd2vtt(doc: MapDoc, f: Floor, ppc: number, image: string, windows: WindowMode) {
+const argb = (hex: string, alpha = 'ff') => `${alpha}${(/^#?([\da-f]{6})$/i.exec(hex.trim())?.[1] ?? 'ffffff').toLowerCase()}`;
+
+/** Документ Universal VTT для этажа. image — PNG в base64. baked — освещение уже запечено в картинку. */
+export function buildDd2vtt(doc: MapDoc, f: Floor, ppc: number, image: string, windows: WindowMode, baked = false) {
   const gaps = new Set<Portal['kind']>(windows === 'wall' ? ['door'] : ['door', 'window']);
   const los = wallChains(f, gaps).map((c) => { const pts = c.pts.map((q) => P(q.x, q.y)); return c.closed ? [...pts, pts[0]] : pts; });
   const portals = f.portals
@@ -68,17 +80,26 @@ export function buildDd2vtt(doc: MapDoc, f: Floor, ppc: number, image: string, w
     line_of_sight: los,
     objects_line_of_sight: [],
     portals,
-    environment: { baked_lighting: true, ambient_light: 'ffffffff' },
-    lights: [],
+    environment: { baked_lighting: baked, ambient_light: ambient(doc) },
+    lights: f.lights.map((l) => ({
+      position: P(l.x, l.y), range: Math.round(l.radius * 100) / 100, intensity: l.intensity, color: argb(l.color), shadows: l.shadows,
+    })),
     image,
   };
 }
 
+/** Общий свет карты для VTT: без освещения — полный день. */
+function ambient(doc: MapDoc): string {
+  if (!doc.lighting.enabled) return 'ffffffff';
+  const v = Math.round(255 * (1 - doc.lighting.darkness)).toString(16).padStart(2, '0');
+  return `ff${v}${v}${v}`;
+}
+
 async function exportFloor(doc: MapDoc, f: Floor, assets: AssetStore, o: ExportOpts): Promise<{ blob: Blob; ext: string }> {
-  const canvas = await renderFloorCanvas(doc, f.id, assets, o.ppc, o.grid);
+  const canvas = await renderFloorCanvas(doc, f.id, assets, o.ppc, o.grid, o);
   if (o.format === 'dd2vtt') {
     const png = await toBlob(canvas, 'image/png');
-    const json = buildDd2vtt(doc, f, o.ppc, await blobToBase64(png), o.windows);
+    const json = buildDd2vtt(doc, f, o.ppc, await blobToBase64(png), o.windows, o.bakeLight && doc.lighting.enabled);
     return { blob: new Blob([JSON.stringify(json)], { type: 'application/json' }), ext: 'dd2vtt' };
   }
   let c = canvas;
@@ -119,6 +140,9 @@ export function thumbnail(doc: MapDoc, assets: AssetStore, size = 220): string {
   c.height = Math.max(1, Math.round(doc.height * k));
   const ctx = c.getContext('2d')!;
   ctx.setTransform(k, 0, 0, k, 0, 0);
-  renderMap(ctx, doc, doc.floors[0].id, assets, { scale: k, view: { x0: 0, y0: 0, x1: doc.width, y1: doc.height }, grid: false, ghost: false });
+  renderMap(ctx, doc, doc.floors[0].id, assets, {
+    scale: k, view: { x0: 0, y0: 0, x1: doc.width, y1: doc.height }, grid: false, ghost: false,
+    roofs: 'hide', lighting: true, gm: true, exporting: true,
+  });
   return c.toDataURL('image/webp', 0.7);
 }

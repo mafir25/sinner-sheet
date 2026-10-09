@@ -10,6 +10,7 @@ import { EXT, buildPmmap, pickFile, readPmmap, safeName, saveBlob } from './stor
 import { thumbnail } from './export/export';
 import { lang, tr } from './i18n';
 import { CanvasView, isTyping } from './ui/CanvasView';
+import { moveFloor } from './tools/tools';
 import { Library } from './ui/Library';
 import { Props } from './ui/Props';
 import { FloorsLayers } from './ui/FloorsLayers';
@@ -145,6 +146,11 @@ const TOOLS: { id: ToolId; icon: string; title: string; key?: string }[] = [
   { id: 'door', icon: '🚪', title: 'Дверь (D)', key: 'd' },
   { id: 'window', icon: '▤', title: 'Окно (O)', key: 'o' },
   { id: 'stamp', icon: '✦', title: 'Объект (из библиотеки)' },
+  { id: 'brush', icon: '🖌', title: 'Кисть местности (G)', key: 'g' },
+  { id: 'path', icon: '〰', title: 'Путь (C)', key: 'c' },
+  { id: 'light', icon: '💡', title: 'Свет (L)', key: 'l' },
+  { id: 'label', icon: 'T', title: 'Подпись (T)', key: 't' },
+  { id: 'roof', icon: '⌂', title: 'Крыша (R)', key: 'r' },
   { id: 'pan', icon: '✋', title: 'Панорама (H)', key: 'h' },
 ];
 const HINTS: Record<ToolId, string> = {
@@ -156,7 +162,14 @@ const HINTS: Record<ToolId, string> = {
   window: 'Наведи на стену и щёлкни — проём встанет на стену.',
   stamp: 'Щелчок — поставить объект. Q/E — поворот, F — отразить, Esc — выход.',
   pan: 'Тяни, чтобы двигать карту.',
+  brush: 'Рисуй местность: грязь, кровь, воду. Alt — ластик.',
+  path: 'Щелчками ставь точки пути, двойной щелчок или Enter — закончить, Esc — отмена.',
+  light: 'Щелчок — поставить источник света. Тени от стен считаются сами.',
+  label: 'Щелчок — подпись. Включи нумерацию, чтобы ставить номера комнат подряд.',
+  roof: 'Щелчок по комнате — крыша по её форме. Протянуть — прямоугольная крыша.',
 };
+const ROOF_NEXT = { hide: 'ghost', ghost: 'show', show: 'hide' } as const;
+const ROOF_LABEL = { hide: 'Крыши скрыты', ghost: 'Крыши полупрозрачны', show: 'Крыши видны' } as const;
 
 type SaveHandle = Parameters<typeof saveBlob>[2];
 
@@ -232,7 +245,12 @@ function Workspace({ ed, assets, user, onExit, onOpen }: { ed: Editor; assets: A
       if (k === 'delete' || (k === 'backspace' && ed.state.tool === 'select')) { e.preventDefault(); ed.deleteSelection(); return; }
       if (k === 'q' || k === 'e') {
         const d = (k === 'q' ? -1 : 1) * (e.shiftKey ? 90 : 15);
-        if (objs.length) ed.commitFloor((f) => { for (const o of f.objects) if (ids.has(o.id)) o.rot = (((o.rot + d) % 360) + 360) % 360; });
+        const labels = new Set(ed.selected('label').map((l) => l.id));
+        if (objs.length || labels.size) {
+          ed.commitFloor((f) => {
+            for (const o of [...f.objects, ...f.labels]) if (ids.has(o.id) || labels.has(o.id)) o.rot = (((o.rot + d) % 360) + 360) % 360;
+          });
+        }
         else if (ed.state.tool === 'stamp') ed.setSettings({ stampRot: (((ed.state.settings.stampRot + d) % 360) + 360) % 360 });
         return;
       }
@@ -247,13 +265,7 @@ function Workspace({ ed, assets, user, onExit, onOpen }: { ed: Editor; assets: A
         const step = e.shiftKey ? 0.25 : 1;
         const dx = arrows[k][0] * step, dy = arrows[k][1] * step;
         const all = new Set(ed.state.sel.map((s) => s.id));
-        const mv = (p: { x: number; y: number }) => ({ x: p.x + dx, y: p.y + dy });
-        ed.commitFloor((f) => {
-          for (const o of f.objects) if (all.has(o.id)) { o.x += dx; o.y += dy; }
-          for (const r of f.rooms) if (all.has(r.id)) r.poly = r.poly.map((ring) => ring.map(mv));
-          for (const w of f.walls) if (all.has(w.id)) w.points = w.points.map(mv);
-          for (const p of f.portals) if (all.has(p.id)) { p.a = mv(p.a); p.b = mv(p.b); }
-        });
+        ed.commitFloor((f) => { Object.assign(f, moveFloor(f, all, new Set(), { x: dx, y: dy })); });
       }
     };
     window.addEventListener('keydown', onKey);
@@ -306,7 +318,13 @@ function Workspace({ ed, assets, user, onExit, onOpen }: { ed: Editor; assets: A
               <button className={`btn btn-sm${settings.subtract ? ' btn-danger' : ''}`} title={tr('Режим: добавить или вырезать (Alt — вырезать)')}
                 onClick={() => ed.setSettings({ subtract: !settings.subtract })}>{settings.subtract ? `− ${tr('Вырезать')}` : `＋ ${tr('Добавить')}`}</button>
             )}
-            <button className="btn btn-sm" onClick={() => fit.current()}>⤢</button>
+            <button className={`btn btn-sm${settings.showRoofs !== 'hide' ? ' btn-on' : ''}`} title={tr('Показ крыш в редакторе')}
+              onClick={() => ed.setSettings({ showRoofs: ROOF_NEXT[settings.showRoofs] })}>⌂ {tr(ROOF_LABEL[settings.showRoofs])}</button>
+            {doc.lighting.enabled && (
+              <button className={`btn btn-sm${settings.showLight ? ' btn-on' : ''}`} title={tr('Показывать освещение в редакторе')}
+                onClick={() => ed.setSettings({ showLight: !settings.showLight })}>💡 {tr('Свет')}</button>
+            )}
+            <button className="btn btn-sm" title={tr('Показать всю карту')} onClick={() => fit.current()}>⤢</button>
           </div>
         </section>
         <aside className="right">
@@ -315,7 +333,7 @@ function Workspace({ ed, assets, user, onExit, onOpen }: { ed: Editor; assets: A
         </aside>
       </main>
       {dialog === 'export' && <ExportDialog ed={ed} assets={assets} onClose={() => setDialog(null)} />}
-      {dialog === 'settings' && <MapSettings ed={ed} onClose={() => setDialog(null)} />}
+      {dialog === 'settings' && <MapSettings ed={ed} assets={assets} onClose={() => setDialog(null)} />}
       {dialog === 'help' && <Help onClose={() => setDialog(null)} />}
     </div>
   );

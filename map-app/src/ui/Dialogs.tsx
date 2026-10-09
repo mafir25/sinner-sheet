@@ -4,15 +4,16 @@ import type { AssetStore } from '../assets/store';
 import type { Editor } from '../state/editor';
 import type { GridType } from '../model/types';
 import { type ExportFormat, type ExportOpts, MAX_SIDE, exportMap, fits } from '../export/export';
-import { download } from '../storage/file';
+import { download, pickFile } from '../storage/file';
 import { tr } from '../i18n';
-import { Field, Modal, NumInput, toast } from './common';
+import { Field, Modal, NumInput, toast, useStore } from './common';
+import { useEditor } from '../state/editor';
 
 const PPC = [50, 70, 100, 140, 200, 256];
 const LS_KEY = 'maps.export';
 
 function loadOpts(): ExportOpts {
-  const def: ExportOpts = { format: 'png', ppc: 70, grid: false, floors: 'current', windows: 'gap', quality: 0.9 };
+  const def: ExportOpts = { format: 'png', ppc: 70, grid: false, floors: 'current', windows: 'gap', quality: 0.9, roofs: false, bakeLight: true, gm: false };
   try { return { ...def, ...JSON.parse(localStorage.getItem(LS_KEY) ?? '{}') }; } catch { return def; }
 }
 
@@ -62,7 +63,20 @@ export function ExportDialog({ ed, assets, onClose }: { ed: Editor; assets: Asse
             </div>
           </Field>
         )}
+        <Field label={tr('Версия')}>
+          <div className="seg">
+            <button className={!o.gm ? 'on' : ''} onClick={() => set({ gm: false })}>{tr('Для игроков')}</button>
+            <button className={o.gm ? 'on' : ''} onClick={() => set({ gm: true })}>{tr('Мастерская')}</button>
+          </div>
+          <span className="hint">{tr('Мастерская версия добавляет подписи и слои «только для мастера».')}</span>
+        </Field>
         <label className="check"><input type="checkbox" checked={o.grid} onChange={(e) => set({ grid: e.target.checked })} /> {tr('Рисовать сетку на картинке')}</label>
+        {doc.floors.some((f) => f.roofs.length) && (
+          <label className="check"><input type="checkbox" checked={o.roofs} onChange={(e) => set({ roofs: e.target.checked })} /> {tr('С крышами (вид снаружи)')}</label>
+        )}
+        {doc.lighting.enabled && (
+          <label className="check"><input type="checkbox" checked={o.bakeLight} onChange={(e) => set({ bakeLight: e.target.checked })} /> {tr('Запечь освещение в картинку')}</label>
+        )}
         {(o.format === 'jpg' || o.format === 'webp') && (
           <Field label={tr('Качество')} row><NumInput value={o.quality} step={0.05} min={0.3} max={1} onCommit={(quality) => set({ quality })} /></Field>
         )}
@@ -76,6 +90,7 @@ export function ExportDialog({ ed, assets, onClose }: { ed: Editor; assets: Asse
               </select>
             </Field>
             {doc.grid.type.startsWith('hex') && <p className="hint">{tr('Шестиугольная сетка в .dd2vtt не описывается — в VTT включи гексы вручную.')}</p>}
+            <p className="hint">{tr('Источники света уходят в .dd2vtt всегда. Если VTT сам считает свет — выключи запекание, чтобы не было двойной темноты.')}</p>
           </>
         )}
         <p className={ok ? 'hint' : 'err'}>
@@ -102,7 +117,7 @@ export function GridSelect({ value, onChange }: { value: GridType; onChange(v: G
   );
 }
 
-export function MapSettings({ ed, onClose }: { ed: Editor; onClose(): void }) {
+export function MapSettings({ ed, assets, onClose }: { ed: Editor; assets: AssetStore; onClose(): void }) {
   const d = ed.doc;
   const [name, setName] = useState(d.name);
   const [w, setW] = useState(d.width);
@@ -136,8 +151,64 @@ export function MapSettings({ ed, onClose }: { ed: Editor; onClose(): void }) {
           <button className="btn" onClick={onClose}>{tr('Отмена')}</button>
           <button className="btn btn-primary" onClick={apply}>{tr('Применить')}</button>
         </div>
+        <FloorImageSettings ed={ed} assets={assets} onFit={(fw, fh) => { setW(fw); setH(fh); toast(tr('Размер {0} × {1} — нажми «Применить»', fw, fh)); }} />
       </div>
     </Modal>
+  );
+}
+
+/** Картинка-подложка текущего этажа: готовая карта или скан, подгоняется под сетку. Хранится в браузере и в .pmmap. */
+function FloorImageSettings({ ed, assets, onFit }: { ed: Editor; assets: AssetStore; onFit(w: number, h: number): void }) {
+  useStore(assets);
+  useEditor(ed, (s) => s.doc);
+  const f = ed.floor;
+  const img = f.image;
+  const im = img ? assets.rawImage(img.asset) : null;
+  const set = (patch: Partial<NonNullable<typeof img>>) => ed.commitFloor((fl) => { if (fl.image) fl.image = { ...fl.image, ...patch }; });
+  const pick = async () => {
+    const file = await pickFile('image/png,image/jpeg,image/webp');
+    if (!file) return;
+    try {
+      const pack = await assets.addLocalPack(tr('Фон: {0}', file.name), [{ path: file.name, blob: file }]);
+      if (!pack) return;
+      const size = pack.assets[0];
+      const key = assets.key(pack.id, size.path);
+      // по умолчанию картинка растягивается на ширину карты
+      const ppc = (size.footprint[0] * 256) / ed.doc.width;
+      ed.commitFloor((fl) => { fl.image = { asset: key, x: 0, y: 0, ppc: Math.max(1, Math.round(ppc * 100) / 100), opacity: 1 }; });
+    } catch (e) { toast(tr('В браузере нет места: {0}', String(e)), 'error'); }
+  };
+  return (
+    <section className="subsec stack">
+      <h3>{tr('Фон-картинка этажа «{0}»', f.name)}</h3>
+      <p className="hint">{tr('Готовая карта или скан под сеткой. Картинка остаётся в браузере и в файле .pmmap.')}</p>
+      <div className="row wrap">
+        <button className="btn btn-sm" onClick={pick}>{img ? tr('Заменить картинку') : tr('Выбрать картинку')}</button>
+        {img && <button className="btn btn-sm btn-danger" onClick={() => ed.commitFloor((fl) => { fl.image = null; })}>{tr('Убрать')}</button>}
+      </div>
+      {img && (
+        <>
+          <div className="row">
+            <Field label={tr('Пикселей на клетку')} row><NumInput value={img.ppc} step={1} min={1} max={2000} onCommit={(ppc) => set({ ppc })} /></Field>
+            <Field label={tr('Прозрачность')} row><NumInput value={img.opacity} step={0.1} min={0} max={1} onCommit={(opacity) => set({ opacity })} /></Field>
+          </div>
+          <div className="row">
+            <Field label={tr('Сдвиг X')} row><NumInput value={img.x} step={0.05} min={-500} max={500} onCommit={(x) => set({ x })} /></Field>
+            <Field label={tr('Сдвиг Y')} row><NumInput value={img.y} step={0.05} min={-500} max={500} onCommit={(y) => set({ y })} /></Field>
+          </div>
+          {im && (
+            <>
+              <p className="hint">{tr('Картинка {0} × {1} px = {2} × {3} клеток', im.naturalWidth, im.naturalHeight,
+                Math.round((im.naturalWidth / img.ppc) * 100) / 100, Math.round((im.naturalHeight / img.ppc) * 100) / 100)}</p>
+              <button className="btn btn-sm" onClick={() => onFit(
+                Math.max(1, Math.min(500, Math.ceil(img.x + im.naturalWidth / img.ppc))),
+                Math.max(1, Math.min(500, Math.ceil(img.y + im.naturalHeight / img.ppc))),
+              )}>{tr('Подогнать размер карты под картинку')}</button>
+            </>
+          )}
+        </>
+      )}
+    </section>
   );
 }
 
@@ -154,6 +225,9 @@ const KEYS: [string, string][] = [
   ['← ↑ → ↓', 'Сдвиг на клетку (Shift — на 1/4)'],
   ['Ctrl+Z / Ctrl+Y', 'Отмена / повтор'],
   ['Ctrl+C / V / D', 'Копировать / вставить / дублировать'],
+  ['G / C', 'Кисть местности / путь'],
+  ['L / T / R', 'Свет / подпись / крыша'],
+  ['Alt', 'Ластик (кисть), вырезать (комнаты)'],
   ['Delete', 'Удалить выделенное'],
   ['Ctrl+S', 'Сохранить файл'],
 ];

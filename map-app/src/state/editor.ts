@@ -1,11 +1,11 @@
 // Состояние редактора: документ карты, история (отмена/повтор), выделение, инструмент, вид.
 import { useSyncExternalStore } from 'react';
-import type { AssetKey, Floor, MapDoc, MapObject, Portal, Room, Wall, WallStyle } from '../model/types';
-import { DEFAULT_FLOOR, DEFAULT_WALL, uid } from '../model/doc';
+import type { AssetKey, Floor, Label, Light, MapDoc, MapObject, MapPath, PathStyle, Portal, Roof, Room, Wall, WallStyle } from '../model/types';
+import { DEFAULT_FLOOR, DEFAULT_PATH, DEFAULT_WALL, uid } from '../model/doc';
 import { orphanPortals } from '../geom/walls';
 
-export type ToolId = 'select' | 'room' | 'poly' | 'wall' | 'door' | 'window' | 'stamp' | 'pan';
-export type SelKind = 'object' | 'portal' | 'wall' | 'room';
+export type ToolId = 'select' | 'room' | 'poly' | 'wall' | 'door' | 'window' | 'stamp' | 'brush' | 'path' | 'light' | 'label' | 'roof' | 'pan';
+export type SelKind = 'object' | 'portal' | 'wall' | 'room' | 'path' | 'light' | 'label' | 'roof';
 export type SelItem = { kind: SelKind; id: string };
 export type View = { scale: number; ox: number; oy: number }; // px на клетку, сдвиг начала координат в px
 
@@ -19,6 +19,14 @@ export type ToolSettings = {
   stampFlip: boolean;
   subtract: boolean;
   snap: boolean;
+  brush: { asset: AssetKey | null; size: number; softness: number; opacity: number; erase: boolean };
+  path: { style: PathStyle; smooth: boolean };
+  light: { radius: number; color: string; intensity: number; shadows: boolean };
+  label: { size: number; color: string; font: 'head' | 'body'; box: boolean; gmOnly: boolean; numbering: boolean; next: number };
+  roof: { asset: AssetKey | null; color: string };
+  /** Вид в редакторе: крыши и предпросмотр освещения. */
+  showRoofs: 'hide' | 'ghost' | 'show';
+  showLight: boolean;
 };
 
 export type EditorState = {
@@ -54,6 +62,12 @@ export class Editor {
       settings: {
         floor: DEFAULT_FLOOR, wall: { ...DEFAULT_WALL }, door: 'canon:portals/doors/wood.svg', window: 'canon:portals/windows/glass.svg',
         stamp: null, stampRot: 0, stampFlip: false, subtract: false, snap: true,
+        brush: { asset: 'canon:terrain/dirt.svg', size: 2, softness: 0.6, opacity: 0.9, erase: false },
+        path: { style: { ...DEFAULT_PATH }, smooth: true },
+        light: { radius: 6, color: '#ffd9a0', intensity: 0.9, shadows: true },
+        label: { size: 0.8, color: '#ffffff', font: 'head', box: false, gmOnly: false, numbering: false, next: 1 },
+        roof: { asset: 'canon:roofs/tiles.svg', color: '#3a3a40' },
+        showRoofs: 'ghost', showLight: true,
       },
       canUndo: false, canRedo: false, dirty: false,
     };
@@ -128,11 +142,9 @@ export class Editor {
   setSettings(patch: Partial<ToolSettings>) { this.set({ settings: { ...this.state.settings, ...patch } }); }
 
   // ---------- частые операции
-  selected<K extends SelKind>(kind: K): (K extends 'object' ? MapObject : K extends 'portal' ? Portal : K extends 'wall' ? Wall : Room)[] {
+  selected<K extends SelKind>(kind: K): SelType[K][] {
     const ids = new Set(this.state.sel.filter((s) => s.kind === kind).map((s) => s.id));
-    const f = this.floor;
-    const list = kind === 'object' ? f.objects : kind === 'portal' ? f.portals : kind === 'wall' ? f.walls : f.rooms;
-    return (list as { id: string }[]).filter((x) => ids.has(x.id)) as never;
+    return (listOf(this.floor, kind) as { id: string }[]).filter((x) => ids.has(x.id)) as never;
   }
 
   deleteSelection() {
@@ -143,6 +155,10 @@ export class Editor {
       f.portals = f.portals.filter((p) => !ids.has(p.id));
       f.walls = f.walls.filter((w) => !ids.has(w.id));
       f.rooms = f.rooms.filter((r) => !ids.has(r.id));
+      f.paths = f.paths.filter((x) => !ids.has(x.id));
+      f.lights = f.lights.filter((x) => !ids.has(x.id));
+      f.labels = f.labels.filter((x) => !ids.has(x.id));
+      f.roofs = f.roofs.filter((x) => !ids.has(x.id));
       const orphans = orphanPortals(f);
       f.portals = f.portals.filter((p) => !orphans.has(p.id));
     }, { keepSel: false });
@@ -167,9 +183,16 @@ function defaultLayer(f: Floor): string {
   return (below[1] ?? below[0] ?? f.layers[0]).id;
 }
 
+type SelType = { object: MapObject; portal: Portal; wall: Wall; room: Room; path: MapPath; light: Light; label: Label; roof: Roof };
+export function listOf<K extends SelKind>(f: Floor, kind: K): SelType[K][] {
+  const map: { [k in SelKind]: SelType[k][] } = {
+    object: f.objects, portal: f.portals, wall: f.walls, room: f.rooms, path: f.paths, light: f.lights, label: f.labels, roof: f.roofs,
+  };
+  return map[kind] as SelType[K][];
+}
+
 function exists(f: Floor, s: SelItem) {
-  const list = s.kind === 'object' ? f.objects : s.kind === 'portal' ? f.portals : s.kind === 'wall' ? f.walls : f.rooms;
-  return (list as { id: string }[]).some((x) => x.id === s.id);
+  return (listOf(f, s.kind) as { id: string }[]).some((x) => x.id === s.id);
 }
 
 export function useEditor<T>(ed: Editor, pick: (s: EditorState) => T): T {

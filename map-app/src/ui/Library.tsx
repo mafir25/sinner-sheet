@@ -40,6 +40,14 @@ export function applyAsset(ed: Editor, assets: AssetStore, key: AssetKey) {
         }
       });
     } else ed.setTool(e.kind);
+  } else if (e.kind === 'terrain') {
+    ed.setSettings({ brush: { ...ed.state.settings.brush, asset: key, erase: false } });
+    ed.setTool('brush');
+  } else if (e.kind === 'roof') {
+    ed.setSettings({ roof: { ...ed.state.settings.roof, asset: key } });
+    const ids = new Set(sel.filter((s) => s.kind === 'roof').map((s) => s.id));
+    if (ids.size) ed.commitFloor((f) => { for (const r of f.roofs) if (ids.has(r.id)) r.asset = key; });
+    else ed.setTool('roof');
   } else {
     ed.setSettings({ stamp: key });
     ed.setTool('stamp');

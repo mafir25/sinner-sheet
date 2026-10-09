@@ -1,0 +1,33 @@
+{
+  "name": {
+    "ru": "Крыши",
+    "en": "Roofs"
+  },
+  "kind": "roof",
+  "files": {
+    "tiles.svg": {
+      "name": {
+        "ru": "Черепица",
+        "en": "Roof tiles"
+      }
+    },
+    "metal.svg": {
+      "name": {
+        "ru": "Профлист",
+        "en": "Metal sheet"
+      }
+    },
+    "tar.svg": {
+      "name": {
+        "ru": "Рубероид",
+        "en": "Tar paper"
+      }
+    },
+    "concrete.svg": {
+      "name": {
+        "ru": "Бетонная плита",
+        "en": "Concrete slab"
+      }
+    }
+  }
+}

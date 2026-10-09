@@ -121,7 +121,7 @@ kbd { font-family: ui-monospace, Consolas, monospace; font-size: .78rem; border:
 .list li { display: flex; align-items: center; gap: 2px; border: 1px solid transparent; background: var(--surface); }
 .list li.on { border-color: var(--accent); }
 .list-main { flex: 1; text-align: left; padding: 6px 8px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.mini { width: 24px; height: 26px; font-size: .78rem; color: var(--dim); flex: none; }
+.mini { width: 22px; height: 26px; font-size: .78rem; color: var(--dim); flex: none; }
 .mini:hover:not(:disabled) { color: var(--accent); }
 .mini.on { color: var(--yellow); }
 .mini.danger:hover:not(:disabled) { color: #ff7b8b; }
@@ -151,3 +151,12 @@ kbd { font-family: ui-monospace, Consolas, monospace; font-size: .78rem; border:
   .lib-grid { max-height: 22vh; }
 }
 @media (pointer: coarse) { .tool { width: 48px; height: 48px; } .mini { width: 32px; height: 32px; } .btn-sm { min-height: 34px; } }
+
+/* ---------- этап 2 */
+.subsec { border-top: 1px solid var(--line); padding-top: 10px; margin-top: 4px; }
+.subsec > h3 { color: var(--accent); }
+.slider { display: flex; align-items: center; gap: 8px; }
+.slider input[type=range] { flex: 1; accent-color: var(--accent); min-width: 0; }
+.slider-val { font-family: ui-monospace, Consolas, monospace; font-size: .75rem; color: var(--dim); width: 36px; text-align: right; }
+.picker-scroll { max-height: 150px; overflow-y: auto; border: 1px solid var(--line); padding: 4px; }
+.modal .subsec { margin-top: 10px; }

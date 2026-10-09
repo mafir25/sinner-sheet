@@ -5,6 +5,7 @@ import type { Floor, MapDoc, MapObject, Portal, Poly, Pt } from '../model/types'
 import { drawGrid } from '../geom/grid';
 import { portalThickness, wallChains, type WallChain } from '../geom/walls';
 import type { BBox } from '../geom/poly';
+import { auxRes, drawLabel, drawLighting, drawPath, drawRoof, terrainCanvas } from './extras';
 
 export type RenderOpts = {
   /** Пикселей на клетку — для выбора разрешения SVG и толщины линий сетки. */
@@ -18,6 +19,14 @@ export type RenderOpts = {
   floorOverride?: Floor;
   /** Толщина линии сетки в пикселях. */
   gridPx?: number;
+  /** Крыши: не рисовать / полупрозрачно (редактор) / целиком. */
+  roofs: 'hide' | 'ghost' | 'show';
+  /** Запекать освещение (если оно включено в карте). */
+  lighting: boolean;
+  /** Мастерская версия: подписи и слои «только для мастера». */
+  gm: boolean;
+  /** Экспорт: служебные холсты в полном разрешении и без кэша. */
+  exporting?: boolean;
 };
 
 const NO_FLOOR_FILL = '#2f2f33';
@@ -37,11 +46,11 @@ export function renderMap(ctx: CanvasRenderingContext2D, doc: MapDoc, floorId: s
   if (o.ghost && idx > 0 && doc.floors[idx - 1].visible) {
     ctx.save();
     ctx.globalAlpha = 0.28;
-    drawFloor(ctx, doc.floors[idx - 1], assets, o);
+    drawFloor(ctx, doc, doc.floors[idx - 1], assets, { ...o, roofs: 'hide', lighting: false, floorOverride: undefined });
     ctx.restore();
   }
   const floor = o.floorOverride ?? doc.floors[idx];
-  if (floor) drawFloor(ctx, floor, assets, o);
+  if (floor) drawFloor(ctx, doc, floor, assets, o);
   if (o.grid && doc.grid.show && doc.grid.type !== 'none') {
     ctx.save();
     ctx.globalAlpha = doc.grid.opacity;
@@ -49,9 +58,25 @@ export function renderMap(ctx: CanvasRenderingContext2D, doc: MapDoc, floorId: s
     drawGrid(ctx, doc.grid.type, doc.width, doc.height, o.view, (o.gridPx ?? 1) / o.scale);
     ctx.restore();
   }
+  if (floor) for (const l of floor.labels) if (o.gm || !l.gmOnly) drawLabel(ctx, l);
 }
 
-export function drawFloor(ctx: CanvasRenderingContext2D, f: Floor, assets: AssetStore, o: RenderOpts) {
+export function drawFloor(ctx: CanvasRenderingContext2D, doc: MapDoc, f: Floor, assets: AssetStore, o: RenderOpts) {
+  const W = doc.width, H = doc.height;
+  // картинка-подложка и текстура земли
+  if (f.image) {
+    const im = assets.rawImage(f.image.asset);
+    if (im) {
+      ctx.save();
+      ctx.globalAlpha *= f.image.opacity;
+      ctx.drawImage(im, f.image.x, f.image.y, im.naturalWidth / f.image.ppc, im.naturalHeight / f.image.ppc);
+      ctx.restore();
+    }
+  }
+  if (f.ground) {
+    const pat = assets.pattern(ctx, f.ground, o.scale);
+    if (pat) { ctx.fillStyle = pat; ctx.fillRect(0, 0, W, H); }
+  }
   // полы комнат
   for (const room of f.rooms) {
     if (!room.floor) continue;
@@ -60,18 +85,31 @@ export function drawFloor(ctx: CanvasRenderingContext2D, f: Floor, assets: Asset
     ctx.fillStyle = assets.pattern(ctx, room.floor, o.scale) ?? NO_FLOOR_FILL;
     ctx.fill('evenodd');
   }
-  const visible = f.layers.filter((l) => l.visible);
+  // местность поверх полов: грязь, кровь, вода
+  const res = auxRes(o.scale, W, H, !!o.exporting);
+  const terrain = terrainCanvas(f, assets, res, W, H, !o.exporting);
+  if (terrain) ctx.drawImage(terrain, 0, 0, W, H);
+  const visible = f.layers.filter((l) => l.visible && (o.gm || !l.gmOnly));
   const below = visible.filter((l) => !l.aboveWalls).map((l) => l.id);
   const above = visible.filter((l) => l.aboveWalls).map((l) => l.id);
-  drawObjects(ctx, f.objects, below, assets, o);
-  drawWalls(ctx, wallChains(f), assets, o);
+  drawLayers(ctx, f, below, assets, o);
+  drawWalls(ctx, wallChains(f), assets, o, doc.lighting.wallShadows);
   for (const p of f.portals) drawPortal(ctx, f, p, assets, o);
-  drawObjects(ctx, f.objects, above, assets, o);
+  drawLayers(ctx, f, above, assets, o);
+  if (o.roofs !== 'hide' && f.roofs.length) {
+    ctx.save();
+    if (o.roofs === 'ghost') ctx.globalAlpha *= 0.55;
+    for (const r of f.roofs) drawRoof(ctx, r, assets, o.scale);
+    ctx.restore();
+  }
+  if (o.lighting && doc.lighting.enabled) drawLighting(ctx, f, doc.lighting, res, W, H, !o.exporting);
 }
 
-function drawObjects(ctx: CanvasRenderingContext2D, objs: MapObject[], layerOrder: string[], assets: AssetStore, o: RenderOpts) {
+/** Слои по порядку: в каждом сначала пути, потом объекты. */
+function drawLayers(ctx: CanvasRenderingContext2D, f: Floor, layerOrder: string[], assets: AssetStore, o: RenderOpts) {
   for (const lid of layerOrder) {
-    for (const ob of objs) {
+    for (const p of f.paths) if (p.layer === lid) drawPath(ctx, p, assets, o.scale);
+    for (const ob of f.objects) {
       if (ob.layer !== lid) continue;
       const r = Math.hypot(ob.w, ob.h) / 2;
       if (ob.x + r < o.view.x0 || ob.x - r > o.view.x1 || ob.y + r < o.view.y0 || ob.y - r > o.view.y1) continue;
@@ -126,11 +164,25 @@ function chainPath(ctx: CanvasRenderingContext2D, c: WallChain) {
   if (c.closed) ctx.closePath();
 }
 
-export function drawWalls(ctx: CanvasRenderingContext2D, chains: WallChain[], assets: AssetStore, o: RenderOpts) {
+export function drawWalls(ctx: CanvasRenderingContext2D, chains: WallChain[], assets: AssetStore, o: RenderOpts, shadows = false) {
   ctx.save();
   ctx.lineCap = 'butt';
   ctx.lineJoin = 'miter';
   ctx.miterLimit = 3;
+  // мягкая тень под стенами
+  if (shadows) {
+    ctx.save();
+    ctx.shadowColor = 'rgba(0,0,0,.75)';
+    ctx.shadowBlur = 0.35 * o.scale;
+    for (const c of chains) {
+      ctx.beginPath();
+      chainPath(ctx, c);
+      ctx.lineWidth = c.style.width + 0.1;
+      ctx.strokeStyle = '#000';
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
   // тёмный контур под стенами
   for (const c of chains) {
     ctx.beginPath();

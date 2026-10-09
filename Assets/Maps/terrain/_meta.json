@@ -1,0 +1,57 @@
+{
+  "name": {
+    "ru": "Местность",
+    "en": "Terrain"
+  },
+  "kind": "terrain",
+  "files": {
+    "dirt.svg": {
+      "name": {
+        "ru": "Грязь",
+        "en": "Dirt"
+      }
+    },
+    "blood.svg": {
+      "name": {
+        "ru": "Кровь",
+        "en": "Blood"
+      }
+    },
+    "water.svg": {
+      "name": {
+        "ru": "Вода",
+        "en": "Water"
+      }
+    },
+    "debris.svg": {
+      "name": {
+        "ru": "Мусор",
+        "en": "Debris"
+      }
+    },
+    "cracks.svg": {
+      "name": {
+        "ru": "Трещины",
+        "en": "Cracks"
+      }
+    },
+    "oil.svg": {
+      "name": {
+        "ru": "Мазут",
+        "en": "Oil"
+      }
+    },
+    "sand.svg": {
+      "name": {
+        "ru": "Песок",
+        "en": "Sand"
+      }
+    },
+    "moss.svg": {
+      "name": {
+        "ru": "Мох",
+        "en": "Moss"
+      }
+    }
+  }
+}

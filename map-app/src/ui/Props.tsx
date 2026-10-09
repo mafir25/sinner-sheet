@@ -5,7 +5,8 @@ import type { AssetKey, MapObject, WallStyle } from '../model/types';
 import { type Editor, useEditor } from '../state/editor';
 import { nm, tr } from '../i18n';
 import { resizePortal } from '../geom/walls';
-import { AssetPicker, Field, NumInput, Thumb, assetName, useStore } from './common';
+import { BrushPanel, LabelPanel, LightPanel, PathPanel, RoofPanel, SelectionExtras } from './Props2';
+import { AssetPicker, ColorInput, Field, NumInput, Thumb, assetName, useStore } from './common';
 
 function WallStyleEditor({ assets, value, onChange }: { assets: AssetStore; value: WallStyle; onChange(v: WallStyle): void }) {
   return (
@@ -14,7 +15,7 @@ function WallStyleEditor({ assets, value, onChange }: { assets: AssetStore; valu
         <AssetPicker assets={assets} kind="wall" value={value.asset} allowNone noneLabel={tr('Без текстуры')} onChange={(asset) => onChange({ ...value, asset })} />
       </Field>
       <div className="row">
-        <Field label={tr('Цвет')} row><input type="color" value={value.color} onChange={(e) => onChange({ ...value, color: e.target.value })} /></Field>
+        <Field label={tr('Цвет')} row><ColorInput value={value.color} onCommit={(color) => onChange({ ...value, color })} /></Field>
         <Field label={tr('Толщина')} row><NumInput value={value.width} step={0.05} min={0.05} max={2} onCommit={(width) => onChange({ ...value, width })} /></Field>
       </div>
     </div>
@@ -97,6 +98,11 @@ export function Props({ ed, assets }: { ed: Editor; assets: AssetStore }) {
       </div>
     );
   }
+  if (tool === 'brush') return <BrushPanel ed={ed} assets={assets} />;
+  if (tool === 'path') return <PathPanel ed={ed} assets={assets} />;
+  if (tool === 'light') return <LightPanel ed={ed} />;
+  if (tool === 'label') return <LabelPanel ed={ed} />;
+  if (tool === 'roof') return <RoofPanel ed={ed} assets={assets} />;
   if (tool !== 'select') return null;
 
   // ---------- свойства выделенного
@@ -188,6 +194,7 @@ export function Props({ ed, assets }: { ed: Editor; assets: AssetStore }) {
           </Field>
         );
       })()}
+      <SelectionExtras ed={ed} assets={assets} />
       {actions}
     </div>
   );

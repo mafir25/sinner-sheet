@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useState, useSyncExternalStore } from 'react';
+import { type ReactNode, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import type { AssetStore } from '../assets/store';
 import type { AssetKey, AssetEntry } from '../model/types';
 import { nm, tr } from '../i18n';
@@ -101,5 +101,36 @@ export function NumInput({ value, onCommit, step = 0.25, min, max, digits = 2 }:
     <input className="input num" type="number" step={step} min={min} max={max} value={text}
       onChange={(e) => setText(e.target.value)} onBlur={commit}
       onKeyDown={(e) => { if (e.key === 'Enter') { commit(); (e.target as HTMLInputElement).blur(); } }} />
+  );
+}
+
+/**
+ * Выбор цвета: пока палитра открыта, цвет меняется только на экране поля,
+ * в документ (и историю отмены) попадает одно значение — когда палитру закрыли.
+ */
+export function ColorInput({ value, onCommit }: { value: string; onCommit(v: string): void }) {
+  const ref = useRef<HTMLInputElement>(null);
+  const cb = useRef(onCommit);
+  cb.current = onCommit;
+  useEffect(() => {
+    const el = ref.current!;
+    const done = () => { if (el.value !== value) cb.current(el.value); };
+    el.addEventListener('change', done);
+    return () => el.removeEventListener('change', done);
+  }, [value]);
+  return <input ref={ref} type="color" defaultValue={value} key={value} />;
+}
+
+/** Ползунок 0..1 (или min..max), значение уходит в документ при отпускании. */
+export function Slider({ value, onCommit, min = 0, max = 1, step = 0.05 }: { value: number; onCommit(v: number): void; min?: number; max?: number; step?: number }) {
+  const [v, setV] = useState(value);
+  useEffect(() => setV(value), [value]);
+  const commit = () => { if (v !== value) onCommit(v); };
+  return (
+    <span className="slider">
+      <input type="range" min={min} max={max} step={step} value={v} onChange={(e) => setV(Number(e.target.value))}
+        onPointerUp={commit} onKeyUp={commit} onBlur={commit} />
+      <span className="slider-val">{Math.round(v * 100) / 100}</span>
+    </span>
   );
 }

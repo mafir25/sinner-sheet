@@ -3,7 +3,7 @@
 // Правила — docs/map-editor.md §4.
 
 export const IMAGE_EXT = ['.png', '.webp', '.jpg', '.jpeg', '.gif', '.svg'];
-export const KINDS = ['object', 'floor', 'wall', 'door', 'window', 'terrain'];
+export const KINDS = ['object', 'floor', 'wall', 'door', 'window', 'terrain', 'roof'];
 export const BASE_PPC = 256;
 
 export const isImage = (path) => IMAGE_EXT.some((e) => path.toLowerCase().endsWith(e));

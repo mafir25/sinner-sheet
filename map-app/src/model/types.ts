@@ -66,6 +66,85 @@ export type Layer = {
   visible: boolean;
   locked: boolean;
   aboveWalls: boolean;
+  /** Только для мастера: не попадает в версию для игроков. */
+  gmOnly: boolean;
+};
+
+/** Мазок кисти местности: текстура по линии с мягким краем. asset = null — ластик. */
+export type TerrainStroke = {
+  id: string;
+  asset: AssetKey | null;
+  size: number;     // диаметр в клетках
+  softness: number; // 0 — резкий край, 1 — очень мягкий
+  opacity: number;
+  points: Pt[];
+};
+
+/** Стиль пути: текстура или цвет, пунктир, обводка, объекты вдоль пути. */
+export type PathStyle = {
+  width: number;
+  color: string;
+  asset: AssetKey | null;
+  dash: number;            // 0 — сплошная, иначе длина штриха (в клетках)
+  outline: string | null;  // цвет обводки
+  decor: AssetKey | null;  // объект, повторяемый вдоль пути
+  spacing: number;         // шаг объектов вдоль пути (клетки)
+};
+
+export type MapPath = {
+  id: string;
+  layer: string;
+  points: Pt[];
+  smooth: boolean;
+  closed: boolean;
+  style: PathStyle;
+};
+
+export type Light = {
+  id: string;
+  x: number;
+  y: number;
+  radius: number;    // клеток
+  color: string;
+  intensity: number; // 0..1
+  shadows: boolean;  // стены отбрасывают тень
+};
+
+export type Label = {
+  id: string;
+  x: number;
+  y: number;
+  text: string;
+  size: number; // высота букв в клетках
+  color: string;
+  rot: number;
+  font: 'head' | 'body';
+  box: boolean;    // подложка
+  gmOnly: boolean;
+};
+
+export type Roof = {
+  id: string;
+  poly: Poly;
+  asset: AssetKey | null;
+  color: string;
+};
+
+/** Картинка-подложка этажа (готовая карта, скан), подогнанная под сетку. */
+export type FloorImage = {
+  asset: AssetKey;
+  x: number;
+  y: number;
+  ppc: number; // пикселей картинки на клетку
+  opacity: number;
+};
+
+/** Освещение карты: общая темнота и её цвет. */
+export type Lighting = {
+  enabled: boolean;
+  darkness: number; // 0 — день, 1 — полная тьма вне света
+  color: string;
+  wallShadows: boolean; // мягкие тени под стенами
 };
 
 export type Floor = {
@@ -77,6 +156,13 @@ export type Floor = {
   portals: Portal[];
   objects: MapObject[];
   layers: Layer[];
+  ground: AssetKey | null; // текстура под всем этажом
+  terrain: TerrainStroke[];
+  paths: MapPath[];
+  lights: Light[];
+  labels: Label[];
+  roofs: Roof[];
+  image: FloorImage | null;
 };
 
 export type MapDoc = {
@@ -88,13 +174,14 @@ export type MapDoc = {
   height: number;
   background: string;
   grid: Grid;
+  lighting: Lighting;
   floors: Floor[];
   createdAt: number;
   updatedAt: number;
 };
 
 /** Запись ассета в наборе (см. map-app/src/assets/tree.js). */
-export type AssetKind = 'object' | 'floor' | 'wall' | 'door' | 'window' | 'terrain';
+export type AssetKind = 'object' | 'floor' | 'wall' | 'door' | 'window' | 'terrain' | 'roof';
 export type AssetEntry = {
   path: string;
   dir: string;

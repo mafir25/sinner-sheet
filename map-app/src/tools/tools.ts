@@ -1,14 +1,17 @@
 // Инструменты холста. Координаты — в клетках. Пока идёт перетаскивание, документ не меняется:
 // инструмент отдаёт предпросмотр (preview), а в историю попадает одно изменение при отпускании.
 import type { AssetStore } from '../assets/store';
-import type { Floor, MapObject, Poly, Portal, Pt } from '../model/types';
+import type { Floor, Label, Light, MapObject, MapPath, Poly, Portal, Pt, Roof, TerrainStroke } from '../model/types';
 import type { Editor, SelItem, ToolId } from '../state/editor';
 import { uid } from '../model/doc';
-import { snapCenter, snapVertex } from '../geom/grid';
-import { difference, intersects, rectPoly, ringArea, samePt, touches, union } from '../geom/poly';
+import { snapCenter, snapHalf, snapVertex } from '../geom/grid';
+import { difference, intersects, pointInPoly, rectPoly, ringArea, samePt, touches, union } from '../geom/poly';
 import { nearestWall, orphanPortals, portalOnWall } from '../geom/walls';
-import { boxSelect, fromLocal, hitTest, objectCorners, toLocal } from './hit';
+import { LIGHT_HIT, boxSelect, fromLocal, hitTest, labelCorners, objectCorners, toLocal } from './hit';
+import { curvePoints } from '../geom/curve';
 import { drawObject, polyPath } from '../render/render';
+import { drawPath, drawStrokePreview } from '../render/extras';
+import { tr } from '../i18n';
 
 export type ToolEnv = {
   ed: Editor;
@@ -90,7 +93,21 @@ export function drawSelection(c: CanvasRenderingContext2D, f: Floor, sel: SelIte
   c.setLineDash([6 * px, 4 * px]);
   for (const r of f.rooms) if (ids.has(r.id)) { c.beginPath(); polyPath(c, r.poly); c.stroke(); }
   for (const w of f.walls) if (ids.has(w.id)) { outlinePts(c, w.points, w.closed); c.stroke(); }
+  for (const r of f.roofs) if (ids.has(r.id)) { c.beginPath(); polyPath(c, r.poly); c.stroke(); }
+  for (const pa of f.paths) {
+    if (!ids.has(pa.id)) continue;
+    outlinePts(c, curvePoints(pa.points, pa.smooth, pa.closed), false);
+    c.stroke();
+    for (const q of pa.points) dot(c, q, 3.5 * px, ACCENT);
+  }
+  for (const l of f.lights) {
+    if (!ids.has(l.id)) continue;
+    c.beginPath();
+    c.arc(l.x, l.y, l.radius, 0, Math.PI * 2);
+    c.stroke();
+  }
   c.setLineDash([]);
+  for (const l of f.labels) if (ids.has(l.id)) { outlinePts(c, labelCorners(l), true); c.stroke(); }
   for (const o of f.objects) if (ids.has(o.id)) { outlinePts(c, objectCorners(o), true); c.stroke(); }
   c.lineWidth = 4 * px;
   c.strokeStyle = YELLOW;
@@ -114,6 +131,22 @@ function handles(o: MapObject, scale: number) {
   return {
     rotate: fromLocal(o, { x: 0, y: -o.h / 2 - 22 / scale }),
     scale: fromLocal(o, { x: o.w / 2, y: o.h / 2 }),
+  };
+}
+
+/** Этаж, где выделенное (ids) и прикреплённые к стенам проёмы (att) сдвинуты на d. */
+export function moveFloor(f: Floor, ids: Set<string>, att: Set<string>, d: Pt): Floor {
+  const mv = (q: Pt) => add(q, d);
+  return {
+    ...f,
+    objects: f.objects.map((o) => (ids.has(o.id) ? { ...o, x: o.x + d.x, y: o.y + d.y } : o)),
+    rooms: f.rooms.map((r) => (ids.has(r.id) ? { ...r, poly: shiftPoly(r.poly, d) } : r)),
+    roofs: f.roofs.map((r) => (ids.has(r.id) ? { ...r, poly: shiftPoly(r.poly, d) } : r)),
+    walls: f.walls.map((w) => (ids.has(w.id) ? { ...w, points: w.points.map(mv) } : w)),
+    paths: f.paths.map((w) => (ids.has(w.id) ? { ...w, points: w.points.map(mv) } : w)),
+    portals: f.portals.map((pt) => (att.has(pt.id) || ids.has(pt.id) ? { ...pt, a: mv(pt.a), b: mv(pt.b) } : pt)),
+    lights: f.lights.map((l) => (ids.has(l.id) ? { ...l, x: l.x + d.x, y: l.y + d.y } : l)),
+    labels: f.labels.map((l) => (ids.has(l.id) ? { ...l, x: l.x + d.x, y: l.y + d.y } : l)),
   };
 }
 
@@ -142,8 +175,10 @@ class SelectTool implements Tool {
       if (Math.hypot(p.x - h.rotate.x, p.y - h.rotate.y) < r) return 'grab';
       if (Math.hypot(p.x - h.scale.x, p.y - h.scale.y) < r) return 'nwse-resize';
     }
-    return hitTest(this.ed.floor, p, this.ed.state.view.scale) ? 'pointer' : 'default';
+    return hitTest(this.ed.floor, p, this.ed.state.view.scale, this.roofsOn()) ? 'pointer' : 'default';
   }
+
+  private roofsOn() { return this.ed.state.settings.showRoofs !== 'hide'; }
 
   private single(): MapObject | null {
     const s = this.ed.state.sel;
@@ -160,7 +195,7 @@ class SelectTool implements Tool {
       if (Math.hypot(p.x - h.rotate.x, p.y - h.rotate.y) < r) { this.mode = 'rotate'; this.target = o; this.edited = o; return; }
       if (Math.hypot(p.x - h.scale.x, p.y - h.scale.y) < r) { this.mode = 'scale'; this.target = o; this.edited = o; return; }
     }
-    const hit = hitTest(this.ed.floor, p, scale);
+    const hit = hitTest(this.ed.floor, p, scale, this.roofsOn());
     if (!hit) {
       this.mode = 'box';
       if (!e.shiftKey) this.ed.setSel([]);
@@ -217,9 +252,11 @@ class SelectTool implements Tool {
     const ids = new Set(this.ed.state.sel.map((s) => s.id));
     const o = f.objects.find((x) => ids.has(x.id));
     if (o) return sub(snapCenter(type, add(o, raw), o.w, o.h, o.rot), o);
-    const r = f.rooms.find((x) => ids.has(x.id));
-    const anchor = r ? r.poly[0][0] : f.walls.find((x) => ids.has(x.id))?.points[0];
+    const r = f.rooms.find((x) => ids.has(x.id)) ?? f.roofs.find((x) => ids.has(x.id));
+    const anchor = r ? r.poly[0][0] : (f.walls.find((x) => ids.has(x.id)) ?? f.paths.find((x) => ids.has(x.id)))?.points[0];
     if (anchor) return sub(snapVertex(type, add(anchor, raw)), anchor);
+    const point = f.lights.find((x) => ids.has(x.id)) ?? f.labels.find((x) => ids.has(x.id));
+    if (point) return sub(snapHalf(type, add(point, raw)), point);
     return raw;
   }
 
@@ -228,12 +265,7 @@ class SelectTool implements Tool {
     if (this.mode === 'move') {
       if (this.moved && (this.delta.x || this.delta.y)) {
         const d = this.delta, ids = new Set(ed.state.sel.map((s) => s.id)), att = this.attached;
-        ed.commitFloor((f) => {
-          for (const o of f.objects) if (ids.has(o.id)) { o.x += d.x; o.y += d.y; }
-          for (const r of f.rooms) if (ids.has(r.id)) r.poly = shiftPoly(r.poly, d);
-          for (const w of f.walls) if (ids.has(w.id)) w.points = w.points.map((q) => add(q, d));
-          for (const pt of f.portals) if (att.has(pt.id)) { pt.a = add(pt.a, d); pt.b = add(pt.b, d); }
-        });
+        ed.commitFloor((f) => { Object.assign(f, moveFloor(f, ids, att, d)); });
       } else if (!this.moved && this.clickedSelected) {
         ed.setSel([this.clickedSelected]);
       }
@@ -262,14 +294,7 @@ class SelectTool implements Tool {
   preview(): Floor | undefined {
     const f = this.ed.floor;
     if (this.mode === 'move' && this.moved) {
-      const d = this.delta, ids = new Set(this.ed.state.sel.map((s) => s.id)), att = this.attached;
-      return {
-        ...f,
-        objects: f.objects.map((o) => (ids.has(o.id) ? { ...o, x: o.x + d.x, y: o.y + d.y } : o)),
-        rooms: f.rooms.map((r) => (ids.has(r.id) ? { ...r, poly: shiftPoly(r.poly, d) } : r)),
-        walls: f.walls.map((w) => (ids.has(w.id) ? { ...w, points: w.points.map((q) => add(q, d)) } : w)),
-        portals: f.portals.map((pt) => (att.has(pt.id) ? { ...pt, a: add(pt.a, d), b: add(pt.b, d) } : pt)),
-      };
+      return moveFloor(f, new Set(this.ed.state.sel.map((s) => s.id)), this.attached, this.delta);
     }
     if ((this.mode === 'rotate' || this.mode === 'scale') && this.edited) {
       const e2 = this.edited;
@@ -353,7 +378,7 @@ class PathTool implements Tool {
   private pts: Pt[] = [];
   private hover: Pt | null = null;
   private cut = false;
-  constructor(private env: ToolEnv, private kind: 'poly' | 'wall') {}
+  constructor(private env: ToolEnv, private kind: 'poly' | 'wall' | 'path') {}
   private snap(p: Pt, e: { ctrlKey?: boolean; metaKey?: boolean }) { return this.env.snap(e) ? snapVertex(this.env.ed.doc.grid.type, p) : p; }
   cursor() { return 'crosshair'; }
   down(p: Pt, e: PointerEvent) {
@@ -379,6 +404,12 @@ class PathTool implements Tool {
     const ed = this.env.ed;
     if (this.kind === 'poly') {
       if (pts.length >= 3) applyRoom(ed, [pts], this.cut);
+    } else if (this.kind === 'path') {
+      if (pts.length >= 2) {
+        const { style, smooth } = ed.state.settings.path;
+        const path: MapPath = { id: uid('pa'), layer: ed.state.layerId, points: pts, smooth, closed: closed && pts.length >= 3, style: { ...style } };
+        ed.commitFloor((f) => { f.paths.push(path); });
+      }
     } else if (pts.length >= 2) {
       const closedWall = closed && pts.length >= 3;
       const id = uid('w');
@@ -393,6 +424,16 @@ class PathTool implements Tool {
     if (this.hover) dot(c, this.hover, 4 * px, col);
     if (!this.pts.length) return;
     const pts = this.hover ? [...this.pts, this.hover] : this.pts;
+    if (this.kind === 'path') {
+      const { style, smooth } = this.env.ed.state.settings.path;
+      c.save();
+      c.globalAlpha = 0.75;
+      drawPath(c, { id: '', layer: '', points: pts, smooth, closed: false, style }, this.env.assets, scale);
+      c.restore();
+      for (const q of this.pts) dot(c, q, 3.5 * px, col);
+      dot(c, this.pts[0], 6 * px, YELLOW);
+      return;
+    }
     c.save();
     c.strokeStyle = col;
     c.lineWidth = this.kind === 'wall' ? this.env.ed.state.settings.wall.width : 2 * px;
@@ -490,6 +531,164 @@ class StampTool implements Tool {
   }
 }
 
+// ---------- кисть местности
+class BrushTool implements Tool {
+  private stroke: TerrainStroke | null = null;
+  private hover: Pt | null = null;
+  private erase = false;
+  constructor(private env: ToolEnv) {}
+  private get set() { return this.env.ed.state.settings.brush; }
+  cursor() { return 'none'; }
+  down(p: Pt, e: PointerEvent) {
+    const b = this.set;
+    this.erase = b.erase !== e.altKey;
+    if (!this.erase && !b.asset) return;
+    this.stroke = { id: uid('t'), asset: this.erase ? null : b.asset, size: b.size, softness: b.softness, opacity: b.opacity, points: [p] };
+    this.env.redraw();
+  }
+  move(p: Pt, e: PointerEvent) {
+    this.hover = p;
+    this.erase = this.set.erase !== e.altKey;
+    const s = this.stroke;
+    if (s) {
+      const last = s.points[s.points.length - 1];
+      if (Math.hypot(p.x - last.x, p.y - last.y) >= Math.max(0.05, s.size * 0.12)) s.points.push(p);
+    }
+    this.env.redraw();
+  }
+  up() {
+    const s = this.stroke;
+    this.stroke = null;
+    if (s) this.env.ed.commitFloor((f) => { f.terrain.push(s); });
+  }
+  cancel() { this.stroke = null; this.env.redraw(); }
+  overlay(c: CanvasRenderingContext2D, scale: number) {
+    if (this.stroke) drawStrokePreview(c, this.stroke, this.env.assets, scale);
+    if (!this.hover) return;
+    c.save();
+    c.strokeStyle = this.erase ? RED : ACCENT;
+    c.lineWidth = 1.5 / scale;
+    c.beginPath();
+    c.arc(this.hover.x, this.hover.y, this.set.size / 2, 0, Math.PI * 2);
+    c.stroke();
+    c.setLineDash([3 / scale, 3 / scale]);
+    c.beginPath();
+    c.arc(this.hover.x, this.hover.y, (this.set.size / 2) * (1 - this.set.softness * 0.45), 0, Math.PI * 2);
+    c.stroke();
+    c.restore();
+  }
+}
+
+// ---------- свет
+class LightTool implements Tool {
+  private hover: Pt | null = null;
+  constructor(private env: ToolEnv) {}
+  cursor() { return 'copy'; }
+  private at(p: Pt, e: { ctrlKey?: boolean; metaKey?: boolean }) { return this.env.snap(e) ? snapHalf(this.env.ed.doc.grid.type, p) : p; }
+  move(p: Pt, e: PointerEvent) { this.hover = this.at(p, e); this.env.redraw(); }
+  down(p: Pt, e: PointerEvent) {
+    const q = this.at(p, e);
+    const l: Light = { id: uid('li'), x: q.x, y: q.y, ...this.env.ed.state.settings.light };
+    this.env.ed.commitFloor((f) => { f.lights.push(l); });
+  }
+  cancel() { this.hover = null; }
+  overlay(c: CanvasRenderingContext2D, scale: number) {
+    if (!this.hover) return;
+    const s = this.env.ed.state.settings.light;
+    c.save();
+    c.strokeStyle = s.color;
+    c.lineWidth = 1.5 / scale;
+    c.setLineDash([5 / scale, 4 / scale]);
+    c.beginPath();
+    c.arc(this.hover.x, this.hover.y, s.radius, 0, Math.PI * 2);
+    c.stroke();
+    c.restore();
+    bulb(c, this.hover, s.color, scale);
+  }
+}
+
+function bulb(c: CanvasRenderingContext2D, p: Pt, color: string, scale: number) {
+  const r = Math.max(LIGHT_HIT * 0.7, 7 / scale);
+  c.save();
+  c.beginPath();
+  c.arc(p.x, p.y, r, 0, Math.PI * 2);
+  c.fillStyle = color;
+  c.fill();
+  c.lineWidth = 2 / scale;
+  c.strokeStyle = '#000';
+  c.stroke();
+  c.restore();
+}
+
+/** Значки источников света — видны в редакторе, в экспорт не попадают. */
+export function drawGizmos(c: CanvasRenderingContext2D, f: Floor, scale: number) {
+  for (const l of f.lights) bulb(c, l, l.color, scale);
+}
+
+// ---------- подпись
+class LabelTool implements Tool {
+  constructor(private env: ToolEnv) {}
+  cursor() { return 'text'; }
+  down(p: Pt, e: PointerEvent) {
+    const ed = this.env.ed, s = ed.state.settings.label;
+    const q = this.env.snap(e) ? snapHalf(ed.doc.grid.type, p) : p;
+    let text: string | null;
+    if (s.numbering) {
+      text = String(s.next);
+      ed.setSettings({ label: { ...s, next: s.next + 1 } });
+    } else {
+      text = window.prompt(tr('Текст подписи'), '');
+    }
+    if (!text || !text.trim()) return;
+    const { numbering: _n, next: _x, ...style } = s;
+    const l: Label = { id: uid('lb'), x: q.x, y: q.y, text: text.trim(), rot: 0, ...style };
+    ed.commitFloor((f) => { f.labels.push(l); });
+    if (!s.numbering) ed.setSel([{ kind: 'label', id: l.id }]);
+  }
+}
+
+// ---------- крыша: щелчок по комнате — крыша по её форме, протянуть — прямоугольник
+class RoofTool implements Tool {
+  private a: Pt | null = null;
+  private b: Pt | null = null;
+  private hoverRoom: Poly | null = null;
+  constructor(private env: ToolEnv) {}
+  cursor() { return 'crosshair'; }
+  private snap(p: Pt, e: PointerEvent) { return this.env.snap(e) ? snapVertex(this.env.ed.doc.grid.type, p) : p; }
+  down(p: Pt, e: PointerEvent) { this.a = this.snap(p, e); this.b = this.a; }
+  move(p: Pt, e: PointerEvent) {
+    if (this.a) this.b = this.snap(p, e);
+    this.hoverRoom = this.env.ed.floor.rooms.find((r) => pointInPoly(p, r.poly))?.poly ?? null;
+    this.env.redraw();
+  }
+  up(p: Pt) {
+    const ed = this.env.ed, { asset, color } = ed.state.settings.roof;
+    const a = this.a, b = this.b;
+    this.a = this.b = null;
+    let poly: Poly | null = null;
+    if (a && b && a.x !== b.x && a.y !== b.y) poly = rectPoly(a, b);
+    else poly = ed.floor.rooms.find((r) => pointInPoly(p, r.poly))?.poly ?? null;
+    if (!poly) return;
+    const roof: Roof = { id: uid('rf'), poly: poly.map((r) => r.map((q) => ({ ...q }))), asset, color };
+    ed.commitFloor((f) => { f.roofs.push(roof); });
+    if (ed.state.settings.showRoofs === 'hide') ed.setSettings({ showRoofs: 'ghost' });
+  }
+  cancel() { this.a = this.b = null; this.env.redraw(); }
+  overlay(c: CanvasRenderingContext2D, scale: number) {
+    c.save();
+    c.strokeStyle = YELLOW;
+    c.lineWidth = 2 / scale;
+    c.setLineDash([6 / scale, 4 / scale]);
+    if (this.a && this.b && (this.a.x !== this.b.x || this.a.y !== this.b.y)) {
+      const r = rectPoly(this.a, this.b);
+      c.beginPath(); polyPath(c, r); c.stroke();
+    } else if (this.hoverRoom) {
+      c.beginPath(); polyPath(c, this.hoverRoom); c.stroke();
+    }
+    c.restore();
+  }
+}
+
 class PanTool implements Tool {
   cursor() { return 'grab'; }
 }
@@ -503,6 +702,11 @@ export function makeTool(id: ToolId, env: ToolEnv): Tool {
     case 'door': return new PortalTool(env, 'door');
     case 'window': return new PortalTool(env, 'window');
     case 'stamp': return new StampTool(env);
+    case 'brush': return new BrushTool(env);
+    case 'path': return new PathTool(env, 'path');
+    case 'light': return new LightTool(env);
+    case 'label': return new LabelTool(env);
+    case 'roof': return new RoofTool(env);
     default: return new PanTool();
   }
 }

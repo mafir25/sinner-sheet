@@ -160,6 +160,12 @@ export class AssetStore {
     return c;
   }
 
+  /** Исходная картинка без пересчёта под клетки (фон-подложка этажа). */
+  rawImage(key: AssetKey): HTMLImageElement | null {
+    const im = this.img(key);
+    return im?.ok ? im.el : null;
+  }
+
   isMissing(key: AssetKey): boolean {
     const im = this.img(key);
     return !im || im.failed;

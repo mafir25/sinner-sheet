@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import type { AssetStore } from '../assets/store';
 import type { Pt } from '../model/types';
 import { type Editor, useEditor } from '../state/editor';
-import { makeTool, type Tool, type ToolEnv } from '../tools/tools';
+import { drawGizmos, makeTool, type Tool, type ToolEnv } from '../tools/tools';
 import { renderMap } from '../render/render';
 import { tr } from '../i18n';
 
@@ -53,10 +53,16 @@ export function CanvasView({ ed, assets, onFitRef }: { ed: Editor; assets: Asset
     ctx.fillStyle = doc.background;
     ctx.fillRect(0, 0, doc.width, doc.height);
     ctx.restore();
-    renderMap(ctx, doc, floorId, assets, { scale: view.scale * dpr, view: vis, grid: true, ghost: true, floorOverride: toolRef.current.preview?.(), gridPx: dpr });
+    const { showRoofs, showLight } = ed.state.settings;
+    const shown = toolRef.current.preview?.();
+    renderMap(ctx, doc, floorId, assets, {
+      scale: view.scale * dpr, view: vis, grid: true, ghost: true, floorOverride: shown, gridPx: dpr,
+      roofs: showRoofs, lighting: showLight, gm: true,
+    });
     ctx.strokeStyle = 'rgba(64,224,208,.35)';
     ctx.lineWidth = 1 / view.scale;
     ctx.strokeRect(0, 0, doc.width, doc.height);
+    drawGizmos(ctx, shown ?? ed.floor, view.scale);
     toolRef.current.overlay?.(ctx, view.scale);
   }
   function schedule() { if (!frame.current) frame.current = requestAnimationFrame(draw); }

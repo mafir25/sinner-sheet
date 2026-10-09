@@ -8,7 +8,7 @@ import { buildDd2vtt } from '../../map-app/src/export/export.ts';
 
 const WALL = { asset: null, color: '#000', width: 0.25 };
 const floorWith = (rooms, portals = [], walls = []) => ({
-  id: 'f', name: '', visible: true, layers: [], objects: [],
+  id: 'f', name: '', visible: true, layers: [], objects: [], ground: null, terrain: [], paths: [], lights: [], labels: [], roofs: [], image: null,
   rooms: rooms.map((poly, i) => ({ id: `r${i}`, poly, floor: null, wall: WALL })), portals, walls,
 });
 
@@ -135,5 +135,53 @@ describe('документ и экспорт', () => {
     expect(gap.line_of_sight).toHaveLength(2);
     expect(buildDd2vtt(d, f, 70, 'IMG', 'wall').line_of_sight).toHaveLength(1);
     expect(buildDd2vtt(d, f, 70, 'IMG', 'door').portals).toHaveLength(2);
+  });
+});
+
+describe('этап 2: пути, свет, совместимость', async () => {
+  const { curvePoints, walkAlong } = await import('../../map-app/src/geom/curve.ts');
+  const { visibility, blockingSegments } = await import('../../map-app/src/geom/light.ts');
+
+  it('сглаженная кривая проходит через опорные точки', () => {
+    const pts = [{ x: 0, y: 0 }, { x: 4, y: 2 }, { x: 8, y: 0 }];
+    const c = curvePoints(pts, true, false);
+    expect(c[0]).toEqual(pts[0]);
+    expect(c.at(-1)).toEqual(pts[2]);
+    expect(c.some((p) => Math.abs(p.x - 4) < 1e-9 && Math.abs(p.y - 2) < 1e-9)).toBe(true);
+    expect(curvePoints(pts, false, true)).toHaveLength(4);
+  });
+  it('объекты вдоль пути — через равный шаг, по направлению пути', () => {
+    const w = walkAlong([{ x: 0, y: 0 }, { x: 4, y: 0 }, { x: 4, y: 2 }], 1);
+    expect(w.map((s) => s.p)).toEqual([{ x: 0.5, y: 0 }, { x: 1.5, y: 0 }, { x: 2.5, y: 0 }, { x: 3.5, y: 0 }, { x: 4, y: 0.5 }, { x: 4, y: 1.5 }]);
+    expect(w[4].angle).toBeCloseTo(Math.PI / 2);
+  });
+  it('стена отбрасывает тень, закрытая дверь тоже, окно пропускает свет', () => {
+    const room = rectPoly({ x: 0, y: 0 }, { x: 4, y: 4 });
+    const inside = { x: 2, y: 2 };
+    const far = (poly, dir) => Math.max(...poly.map((p) => (dir === 'x' ? p.x : -p.y)));
+    const closed = visibility(inside, 10, blockingSegments(floorWith([room])));
+    expect(far(closed, 'x')).toBeLessThanOrEqual(4 + 1e-6); // свет не выходит за правую стену
+    const door = floorWith([room], [{ id: 'd', kind: 'door', asset: null, a: { x: 4, y: 1.5 }, b: { x: 4, y: 2.5 } }]);
+    expect(far(visibility(inside, 10, blockingSegments(door)), 'x')).toBeLessThanOrEqual(4 + 1e-6);
+    const win = floorWith([room], [{ id: 'w', kind: 'window', asset: null, a: { x: 4, y: 1.5 }, b: { x: 4, y: 2.5 } }]);
+    expect(far(visibility(inside, 10, blockingSegments(win)), 'x')).toBeGreaterThan(8);
+  });
+  it('карта первого этапа открывается: новые поля получают значения по умолчанию', () => {
+    const d = createDoc({ name: 'X', width: 10, height: 8, grid: 'square', floorName: 'F1' });
+    const old = JSON.parse(JSON.stringify(d));
+    delete old.lighting;
+    for (const f of old.floors) { for (const k of ['ground', 'terrain', 'paths', 'lights', 'labels', 'roofs', 'image']) delete f[k]; for (const l of f.layers) delete l.gmOnly; }
+    const p = parseDoc(old);
+    expect(p.lighting).toMatchObject({ enabled: false, wallShadows: true });
+    expect(p.floors[0]).toMatchObject({ terrain: [], paths: [], lights: [], labels: [], roofs: [], image: null, ground: null });
+    expect(p.floors[0].layers[0].gmOnly).toBe(false);
+  });
+  it('.dd2vtt: источники света и общий свет', () => {
+    const d = createDoc({ name: 'X', width: 10, height: 8, grid: 'square', floorName: 'F1' });
+    d.lighting = { enabled: true, darkness: 0.5, color: '#000000', wallShadows: true };
+    const f = { ...floorWith([]), lights: [{ id: 'l', x: 2, y: 3, radius: 5, color: '#FFAA00', intensity: 0.8, shadows: true }] };
+    const v = buildDd2vtt(d, f, 70, 'IMG', 'gap', false);
+    expect(v.lights).toEqual([{ position: { x: 2, y: 3 }, range: 5, intensity: 0.8, color: 'ffffaa00', shadows: true }]);
+    expect(v.environment).toEqual({ baked_lighting: false, ambient_light: 'ff808080' });
   });
 });

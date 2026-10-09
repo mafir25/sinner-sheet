@@ -1,22 +1,27 @@
 import { z } from 'zod';
-import type { Floor, Layer, MapDoc, WallStyle } from './types';
+import type { Floor, Layer, Lighting, MapDoc, PathStyle, WallStyle } from './types';
 import { tr } from '../i18n';
 
 export const uid = (p = '') => `${p}${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
 
 export const DEFAULT_WALL: WallStyle = { asset: 'canon:walls/concrete.svg', color: '#1c1c1e', width: 0.25 };
 export const DEFAULT_FLOOR = 'canon:floors/concrete.svg';
+export const DEFAULT_LIGHTING: Lighting = { enabled: false, darkness: 0.7, color: '#05060a', wallShadows: true };
+export const DEFAULT_PATH: PathStyle = { width: 3, color: '#2a2b2e', asset: 'canon:floors/asphalt.svg', dash: 0, outline: '#141416', decor: null, spacing: 1 };
 
 export function defaultLayers(): Layer[] {
   return [
-    { id: uid('l'), name: tr('Декор пола'), visible: true, locked: false, aboveWalls: false },
-    { id: uid('l'), name: tr('Объекты'), visible: true, locked: false, aboveWalls: false },
-    { id: uid('l'), name: tr('Над стенами'), visible: true, locked: false, aboveWalls: true },
+    { id: uid('l'), name: tr('Декор пола'), visible: true, locked: false, aboveWalls: false, gmOnly: false },
+    { id: uid('l'), name: tr('Объекты'), visible: true, locked: false, aboveWalls: false, gmOnly: false },
+    { id: uid('l'), name: tr('Над стенами'), visible: true, locked: false, aboveWalls: true, gmOnly: false },
   ];
 }
 
 export function newFloor(name: string): Floor {
-  return { id: uid('f'), name, visible: true, rooms: [], walls: [], portals: [], objects: [], layers: defaultLayers() };
+  return {
+    id: uid('f'), name, visible: true, rooms: [], walls: [], portals: [], objects: [], layers: defaultLayers(),
+    ground: null, terrain: [], paths: [], lights: [], labels: [], roofs: [], image: null,
+  };
 }
 
 export function createDoc(opts: { name: string; width: number; height: number; grid: MapDoc['grid']['type']; floorName: string }): MapDoc {
@@ -25,6 +30,7 @@ export function createDoc(opts: { name: string; width: number; height: number; g
     format: 'pm-map', version: 1, id: uid('m'), name: opts.name,
     width: opts.width, height: opts.height, background: '#101012',
     grid: { type: opts.grid, show: true, color: '#000000', opacity: 0.35 },
+    lighting: { ...DEFAULT_LIGHTING },
     floors: [newFloor(opts.floorName)],
     createdAt: now, updatedAt: now,
   };
@@ -41,7 +47,12 @@ const wallStyle = z.object({
 });
 const layer = z.object({
   id: z.string(), name: z.string().default(''), visible: z.boolean().default(true),
-  locked: z.boolean().default(false), aboveWalls: z.boolean().default(false),
+  locked: z.boolean().default(false), aboveWalls: z.boolean().default(false), gmOnly: z.boolean().default(false),
+});
+const asset = z.string().nullable().default(null);
+const pathStyle = z.object({
+  width: num.min(0).max(50).default(1), color: z.string().default('#2a2b2e'), asset, dash: num.min(0).default(0),
+  outline: z.string().nullable().default(null), decor: asset, spacing: num.min(0.1).default(1),
 });
 const floor = z.object({
   id: z.string(),
@@ -55,6 +66,25 @@ const floor = z.object({
     rot: num.default(0), flipX: z.boolean().default(false), flipY: z.boolean().default(false), opacity: num.min(0).max(1).default(1),
   })).default([]),
   layers: z.array(layer).default([]),
+  ground: asset,
+  terrain: z.array(z.object({
+    id: z.string(), asset, size: num.positive(), softness: num.min(0).max(1).default(0.5),
+    opacity: num.min(0).max(1).default(1), points: z.array(pt).min(1),
+  })).default([]),
+  paths: z.array(z.object({
+    id: z.string(), layer: z.string(), points: z.array(pt).min(2), smooth: z.boolean().default(true),
+    closed: z.boolean().default(false), style: pathStyle,
+  })).default([]),
+  lights: z.array(z.object({
+    id: z.string(), x: num, y: num, radius: num.positive(), color: z.string().default('#ffe8b0'),
+    intensity: num.min(0).max(1).default(0.9), shadows: z.boolean().default(true),
+  })).default([]),
+  labels: z.array(z.object({
+    id: z.string(), x: num, y: num, text: z.string(), size: num.positive().default(0.6), color: z.string().default('#ffffff'),
+    rot: num.default(0), font: z.enum(['head', 'body']).default('head'), box: z.boolean().default(false), gmOnly: z.boolean().default(false),
+  })).default([]),
+  roofs: z.array(z.object({ id: z.string(), poly: z.array(ring).min(1), asset, color: z.string().default('#3a3a40') })).default([]),
+  image: z.object({ asset: z.string(), x: num, y: num, ppc: num.positive(), opacity: num.min(0).max(1).default(1) }).nullable().default(null),
 });
 const docSchema = z.object({
   format: z.literal('pm-map'),
@@ -68,6 +98,10 @@ const docSchema = z.object({
     type: z.enum(['square', 'hex-flat', 'hex-pointy', 'none']).default('square'),
     show: z.boolean().default(true), color: z.string().default('#000000'), opacity: num.min(0).max(1).default(0.35),
   }),
+  lighting: z.object({
+    enabled: z.boolean().default(false), darkness: num.min(0).max(1).default(0.7),
+    color: z.string().default('#05060a'), wallShadows: z.boolean().default(true),
+  }).default({}),
   floors: z.array(floor).min(1),
   createdAt: num.default(0),
   updatedAt: num.default(0),
