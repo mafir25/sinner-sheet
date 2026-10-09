@@ -84,6 +84,16 @@ export function hitTest(f: Floor, p: Pt, scale: number, roofs = false, decorBand
   }
   const b = objIn(below);
   if (b) return b;
+  // отдельная стена комнаты — щелчок по её линии
+  for (let i = f.rooms.length - 1; i >= 0; i--) {
+    const r = f.rooms[i];
+    for (let ri = 0; ri < r.poly.length; ri++) {
+      const ring = r.poly[ri];
+      for (let j = 0; j < ring.length; j++) {
+        if (segDist(p, ring[j], ring[(j + 1) % ring.length]).d <= Math.max(r.wall.width / 2, 0) + tol * 0.8) return { kind: 'edge', id: `${r.id}|${ri}|${j}` };
+      }
+    }
+  }
   for (let i = f.rooms.length - 1; i >= 0; i--) if (pointInPoly(p, f.rooms[i].poly)) return { kind: 'room', id: f.rooms[i].id };
   return null;
 }

@@ -95,7 +95,8 @@ export function drawFloor(ctx: CanvasRenderingContext2D, doc: MapDoc, f: Floor, 
   // грани объёмных стен — под объектами: шкаф у стены стоит «перед» её гранью
   drawFaces(ctx, f, assets, o);
   drawLayers(ctx, f, below, assets, o);
-  drawWalls(ctx, wallChains(f), assets, o, doc.lighting.wallShadows);
+  // верхняя линия стены не прерывается над дверями, окнами и арками — режут её только проёмы без стены
+  drawWalls(ctx, wallChains(f, new Set(), false), assets, o, doc.lighting.wallShadows);
   for (const p of f.portals) drawPortal(ctx, f, p, assets, o);
   drawLayers(ctx, f, above, assets, o);
   if (o.roofs !== 'hide' && f.roofs.length) {
@@ -166,7 +167,9 @@ function chainPath(ctx: CanvasRenderingContext2D, c: WallChain) {
   if (c.closed) ctx.closePath();
 }
 
-export function drawWalls(ctx: CanvasRenderingContext2D, chains: WallChain[], assets: AssetStore, o: RenderOpts, shadows = false) {
+export function drawWalls(ctx: CanvasRenderingContext2D, all: WallChain[], assets: AssetStore, o: RenderOpts, shadows = false) {
+  // толщина 0 — невидимая стена: линии нет, но для света и VTT стена остаётся
+  const chains = all.filter((c) => c.style.width > 0);
   ctx.save();
   ctx.lineCap = 'butt';
   ctx.lineJoin = 'miter';
@@ -274,9 +277,13 @@ function openingShape(top: number, bottom: number, arch: boolean): Pt[] {
 
 /** Грани объёмных стен и вписанные в них двери, окна, арки. Рисуются под объектами. */
 export function drawFaces(ctx: CanvasRenderingContext2D, f: Floor, assets: AssetStore, o: RenderOpts) {
-  const faces = wallFaces(f);
-  const portals = f.portals.filter((p) => p.kind !== 'gap').map((p) => ({ p, faces: portalFaces(f, p) })).filter((x) => x.faces.length);
-  if (!faces.length && !portals.length) return;
+  type Item = { face: WallFace; portal?: Portal };
+  const items: Item[] = wallFaces(f).map((face) => ({ face }));
+  for (const p of f.portals) if (p.kind !== 'gap') for (const face of portalFaces(f, p)) items.push({ face, portal: p });
+  if (!items.length) return;
+  // ближние к зрителю (ниже на экране) грани поверх дальних
+  const depth = (it: Item) => Math.max(...it.face.pts.map((q) => q.y));
+  items.sort((a, b) => depth(a) - depth(b));
   const cache = new Map<string, FaceTex | null>();
   const edge = Math.max(0.025, 1.2 / o.scale);
   const quad = (pts: Pt[]) => { ctx.moveTo(pts[0].x, pts[0].y); for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y); ctx.closePath(); };
@@ -285,21 +292,28 @@ export function drawFaces(ctx: CanvasRenderingContext2D, f: Floor, assets: Asset
     if (t) fitTexture(t, face.pts[0], face.pts[1], face.v);
     return t?.pat ?? face.style.color;
   };
-  ctx.save();
-  for (const face of faces) {
-    const [p0, , p2, p3] = face.pts;
-    ctx.beginPath(); quad(face.pts);
-    ctx.fillStyle = material(face); ctx.fill();
-    ctx.fillStyle = shadeFace(ctx, p0, face.v); ctx.fill();
-    ctx.beginPath(); ctx.moveTo(p3.x, p3.y); ctx.lineTo(p2.x, p2.y);
-    ctx.lineWidth = edge; ctx.strokeStyle = 'rgba(0,0,0,0.7)'; ctx.stroke();
-  }
-  // проёмы: стена вокруг выреза (перемычка, подоконник), картинка двери/окна в вырезе, кромка выреза
-  for (const { p, faces: pf } of portals) {
-    const shape = portalShape(p);
-    const src = p.asset ? assets.source(p.asset, o.scale * 4) : null;
-    for (const face of pf) {
-      const [p0, p1, p2, p3] = face.pts, ex = { x: p1.x - p0.x, y: p1.y - p0.y };
+  const BIG = 1e5;
+  for (const { face, portal } of items) {
+    ctx.save();
+    // грань «внутрь» видна только в своей комнате, «наружу» — только вне её: на углах они не залезают друг на друга
+    if (face.room) {
+      ctx.beginPath();
+      if (face.side === 'out') ctx.rect(-BIG, -BIG, BIG * 2, BIG * 2);
+      polyPath(ctx, face.room.poly);
+      ctx.clip('evenodd');
+    }
+    const [p0, p1, p2, p3] = face.pts;
+    if (!portal) {
+      ctx.beginPath(); quad(face.pts);
+      ctx.fillStyle = material(face); ctx.fill();
+      ctx.fillStyle = shadeFace(ctx, p0, face.v); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(p3.x, p3.y); ctx.lineTo(p2.x, p2.y);
+      ctx.lineWidth = edge; ctx.strokeStyle = 'rgba(0,0,0,0.7)'; ctx.stroke();
+    } else {
+      // проём: стена вокруг выреза (перемычка, подоконник), картинка двери/окна в вырезе, кромка выреза
+      const shape = portalShape(portal);
+      const src = portal.asset ? assets.source(portal.asset, o.scale * 4) : null;
+      const ex = { x: p1.x - p0.x, y: p1.y - p0.y };
       const M = (q: Pt): Pt => ({ x: p0.x + ex.x * q.x + face.v.x * q.y, y: p0.y + ex.y * q.x + face.v.y * q.y });
       const hole = openingShape(shape.top, shape.bottom, shape.arch).map(M);
       ctx.beginPath(); quad(face.pts); quad(hole);
@@ -309,7 +323,7 @@ export function drawFaces(ctx: CanvasRenderingContext2D, f: Floor, assets: Asset
         ctx.save();
         ctx.beginPath(); quad(hole); ctx.clip();
         ctx.transform(ex.x, ex.y, face.v.x, face.v.y, p0.x, p0.y);
-        ctx.imageSmoothingEnabled = !assets.entry(p.asset)?.pixelated;
+        ctx.imageSmoothingEnabled = !assets.entry(portal.asset)?.pixelated;
         ctx.drawImage(src, 0, shape.top, 1, 1 - shape.top - shape.bottom);
         ctx.restore();
       }
@@ -317,6 +331,6 @@ export function drawFaces(ctx: CanvasRenderingContext2D, f: Floor, assets: Asset
       ctx.lineWidth = edge; ctx.strokeStyle = 'rgba(0,0,0,0.75)'; ctx.stroke();
       if (shape.bottom > 0.001 || !src) { ctx.beginPath(); ctx.moveTo(p3.x, p3.y); ctx.lineTo(p2.x, p2.y); ctx.stroke(); }
     }
+    ctx.restore();
   }
-  ctx.restore();
 }

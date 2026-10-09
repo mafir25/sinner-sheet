@@ -43,7 +43,7 @@ const ring = z.array(pt).min(3);
 const wallStyle = z.object({
   asset: z.string().nullable().default(null),
   color: z.string().default('#1c1c1e'),
-  width: num.min(0.02).max(4).default(0.25),
+  width: num.min(0).max(4).default(0.25),
   height: num.min(0).max(6).optional(),
   inner: z.enum(['none', 'down', 'up', 'normal']).optional(),
   outer: z.enum(['none', 'down', 'up', 'normal']).optional(),
@@ -65,7 +65,8 @@ const floor = z.object({
   id: z.string(),
   name: z.string().default(''),
   visible: z.boolean().default(true),
-  rooms: z.array(z.object({ id: z.string(), poly: z.array(ring).min(1), floor: z.string().nullable().default(null), wall: wallStyle, type: z.string().optional() })).default([]),
+  rooms: z.array(z.object({ id: z.string(), poly: z.array(ring).min(1), floor: z.string().nullable().default(null), wall: wallStyle, type: z.string().optional(),
+    edgeStyles: z.array(z.object({ a: pt, b: pt, style: wallStyle.partial() })).optional() })).default([]),
   walls: z.array(z.object({ id: z.string(), points: z.array(pt).min(2), closed: z.boolean().default(false), wall: wallStyle })).default([]),
   portals: z.array(z.object({ id: z.string(), kind: z.enum(['door', 'window', 'gap']), a: pt, b: pt, asset: z.string().nullable().default(null),
     top: num.min(0).max(0.9).optional(), bottom: num.min(0).max(0.9).optional(), arch: z.boolean().optional() })).default([]),

@@ -100,3 +100,58 @@ describe('проём без стены', () => {
     expect(p.floors[0].portals[0].kind).toBe('gap');
   });
 });
+
+describe('доработки стен', () => {
+  const w = (inner, outer, height = 1) => ({ asset: null, color: '#000', width: 0.1, height, inner, outer });
+  it('«по периметру»: на углах стык по биссектрисе — грани смыкаются без зазоров и наложений', () => {
+    const f = floor([room('r', { x: 0, y: 0 }, { x: 4, y: 3 }, w('normal', 'normal', 0.5))]);
+    const faces = wallFaces(f);
+    const inner = faces.filter((x) => x.side === 'in'), outer = faces.filter((x) => x.side === 'out');
+    expect(inner).toHaveLength(4);
+    expect(outer).toHaveLength(4);
+    // северная стена внутри: трапеция (0,0)-(4,0)-(3.5,0.5)-(0.5,0.5)
+    const north = inner.find((x) => x.pts[0].y === 0 && x.pts[1].y === 0);
+    const r = (p) => [Math.round(p.x * 1000) / 1000, Math.round(p.y * 1000) / 1000];
+    expect(north.pts.map(r).sort()).toEqual([[0, 0], [4, 0], [3.5, 0.5], [0.5, 0.5]].sort());
+    // соседние грани делят ребро стыка: дальняя точка у угла — общая
+    for (const face of inner) {
+      const corner = face.pts[3];
+      expect(inner.some((g) => g !== face && Math.hypot(g.pts[2].x - corner.x, g.pts[2].y - corner.y) < 1e-9)).toBe(true);
+    }
+    // снаружи — наружу
+    expect(outer.find((x) => x.pts[0].y === 0 && x.pts[1].y === 0).pts.map(r).sort()).toEqual([[0, 0], [4, 0], [4.5, -0.5], [-0.5, -0.5]].sort());
+  });
+  it('у грани есть сторона и комната (для обрезки по контуру)', () => {
+    const rm = room('r', { x: 0, y: 0 }, { x: 4, y: 3 }, w('down', 'down'));
+    const faces = wallFaces(floor([rm]));
+    expect(faces.map((x) => x.side).sort()).toEqual(['in', 'out']);
+    expect(faces.every((x) => x.room === rm)).toBe(true);
+  });
+  it('разные направления внутри и снаружи работают вместе', () => {
+    const faces = wallFaces(floor([room('r', { x: 0, y: 0 }, { x: 4, y: 3 }, w('up', 'normal', 0.5))]));
+    expect(faces.filter((x) => x.side === 'in').map(box)).toEqual([[0, 2.5, 4, 3]]);
+    expect(faces.filter((x) => x.side === 'out')).toHaveLength(4);
+  });
+  it('отдельная стена: внутри — слева по ходу рисования, снаружи — справа', () => {
+    const wall = { id: 'w', points: [{ x: 0, y: 2 }, { x: 4, y: 2 }], closed: false, wall: w('normal', 'none', 0.5) };
+    const faces = wallFaces(floor([], [], [wall]));
+    expect(faces.map(box)).toEqual([[0, 2, 4, 2.5]]);
+  });
+  it('своя настройка у отдельной стены комнаты', () => {
+    const rm = room('r', { x: 0, y: 0 }, { x: 4, y: 3 }, w('down', 'none'));
+    rm.edgeStyles = [{ a: { x: 4, y: 0 }, b: { x: 0, y: 0 }, style: { height: 0, asset: 'canon:walls/brick.svg' } }];
+    const f = floor([rm]);
+    expect(wallFaces(f)).toEqual([]); // у северной стены грани больше нет
+    const chains = wallChains(f);
+    expect(chains).toHaveLength(2);
+    expect(chains.find((c) => c.style.asset === 'canon:walls/brick.svg').pts).toHaveLength(2);
+  });
+  it('верхняя линия стены не прерывается над дверью и аркой, проём без стены — режет', () => {
+    const door = { id: 'd', kind: 'door', a: { x: 1, y: 0 }, b: { x: 2, y: 0 }, asset: 'x' };
+    const arch = { id: 'a', kind: 'door', a: { x: 1, y: 3 }, b: { x: 2, y: 3 }, asset: null };
+    const gap = { id: 'g', kind: 'gap', a: { x: 4, y: 1 }, b: { x: 4, y: 2 }, asset: null };
+    const f = floor([room('r', { x: 0, y: 0 }, { x: 4, y: 3 }, w('down', 'down'))], [door, arch, gap]);
+    expect(wallChains(f, new Set(), false)).toHaveLength(1);
+    expect(wallChains(f)).toHaveLength(3);
+  });
+});
