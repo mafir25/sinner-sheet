@@ -56,3 +56,52 @@ export function sameObjects(f: Floor, picked: MapObject[],
     return !!e?.group && groups.has(`${o.asset.slice(0, o.asset.lastIndexOf('/') + 1)}|${e.group}`);
   }).map((o) => o.id);
 }
+
+// ---------- выравнивание, распределение и повтор объектов
+/** Описанный прямоугольник объекта с учётом поворота. */
+function objBox(o: MapObject) {
+  const a = (o.rot * Math.PI) / 180, c = Math.abs(Math.cos(a)), s = Math.abs(Math.sin(a));
+  const hw = (o.w * c + o.h * s) / 2, hh = (o.w * s + o.h * c) / 2;
+  return { x0: o.x - hw, x1: o.x + hw, y0: o.y - hh, y1: o.y + hh };
+}
+
+export type AlignMode = 'left' | 'cx' | 'right' | 'top' | 'cy' | 'bottom';
+/** Новые центры объектов, выровненных по краю или центру общей рамки. */
+export function alignObjects(objs: MapObject[], mode: AlignMode): Map<string, Pt> {
+  const boxes = objs.map(objBox);
+  const x0 = Math.min(...boxes.map((b) => b.x0)), x1 = Math.max(...boxes.map((b) => b.x1));
+  const y0 = Math.min(...boxes.map((b) => b.y0)), y1 = Math.max(...boxes.map((b) => b.y1));
+  const out = new Map<string, Pt>();
+  objs.forEach((o, i) => {
+    const b = boxes[i], hw = (b.x1 - b.x0) / 2, hh = (b.y1 - b.y0) / 2;
+    const x = mode === 'left' ? x0 + hw : mode === 'right' ? x1 - hw : mode === 'cx' ? (x0 + x1) / 2 : o.x;
+    const y = mode === 'top' ? y0 + hh : mode === 'bottom' ? y1 - hh : mode === 'cy' ? (y0 + y1) / 2 : o.y;
+    out.set(o.id, { x, y });
+  });
+  return out;
+}
+
+/** Равные промежутки между объектами по оси (крайние остаются на месте). */
+export function distributeObjects(objs: MapObject[], axis: 'x' | 'y'): Map<string, Pt> {
+  const out = new Map<string, Pt>();
+  if (objs.length < 3) return out;
+  const lo = axis === 'x' ? 'x0' : 'y0', hi = axis === 'x' ? 'x1' : 'y1';
+  const list = objs.map((o) => ({ o, b: objBox(o) })).sort((a, b) => a.b[lo] - b.b[lo]);
+  const span = list[list.length - 1].b[hi] - list[0].b[lo];
+  const sizes = list.reduce((s, { b }) => s + (b[hi] - b[lo]), 0);
+  const gap = (span - sizes) / (list.length - 1);
+  let at = list[0].b[lo];
+  for (const { o, b } of list) {
+    const size = b[hi] - b[lo];
+    out.set(o.id, axis === 'x' ? { x: at + size / 2, y: o.y } : { x: o.x, y: at + size / 2 });
+    at += size + gap;
+  }
+  return out;
+}
+
+/** Копии выделенных объектов: count штук с шагом step (клетки), каждая следующая — дальше на step. */
+export function repeatObjects(objs: MapObject[], count: number, step: Pt, newId: () => string): MapObject[] {
+  const out: MapObject[] = [];
+  for (let k = 1; k <= count; k++) for (const o of objs) out.push({ ...o, id: newId(), x: o.x + step.x * k, y: o.y + step.y * k });
+  return out;
+}

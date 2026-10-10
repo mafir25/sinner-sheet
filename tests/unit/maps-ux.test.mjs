@@ -79,3 +79,24 @@ describe('«Такие же»', () => {
     expect(sameObjects(f, [f.objects[0]], (k) => entries[k])).toEqual(['1', '2']);
   });
 });
+import { alignObjects, distributeObjects, repeatObjects } from '../../map-app/src/geom/ops.ts';
+describe('выравнивание и повтор', () => {
+  const o = (id, x, y, w = 1, h = 1, rot = 0) => ({ id, asset: 'a', layer: 'l', x, y, w, h, rot, flipX: false, flipY: false, opacity: 1 });
+  it('по левому краю учитывает ширину и поворот', () => {
+    const m = alignObjects([o('a', 2, 0, 2, 1), o('b', 5, 3, 2, 1, 90)], 'left');
+    expect(m.get('a')).toEqual({ x: 2, y: 0 });
+    expect(m.get('b').x).toBeCloseTo(1.5);
+  });
+  it('распределение — равные промежутки, крайние на месте', () => {
+    const m = distributeObjects([o('a', 0, 0), o('b', 1, 0), o('c', 10, 0, 2)], 'x');
+    expect(m.get('a').x).toBe(0);
+    expect(m.get('c').x).toBe(10);
+    expect(m.get('b').x).toBeCloseTo(4.75);
+  });
+  it('повтор N раз с шагом', () => {
+    let n = 0;
+    const r = repeatObjects([o('a', 1, 1)], 3, { x: 2, y: 0 }, () => `n${++n}`);
+    expect(r.map((x) => x.x)).toEqual([3, 5, 7]);
+    expect(r[2].id).toBe('n3');
+  });
+});

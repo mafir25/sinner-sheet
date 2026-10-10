@@ -1,4 +1,5 @@
 // Левая панель: настройки текущего инструмента и свойства выделенного.
+import { useState } from 'react';
 import type { AssetStore } from '../assets/store';
 import { dirOf, findDir, switchDir, variantChain } from '../assets/tree.js';
 import type { AssetKey, FaceDir, MapObject, Portal, Pt, Rules, WallStyle } from '../model/types';
@@ -10,7 +11,8 @@ import { nm, tr } from '../i18n';
 import { edgeStyle, portalFaces, portalShape, resizePortal } from '../geom/walls';
 import { BrushPanel, LabelPanel, LightPanel, PathPanel, RoofPanel, SelectionExtras } from './Props2';
 import { AssetPicker, ColorInput, Field, NumInput, SetThumb, Slider, Thumb, assetName, toast, useStore } from './common';
-import { sameObjects } from '../geom/ops';
+import { type AlignMode, alignObjects, distributeObjects, repeatObjects, sameObjects } from '../geom/ops';
+import { uid } from '../model/doc';
 import { FEET_PER_CELL, fmtLen, fmtNum, polyArea, polySize, segLen } from '../geom/measure';
 
 const FACE_DIRS: { id: FaceDir; label: string }[] = [
@@ -207,6 +209,7 @@ export function Props({ ed, assets }: { ed: Editor; assets: AssetStore }) {
               {objs.some((o) => o.tint) && <button className="btn btn-sm" onClick={() => updObjs((o) => { o.tint = null; })}>{tr('Без оттенка')}</button>}
             </div>
           </Field>
+          <Arrange ed={ed} objs={objs} />
           {objs.length > 1 && <button className="btn btn-sm" title={tr('Запомнить выбранные объекты как комплект набора — он появится в библиотеке')}
             onClick={() => void saveAsSet(ed, assets, objs)}>🧩 {tr('Сохранить как комплект')}</button>}
           <Field label={tr('Слой')}>
@@ -412,3 +415,44 @@ function RoomSize({ rooms }: { rooms: { poly: Pt[][] }[] }) {
   );
 }
 
+
+/** Выравнивание и распределение выделенных объектов, повтор рядом (стеллажи, парты, колонны). */
+function Arrange({ ed, objs }: { ed: Editor; objs: MapObject[] }) {
+  const [count, setCount] = useState(3);
+  const [step, setStep] = useState<Pt>({ x: 1, y: 0 });
+  const move = (m: Map<string, Pt>) => {
+    if (m.size) ed.commitFloor((fl) => { for (const o of fl.objects) { const p = m.get(o.id); if (p) { o.x = p.x; o.y = p.y; } } });
+  };
+  const ALIGN: [AlignMode, string, string][] = [
+    ['left', '⇤', 'По левому краю'], ['cx', '↔', 'По центру по горизонтали'], ['right', '⇥', 'По правому краю'],
+    ['top', '⤒', 'По верхнему краю'], ['cy', '↕', 'По центру по вертикали'], ['bottom', '⤓', 'По нижнему краю'],
+  ];
+  const repeat = () => {
+    const copies = repeatObjects(objs, Math.max(1, Math.round(count)), step, () => uid('o'));
+    ed.commitFloor((fl) => { fl.objects.push(...copies); });
+    ed.setSel([...objs, ...copies].map((o) => ({ kind: 'object' as const, id: o.id })));
+  };
+  return (
+    <div className="subsec stack">
+      {objs.length > 1 && (
+        <Field label={tr('Выровнять')}>
+          <div className="row wrap">
+            {ALIGN.map(([m, icon, title]) => <button key={m} className="icon-btn" title={tr(title)} aria-label={tr(title)} onClick={() => move(alignObjects(objs, m))}>{icon}</button>)}
+            {objs.length > 2 && <>
+              <button className="btn btn-sm" title={tr('Равные промежутки по горизонтали')} onClick={() => move(distributeObjects(objs, 'x'))}>⋯ {tr('Ряд')}</button>
+              <button className="btn btn-sm" title={tr('Равные промежутки по вертикали')} onClick={() => move(distributeObjects(objs, 'y'))}>⋮ {tr('Столбец')}</button>
+            </>}
+          </div>
+        </Field>
+      )}
+      <Field label={tr('Повторить')}>
+        <div className="row">
+          <Field label={tr('Копий')} row><NumInput value={count} step={1} min={1} max={100} digits={0} onCommit={setCount} /></Field>
+          <Field label={tr('Шаг X')} row><NumInput value={step.x} step={0.5} min={-100} max={100} onCommit={(x) => setStep({ ...step, x })} /></Field>
+          <Field label={tr('Шаг Y')} row><NumInput value={step.y} step={0.5} min={-100} max={100} onCommit={(y) => setStep({ ...step, y })} /></Field>
+        </div>
+        <button className="btn btn-sm" title={tr('Поставить копии выделенного подряд с этим шагом (в клетках)')} onClick={repeat}>⧉ {tr('Повторить')}</button>
+      </Field>
+    </div>
+  );
+}

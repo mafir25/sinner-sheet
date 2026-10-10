@@ -531,6 +531,22 @@ const EN: Record<string, string> = {
   'Такие же': 'Same',
   'Выделить всё на этаже': 'Select everything on the floor',
   'Заменено объектов: {0} (Ctrl+Z — вернуть). Чтобы поставить новый, сними выделение (Esc).': 'Objects replaced: {0} (Ctrl+Z to undo). To place a new one, clear the selection (Esc).',
+  'По левому краю': 'Align left',
+  'По центру по горизонтали': 'Center horizontally',
+  'По правому краю': 'Align right',
+  'По верхнему краю': 'Align top',
+  'По центру по вертикали': 'Center vertically',
+  'По нижнему краю': 'Align bottom',
+  'Выровнять': 'Align',
+  'Равные промежутки по горизонтали': 'Equal gaps horizontally',
+  'Равные промежутки по вертикали': 'Equal gaps vertically',
+  'Ряд': 'Row',
+  'Столбец': 'Column',
+  'Повторить': 'Repeat',
+  'Копий': 'Copies',
+  'Шаг X': 'Step X',
+  'Шаг Y': 'Step Y',
+  'Поставить копии выделенного подряд с этим шагом (в клетках)': 'Place copies of the selection in a row with this step (in cells)',
 };
 
 export function tr(ru: string, ...args: (string | number)[]): string {
