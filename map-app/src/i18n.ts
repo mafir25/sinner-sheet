@@ -517,6 +517,16 @@ const EN: Record<string, string> = {
   'Что остаётся на месте': 'What stays in place',
   'Якорь': 'Anchor',
   'Новое поле добавится с противоположной стороны, всё нарисованное сдвинется вместе с картой.': 'New space is added on the opposite side; everything drawn moves with the map.',
+  'кл': 'cells',
+  'фт': 'ft',
+  'по сетке: {0} кл · {1} фт': 'on the grid: {0} cells · {1} ft',
+  'Линейка (M)': 'Ruler (M)',
+  'Протяни — расстояние между двумя точками. Щелчками — путь из нескольких отрезков, двойной щелчок или Enter — закончить. По сетке диагональ считается за одну клетку.': 'Drag to measure between two points. Click to build a multi-segment path, double-click or Enter to finish. On the grid a diagonal counts as one cell.',
+  'Линейка: расстояние в клетках и футах': 'Ruler: distance in cells and feet',
+  'Длина: {0}': 'Length: {0}',
+  'Площадь всех: {0} кл² · {1} кв. фт': 'Total area: {0} cells² · {1} sq ft',
+  'Размер: {0} × {1} кл ({2} × {3} фт)': 'Size: {0} × {1} cells ({2} × {3} ft)',
+  'Площадь: {0} кл² · {1} кв. фт': 'Area: {0} cells² · {1} sq ft',
 };
 
 export function tr(ru: string, ...args: (string | number)[]): string {

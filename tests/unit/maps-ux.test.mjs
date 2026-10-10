@@ -42,3 +42,30 @@ describe('размер карты с якорем (geom/ops.ts)', () => {
     }
   });
 });
+
+import { gridSteps, pathSteps, polyLen, fmtLen } from '../../map-app/src/geom/measure.ts';
+import { hexCenter as hc } from '../../map-app/src/geom/grid.ts';
+describe('измерения (geom/measure.ts)', () => {
+  it('длина ломаной и подпись в клетках и футах', () => {
+    expect(polyLen([{ x: 0, y: 0 }, { x: 3, y: 4 }, { x: 3, y: 6 }])).toBe(7);
+    expect(fmtLen(4.5, 'кл', 'фт')).toBe('4.5 кл · 22.5 фт');
+  });
+  it('шаги по квадратной сетке: диагональ = одна клетка', () => {
+    expect(gridSteps('square', { x: 0.5, y: 0.5 }, { x: 4.5, y: 2.5 })).toBe(4);
+    expect(pathSteps('square', [{ x: 0, y: 0 }, { x: 2, y: 2 }, { x: 2, y: 5 }])).toBe(5);
+    expect(gridSteps('none', { x: 0, y: 0 }, { x: 1, y: 1 })).toBeNull();
+  });
+  it('шаги по гексам — число гексов', () => {
+    const a = hc('hex-flat', { q: 0, r: 0 }), b = hc('hex-flat', { q: 3, r: -1 });
+    expect(gridSteps('hex-flat', a, b)).toBe(3);
+  });
+});
+import { polyArea, polySize } from '../../map-app/src/geom/measure.ts';
+describe('площадь комнаты', () => {
+  it('контур минус дыры, размер по внешнему контуру', () => {
+    const outer = [{ x: 0, y: 0 }, { x: 6, y: 0 }, { x: 6, y: 4 }, { x: 0, y: 4 }];
+    const hole = [{ x: 1, y: 1 }, { x: 2, y: 1 }, { x: 2, y: 2 }, { x: 1, y: 2 }];
+    expect(polyArea([outer, hole])).toBe(23);
+    expect(polySize([outer, hole])).toEqual({ w: 6, h: 4 });
+  });
+});

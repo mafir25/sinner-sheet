@@ -168,6 +168,7 @@ const TOOLS: { id: ToolId; icon: string; title: string; key?: string }[] = [
   { id: 'light', icon: '💡', title: 'Свет (L)', key: 'l' },
   { id: 'label', icon: 'T', title: 'Подпись (T)', key: 't' },
   { id: 'roof', icon: '⌂', title: 'Крыша (R)', key: 'r' },
+  { id: 'ruler', icon: '📏', title: 'Линейка (M)', key: 'm' },
   { id: 'pan', icon: '✋', title: 'Панорама (H)', key: 'h' },
 ];
 const HINTS: Record<ToolId, string> = {
@@ -185,6 +186,7 @@ const HINTS: Record<ToolId, string> = {
   light: 'Щелчок — поставить источник света. Тени от стен считаются сами.',
   label: 'Щелчок — подпись. Включи нумерацию, чтобы ставить номера комнат подряд.',
   roof: 'Щелчок по комнате — крыша по её форме. Протянуть — прямоугольная крыша.',
+  ruler: 'Протяни — расстояние между двумя точками. Щелчками — путь из нескольких отрезков, двойной щелчок или Enter — закончить. По сетке диагональ считается за одну клетку.',
 };
 const ROOF_NEXT = { hide: 'ghost', ghost: 'show', show: 'hide' } as const;
 const ROOF_LABEL = { hide: 'Крыши скрыты', ghost: 'Крыши полупрозрачны', show: 'Крыши видны' } as const;

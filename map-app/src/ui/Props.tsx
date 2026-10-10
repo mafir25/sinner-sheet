@@ -10,6 +10,7 @@ import { nm, tr } from '../i18n';
 import { edgeStyle, portalFaces, portalShape, resizePortal } from '../geom/walls';
 import { BrushPanel, LabelPanel, LightPanel, PathPanel, RoofPanel, SelectionExtras } from './Props2';
 import { AssetPicker, ColorInput, Field, NumInput, SetThumb, Slider, Thumb, assetName, toast, useStore } from './common';
+import { FEET_PER_CELL, fmtLen, fmtNum, polyArea, polySize, segLen } from '../geom/measure';
 
 const FACE_DIRS: { id: FaceDir; label: string }[] = [
   { id: 'down', label: 'Вниз ↓' },
@@ -237,6 +238,7 @@ export function Props({ ed, assets }: { ed: Editor; assets: AssetStore }) {
         return (
           <>
             <p className="hint">{tr('Отдельная стена комнаты: настройки ниже — только для неё (Shift+щелчок — добавить ещё стены).')}</p>
+            <p className="hint">{tr('Длина: {0}', fmtLen(edges.reduce((s, e) => s + segLen(e.a, e.b), 0), tr('кл'), tr('фт')))}</p>
             <WallStyleEditor assets={assets} value={edgeStyle(e0.room, e0.a, e0.b)} onChange={(w) => setEdges(w)} />
             <div className="row wrap">
               <button className="btn btn-sm" onClick={() => setEdges(null)}>{tr('Как у всей комнаты')}</button>
@@ -247,6 +249,7 @@ export function Props({ ed, assets }: { ed: Editor; assets: AssetStore }) {
       })()}
       {rooms.length > 0 && (
         <>
+          <RoomSize rooms={rooms} />
           <Field label={tr('Тип комнаты')}>
             <select className="input" value={rooms.every((r) => (r.type ?? '') === (rooms[0].type ?? '')) ? rooms[0].type ?? '' : '*'}
               onChange={(e) => { const t = e.target.value; if (t === '*') return; ed.commitFloor((fl) => { for (const r of fl.rooms) if (ids.has(r.id)) { if (t) r.type = t; else delete r.type; } }); }}>
@@ -390,4 +393,18 @@ async function saveAsSet(ed: Editor, assets: AssetStore, objs: MapObject[]) {
   if (!pack.local) toast(tr('Комплект «{0}» добавлен в канон до перезагрузки. Чтобы сохранить — «✎ Разметить» → «Скачать _meta.json».', name));
   else if (await assets.writeMetasToDisk(packId, [dir])) toast(tr('Комплект «{0}» сохранён в папку набора', name));
   else toast(tr('Комплект «{0}» сохранён в браузере', name));
+}
+
+/** Размеры и площадь выбранных комнат (клетка = 5 футов, площадь клетки = 25 кв. футов). */
+function RoomSize({ rooms }: { rooms: { poly: Pt[][] }[] }) {
+  const area = rooms.reduce((s, r) => s + polyArea(r.poly), 0);
+  const ft2 = area * FEET_PER_CELL * FEET_PER_CELL;
+  if (rooms.length > 1) return <p className="hint">{tr('Площадь всех: {0} кл² · {1} кв. фт', fmtNum(area), fmtNum(ft2))}</p>;
+  const { w, h } = polySize(rooms[0].poly);
+  return (
+    <p className="hint">
+      {tr('Размер: {0} × {1} кл ({2} × {3} фт)', fmtNum(w), fmtNum(h), fmtNum(w * FEET_PER_CELL), fmtNum(h * FEET_PER_CELL))}<br />
+      {tr('Площадь: {0} кл² · {1} кв. фт', fmtNum(area), fmtNum(ft2))}
+    </p>
+  );
 }

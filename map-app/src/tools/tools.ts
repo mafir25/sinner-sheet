@@ -15,6 +15,8 @@ import { tr } from '../i18n';
 import { setBounds } from '../assets/tree.js';
 import { type Issue, checkObject, placeByRules, rollVariation } from '../geom/place';
 import { issueText } from '../ui/issues';
+import { fmtLen, pathSteps, polyLen, segLen } from '../geom/measure';
+import type { GridType } from '../model/types';
 
 export type ToolEnv = {
   ed: Editor;
@@ -448,6 +450,7 @@ class PathTool implements Tool {
       c.restore();
       for (const q of this.pts) dot(c, q, 3.5 * px, col);
       dot(c, this.pts[0], 6 * px, YELLOW);
+      lengthLabels(c, pts, scale, col);
       return;
     }
     c.save();
@@ -465,6 +468,70 @@ class PathTool implements Tool {
     for (const q of this.pts) dot(c, q, 3.5 * px, col);
     dot(c, this.pts[0], 6 * px, YELLOW);
     c.restore();
+    lengthLabels(c, pts, scale, col);
+  }
+}
+
+/** Длина последнего отрезка (посередине) и, если отрезков больше одного, всего пути (у конца). */
+function lengthLabels(c: CanvasRenderingContext2D, pts: Pt[], scale: number, color: string) {
+  if (pts.length < 2) return;
+  const a = pts[pts.length - 2], b = pts[pts.length - 1];
+  const seg = segLen(a, b);
+  if (seg > 1e-6) label(c, fmtLen(seg, tr('кл'), tr('фт')), { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 - 12 / scale }, scale, color);
+  if (pts.length > 2) label(c, `Σ ${fmtLen(polyLen(pts), tr('кл'), tr('фт'))}`, { x: b.x, y: b.y + 18 / scale }, scale, YELLOW);
+}
+
+// ---------- линейка: щелчки ставят точки, протяжка — один отрезок; Enter / двойной щелчок — закончить, Esc — убрать
+class RulerTool implements Tool {
+  private pts: Pt[] = [];
+  private hover: Pt | null = null;
+  private done = false;
+  private downAt: Pt | null = null;
+  constructor(private env: ToolEnv) {}
+  private get grid(): GridType { return this.env.ed.doc.grid.type; }
+  private snap(p: Pt, e: { ctrlKey?: boolean; metaKey?: boolean }) { return this.env.snap(e) ? snapCenter(this.grid, p) : p; }
+  cursor() { return 'crosshair'; }
+  down(p: Pt, e: PointerEvent) {
+    if (this.done) { this.pts = []; this.done = false; }
+    const q = this.snap(p, e);
+    if (!this.pts.length || !samePt(q, this.pts[this.pts.length - 1])) this.pts.push(q);
+    this.downAt = q;
+    this.env.redraw();
+  }
+  move(p: Pt, e: PointerEvent) { if (!this.done) { this.hover = this.snap(p, e); this.env.redraw(); } }
+  up(p: Pt, e: PointerEvent) {
+    const q = this.snap(p, e);
+    // протяжка — отрезок от точки нажатия до отпускания, измерение закончено
+    if (this.downAt && segLen(this.downAt, q) > 0.3) { this.pts.push(q); this.done = true; this.hover = null; }
+    this.downAt = null;
+    this.env.redraw();
+  }
+  dbl() { this.done = true; this.hover = null; this.env.redraw(); }
+  key(e: KeyboardEvent) {
+    if (e.key === 'Enter') { this.dbl(); return true; }
+    if (e.key === 'Backspace' && this.pts.length && !this.done) { this.pts.pop(); this.env.redraw(); return true; }
+    return false;
+  }
+  cancel() { this.pts = []; this.hover = null; this.done = false; this.env.redraw(); }
+  overlay(c: CanvasRenderingContext2D, scale: number) {
+    const px = 1 / scale;
+    if (this.hover && !this.done) dot(c, this.hover, 4 * px, YELLOW);
+    const pts = this.hover && !this.done && this.pts.length ? [...this.pts, this.hover] : this.pts;
+    if (!pts.length) return;
+    c.save();
+    c.strokeStyle = YELLOW;
+    c.lineWidth = 2 * px;
+    c.setLineDash([6 * px, 4 * px]);
+    outlinePts(c, pts, false);
+    c.stroke();
+    c.restore();
+    for (const q of pts) dot(c, q, 3.5 * px, YELLOW);
+    if (pts.length < 2) return;
+    const end = pts[pts.length - 1];
+    const steps = pathSteps(this.grid, pts);
+    const lines = [fmtLen(polyLen(pts), tr('кл'), tr('фт'))];
+    if (steps !== null) lines.push(tr('по сетке: {0} кл · {1} фт', steps, steps * 5));
+    lines.forEach((t, i) => label(c, t, { x: end.x, y: end.y + (18 + i * 16) / scale }, scale, i ? ACCENT : YELLOW));
   }
 }
 
@@ -903,6 +970,7 @@ export function makeTool(id: ToolId, env: ToolEnv): Tool {
     case 'light': return new LightTool(env);
     case 'label': return new LabelTool(env);
     case 'roof': return new RoofTool(env);
+    case 'ruler': return new RulerTool(env);
     default: return new PanTool();
   }
 }
