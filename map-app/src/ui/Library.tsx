@@ -9,6 +9,7 @@ import { useEditor } from '../state/editor';
 import { nm, tr } from '../i18n';
 import { resizePortal } from '../geom/walls';
 import { SetThumb, Thumb, toast, useStore } from './common';
+import { swapAsset } from './Props';
 
 /** Выбор ассета: ставит его в настройки нужного инструмента и применяет к выделенному. */
 export function applyAsset(ed: Editor, assets: AssetStore, key: AssetKey) {
@@ -49,6 +50,12 @@ export function applyAsset(ed: Editor, assets: AssetStore, key: AssetKey) {
     const ids = new Set(sel.filter((s) => s.kind === 'roof').map((s) => s.id));
     if (ids.size) ed.commitFloor((f) => { for (const r of f.roofs) if (ids.has(r.id)) r.asset = key; });
     else ed.setTool('roof');
+  } else if (has('object') && ed.state.tool === 'select') {
+    // выделенные объекты (например, «≡ Такие же») заменяются выбранным ассетом с сохранением масштаба
+    ed.setSettings({ stamp: key, stampSet: null });
+    const ids = new Set(sel.filter((s) => s.kind === 'object').map((s) => s.id));
+    ed.commitFloor((f) => { for (const o of f.objects) if (ids.has(o.id)) Object.assign(o, swapAsset(assets, o, key)); });
+    toast(tr('Заменено объектов: {0} (Ctrl+Z — вернуть). Чтобы поставить новый, сними выделение (Esc).', ids.size));
   } else {
     ed.setSettings({ stamp: key, stampSet: null });
     ed.setTool('stamp');

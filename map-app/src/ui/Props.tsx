@@ -77,7 +77,7 @@ export function VariantPicker({ assets, value, onChange }: { assets: AssetStore;
 }
 
 /** Смена ассета объекта с сохранением масштаба. */
-function swapAsset(assets: AssetStore, o: MapObject, key: AssetKey): Partial<MapObject> {
+export function swapAsset(assets: AssetStore, o: MapObject, key: AssetKey): Partial<MapObject> {
   const a = assets.entry(o.asset)?.footprint ?? [o.w, o.h];
   const b = assets.entry(key)?.footprint ?? a;
   const k = o.w / a[0];

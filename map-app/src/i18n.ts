@@ -530,6 +530,7 @@ const EN: Record<string, string> = {
   'Выделить на этаже все такие же объекты (тот же ассет или его варианты) — например, чтобы заменить их разом': 'Select all such objects on the floor (same asset or its variants), e.g. to replace them at once',
   'Такие же': 'Same',
   'Выделить всё на этаже': 'Select everything on the floor',
+  'Заменено объектов: {0} (Ctrl+Z — вернуть). Чтобы поставить новый, сними выделение (Esc).': 'Objects replaced: {0} (Ctrl+Z to undo). To place a new one, clear the selection (Esc).',
 };
 
 export function tr(ru: string, ...args: (string | number)[]): string {
