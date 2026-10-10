@@ -510,6 +510,10 @@ const EN: Record<string, string> = {
   'Отдельная стена комнаты: настройки ниже — только для неё (Shift+щелчок — добавить ещё стены).': 'A single wall of the room: the settings below apply to it only (Shift+click adds more walls).',
   'Как у всей комнаты': 'Same as the room',
   'Убрать стену (Del)': 'Remove wall (Del)',
+  'Панель свойств (Tab — спрятать или показать обе панели)': 'Properties panel (Tab hides or shows both panels)',
+  'Библиотека, этажи и слои (Tab — спрятать или показать обе панели)': 'Library, floors and layers (Tab hides or shows both panels)',
+  'Спрятать или показать боковые панели': 'Hide or show the side panels',
+  'Папка': 'Folder',
 };
 
 export function tr(ru: string, ...args: (string | number)[]): string {

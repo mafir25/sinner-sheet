@@ -157,7 +157,7 @@ export function Library({ ed, assets }: { ed: Editor; assets: AssetStore }) {
         <h3>{tr('Библиотека')}</h3>
         <div className="row">
           {pack && <button className="btn btn-sm" onClick={() => setMarkup(true)} title={tr('Разметка набора: названия, размеры, правила размещения, комплекты — без ручного JSON')}>✎ {tr('Разметить')}</button>}
-          <button className="btn btn-sm" onClick={addFolder} title={tr('Подключить папку с картинками (PNG, WebP, JPG, SVG). Файлы остаются в браузере.')}>＋ {tr('Подключить папку')}</button>
+          <button className="btn btn-sm" onClick={addFolder} title={tr('Подключить папку с картинками (PNG, WebP, JPG, SVG). Файлы остаются в браузере.')}>＋ {tr('Папка')}</button>
         </div>
       </div>
       <input className="input" placeholder={tr('Поиск…')} value={q} onChange={(e) => setQ(e.target.value)} />

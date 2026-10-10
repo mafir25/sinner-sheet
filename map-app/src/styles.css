@@ -205,3 +205,21 @@ kbd { font-family: ui-monospace, Consolas, monospace; font-size: .78rem; border:
 
 /* ---------- этап 5: Район и ссылки */
 .swatch { width: 32px; height: 32px; border: 1px solid var(--line); flex: none; align-self: flex-end; }
+
+/* ---------- этап 6: удобство */
+.grow { flex: 1; }
+.work.no-left { grid-template-columns: auto 1fr var(--right); }
+.work.no-right { grid-template-columns: var(--left) 1fr; }
+.work.no-left.no-right { grid-template-columns: auto 1fr; }
+.sec-head { flex-wrap: wrap; }
+.sec-head > .row { margin-left: auto; }
+/* узкая панель: кнопки слоя уходят на вторую строку, а не съедают название */
+.list li { flex-wrap: wrap; }
+.list-btns { display: flex; gap: 2px; margin-left: auto; }
+.list-main { flex: 1 1 96px; }
+@media (max-width: 900px) {
+  .work.no-left, .work.no-right, .work.no-left.no-right { grid-template-columns: 1fr; }
+}
+.right > .side-sec { flex: none; }
+.right > .lib { flex: 1 0 auto; }
+.lib-grid { min-height: 190px; }

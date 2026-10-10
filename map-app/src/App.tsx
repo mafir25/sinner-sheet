@@ -191,6 +191,17 @@ const ROOF_LABEL = { hide: 'Крыши скрыты', ghost: 'Крыши пол�
 
 type SaveHandle = Parameters<typeof saveBlob>[2];
 
+/** Видимость боковых панелей запоминается в браузере. */
+type Panels = { left: boolean; right: boolean };
+const PANELS_KEY = 'maps.panels';
+function loadPanels(): Panels {
+  try {
+    const v = JSON.parse(localStorage.getItem(PANELS_KEY) || 'null');
+    if (v && typeof v.left === 'boolean' && typeof v.right === 'boolean') return v;
+  } catch { /* нет доступа или мусор */ }
+  return { left: true, right: true };
+}
+
 function Workspace({ ed, assets, user, onExit, onOpen }: { ed: Editor; assets: AssetStore; user: User; onExit(): void; onOpen(e: Editor): void }) {
   const tool = useEditor(ed, (s) => s.tool);
   const doc = useEditor(ed, (s) => s.doc);
@@ -204,6 +215,13 @@ function Workspace({ ed, assets, user, onExit, onOpen }: { ed: Editor; assets: A
     return () => history.replaceState(null, '', location.pathname + location.search);
   }, [ed]);
   const [genLast, setGenLast] = useState<{ g: GenState; doc: MapDoc } | null>(null);
+  const [panels, setPanels] = useState(loadPanels);
+  const togglePanels = useCallback((patch?: Partial<Panels>) => setPanels((p) => {
+    // без аргумента (Tab) — спрятать обе панели, если открыта хоть одна, иначе показать обе
+    const next = patch ? { ...p, ...patch } : (p.left || p.right ? { left: false, right: false } : { left: true, right: true });
+    try { localStorage.setItem(PANELS_KEY, JSON.stringify(next)); } catch { /* приватный режим */ }
+    return next;
+  }), []);
   const [saveState, setSaveState] = useState<'saved' | 'saving' | 'dirty'>('saved');
   const handle = useRef<SaveHandle>(null);
   const fit = useRef<() => void>(() => {});
@@ -262,6 +280,7 @@ function Workspace({ ed, assets, user, onExit, onOpen }: { ed: Editor; assets: A
         return;
       }
       if (e.altKey) return;
+      if (k === 'tab' && !e.shiftKey) { e.preventDefault(); togglePanels(); return; }
       const t = TOOLS.find((x) => x.key === k);
       if (t) { ed.setTool(t.id); return; }
       const objs = ed.selected('object');
@@ -294,7 +313,7 @@ function Workspace({ ed, assets, user, onExit, onOpen }: { ed: Editor; assets: A
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [ed, dialog, saveFile]);
+  }, [ed, dialog, saveFile, togglePanels]);
 
   const nick = user.displayName || user.email || '';
   const saveLabel = saveState === 'saved' ? tr('Сохранено в браузере') : saveState === 'saving' ? tr('Сохраняется…') : tr('Не сохранено');
@@ -321,7 +340,7 @@ function Workspace({ ed, assets, user, onExit, onOpen }: { ed: Editor; assets: A
           <button className="btn user" title={tr('Аккаунт и настройки')} onClick={() => openSiteUi('account')}>{nick}</button>
         </div>
       </header>
-      <main className="work">
+      <main className={`work${panels.left ? '' : ' no-left'}${panels.right ? '' : ' no-right'}`}>
         <aside className="left">
           <div className="tools">
             {TOOLS.map((t) => (
@@ -329,16 +348,18 @@ function Workspace({ ed, assets, user, onExit, onOpen }: { ed: Editor; assets: A
                 disabled={t.id === 'stamp' && !settings.stamp && !settings.stampSet} onClick={() => ed.setTool(t.id)}>{t.icon}</button>
             ))}
           </div>
-          <div className="props">
+          {panels.left && <div className="props">
             <h3>{tr(TOOLS.find((t) => t.id === tool)?.title ?? '')}</h3>
             <p className="hint">{tr(HINTS[tool])}</p>
             <Props ed={ed} assets={assets} />
-          </div>
+          </div>}
         </aside>
         <section className="center">
           <CanvasView ed={ed} assets={assets} onFitRef={(f) => { fit.current = f; }} />
           {genLast && doc === genLast.doc && <GenBar ed={ed} assets={assets} last={genLast} onChange={setGenLast} onSettings={() => setDialog('gen')} />}
           <div className="bottombar">
+            <button className={`btn btn-sm${panels.left ? ' btn-on' : ''}`} title={tr('Панель свойств (Tab — спрятать или показать обе панели)')}
+              aria-pressed={panels.left} onClick={() => togglePanels({ left: !panels.left })}>◧</button>
             <button className={`btn btn-sm${settings.snap ? ' btn-on' : ''}`} title={tr('Привязка к сетке (зажать Ctrl — без привязки)')}
               onClick={() => ed.setSettings({ snap: !settings.snap })}>⌗ {tr('Привязка')}</button>
             {(tool === 'room' || tool === 'poly') && (
@@ -353,12 +374,15 @@ function Workspace({ ed, assets, user, onExit, onOpen }: { ed: Editor; assets: A
             )}
             <IssuesButton ed={ed} assets={assets} />
             <button className="btn btn-sm" title={tr('Показать всю карту')} onClick={() => fit.current()}>⤢</button>
+            <span className="grow" />
+            <button className={`btn btn-sm${panels.right ? ' btn-on' : ''}`} title={tr('Библиотека, этажи и слои (Tab — спрятать или показать обе панели)')}
+              aria-pressed={panels.right} onClick={() => togglePanels({ right: !panels.right })}>◨</button>
           </div>
         </section>
-        <aside className="right">
+        {panels.right && <aside className="right">
           <Library ed={ed} assets={assets} />
           <FloorsLayers ed={ed} />
-        </aside>
+        </aside>}
       </main>
       {dialog === 'export' && <ExportDialog ed={ed} assets={assets} onClose={() => setDialog(null)} />}
       {dialog === 'settings' && <MapSettings ed={ed} assets={assets} onClose={() => setDialog(null)} />}
