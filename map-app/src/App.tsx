@@ -18,6 +18,7 @@ import { FloorsLayers } from './ui/FloorsLayers';
 import { ExportDialog, GridSelect, Help, MapSettings } from './ui/Dialogs';
 import { GenBar, GenDialog, type GenState } from './ui/GenDialog';
 import { LinksDialog } from './ui/LinksDialog';
+import { pickStyle } from './state/pickStyle';
 import { ContextMenu, type MenuItem, menuItems } from './ui/ContextMenu';
 import { parseMapHash } from '../../site/site-links.js';
 import { Field, Modal, NumInput, Toasts, toast, useStore } from './ui/common';
@@ -76,6 +77,13 @@ async function openFromFile(assets: AssetStore): Promise<Editor | null> {
     toast(tr('Не удалось открыть файл: {0}', e instanceof Error ? e.message : String(e)), 'error');
     return null;
   }
+}
+
+/** «Взять стиль» с первого выделенного элемента. */
+function takeStyle(ed: Editor) {
+  const it = ed.state.sel[0];
+  const what = it ? pickStyle(ed, it) : null;
+  toast(what ? tr('Стиль взят: {0}', what) : tr('Выдели элемент карты, чтобы взять его стиль (I)'), what ? 'info' : 'error');
 }
 
 const editorOf = (s: StoredMap) => { const e = new Editor(s.doc); e.fileSavedAt = s.fileSavedAt ?? 0; return e; };
@@ -330,6 +338,7 @@ function Workspace({ ed, assets, user, onExit, onOpen }: { ed: Editor; assets: A
       }
       if (e.altKey) return;
       if (k === 'tab' && !e.shiftKey) { e.preventDefault(); togglePanels(); return; }
+      if (k === 'i') { takeStyle(ed); return; }
       const t = TOOLS.find((x) => x.key === k);
       if (t) { ed.setTool(t.id); return; }
       const objs = ed.selected('object');

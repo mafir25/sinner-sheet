@@ -563,6 +563,16 @@ const EN: Record<string, string> = {
   'Недавние': 'Recent',
   '{0} (копия)': '{0} (copy)',
   'Дублировать этаж — копия встанет выше': 'Duplicate floor — the copy goes above',
+  'Пол и стены комнаты': 'Room floor and walls',
+  'Путь': 'Path',
+  'Подпись': 'Label',
+  'Крыша': 'Roof',
+  'Стиль взят: {0}': 'Style picked: {0}',
+  'Выдели элемент карты, чтобы взять его стиль (I)': 'Select a map element to pick its style (I)',
+  'Взять стиль': 'Pick style',
+  'Взять стиль выделенного (пол, стены, объект, путь, свет…) в его инструмент': 'Pick the selection’s style (floor, walls, object, path, light…) into its tool',
+  'Меню выделенного (на планшете — долгое нажатие)': 'Menu for the selection (long press on a tablet)',
+  '🖱 ПКМ': '🖱 RMB',
 };
 
 export function tr(ru: string, ...args: (string | number)[]): string {

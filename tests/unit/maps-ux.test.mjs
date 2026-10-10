@@ -186,3 +186,20 @@ describe('буфер обмена: всё выделенное', () => {
     expect(f.objects[0].x).toBe(2);
   });
 });
+import { pickStyle } from '../../map-app/src/state/pickStyle.ts';
+describe('«Взять стиль»', () => {
+  it('комната → инструмент «Комната» с её полом и стенами; объект → «Объект» с поворотом', () => {
+    const doc = withContent();
+    doc.floors[0].rooms[0].floor = 'canon:floors/tile.svg';
+    doc.floors[0].objects[0].rot = 90;
+    const ed = new Editor(doc);
+    expect(pickStyle(ed, { kind: 'room', id: 'r' })).toBeTruthy();
+    expect(ed.state.tool).toBe('room');
+    expect(ed.state.settings.floor).toBe('canon:floors/tile.svg');
+    expect(ed.state.settings.wall.width).toBe(0.1);
+    pickStyle(ed, { kind: 'object', id: 'o' });
+    expect(ed.state.tool).toBe('stamp');
+    expect(ed.state.settings).toMatchObject({ stamp: 'canon:x.svg', stampRot: 90 });
+    expect(pickStyle(ed, { kind: 'object', id: 'нет' })).toBeNull();
+  });
+});

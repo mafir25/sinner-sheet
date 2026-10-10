@@ -6,6 +6,8 @@ import { useEditor } from '../state/editor';
 import { sameObjects } from '../geom/ops';
 import { boxSelect } from '../tools/hit';
 import { tr } from '../i18n';
+import { pickStyle } from '../state/pickStyle';
+import { toast } from './common';
 
 export type MenuItem = { label: string; hint?: string; run(): void; danger?: boolean } | 'sep';
 
@@ -20,6 +22,12 @@ export function menuItems(ed: Editor, assets: AssetStore, extra: { fit(): void }
   if (sel.length) {
     items.push({ label: tr('Копировать'), hint: 'Ctrl+C', run: () => ed.copy() });
     items.push({ label: tr('Дублировать'), hint: 'Ctrl+D', run: () => ed.duplicate() });
+  }
+  if (sel.length) {
+    items.push({ label: tr('Взять стиль'), hint: 'I', run: () => {
+      const what = pickStyle(ed, sel[0]);
+      if (what) toast(tr('Стиль взят: {0}', what));
+    } });
   }
   if (ed.canPaste()) items.push({ label: tr('Вставить'), hint: 'Ctrl+V', run: () => ed.paste() });
   if (objs.length) {

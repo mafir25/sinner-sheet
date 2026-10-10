@@ -251,6 +251,8 @@ const KEYS: [string, string][] = [
   ['Ctrl+Z / Ctrl+Y', 'Отмена / повтор'],
   ['Ctrl+C / V / D', 'Копировать / вставить / дублировать'],
   ['Ctrl+A', 'Выделить всё на этаже'],
+  ['I', 'Взять стиль выделенного (пол, стены, объект, путь, свет…) в его инструмент'],
+  ['🖱 ПКМ', 'Меню выделенного (на планшете — долгое нажатие)'],
   ['G / C', 'Кисть местности / путь'],
   ['L / T / R', 'Свет / подпись / крыша'],
   ['M', 'Линейка: расстояние в клетках и футах'],
@@ -264,7 +266,7 @@ export function Help({ onClose }: { onClose(): void }) {
   return (
     <Modal title={tr('Управление')} onClose={onClose}>
       <table className="keys"><tbody>
-        {KEYS.map(([k, v]) => <tr key={k}><td><kbd>{k === 'Колесо / щипок' ? tr(k) : k}</kbd></td><td>{tr(v)}</td></tr>)}
+        {KEYS.map(([k, v]) => <tr key={k}><td><kbd>{tr(k)}</kbd></td><td>{tr(v)}</td></tr>)}
       </tbody></table>
       <p className="hint" style={{ marginTop: 12 }}>{tr('На планшете: два пальца — панорама и масштаб; кнопки «Привязка» и «Вырезать» внизу заменяют Ctrl и Alt.')}</p>
     </Modal>
