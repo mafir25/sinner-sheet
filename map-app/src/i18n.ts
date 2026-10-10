@@ -560,6 +560,7 @@ const EN: Record<string, string> = {
   'Выделить такие же': 'Select the same',
   'На слой «{0}»': 'To layer “{0}”',
   'Выделить всё': 'Select all',
+  'Недавние': 'Recent',
 };
 
 export function tr(ru: string, ...args: (string | number)[]): string {

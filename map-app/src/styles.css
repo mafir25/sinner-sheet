@@ -237,3 +237,7 @@ kbd { font-family: ui-monospace, Consolas, monospace; font-size: .78rem; border:
 .ctx-menu hr { border: none; border-top: 1px solid var(--line); margin: 4px 0; }
 .ctx-menu hr:first-child, .ctx-menu hr + hr { display: none; }
 @media (pointer: coarse) { .ctx-menu button { padding: 11px 14px; } }
+.lib-recent { display: flex; flex-wrap: wrap; gap: 3px; }
+.lib-mini { border: 1px solid var(--line); padding: 1px; background: var(--surface); line-height: 0; }
+.lib-mini:hover { border-color: var(--accent); }
+.lib-mini.on { border-color: var(--yellow); }

@@ -1,5 +1,6 @@
 // Библиотека ассетов: наборы → папки → разновидности. Щелчок по ассету выбирает его для инструмента.
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useSyncExternalStore } from 'react';
+import { pushRecent, recent, subscribeRecent } from './recent';
 import { MetaEditor } from './MetaEditor';
 import { type AssetStore, pickFolder } from '../assets/store';
 import { findDir, firstAsset } from '../assets/tree.js';
@@ -15,6 +16,7 @@ import { swapAsset } from './Props';
 export function applyAsset(ed: Editor, assets: AssetStore, key: AssetKey) {
   const e = assets.entry(key);
   if (!e) return;
+  pushRecent(key);
   const sel = ed.state.sel;
   const has = (kind: string) => sel.some((s) => s.kind === kind);
   if (e.kind === 'floor') {
@@ -64,6 +66,7 @@ export function applyAsset(ed: Editor, assets: AssetStore, key: AssetKey) {
 
 /** Комплект — в инструмент «Объект». */
 export function applySet(ed: Editor, key: string) {
+  pushRecent(`set:${key}`);
   ed.setSettings({ stampSet: key });
   ed.setTool('stamp');
 }
@@ -76,6 +79,7 @@ export function Library({ ed, assets }: { ed: Editor; assets: AssetStore }) {
   const [loc, setLoc] = useState<Loc>({ pack: 'canon', path: '' });
   const [q, setQ] = useState('');
   const [markup, setMarkup] = useState(false);
+  const recentKeys = useSyncExternalStore(subscribeRecent, recent);
   const pack = loc.pack ? assets.pack(loc.pack) : undefined;
   const dir = pack ? findDir(pack.tree, loc.path) ?? pack.tree : null;
   const current = new Set([settings.stampSet ? null : settings.stamp, settings.floor, settings.wall.asset, settings.door, settings.window]);
@@ -168,6 +172,18 @@ export function Library({ ed, assets }: { ed: Editor; assets: AssetStore }) {
         </div>
       </div>
       <input className="input" placeholder={tr('Поиск…')} value={q} onChange={(e) => setQ(e.target.value)} />
+      {!q && recentKeys.length > 0 && (
+        <div className="lib-recent" aria-label={tr('Недавние')}>
+          {recentKeys.map((k) => {
+            if (k.startsWith('set:')) {
+              const sk = k.slice(4), found = assets.set(sk);
+              return found && <button key={k} className={`lib-mini${settings.stampSet === sk ? ' on' : ''}`} title={`🧩 ${nm(found.set.name)}`} onClick={() => applySet(ed, sk)}><SetThumb assets={assets} k={sk} size={34} /></button>;
+            }
+            const e = assets.entry(k);
+            return e && <button key={k} className={`lib-mini${current.has(k) ? ' on' : ''}`} title={nm(e.name)} onClick={() => applyAsset(ed, assets, k)}><Thumb assets={assets} k={k} size={34} /></button>;
+          })}
+        </div>
+      )}
       <div className="crumbs">
         {crumbs.map((c, i) => (
           <span key={i}>{i > 0 && <span className="crumb-sep">›</span>}
