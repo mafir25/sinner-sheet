@@ -514,6 +514,9 @@ const EN: Record<string, string> = {
   'Библиотека, этажи и слои (Tab — спрятать или показать обе панели)': 'Library, floors and layers (Tab hides or shows both panels)',
   'Спрятать или показать боковые панели': 'Hide or show the side panels',
   'Папка': 'Folder',
+  'Что остаётся на месте': 'What stays in place',
+  'Якорь': 'Anchor',
+  'Новое поле добавится с противоположной стороны, всё нарисованное сдвинется вместе с картой.': 'New space is added on the opposite side; everything drawn moves with the map.',
 };
 
 export function tr(ru: string, ...args: (string | number)[]): string {

@@ -223,3 +223,6 @@ kbd { font-family: ui-monospace, Consolas, monospace; font-size: .78rem; border:
 .right > .side-sec { flex: none; }
 .right > .lib { flex: 1 0 auto; }
 .lib-grid { min-height: 190px; }
+.anchor { display: grid; grid-template-columns: repeat(3, 28px); gap: 2px; flex: none; }
+.anchor button { height: 28px; border: 1px solid var(--line); background: var(--surface); color: var(--dim); font-size: .8rem; }
+.anchor button.on { color: #000; background: var(--accent); border-color: var(--accent); }
