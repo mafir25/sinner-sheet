@@ -1,10 +1,10 @@
 // Отрисовка карты на Canvas 2D. Один и тот же код рисует экран и экспорт.
 // Перед вызовом ctx должен быть переведён в координаты клеток (1 единица = 1 клетка).
 import type { AssetStore } from '../assets/store';
-import type { Floor, MapDoc, MapObject, Portal, Poly, Pt } from '../model/types';
+import type { Floor, MapDoc, MapObject, Portal, Poly, Pt, Roof } from '../model/types';
 import { drawGrid } from '../geom/grid';
-import { portalFaces, portalShape, portalThickness, wallChains, wallFaces, type WallChain, type WallFace } from '../geom/walls';
-import type { BBox } from '../geom/poly';
+import { portalFaces, portalShape, portalThickness, portalWall, wallChains, wallFaces, wallLift, type WallChain, type WallFace } from '../geom/walls';
+import { type BBox, pointInPoly, ptsBBox } from '../geom/poly';
 import { auxRes, drawLabel, drawLighting, drawPath, drawRoof, terrainCanvas } from './extras';
 
 export type RenderOpts = {
@@ -102,10 +102,23 @@ export function drawFloor(ctx: CanvasRenderingContext2D, doc: MapDoc, f: Floor, 
   if (o.roofs !== 'hide' && f.roofs.length) {
     ctx.save();
     if (o.roofs === 'ghost') ctx.globalAlpha *= 0.55;
-    for (const r of f.roofs) drawRoof(ctx, r, assets, o.scale);
+    for (const r of f.roofs) {
+      const l = roofLift(f, r);
+      ctx.save();
+      ctx.translate(l.x, l.y);
+      drawRoof(ctx, r, assets, o.scale);
+      ctx.restore();
+    }
     ctx.restore();
   }
   if (o.lighting && doc.lighting.enabled) drawLighting(ctx, f, doc.lighting, res, W, H, !o.exporting);
+}
+
+/** Крыша лежит на верху стен: поднята так же, как стены комнаты под ней. */
+function roofLift(f: Floor, r: Roof): Pt {
+  const b = ptsBBox(r.poly[0]), c = { x: (b.x0 + b.x1) / 2, y: (b.y0 + b.y1) / 2 };
+  const room = f.rooms.find((rm) => pointInPoly(c, rm.poly));
+  return room ? wallLift(room.wall) : { x: 0, y: 0 };
 }
 
 /** Слои по порядку: в каждом сначала пути, потом объекты. */
@@ -153,9 +166,13 @@ function missing(ctx: CanvasRenderingContext2D, x: number, y: number, w: number,
   ctx.fillText('?', x + w / 2, y + h / 2);
 }
 
-/** Путь стены; торцы отдельных стен продлеваются на полтолщины, чтобы углы смыкались. */
+/**
+ * Путь верхней линии стены (у объёмной — поднята над основанием, см. wallLift); торцы отдельных стен продлеваются
+ * на полтолщины, чтобы углы смыкались.
+ */
 function chainPath(ctx: CanvasRenderingContext2D, c: WallChain) {
-  const pts = c.pts.slice(), e = c.style.width / 2;
+  const l = wallLift(c.style);
+  const pts = c.pts.map((q) => ({ x: q.x + l.x, y: q.y + l.y })), e = c.style.width / 2;
   const ext = (from: Pt, to: Pt): Pt => {
     const dx = to.x - from.x, dy = to.y - from.y, L = Math.hypot(dx, dy) || 1;
     return { x: to.x + (dx / L) * e, y: to.y + (dy / L) * e };
@@ -215,8 +232,10 @@ export function drawPortal(ctx: CanvasRenderingContext2D, f: Floor, p: Portal, a
   const th = portalThickness(f, p);
   const e = p.asset ? assets.entry(p.asset) : undefined;
   const h = Math.max(th, e ? (e.footprint[1] / e.footprint[0]) * L : th);
+  // на объёмной стене без грани здесь (боковая при «вниз») проём — на поднятой верхней линии
+  const w = portalWall(f, p), l = w ? wallLift(w.style) : { x: 0, y: 0 };
   ctx.save();
-  ctx.translate((p.a.x + p.b.x) / 2, (p.a.y + p.b.y) / 2);
+  ctx.translate((p.a.x + p.b.x) / 2 + l.x, (p.a.y + p.b.y) / 2 + l.y);
   ctx.rotate(Math.atan2(dy, dx));
   const src = p.asset ? assets.source(p.asset, o.scale * (L / (e?.footprint[0] ?? L))) : null;
   if (src) ctx.drawImage(src, -L / 2, -h / 2, L, h);
@@ -295,11 +314,14 @@ export function drawFaces(ctx: CanvasRenderingContext2D, f: Floor, assets: Asset
   const BIG = 1e5;
   for (const { face, portal } of items) {
     ctx.save();
-    // грань «внутрь» видна только в своей комнате, «наружу» — только вне её: на углах они не залезают друг на друга
+    // грань «внутрь» видна только в своей комнате, «наружу» — только вне её: на углах они не залезают друг на друга.
+    // У поднятой стены (проекция) и контур комнаты поднят — как будто смотрим на комнату на высоте верха стен
     if (face.room) {
       ctx.beginPath();
       if (face.side === 'out') ctx.rect(-BIG, -BIG, BIG * 2, BIG * 2);
+      ctx.translate(face.lift.x, face.lift.y);
       polyPath(ctx, face.room.poly);
+      ctx.translate(-face.lift.x, -face.lift.y);
       ctx.clip('evenodd');
     }
     const [p0, p1, p2, p3] = face.pts;

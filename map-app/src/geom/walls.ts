@@ -166,11 +166,27 @@ export function resizePortal(p: Portal, len: number): { a: Pt; b: Pt } {
 
 // ---------- объёмные стены (псевдо-3D)
 /**
- * Грань стены: четырёхугольник (линия стены p0→p1, затем дальний край); v — куда «поднимается» грань.
- * side — сторона стены: in (внутрь комнаты / первая сторона отдельной стены) или out; room — чья стена
- * (грань «внутрь» видна только внутри этой комнаты, «наружу» — только снаружи).
+ * Грань стены: четырёхугольник p0→p1 (верхний край) → p2→p3 (основание); v — от верха к основанию.
+ * side — сторона стены: in (внутрь комнаты / первая сторона отдельной стены) или out; room — чья стена.
+ * lift — на сколько поднят верх стены («вниз»/«вверх»: стена стоит на линии, т. е. на периметре пола, и растёт
+ * вверх по экрану): контур комнаты для обрезки сдвигается так же — грань «внутрь» видна только в поднятой
+ * комнате, «наружу» — только вне её.
  */
-export type WallFace = { pts: Pt[]; v: Pt; style: WallStyle; side: 'in' | 'out'; room?: Room };
+export type WallFace = { pts: Pt[]; v: Pt; style: WallStyle; side: 'in' | 'out'; room?: Room; lift: Pt };
+
+const ZERO: Pt = { x: 0, y: 0 };
+
+/**
+ * Сдвиг верха объёмной стены при проекции «вниз»/«вверх»: основание — на линии стены (периметр пола),
+ * верхняя линия поднята на высоту грани. «По периметру» и плоские стены — без сдвига.
+ */
+export function wallLift(st: WallStyle): Pt {
+  const h = st.height ?? 0;
+  if (h <= 0) return ZERO;
+  if (st.inner === 'down' || st.outer === 'down') return { x: 0, y: -h };
+  if (st.inner === 'up' || st.outer === 'up') return { x: 0, y: h };
+  return ZERO;
+}
 
 /** Смещение грани проекцией (вниз/вверх) для стороны с нормалью n; null — у этой стены граней нет. */
 function projVector(dir: FaceDir | undefined, n: Pt, h: number): Pt | null {
@@ -209,8 +225,8 @@ function freePieces(f: Floor, a: Pt, b: Pt, n: Pt, room: Room | undefined, outsi
 }
 
 /**
- * Грани ломаной стены pts (closed — кольцо) по правилам стиля. «Вниз»/«вверх» — проекция: грань сдвинута по экрану,
- * соседние грани сходятся сами. «По периметру» — полоса вдоль стены со стыками по биссектрисе угла
+ * Грани ломаной стены pts (closed — кольцо) по правилам стиля. «Вниз»/«вверх» — проекция: стена стоит на линии
+ * и поднимается по экрану, соседние грани сходятся сами. «По периметру» — полоса вдоль стены со стыками по биссектрисе угла
  * (два треугольника на углу, без перекосов и пропусков).
  */
 function chainFaces(f: Floor, pts0: Pt[], closed: boolean, st: WallStyle, room: Room | undefined, out: WallFace[]) {
@@ -247,7 +263,10 @@ function chainFaces(f: Floor, pts0: Pt[], closed: boolean, st: WallStyle, room: 
         ? { x: far[i].x + ((far[i + 1].x - far[i].x) * t) / L, y: far[i].y + ((far[i + 1].y - far[i].y) * t) / L }
         : { x: at(t).x + v.x, y: at(t).y + v.y });
       for (const [t0, t1] of freePieces(f, a, b, n, room, side === 'out')) {
-        out.push({ pts: [at(t0), at(t1), farAt(t1), farAt(t0)], v, style: st, side, room });
+        if (far) { out.push({ pts: [at(t0), at(t1), farAt(t1), farAt(t0)], v, style: st, side, room, lift: ZERO }); continue; }
+        // проекция: основание на линии стены, верх поднят на v назад
+        const up = (q: Pt): Pt => ({ x: q.x - v.x, y: q.y - v.y });
+        out.push({ pts: [up(at(t0)), up(at(t1)), at(t1), at(t0)], v, style: st, side, room, lift: { x: -v.x, y: -v.y } });
       }
     }
   }

@@ -1,7 +1,8 @@
 // Объёмные стены (грани в выбранных направлениях) и проёмы без стены.
 import { describe, it, expect } from 'vitest';
 import { rectPoly } from '../../map-app/src/geom/poly.ts';
-import { wallChains, wallFaces, orphanPortals, portalFaces, portalShape } from '../../map-app/src/geom/walls.ts';
+import { wallChains, wallFaces, wallLift, orphanPortals, portalFaces, portalShape } from '../../map-app/src/geom/walls.ts';
+import { faceDepth } from '../../map-app/src/geom/place.ts';
 import { blockingSegments } from '../../map-app/src/geom/light.ts';
 import { buildDd2vtt } from '../../map-app/src/export/export.ts';
 import { createDoc, parseDoc } from '../../map-app/src/model/doc.ts';
@@ -18,17 +19,17 @@ const box = (face) => {
 };
 
 describe('грани объёмных стен', () => {
-  it('«вниз» внутри — только северная стена, грань в комнату; «вниз» снаружи — южная, наружу', () => {
+  it('«вниз»: стена стоит на линии и растёт вверх — северная внутри (над комнатой), южная снаружи (на пол комнаты)', () => {
     const f = floor([room('r', { x: 0, y: 0 }, { x: 4, y: 3 }, wall3d('down', 'down'))]);
     const faces = wallFaces(f).map(box).sort();
-    expect(faces).toEqual([[0, 0, 4, 1], [0, 3, 4, 4]].sort());
+    expect(faces).toEqual([[0, -1, 4, 0], [0, 2, 4, 3]].sort());
   });
   it('«по периметру» внутри — у всех стен, к центру', () => {
     const faces = wallFaces(floor([room('r', { x: 0, y: 0 }, { x: 4, y: 3 }, wall3d('normal', 'none', 0.5))])).map(box).sort();
     expect(faces).toEqual([[0, 0, 4, 0.5], [0, 2.5, 4, 3], [0, 0, 0.5, 3], [3.5, 0, 4, 3]].sort());
   });
   it('«вверх» и «нет»; высота 0 — плоская стена без граней', () => {
-    expect(wallFaces(floor([room('r', { x: 0, y: 0 }, { x: 4, y: 3 }, wall3d('up', 'none'))])).map(box)).toEqual([[0, 2, 4, 3]]);
+    expect(wallFaces(floor([room('r', { x: 0, y: 0 }, { x: 4, y: 3 }, wall3d('up', 'none'))])).map(box)).toEqual([[0, 3, 4, 4]]);
     expect(wallFaces(floor([room('r', { x: 0, y: 0 }, { x: 4, y: 3 }, wall3d('none', 'none'))]))).toEqual([]);
     expect(wallFaces(floor([room('r', { x: 0, y: 0 }, { x: 4, y: 3 }, { asset: null, color: '#000', width: 0.25 })]))).toEqual([]);
   });
@@ -37,15 +38,15 @@ describe('грани объёмных стен', () => {
     const f = floor([room('a', { x: 0, y: 0 }, { x: 4, y: 3 }, w), room('b', { x: 0, y: 3 }, { x: 4, y: 6 }, w)]);
     const faces = wallFaces(f).map(box).sort();
     // северная стена A внутрь, общая стена — внутрь B, южная стена B — наружу
-    expect(faces).toEqual([[0, 0, 4, 1], [0, 3, 4, 4], [0, 6, 4, 7]].sort());
+    expect(faces).toEqual([[0, -1, 4, 0], [0, 2, 4, 3], [0, 5, 4, 6]].sort());
   });
   it('двери и окна вырезают стену вместе с гранью; их грань — отдельно, по форме стены', () => {
     const w = wall3d('down', 'none');
     for (const kind of ['door', 'window']) {
       const p = { id: 'd', kind, a: { x: 1, y: 0 }, b: { x: 2, y: 0 }, asset: 'canon:portals/doors/wood.svg' };
       const f = floor([room('r', { x: 0, y: 0 }, { x: 4, y: 3 }, w)], [p]);
-      expect(wallFaces(f).map(box).sort()).toEqual([[0, 0, 1, 1], [2, 0, 4, 1]]);
-      expect(portalFaces(f, p).map(box)).toEqual([[1, 0, 2, 1]]);
+      expect(wallFaces(f).map(box).sort()).toEqual([[0, -1, 1, 0], [2, -1, 4, 0]]);
+      expect(portalFaces(f, p).map(box)).toEqual([[1, -1, 2, 0]]);
     }
     // на плоской стене граней проёма нет — рисуется как раньше
     const flat = floor([room('r', { x: 0, y: 0 }, { x: 4, y: 3 }, { asset: null, color: '#000', width: 0.25 })]);
@@ -77,7 +78,7 @@ describe('проём без стены', () => {
   it('убирает стену: ни линии, ни грани, ни тени для света', () => {
     const lens = wallChains(f).map((c) => c.pts.length);
     expect(lens).toEqual([4]); // остались три стены одной ломаной
-    expect(wallFaces(f).map(box)).toEqual([[0, 0, 4, 1]]);
+    expect(wallFaces(f).map(box)).toEqual([[0, -1, 4, 0]]);
     expect(blockingSegments(f).some(([a, b]) => a.y === 3 && b.y === 3)).toBe(false);
     expect(orphanPortals(f).size).toBe(0);
   });
@@ -129,7 +130,7 @@ describe('доработки стен', () => {
   });
   it('разные направления внутри и снаружи работают вместе', () => {
     const faces = wallFaces(floor([room('r', { x: 0, y: 0 }, { x: 4, y: 3 }, w('up', 'normal', 0.5))]));
-    expect(faces.filter((x) => x.side === 'in').map(box)).toEqual([[0, 2.5, 4, 3]]);
+    expect(faces.filter((x) => x.side === 'in').map(box)).toEqual([[0, 3, 4, 3.5]]);
     expect(faces.filter((x) => x.side === 'out')).toHaveLength(4);
   });
   it('отдельная стена: внутри — слева по ходу рисования, снаружи — справа', () => {
@@ -153,5 +154,31 @@ describe('доработки стен', () => {
     const f = floor([room('r', { x: 0, y: 0 }, { x: 4, y: 3 }, w('down', 'down'))], [door, arch, gap]);
     expect(wallChains(f, new Set(), false)).toHaveLength(1);
     expect(wallChains(f)).toHaveLength(3);
+  });
+});
+
+describe('стена растёт от периметра пола', () => {
+  const w = (inner, outer, height = 0.5) => ({ asset: null, color: '#000', width: 0.1, height, inner, outer });
+  it('верхняя линия поднята на высоту грани; основание грани — на линии стены', () => {
+    expect(wallLift(w('down', 'down'))).toEqual({ x: 0, y: -0.5 });
+    expect(wallLift(w('none', 'up'))).toEqual({ x: 0, y: 0.5 });
+    expect(wallLift(w('normal', 'none'))).toEqual({ x: 0, y: 0 });
+    expect(wallLift({ asset: null, color: '#000', width: 0.25 })).toEqual({ x: 0, y: 0 });
+    const faces = wallFaces(floor([room('r', { x: 0, y: 0 }, { x: 4, y: 3 }, w('down', 'down'))]));
+    for (const face of faces) {
+      // основание (p2, p3) на линии стены, верх (p0, p1) — выше на высоту
+      expect(face.pts[2].y === 0 || face.pts[2].y === 3).toBe(true);
+      expect(face.pts[0].y).toBeCloseTo(face.pts[3].y - 0.5);
+      expect(face.lift.x + 0).toBe(0);
+      expect(face.lift.y).toBe(-0.5);
+    }
+  });
+  it('мебель у стены: северная грань за пределами комнаты, южная заходит в комнату', () => {
+    const st = w('down', 'down');
+    expect(faceDepth(st, { x: 0, y: 1 }, true)).toBe(0); // от северной стены вглубь комнаты
+    expect(faceDepth(st, { x: 0, y: -1 }, true)).toBe(0.5); // от южной стены вглубь комнаты
+    expect(faceDepth(st, { x: 1, y: 0 }, true)).toBe(0);
+    expect(faceDepth(w('down', 'none'), { x: 0, y: -1 }, true)).toBe(0); // у южной стены грани нет
+    expect(faceDepth(w('normal', 'none'), { x: 1, y: 0 }, true)).toBe(0.5);
   });
 });
