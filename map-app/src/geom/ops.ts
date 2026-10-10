@@ -1,5 +1,5 @@
 // Операции над документом целиком: сдвиг содержимого при изменении размера карты с якорем.
-import type { Floor, GridType, MapDoc, Poly, Pt } from '../model/types';
+import type { AssetKey, Floor, GridType, MapDoc, MapObject, Poly, Pt } from '../model/types';
 import { hexAt, hexCenter } from './grid';
 
 const add = (p: Pt, d: Pt): Pt => ({ x: p.x + d.x, y: p.y + d.y });
@@ -41,4 +41,18 @@ export function resizeDoc(doc: MapDoc, width: number, height: number, anchor: An
   const d = gridShift(doc.grid.type, { x: part(width - doc.width, anchor.col), y: part(height - doc.height, anchor.row) });
   const moved = d.x !== 0 || d.y !== 0;
   return { ...doc, width, height, floors: moved ? doc.floors.map((f) => shiftFloorAll(f, d)) : doc.floors };
+}
+
+/** Объекты этажа с тем же ассетом, что у выбранных, или из той же группы вариантов; скрытые и заблокированные слои — мимо. */
+export function sameObjects(f: Floor, picked: MapObject[],
+  entry: (k: AssetKey) => { dir: string; group?: string } | undefined): string[] {
+  const keys = new Set(picked.map((o) => o.asset));
+  const groups = new Set(picked.map((o) => { const e = entry(o.asset); return e?.group ? `${o.asset.slice(0, o.asset.lastIndexOf('/') + 1)}|${e.group}` : ''; }).filter(Boolean));
+  const off = new Set(f.layers.filter((l) => l.locked || !l.visible).map((l) => l.id));
+  return f.objects.filter((o) => {
+    if (off.has(o.layer)) return false;
+    if (keys.has(o.asset)) return true;
+    const e = entry(o.asset);
+    return !!e?.group && groups.has(`${o.asset.slice(0, o.asset.lastIndexOf('/') + 1)}|${e.group}`);
+  }).map((o) => o.id);
 }

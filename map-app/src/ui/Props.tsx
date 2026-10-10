@@ -10,6 +10,7 @@ import { nm, tr } from '../i18n';
 import { edgeStyle, portalFaces, portalShape, resizePortal } from '../geom/walls';
 import { BrushPanel, LabelPanel, LightPanel, PathPanel, RoofPanel, SelectionExtras } from './Props2';
 import { AssetPicker, ColorInput, Field, NumInput, SetThumb, Slider, Thumb, assetName, toast, useStore } from './common';
+import { sameObjects } from '../geom/ops';
 import { FEET_PER_CELL, fmtLen, fmtNum, polyArea, polySize, segLen } from '../geom/measure';
 
 const FACE_DIRS: { id: FaceDir; label: string }[] = [
@@ -195,6 +196,8 @@ export function Props({ ed, assets }: { ed: Editor; assets: AssetStore }) {
           <div className="row wrap">
             <button className="btn btn-sm" onClick={() => updObjs((o) => { o.flipX = !o.flipX; })}>{tr('Отразить ↔')}</button>
             <button className="btn btn-sm" onClick={() => updObjs((o) => { o.flipY = !o.flipY; })}>{tr('Отразить ↕')}</button>
+            <button className="btn btn-sm" title={tr('Выделить на этаже все такие же объекты (тот же ассет или его варианты) — например, чтобы заменить их разом')}
+              onClick={() => ed.setSel(sameObjects(f, objs, (k) => assets.entry(k)).map((id) => ({ kind: 'object' as const, id })))}>≡ {tr('Такие же')}</button>
             <button className="btn btn-sm" title={tr('Наверх')} onClick={() => ed.commitFloor((fl) => { fl.objects = [...fl.objects.filter((o) => !ids.has(o.id)), ...fl.objects.filter((o) => ids.has(o.id))]; })}>⤒ {tr('Наверх')}</button>
             <button className="btn btn-sm" title={tr('Вниз')} onClick={() => ed.commitFloor((fl) => { fl.objects = [...fl.objects.filter((o) => ids.has(o.id)), ...fl.objects.filter((o) => !ids.has(o.id))]; })}>⤓ {tr('Вниз')}</button>
           </div>
@@ -408,3 +411,4 @@ function RoomSize({ rooms }: { rooms: { poly: Pt[][] }[] }) {
     </p>
   );
 }
+

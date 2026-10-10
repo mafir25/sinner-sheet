@@ -69,3 +69,13 @@ describe('площадь комнаты', () => {
     expect(polySize([outer, hole])).toEqual({ w: 6, h: 4 });
   });
 });
+import { sameObjects } from '../../map-app/src/geom/ops.ts';
+describe('«Такие же»', () => {
+  it('тот же ассет и варианты той же группы в той же папке; заблокированный слой — мимо', () => {
+    const o = (id, asset, layer = 'a') => ({ id, asset, layer, x: 0, y: 0, w: 1, h: 1, rot: 0, flipX: false, flipY: false, opacity: 1 });
+    const f = { layers: [{ id: 'a', locked: false, visible: true }, { id: 'b', locked: true, visible: true }],
+      objects: [o('1', 'canon:c/crate.svg'), o('2', 'canon:c/crate-steel.svg'), o('3', 'canon:c/crate.svg', 'b'), o('4', 'canon:c/table.svg'), o('5', 'canon:d/crate.svg')] };
+    const entries = { 'canon:c/crate.svg': { dir: 'c', group: 'crate' }, 'canon:c/crate-steel.svg': { dir: 'c', group: 'crate' }, 'canon:c/table.svg': { dir: 'c' }, 'canon:d/crate.svg': { dir: 'd', group: 'crate' } };
+    expect(sameObjects(f, [f.objects[0]], (k) => entries[k])).toEqual(['1', '2']);
+  });
+});

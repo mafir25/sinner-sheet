@@ -20,6 +20,9 @@ import { LinksDialog } from './ui/LinksDialog';
 import { parseMapHash } from '../../site/site-links.js';
 import { Field, Modal, NumInput, Toasts, toast, useStore } from './ui/common';
 import { floorIssues } from './geom/place';
+import { boxSelect } from './tools/hit';
+
+const ALL = { x0: -Infinity, y0: -Infinity, x1: Infinity, y1: Infinity };
 
 const openSiteUi = (section: string) => (window as unknown as { SiteUI?: { open(s: string): void } }).SiteUI?.open(section);
 
@@ -279,6 +282,7 @@ function Workspace({ ed, assets, user, onExit, onOpen }: { ed: Editor; assets: A
         else if (k === 'c') ed.copy();
         else if (k === 'v') { ed.setTool('select'); ed.paste(); }
         else if (k === 'd') { e.preventDefault(); ed.duplicate(); }
+        else if (k === 'a') { e.preventDefault(); ed.setTool('select'); ed.setSel(boxSelect(ed.floor, ALL)); }
         return;
       }
       if (e.altKey) return;

@@ -527,6 +527,9 @@ const EN: Record<string, string> = {
   'Площадь всех: {0} кл² · {1} кв. фт': 'Total area: {0} cells² · {1} sq ft',
   'Размер: {0} × {1} кл ({2} × {3} фт)': 'Size: {0} × {1} cells ({2} × {3} ft)',
   'Площадь: {0} кл² · {1} кв. фт': 'Area: {0} cells² · {1} sq ft',
+  'Выделить на этаже все такие же объекты (тот же ассет или его варианты) — например, чтобы заменить их разом': 'Select all such objects on the floor (same asset or its variants), e.g. to replace them at once',
+  'Такие же': 'Same',
+  'Выделить всё на этаже': 'Select everything on the floor',
 };
 
 export function tr(ru: string, ...args: (string | number)[]): string {
