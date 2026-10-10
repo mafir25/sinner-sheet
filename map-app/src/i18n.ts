@@ -573,6 +573,15 @@ const EN: Record<string, string> = {
   'Взять стиль выделенного (пол, стены, объект, путь, свет…) в его инструмент': 'Pick the selection’s style (floor, walls, object, path, light…) into its tool',
   'Меню выделенного (на планшете — долгое нажатие)': 'Menu for the selection (long press on a tablet)',
   '🖱 ПКМ': '🖱 RMB',
+  'Перед генерацией': 'Before generation',
+  'Автоснимок': 'Auto snapshot',
+  'Перед возвратом версии': 'Before restoring a version',
+  'Версия от {0} возвращена (Ctrl+Z — отменить)': 'Version from {0} restored (Ctrl+Z to undo)',
+  'Версии карты': 'Map versions',
+  'Снимки хранятся в этом браузере: перед каждой генерацией и каждые 10 минут работы, последние 10. Это не замена файлу .pmmap.': 'Snapshots are kept in this browser: before every generation and every 10 minutes of work, the last 10. They do not replace a .pmmap file.',
+  'Снимков пока нет.': 'No snapshots yet.',
+  'Вернуть': 'Restore',
+  'Версии карты: снимки перед генерацией и каждые 10 минут': 'Map versions: snapshots before generation and every 10 minutes',
 };
 
 export function tr(ru: string, ...args: (string | number)[]): string {

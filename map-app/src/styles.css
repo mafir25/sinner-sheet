@@ -241,3 +241,7 @@ kbd { font-family: ui-monospace, Consolas, monospace; font-size: .78rem; border:
 .lib-mini { border: 1px solid var(--line); padding: 1px; background: var(--surface); line-height: 0; }
 .lib-mini:hover { border-color: var(--accent); }
 .lib-mini.on { border-color: var(--yellow); }
+.versions { display: flex; flex-direction: column; gap: 8px; max-height: 60vh; overflow-y: auto; }
+.version { display: grid; grid-template-columns: 160px 1fr; gap: 12px; align-items: center; border: 1px solid var(--line); padding: 8px; background: var(--surface); }
+.version .card-thumb { height: 100px; }
+.version .btn { align-self: flex-start; }

@@ -118,7 +118,7 @@ export function GridSelect({ value, onChange }: { value: GridType; onChange(v: G
   );
 }
 
-export function MapSettings({ ed, assets, onClose }: { ed: Editor; assets: AssetStore; onClose(): void }) {
+export function MapSettings({ ed, assets, onClose, onVersions }: { ed: Editor; assets: AssetStore; onClose(): void; onVersions(): void }) {
   const d = ed.doc;
   const [name, setName] = useState(d.name);
   const [w, setW] = useState(d.width);
@@ -138,6 +138,7 @@ export function MapSettings({ ed, assets, onClose }: { ed: Editor; assets: Asset
   return (
     <Modal title={tr('Настройки карты')} onClose={onClose}>
       <div className="stack">
+        <button className="btn btn-sm" title={tr('Версии карты: снимки перед генерацией и каждые 10 минут')} onClick={onVersions}>🕘 {tr('Версии карты')}…</button>
         <Field label={tr('Название')}><input className="input" value={name} onChange={(e) => setName(e.target.value)} /></Field>
         <div className="row">
           <Field label={tr('Ширина (клеток)')} row><NumInput value={w} step={1} min={1} max={500} digits={0} onCommit={(v) => setW(Math.round(v))} /></Field>

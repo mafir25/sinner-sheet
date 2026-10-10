@@ -5,7 +5,7 @@ import { AssetStore } from './assets/store';
 import { createDoc } from './model/doc';
 import type { GridType, MapDoc } from './model/types';
 import { Editor, type ToolId, useEditor } from './state/editor';
-import { maps as mapDb, type StoredMap, unsavedToFile } from './storage/idb';
+import { maps as mapDb, type StoredMap, unsavedToFile, versions } from './storage/idb';
 import { EXT, buildPmmap, download, pickFile, readPmmap, safeName, saveBlob } from './storage/file';
 import JSZip from 'jszip';
 import { thumbnail } from './export/export';
@@ -19,6 +19,7 @@ import { ExportDialog, GridSelect, Help, MapSettings } from './ui/Dialogs';
 import { GenBar, GenDialog, type GenState } from './ui/GenDialog';
 import { LinksDialog } from './ui/LinksDialog';
 import { pickStyle } from './state/pickStyle';
+import { AUTO_SNAPSHOT_MS, VersionsDialog, snapshot } from './ui/Versions';
 import { ContextMenu, type MenuItem, menuItems } from './ui/ContextMenu';
 import { parseMapHash } from '../../site/site-links.js';
 import { Field, Modal, NumInput, Toasts, toast, useStore } from './ui/common';
@@ -165,6 +166,7 @@ function StartScreen({ assets, onOpen }: { assets: AssetStore; onOpen(e: Editor)
               <button className="icon-btn danger card-del" title={tr('Удалить')} onClick={async () => {
                 if (!window.confirm(tr('Удалить карту «{0}» из браузера? Файлы на диске не пострадают.', m.name))) return;
                 await mapDb.del(m.id);
+                await versions.clear(m.id).catch(console.error);
                 refresh();
               }}>✕</button>
             </div>
@@ -259,7 +261,7 @@ function Workspace({ ed, assets, user, onExit, onOpen }: { ed: Editor; assets: A
   const canRedo = useEditor(ed, (s) => s.canRedo);
   const settings = useEditor(ed, (s) => s.settings);
   useEditor(ed, (s) => s.dirty); // перерисовка после сохранения в файл: fileSavedAt — не состояние редактора
-  const [dialog, setDialog] = useState<'export' | 'settings' | 'help' | 'gen' | 'links' | null>(null);
+  const [dialog, setDialog] = useState<'export' | 'settings' | 'help' | 'gen' | 'links' | 'versions' | null>(null);
   // адрес вкладки ведёт на открытую карту — его можно сохранить в закладки или вставить в Ширму
   useEffect(() => {
     history.replaceState(null, '', `${location.pathname}${location.search}#map=${encodeURIComponent(ed.doc.id)}`);
@@ -281,11 +283,12 @@ function Workspace({ ed, assets, user, onExit, onOpen }: { ed: Editor; assets: A
 
   // ---------- автосохранение в браузере
   useEffect(() => {
-    let timer = 0;
+    let timer = 0, lastSnap = Date.now();
     const save = async () => {
       timer = 0;
       setSaveState('saving');
       const d = ed.doc;
+      if (Date.now() - lastSnap > AUTO_SNAPSHOT_MS) { lastSnap = Date.now(); snapshot(d, assets, 'auto'); }
       try {
         await mapDb.put({ id: d.id, name: d.name, updatedAt: d.updatedAt || Date.now(), thumb: thumbnail(d, assets), doc: d, fileSavedAt: ed.fileSavedAt });
         setSaveState('saved');
@@ -452,9 +455,10 @@ function Workspace({ ed, assets, user, onExit, onOpen }: { ed: Editor; assets: A
         </aside>}
       </main>
       {dialog === 'export' && <ExportDialog ed={ed} assets={assets} onClose={() => setDialog(null)} />}
-      {dialog === 'settings' && <MapSettings ed={ed} assets={assets} onClose={() => setDialog(null)} />}
+      {dialog === 'settings' && <MapSettings ed={ed} assets={assets} onClose={() => setDialog(null)} onVersions={() => setDialog('versions')} />}
       {dialog === 'help' && <Help onClose={() => setDialog(null)} />}
       {dialog === 'links' && <LinksDialog ed={ed} onClose={() => setDialog(null)} />}
+      {dialog === 'versions' && <VersionsDialog ed={ed} assets={assets} onClose={() => setDialog(null)} />}
       {dialog === 'gen' && <GenDialog ed={ed} assets={assets} onClose={() => setDialog(null)} initial={genLast?.g} replace={genLast?.doc}
         onDone={(g, res) => { setGenLast({ g, doc: res }); setDialog(null); }} />}
     </div>
