@@ -100,3 +100,18 @@ describe('выравнивание и повтор', () => {
     expect(r[2].id).toBe('n3');
   });
 });
+import { usedAssetKeys } from '../../map-app/src/storage/file.ts';
+describe('ассеты карты для .pmmap и экспорта', () => {
+  it('берёт и кисти, пути, крыши, землю, фон-картинку и стили отдельных стен', () => {
+    const doc = withContent();
+    const f = doc.floors[0];
+    f.ground = 'local:p/ground.png';
+    f.image.asset = 'local:p/scan.png';
+    f.terrain[0].asset = 'local:p/mud.png';
+    f.paths.push({ id: 'pa', layer: 'l', points: [], smooth: false, closed: false, style: { asset: 'local:p/road.png', decor: 'local:p/fence.png' } });
+    f.roofs.push({ id: 'rf', poly: [[]], asset: 'local:p/roof.png', color: '#000' });
+    f.rooms[0].edgeStyles[0].style.asset = 'local:p/brick.png';
+    const keys = usedAssetKeys(doc);
+    for (const k of ['ground', 'scan', 'mud', 'road', 'fence', 'roof', 'brick']) expect(keys.has(`local:p/${k}.png`)).toBe(true);
+  });
+});
