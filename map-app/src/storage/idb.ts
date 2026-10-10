@@ -3,9 +3,13 @@ import type { MapDoc } from '../model/types';
 
 const DB = 'pm-maps';
 // 2: база могла появиться пустой (её открывала Ширма, site/site-links.js) — хранилища досоздаются
-const VERSION = 2;
+// 3: версии карт (снимки перед генерацией и по времени)
+const VERSION = 3;
 
-export type StoredMap = { id: string; name: string; updatedAt: number; thumb: string; doc: MapDoc };
+/** fileSavedAt — когда карту последний раз сохраняли в файл или открывали из файла (0 — ни разу). */
+export type StoredMap = { id: string; name: string; updatedAt: number; thumb: string; doc: MapDoc; fileSavedAt?: number };
+/** Карта есть только в браузере: в файл её не сохраняли или после сохранения меняли. */
+export const unsavedToFile = (m: { updatedAt: number; fileSavedAt?: number }) => !m.fileSavedAt || m.updatedAt > m.fileSavedAt;
 export type StoredPackFile = { path: string; blob: Blob; size: { w: number; h: number } | null };
 export type StoredPack = {
   id: string; label: string; createdAt: number; files: StoredPackFile[]; metas: Record<string, unknown>;
@@ -22,6 +26,7 @@ function open(): Promise<IDBDatabase> {
         const db = req.result;
         if (!db.objectStoreNames.contains('maps')) db.createObjectStore('maps', { keyPath: 'id' });
         if (!db.objectStoreNames.contains('packs')) db.createObjectStore('packs', { keyPath: 'id' });
+        if (!db.objectStoreNames.contains('versions')) db.createObjectStore('versions', { keyPath: 'key' });
       };
       req.onsuccess = () => resolve(req.result);
       req.onerror = () => { dbp = null; reject(req.error); };
@@ -55,4 +60,24 @@ export const packs = {
   put: (p: StoredPack) => run('packs', 'readwrite', (s) => s.put(p)),
   del: (id: string) => run('packs', 'readwrite', (s) => s.delete(id)),
   all: () => run<StoredPack[]>('packs', 'readonly', (s) => s.getAll()),
+};
+
+/** Снимок карты: key = «<id карты>|<время>», reason — почему снят. */
+export type MapVersion = { key: string; mapId: string; at: number; reason: 'gen' | 'auto' | 'restore'; name: string; thumb: string; doc: MapDoc };
+const VERSIONS_PER_MAP = 10;
+const range = (mapId: string) => IDBKeyRange.bound(`${mapId}|`, `${mapId}|\uffff`);
+
+export const versions = {
+  /** Снимки карты, новые первыми. */
+  async list(mapId: string): Promise<MapVersion[]> {
+    const all = await run<MapVersion[]>('versions', 'readonly', (s) => s.getAll(range(mapId)));
+    return all.sort((a, b) => b.at - a.at);
+  },
+  /** Новый снимок; у карты остаются последние VERSIONS_PER_MAP. */
+  async add(v: Omit<MapVersion, 'key'>) {
+    await run('versions', 'readwrite', (s) => s.put({ ...v, key: `${v.mapId}|${String(v.at).padStart(15, '0')}` }));
+    const old = (await versions.list(v.mapId)).slice(VERSIONS_PER_MAP);
+    for (const o of old) await run('versions', 'readwrite', (s) => s.delete(o.key));
+  },
+  clear: (mapId: string) => run('versions', 'readwrite', (s) => s.delete(range(mapId))),
 };

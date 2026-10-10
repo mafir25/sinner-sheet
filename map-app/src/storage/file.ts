@@ -6,13 +6,23 @@ import { parseDoc } from '../model/doc';
 
 export const EXT = '.pmmap';
 
+/** Все ассеты карты: и для .pmmap (локальные кладутся внутрь), и для предзагрузки перед экспортом. */
 export function usedAssetKeys(doc: MapDoc): Set<string> {
   const keys = new Set<string>();
+  const add = (k: string | null | undefined) => { if (k) keys.add(k); };
   for (const f of doc.floors) {
-    for (const r of f.rooms) { if (r.floor) keys.add(r.floor); if (r.wall.asset) keys.add(r.wall.asset); }
-    for (const w of f.walls) if (w.wall.asset) keys.add(w.wall.asset);
-    for (const p of f.portals) if (p.asset) keys.add(p.asset);
-    for (const o of f.objects) keys.add(o.asset);
+    add(f.ground);
+    add(f.image?.asset);
+    for (const r of f.rooms) {
+      add(r.floor); add(r.wall.asset);
+      for (const e of r.edgeStyles ?? []) add(e.style.asset);
+    }
+    for (const w of f.walls) add(w.wall.asset);
+    for (const p of f.portals) add(p.asset);
+    for (const o of f.objects) add(o.asset);
+    for (const t of f.terrain) add(t.asset);
+    for (const pa of f.paths) { add(pa.style.asset); add(pa.style.decor); }
+    for (const r of f.roofs) add(r.asset);
   }
   return keys;
 }

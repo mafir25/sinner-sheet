@@ -8,6 +8,7 @@ import { download, pickFile } from '../storage/file';
 import { tr } from '../i18n';
 import { Field, Modal, NumInput, toast, useStore } from './common';
 import { useEditor } from '../state/editor';
+import { type Anchor, resizeDoc } from '../geom/ops';
 
 const PPC = [50, 70, 100, 140, 200, 256];
 const LS_KEY = 'maps.export';
@@ -117,28 +118,33 @@ export function GridSelect({ value, onChange }: { value: GridType; onChange(v: G
   );
 }
 
-export function MapSettings({ ed, assets, onClose }: { ed: Editor; assets: AssetStore; onClose(): void }) {
+export function MapSettings({ ed, assets, onClose, onVersions }: { ed: Editor; assets: AssetStore; onClose(): void; onVersions(): void }) {
   const d = ed.doc;
   const [name, setName] = useState(d.name);
   const [w, setW] = useState(d.width);
   const [h, setH] = useState(d.height);
   const [bg, setBg] = useState(d.background);
   const [grid, setGrid] = useState(d.grid);
+  const [anchor, setAnchor] = useState<Anchor>({ col: 0, row: 0 });
+  const resized = w !== d.width || h !== d.height;
   const apply = () => {
     ed.commit((x) => {
       x.name = name.trim() || x.name;
-      x.width = w; x.height = h; x.background = bg; x.grid = { ...grid };
+      x.background = bg; x.grid = { ...grid };
+      if (resized) Object.assign(x, resizeDoc(x, w, h, anchor));
     });
     onClose();
   };
   return (
     <Modal title={tr('Настройки карты')} onClose={onClose}>
       <div className="stack">
+        <button className="btn btn-sm" title={tr('Версии карты: снимки перед генерацией и каждые 10 минут')} onClick={onVersions}>🕘 {tr('Версии карты')}…</button>
         <Field label={tr('Название')}><input className="input" value={name} onChange={(e) => setName(e.target.value)} /></Field>
         <div className="row">
           <Field label={tr('Ширина (клеток)')} row><NumInput value={w} step={1} min={1} max={500} digits={0} onCommit={(v) => setW(Math.round(v))} /></Field>
           <Field label={tr('Высота (клеток)')} row><NumInput value={h} step={1} min={1} max={500} digits={0} onCommit={(v) => setH(Math.round(v))} /></Field>
         </div>
+        {resized && <AnchorPicker value={anchor} onChange={setAnchor} />}
         <p className="hint">{tr('Содержимое за пределами карты не удаляется, но не попадёт в экспорт.')}</p>
         <Field label={tr('Фон')} row><input type="color" value={bg} onChange={(e) => setBg(e.target.value)} /></Field>
         <Field label={tr('Сетка')}><GridSelect value={grid.type} onChange={(type) => setGrid({ ...grid, type })} /></Field>
@@ -154,6 +160,25 @@ export function MapSettings({ ed, assets, onClose }: { ed: Editor; assets: Asset
         <FloorImageSettings ed={ed} assets={assets} onFit={(fw, fh) => { setW(fw); setH(fh); toast(tr('Размер {0} × {1} — нажми «Применить»', fw, fh)); }} />
       </div>
     </Modal>
+  );
+}
+
+/** Якорь изменения размера: какая часть карты остаётся на месте, поле добавляется с других сторон. */
+function AnchorPicker({ value, onChange }: { value: Anchor; onChange(a: Anchor): void }) {
+  const ARROWS = [['↖', '↑', '↗'], ['←', '•', '→'], ['↙', '↓', '↘']];
+  return (
+    <Field label={tr('Что остаётся на месте')}>
+      <div className="row">
+        <div className="anchor">
+          {([0, 1, 2] as const).map((row) => ([0, 1, 2] as const).map((col) => {
+            const on = value.col === col && value.row === row;
+            return <button key={`${row}${col}`} type="button" className={on ? 'on' : ''} aria-pressed={on}
+              title={tr('Якорь')} onClick={() => onChange({ col, row })}>{on ? '■' : ARROWS[row][col]}</button>;
+          }))}
+        </div>
+        <span className="hint">{tr('Новое поле добавится с противоположной стороны, всё нарисованное сдвинется вместе с картой.')}</span>
+      </div>
+    </Field>
   );
 }
 
@@ -226,18 +251,23 @@ const KEYS: [string, string][] = [
   ['← ↑ → ↓', 'Сдвиг на клетку (Shift — на 1/4)'],
   ['Ctrl+Z / Ctrl+Y', 'Отмена / повтор'],
   ['Ctrl+C / V / D', 'Копировать / вставить / дублировать'],
+  ['Ctrl+A', 'Выделить всё на этаже'],
+  ['I', 'Взять стиль выделенного (пол, стены, объект, путь, свет…) в его инструмент'],
+  ['🖱 ПКМ', 'Меню выделенного (на планшете — долгое нажатие)'],
   ['G / C', 'Кисть местности / путь'],
   ['L / T / R', 'Свет / подпись / крыша'],
+  ['M', 'Линейка: расстояние в клетках и футах'],
   ['Alt', 'Ластик (кисть), вырезать (комнаты), объект без правил размещения'],
   ['Delete', 'Удалить выделенное'],
   ['Ctrl+S', 'Сохранить файл'],
+  ['Tab', 'Спрятать или показать боковые панели'],
 ];
 
 export function Help({ onClose }: { onClose(): void }) {
   return (
     <Modal title={tr('Управление')} onClose={onClose}>
       <table className="keys"><tbody>
-        {KEYS.map(([k, v]) => <tr key={k}><td><kbd>{k === 'Колесо / щипок' ? tr(k) : k}</kbd></td><td>{tr(v)}</td></tr>)}
+        {KEYS.map(([k, v]) => <tr key={k}><td><kbd>{tr(k)}</kbd></td><td>{tr(v)}</td></tr>)}
       </tbody></table>
       <p className="hint" style={{ marginTop: 12 }}>{tr('На планшете: два пальца — панорама и масштаб; кнопки «Привязка» и «Вырезать» внизу заменяют Ctrl и Alt.')}</p>
     </Modal>

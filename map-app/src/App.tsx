@@ -5,8 +5,9 @@ import { AssetStore } from './assets/store';
 import { createDoc } from './model/doc';
 import type { GridType, MapDoc } from './model/types';
 import { Editor, type ToolId, useEditor } from './state/editor';
-import { maps as mapDb } from './storage/idb';
-import { EXT, buildPmmap, pickFile, readPmmap, safeName, saveBlob } from './storage/file';
+import { maps as mapDb, type StoredMap, unsavedToFile, versions } from './storage/idb';
+import { EXT, buildPmmap, download, pickFile, readPmmap, safeName, saveBlob } from './storage/file';
+import JSZip from 'jszip';
 import { thumbnail } from './export/export';
 import { lang, tr } from './i18n';
 import { CanvasView, isTyping } from './ui/CanvasView';
@@ -17,9 +18,15 @@ import { FloorsLayers } from './ui/FloorsLayers';
 import { ExportDialog, GridSelect, Help, MapSettings } from './ui/Dialogs';
 import { GenBar, GenDialog, type GenState } from './ui/GenDialog';
 import { LinksDialog } from './ui/LinksDialog';
+import { pickStyle } from './state/pickStyle';
+import { AUTO_SNAPSHOT_MS, VersionsDialog, snapshot } from './ui/Versions';
+import { ContextMenu, type MenuItem, menuItems } from './ui/ContextMenu';
 import { parseMapHash } from '../../site/site-links.js';
 import { Field, Modal, NumInput, Toasts, toast, useStore } from './ui/common';
 import { floorIssues } from './geom/place';
+import { boxSelect } from './tools/hit';
+
+const ALL = { x0: -Infinity, y0: -Infinity, x1: Infinity, y1: Infinity };
 
 const openSiteUi = (section: string) => (window as unknown as { SiteUI?: { open(s: string): void } }).SiteUI?.open(section);
 
@@ -63,7 +70,9 @@ async function openFromFile(assets: AssetStore): Promise<Editor | null> {
       await assets.addLocalPack(label, p.files, p.id);
       toast(tr('Ассеты из файла добавлены как набор «{0}»', label));
     }
-    return new Editor(doc);
+    const ed = new Editor(doc);
+    ed.fileSavedAt = Date.now();
+    return ed;
   } catch (e) {
     console.error(e);
     toast(tr('Не удалось открыть файл: {0}', e instanceof Error ? e.message : String(e)), 'error');
@@ -71,17 +80,53 @@ async function openFromFile(assets: AssetStore): Promise<Editor | null> {
   }
 }
 
+/** «Взять стиль» с первого выделенного элемента. */
+function takeStyle(ed: Editor) {
+  const it = ed.state.sel[0];
+  const what = it ? pickStyle(ed, it) : null;
+  toast(what ? tr('Стиль взят: {0}', what) : tr('Выдели элемент карты, чтобы взять его стиль (I)'), what ? 'info' : 'error');
+}
+
+const editorOf = (s: StoredMap) => { const e = new Editor(s.doc); e.fileSavedAt = s.fileSavedAt ?? 0; return e; };
+
+/** Просим браузер не чистить хранилище сайта само (карты живут только в нём). */
+function persistStorage() {
+  try { void navigator.storage?.persist?.().catch(() => {}); } catch { /* старый браузер */ }
+}
+
+/** Все карты браузера одним ZIP-архивом .pmmap; после этого они считаются сохранёнными в файл. */
+async function downloadAll(assets: AssetStore) {
+  const list = await mapDb.list();
+  if (!list.length) return;
+  const zip = new JSZip(), used = new Set<string>();
+  const now = Date.now();
+  for (const m of list) {
+    const s = await mapDb.get(m.id);
+    if (!s) continue;
+    let name = safeName(s.name), n = 2;
+    while (used.has(name)) name = `${safeName(s.name)} (${n++})`;
+    used.add(name);
+    zip.file(`${name}${EXT}`, await buildPmmap(s.doc, assets));
+    await mapDb.put({ ...s, fileSavedAt: now });
+  }
+  const day = new Date(now).toISOString().slice(0, 10);
+  download(await zip.generateAsync({ type: 'blob' }), `maps-${day}.zip`);
+  toast(tr('Скачано карт: {0}', used.size));
+}
+
 function StartScreen({ assets, onOpen }: { assets: AssetStore; onOpen(e: Editor): void }) {
   const [list, setList] = useState<Awaited<ReturnType<typeof mapDb.list>> | null>(null);
   const [creating, setCreating] = useState(false);
   const refresh = useCallback(() => { mapDb.list().then(setList).catch((e) => { console.error(e); setList([]); }); }, []);
   useEffect(refresh, [refresh]);
+  useEffect(persistStorage, []);
+  const unsaved = list?.filter(unsavedToFile).length ?? 0;
   // ссылка из Ширмы: maps.html#map=<id>
   useEffect(() => {
     const want = parseMapHash(location.hash);
     if (!want) return;
     mapDb.get(want.id).then((s) => {
-      if (s) onOpen(new Editor(s.doc));
+      if (s) onOpen(editorOf(s));
       else {
         history.replaceState(null, '', location.pathname + location.search);
         toast(tr('Карты «{0}» нет в этом браузере — открой её файл .pmmap.', want.name || want.id), 'error');
@@ -96,11 +141,14 @@ function StartScreen({ assets, onOpen }: { assets: AssetStore; onOpen(e: Editor)
         <nav><a className="btn" href="index.html">{tr('⌂ ХАБ')}</a><h1 className="title">{tr('Редактор карт')}</h1></nav>
         <div className="row">
           <button className="btn" onClick={async () => { const e = await openFromFile(assets); if (e) onOpen(e); }}>{tr('Открыть файл')}</button>
+          {!!list?.length && <button className="btn" title={tr('Все карты этого браузера одним ZIP-архивом файлов .pmmap — резервная копия')}
+            onClick={() => { downloadAll(assets).then(refresh).catch((e) => toast(tr('Не удалось сохранить: {0}', String(e)), 'error')); }}>⇩ {tr('Скачать все карты')}</button>}
           <button className="btn btn-primary" onClick={() => setCreating(true)}>＋ {tr('Новая карта')}</button>
         </div>
       </header>
       <main className="start-body">
         <p className="hint">{tr('Карты хранятся у тебя: в браузере и в файлах. На сервер ничего не загружается.')}</p>
+        {unsaved > 0 && <p className="warn">{tr('Карт только в браузере: {0}. Если очистить данные сайта или сменить браузер, они пропадут — сохрани их в файл или нажми «Скачать все карты».', unsaved)}</p>}
         <h2>{tr('Недавние карты')}</h2>
         {list && !list.length && <p className="hint">{tr('Пока пусто — создай первую карту.')}</p>}
         <div className="cards">
@@ -108,15 +156,17 @@ function StartScreen({ assets, onOpen }: { assets: AssetStore; onOpen(e: Editor)
             <div key={m.id} className="card">
               <button className="card-open" onClick={async () => {
                 const s = await mapDb.get(m.id);
-                if (s) onOpen(new Editor(s.doc));
+                if (s) onOpen(editorOf(s));
               }}>
                 <span className="card-thumb">{m.thumb ? <img src={m.thumb} alt="" /> : null}</span>
                 <span className="card-name">{m.name || tr('Без названия')}</span>
                 <span className="hint">{tr('Изменено {0}', fmt(m.updatedAt))}</span>
+                {unsavedToFile(m) && <span className="card-warn" title={tr('Карта есть только в этом браузере. Если очистить данные сайта, она пропадёт — сохрани её в файл.')}>⚠ {tr('Не сохранена в файл')}</span>}
               </button>
               <button className="icon-btn danger card-del" title={tr('Удалить')} onClick={async () => {
                 if (!window.confirm(tr('Удалить карту «{0}» из браузера? Файлы на диске не пострадают.', m.name))) return;
                 await mapDb.del(m.id);
+                await versions.clear(m.id).catch(console.error);
                 refresh();
               }}>✕</button>
             </div>
@@ -168,10 +218,11 @@ const TOOLS: { id: ToolId; icon: string; title: string; key?: string }[] = [
   { id: 'light', icon: '💡', title: 'Свет (L)', key: 'l' },
   { id: 'label', icon: 'T', title: 'Подпись (T)', key: 't' },
   { id: 'roof', icon: '⌂', title: 'Крыша (R)', key: 'r' },
+  { id: 'ruler', icon: '📏', title: 'Линейка (M)', key: 'm' },
   { id: 'pan', icon: '✋', title: 'Панорама (H)', key: 'h' },
 ];
 const HINTS: Record<ToolId, string> = {
-  select: 'Щелчок — выбрать, Shift — добавить к выбору, рамкой — выбрать несколько. Тащи — переместить. Щелчок по линии стены комнаты — выбрать только эту стену.',
+  select: 'Щелчок — выбрать, Shift — добавить к выбору, рамкой — выбрать несколько. Тащи — переместить. Щелчок по линии стены комнаты — выбрать только эту стену. Дверь или окно тащатся вдоль стены. Правая кнопка — меню.',
   room: 'Тяни прямоугольник. Комнаты одного стиля сливаются, Alt — вырезать.',
   poly: 'Щелчками ставь вершины, двойной щелчок или Enter — замкнуть, Esc — отмена.',
   wall: 'Щелчками ставь точки стены, двойной щелчок или Enter — закончить, Esc — отмена.',
@@ -185,11 +236,23 @@ const HINTS: Record<ToolId, string> = {
   light: 'Щелчок — поставить источник света. Тени от стен считаются сами.',
   label: 'Щелчок — подпись. Включи нумерацию, чтобы ставить номера комнат подряд.',
   roof: 'Щелчок по комнате — крыша по её форме. Протянуть — прямоугольная крыша.',
+  ruler: 'Протяни — расстояние между двумя точками. Щелчками — путь из нескольких отрезков, двойной щелчок или Enter — закончить. По сетке диагональ считается за одну клетку.',
 };
 const ROOF_NEXT = { hide: 'ghost', ghost: 'show', show: 'hide' } as const;
 const ROOF_LABEL = { hide: 'Крыши скрыты', ghost: 'Крыши полупрозрачны', show: 'Крыши видны' } as const;
 
 type SaveHandle = Parameters<typeof saveBlob>[2];
+
+/** Видимость боковых панелей запоминается в браузере. */
+type Panels = { left: boolean; right: boolean };
+const PANELS_KEY = 'maps.panels';
+function loadPanels(): Panels {
+  try {
+    const v = JSON.parse(localStorage.getItem(PANELS_KEY) || 'null');
+    if (v && typeof v.left === 'boolean' && typeof v.right === 'boolean') return v;
+  } catch { /* нет доступа или мусор */ }
+  return { left: true, right: true };
+}
 
 function Workspace({ ed, assets, user, onExit, onOpen }: { ed: Editor; assets: AssetStore; user: User; onExit(): void; onOpen(e: Editor): void }) {
   const tool = useEditor(ed, (s) => s.tool);
@@ -197,26 +260,37 @@ function Workspace({ ed, assets, user, onExit, onOpen }: { ed: Editor; assets: A
   const canUndo = useEditor(ed, (s) => s.canUndo);
   const canRedo = useEditor(ed, (s) => s.canRedo);
   const settings = useEditor(ed, (s) => s.settings);
-  const [dialog, setDialog] = useState<'export' | 'settings' | 'help' | 'gen' | 'links' | null>(null);
+  useEditor(ed, (s) => s.dirty); // перерисовка после сохранения в файл: fileSavedAt — не состояние редактора
+  const [dialog, setDialog] = useState<'export' | 'settings' | 'help' | 'gen' | 'links' | 'versions' | null>(null);
   // адрес вкладки ведёт на открытую карту — его можно сохранить в закладки или вставить в Ширму
   useEffect(() => {
     history.replaceState(null, '', `${location.pathname}${location.search}#map=${encodeURIComponent(ed.doc.id)}`);
     return () => history.replaceState(null, '', location.pathname + location.search);
   }, [ed]);
   const [genLast, setGenLast] = useState<{ g: GenState; doc: MapDoc } | null>(null);
+  const [panels, setPanels] = useState(loadPanels);
+  const togglePanels = useCallback((patch?: Partial<Panels>) => setPanels((p) => {
+    // без аргумента (Tab) — спрятать обе панели, если открыта хоть одна, иначе показать обе
+    const next = patch ? { ...p, ...patch } : (p.left || p.right ? { left: false, right: false } : { left: true, right: true });
+    try { localStorage.setItem(PANELS_KEY, JSON.stringify(next)); } catch { /* приватный режим */ }
+    return next;
+  }), []);
   const [saveState, setSaveState] = useState<'saved' | 'saving' | 'dirty'>('saved');
   const handle = useRef<SaveHandle>(null);
   const fit = useRef<() => void>(() => {});
+  const [menu, setMenu] = useState<{ x: number; y: number; items: MenuItem[] } | null>(null);
+  const closeMenu = useCallback(() => setMenu(null), []);
 
   // ---------- автосохранение в браузере
   useEffect(() => {
-    let timer = 0;
+    let timer = 0, lastSnap = Date.now();
     const save = async () => {
       timer = 0;
       setSaveState('saving');
       const d = ed.doc;
+      if (Date.now() - lastSnap > AUTO_SNAPSHOT_MS) { lastSnap = Date.now(); snapshot(d, assets, 'auto'); }
       try {
-        await mapDb.put({ id: d.id, name: d.name, updatedAt: d.updatedAt || Date.now(), thumb: thumbnail(d, assets), doc: d });
+        await mapDb.put({ id: d.id, name: d.name, updatedAt: d.updatedAt || Date.now(), thumb: thumbnail(d, assets), doc: d, fileSavedAt: ed.fileSavedAt });
         setSaveState('saved');
       } catch (e) {
         console.error(e);
@@ -238,7 +312,10 @@ function Workspace({ ed, assets, user, onExit, onOpen }: { ed: Editor; assets: A
       const r = await saveBlob(blob, `${safeName(ed.doc.name)}${EXT}`, handle.current, askWhere);
       if (!r) return;
       handle.current = r.handle;
+      ed.fileSavedAt = Date.now();
       ed.markSaved();
+      const d = ed.doc;
+      void mapDb.put({ id: d.id, name: d.name, updatedAt: d.updatedAt || Date.now(), thumb: thumbnail(d, assets), doc: d, fileSavedAt: ed.fileSavedAt }).catch(console.error);
       toast(tr('Файл сохранён: {0}', r.name));
     } catch (e) {
       console.error(e);
@@ -259,9 +336,12 @@ function Workspace({ ed, assets, user, onExit, onOpen }: { ed: Editor; assets: A
         else if (k === 'c') ed.copy();
         else if (k === 'v') { ed.setTool('select'); ed.paste(); }
         else if (k === 'd') { e.preventDefault(); ed.duplicate(); }
+        else if (k === 'a') { e.preventDefault(); ed.setTool('select'); ed.setSel(boxSelect(ed.floor, ALL)); }
         return;
       }
       if (e.altKey) return;
+      if (k === 'tab' && !e.shiftKey) { e.preventDefault(); togglePanels(); return; }
+      if (k === 'i') { takeStyle(ed); return; }
       const t = TOOLS.find((x) => x.key === k);
       if (t) { ed.setTool(t.id); return; }
       const objs = ed.selected('object');
@@ -294,19 +374,26 @@ function Workspace({ ed, assets, user, onExit, onOpen }: { ed: Editor; assets: A
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [ed, dialog, saveFile]);
+  }, [ed, dialog, saveFile, togglePanels]);
 
   const nick = user.displayName || user.email || '';
   const saveLabel = saveState === 'saved' ? tr('Сохранено в браузере') : saveState === 'saving' ? tr('Сохраняется…') : tr('Не сохранено');
+  const fileOk = !unsavedToFile({ updatedAt: doc.updatedAt, fileSavedAt: ed.fileSavedAt });
+  const leave = () => {
+    const drawn = doc.floors.some((f) => f.rooms.length || f.walls.length || f.objects.length || f.paths.length || f.terrain.length || f.image);
+    if (!fileOk && drawn) toast(tr('«{0}» есть только в этом браузере. Сохрани её в файл (💾), чтобы не потерять.', doc.name));
+    onExit();
+  };
 
   return (
     <div className="app">
       <header className="topbar">
         <nav>
           <a className="btn" href="index.html">{tr('⌂ ХАБ')}</a>
-          <button className="btn" onClick={onExit}>☰ {tr('Карты')}</button>
+          <button className="btn" onClick={leave}>☰ {tr('Карты')}</button>
           <NameInput value={doc.name} onCommit={(name) => ed.commit((d) => { d.name = name; })} />
           <span className={`save-state s-${saveState}`}>{saveLabel}</span>
+          {!fileOk && <span className="save-state s-dirty" title={tr('Карта есть только в этом браузере. Если очистить данные сайта, она пропадёт — сохрани её в файл.')}>· {tr('не в файле')}</span>}
         </nav>
         <div className="row">
           <button className="icon-btn" disabled={!canUndo} title={tr('Отменить (Ctrl+Z)')} onClick={() => ed.undo()}>↶</button>
@@ -321,7 +408,7 @@ function Workspace({ ed, assets, user, onExit, onOpen }: { ed: Editor; assets: A
           <button className="btn user" title={tr('Аккаунт и настройки')} onClick={() => openSiteUi('account')}>{nick}</button>
         </div>
       </header>
-      <main className="work">
+      <main className={`work${panels.left ? '' : ' no-left'}${panels.right ? '' : ' no-right'}`}>
         <aside className="left">
           <div className="tools">
             {TOOLS.map((t) => (
@@ -329,16 +416,20 @@ function Workspace({ ed, assets, user, onExit, onOpen }: { ed: Editor; assets: A
                 disabled={t.id === 'stamp' && !settings.stamp && !settings.stampSet} onClick={() => ed.setTool(t.id)}>{t.icon}</button>
             ))}
           </div>
-          <div className="props">
+          {panels.left && <div className="props">
             <h3>{tr(TOOLS.find((t) => t.id === tool)?.title ?? '')}</h3>
             <p className="hint">{tr(HINTS[tool])}</p>
             <Props ed={ed} assets={assets} />
-          </div>
+          </div>}
         </aside>
         <section className="center">
-          <CanvasView ed={ed} assets={assets} onFitRef={(f) => { fit.current = f; }} />
+          <CanvasView ed={ed} assets={assets} onFitRef={(f) => { fit.current = f; }}
+            onMenu={(x, y) => setMenu({ x, y, items: menuItems(ed, assets, { fit: () => fit.current() }) })} />
+          {menu && <ContextMenu ed={ed} at={menu} items={menu.items} onClose={closeMenu} />}
           {genLast && doc === genLast.doc && <GenBar ed={ed} assets={assets} last={genLast} onChange={setGenLast} onSettings={() => setDialog('gen')} />}
           <div className="bottombar">
+            <button className={`btn btn-sm${panels.left ? ' btn-on' : ''}`} title={tr('Панель свойств (Tab — спрятать или показать обе панели)')}
+              aria-pressed={panels.left} onClick={() => togglePanels({ left: !panels.left })}>◧</button>
             <button className={`btn btn-sm${settings.snap ? ' btn-on' : ''}`} title={tr('Привязка к сетке (зажать Ctrl — без привязки)')}
               onClick={() => ed.setSettings({ snap: !settings.snap })}>⌗ {tr('Привязка')}</button>
             {(tool === 'room' || tool === 'poly') && (
@@ -353,17 +444,21 @@ function Workspace({ ed, assets, user, onExit, onOpen }: { ed: Editor; assets: A
             )}
             <IssuesButton ed={ed} assets={assets} />
             <button className="btn btn-sm" title={tr('Показать всю карту')} onClick={() => fit.current()}>⤢</button>
+            <span className="grow" />
+            <button className={`btn btn-sm${panels.right ? ' btn-on' : ''}`} title={tr('Библиотека, этажи и слои (Tab — спрятать или показать обе панели)')}
+              aria-pressed={panels.right} onClick={() => togglePanels({ right: !panels.right })}>◨</button>
           </div>
         </section>
-        <aside className="right">
+        {panels.right && <aside className="right">
           <Library ed={ed} assets={assets} />
           <FloorsLayers ed={ed} />
-        </aside>
+        </aside>}
       </main>
       {dialog === 'export' && <ExportDialog ed={ed} assets={assets} onClose={() => setDialog(null)} />}
-      {dialog === 'settings' && <MapSettings ed={ed} assets={assets} onClose={() => setDialog(null)} />}
+      {dialog === 'settings' && <MapSettings ed={ed} assets={assets} onClose={() => setDialog(null)} onVersions={() => setDialog('versions')} />}
       {dialog === 'help' && <Help onClose={() => setDialog(null)} />}
       {dialog === 'links' && <LinksDialog ed={ed} onClose={() => setDialog(null)} />}
+      {dialog === 'versions' && <VersionsDialog ed={ed} assets={assets} onClose={() => setDialog(null)} />}
       {dialog === 'gen' && <GenDialog ed={ed} assets={assets} onClose={() => setDialog(null)} initial={genLast?.g} replace={genLast?.doc}
         onDone={(g, res) => { setGenLast({ g, doc: res }); setDialog(null); }} />}
     </div>

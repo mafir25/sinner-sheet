@@ -12,6 +12,7 @@ import { newSeed } from '../gen/rng';
 import { lang, nm, tr } from '../i18n';
 import { Field, Modal, NumInput, Slider, toast, useStore } from './common';
 import { COND_LABEL } from './issues';
+import { snapshot } from './Versions';
 
 export type GenTab = 'decorate' | 'building' | 'dungeon' | 'streets';
 export type GenState = {
@@ -46,6 +47,7 @@ export function runGen(ed: Editor, assets: AssetStore, g: GenState): MapDoc | nu
   const fill = g.fill;
   const common = { seed: g.seed, clear: g.clear, fill };
   const roomsSel = g.targets ?? [];
+  snapshot(ed.doc, assets, 'gen');
   try {
     ed.commit((d) => {
       if (g.tab === 'decorate') decorate(d, fid, kit, { ...common, clear: false, rooms: roomsSel, style: g.style, restyle: g.restyle, doors: g.doors, windows: g.windows });

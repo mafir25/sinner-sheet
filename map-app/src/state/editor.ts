@@ -3,8 +3,10 @@ import { useSyncExternalStore } from 'react';
 import type { AssetKey, Floor, Label, Light, MapDoc, MapObject, MapPath, PathStyle, Portal, Pt, Roof, Room, Wall, WallStyle } from '../model/types';
 import { DEFAULT_FLOOR, DEFAULT_PATH, DEFAULT_WALL, uid } from '../model/doc';
 import { orphanPortals } from '../geom/walls';
+import { share } from './share';
+import { type Clip, clipSize, copySelection, pasteClip } from '../geom/ops';
 
-export type ToolId = 'select' | 'room' | 'poly' | 'wall' | 'door' | 'window' | 'cut' | 'stamp' | 'brush' | 'path' | 'light' | 'label' | 'roof' | 'pan';
+export type ToolId = 'select' | 'room' | 'poly' | 'wall' | 'door' | 'window' | 'cut' | 'stamp' | 'brush' | 'path' | 'light' | 'label' | 'roof' | 'ruler' | 'pan';
 /** edge — отдельная стена комнаты: id «<id комнаты>|<кольцо>|<ребро>». */
 export type SelKind = 'object' | 'portal' | 'wall' | 'room' | 'path' | 'light' | 'label' | 'roof' | 'edge';
 export type SelItem = { kind: SelKind; id: string };
@@ -53,6 +55,21 @@ export type EditorState = {
 
 const HISTORY = 150;
 
+// буфер обмена — общий для всех открытых карт и вкладок этого браузера
+const CLIP_KEY = 'maps.clipboard';
+let clipboard: Clip | null = null;
+function getClip(): Clip {
+  if (!clipboard) {
+    try { clipboard = JSON.parse(localStorage.getItem(CLIP_KEY) || 'null'); } catch { clipboard = null; }
+  }
+  return clipboard ?? { objects: [], rooms: [], walls: [], portals: [], paths: [], lights: [], labels: [], roofs: [] };
+}
+if (typeof window !== 'undefined') window.addEventListener('storage', (e) => { if (e.key === CLIP_KEY) clipboard = null; });
+function setClip(c: Clip) {
+  clipboard = c;
+  try { localStorage.setItem(CLIP_KEY, JSON.stringify(c)); } catch { /* большой буфер или приватный режим — живёт до перезагрузки */ }
+}
+
 export class Editor {
   /** Ключ экземпляра: повторное открытие той же карты пересоздаёт рабочее место. */
   readonly key = uid('e');
@@ -61,7 +78,8 @@ export class Editor {
   private future: MapDoc[] = [];
   private listeners = new Set<() => void>();
   private docListeners = new Set<(d: MapDoc) => void>();
-  clipboard: MapObject[] = [];
+  /** Когда карту сохраняли в файл (или открыли из файла); 0 — она есть только в браузере. */
+  fileSavedAt = 0;
 
   constructor(doc: MapDoc) {
     const floor = doc.floors[0];
@@ -95,9 +113,11 @@ export class Editor {
   // ---------- изменения документа
   /** Применяет изменение к копии документа и кладёт прежнюю версию в историю. */
   commit(fn: (d: MapDoc) => void, opts: { keepSel?: boolean } = {}) {
-    const next = structuredClone(this.doc);
-    fn(next);
-    next.updatedAt = Date.now();
+    const draft = structuredClone(this.doc);
+    fn(draft);
+    draft.updatedAt = Date.now();
+    // неизменённые части берутся из прошлой версии — история не держит десятки копий одинаковых этажей
+    const next = share(this.doc, draft);
     this.past.push(this.doc);
     if (this.past.length > HISTORY) this.past.shift();
     this.future = [];
@@ -180,15 +200,34 @@ export class Editor {
     }, { keepSel: false });
   }
 
-  copy() { this.clipboard = structuredClone(this.selected('object')); }
+  canPaste() { return clipSize(getClip()) > 0; }
+  /** Копирует всё выделенное (комнаты — с дверями и окнами); буфер общий для всех карт этого браузера. */
+  copy() {
+    const ids = new Set(this.state.sel.map((s) => s.id));
+    const clip = copySelection(this.floor, ids, (part) => {
+      const orphans = orphanPortals(part);
+      return new Set(part.portals.filter((p) => !orphans.has(p.id)).map((p) => p.id));
+    });
+    if (clipSize(clip)) setClip(clip);
+  }
   paste(offset = 1) {
-    if (!this.clipboard.length) return;
-    const fresh = this.clipboard.map((o) => ({ ...o, id: uid('o'), x: o.x + offset, y: o.y + offset }));
-    const layers = new Set(this.floor.layers.map((l) => l.id));
-    for (const o of fresh) if (!layers.has(o.layer)) o.layer = this.state.layerId;
-    this.commitFloor((f) => { f.objects.push(...fresh); });
-    this.clipboard = fresh;
-    this.setSel(fresh.map((o) => ({ kind: 'object' as const, id: o.id })));
+    const clip = getClip();
+    if (!clipSize(clip)) return;
+    const fresh = pasteClip(clip, { x: offset, y: offset }, new Set(this.floor.layers.map((l) => l.id)), this.state.layerId, uid);
+    this.commitFloor((f) => {
+      f.rooms.push(...fresh.rooms); f.walls.push(...fresh.walls); f.portals.push(...fresh.portals); f.objects.push(...fresh.objects);
+      f.paths.push(...fresh.paths); f.lights.push(...fresh.lights); f.labels.push(...fresh.labels); f.roofs.push(...fresh.roofs);
+    });
+    setClip(fresh); // следующая вставка — ещё на шаг дальше
+    const sel: SelItem[] = [
+      ...fresh.objects.map((x) => ({ kind: 'object' as const, id: x.id })), ...fresh.rooms.map((x) => ({ kind: 'room' as const, id: x.id })),
+      ...fresh.walls.map((x) => ({ kind: 'wall' as const, id: x.id })), ...fresh.paths.map((x) => ({ kind: 'path' as const, id: x.id })),
+      ...fresh.lights.map((x) => ({ kind: 'light' as const, id: x.id })), ...fresh.labels.map((x) => ({ kind: 'label' as const, id: x.id })),
+      ...fresh.roofs.map((x) => ({ kind: 'roof' as const, id: x.id })),
+      // проёмы на вставленных комнатах выделяются вместе с ними, отдельные — сами по себе
+      ...(fresh.rooms.length || fresh.walls.length ? [] : fresh.portals.map((x) => ({ kind: 'portal' as const, id: x.id }))),
+    ];
+    this.setSel(sel);
   }
   duplicate() { this.copy(); this.paste(1); }
 }

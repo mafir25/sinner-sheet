@@ -16,7 +16,11 @@ export function fitView(ed: Editor, w: number, h: number) {
   ed.setView({ scale, ox: (w - d.width * scale) / 2, oy: (h - d.height * scale) / 2 });
 }
 
-export function CanvasView({ ed, assets, onFitRef }: { ed: Editor; assets: AssetStore; onFitRef?: (fn: () => void) => void }) {
+export function CanvasView({ ed, assets, onFitRef, onMenu }: {
+  ed: Editor; assets: AssetStore; onFitRef?: (fn: () => void) => void;
+  /** Контекстное меню в точке экрана (правая кнопка, на планшете — долгое нажатие); только у «Выделения». */
+  onMenu?: (x: number, y: number) => void;
+}) {
   const wrap = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const status = useRef<HTMLDivElement>(null);
@@ -118,6 +122,15 @@ export function CanvasView({ ed, assets, onFitRef }: { ed: Editor; assets: Asset
   const pointers = useRef(new Map<number, { x: number; y: number }>());
   const gesture = useRef<{ kind: 'pan'; lastX: number; lastY: number } | { kind: 'pinch'; dist: number; cx: number; cy: number } | { kind: 'tool' } | null>(null);
 
+  const longPress = useRef<{ timer: number; x: number; y: number } | null>(null);
+  const stopLongPress = () => { if (longPress.current) { clearTimeout(longPress.current.timer); longPress.current = null; } };
+  const openMenu = (clientX: number, clientY: number) => {
+    if (!onMenu || ed.state.tool !== 'select') return false;
+    toolRef.current.pick?.(toWorld(clientX, clientY));
+    onMenu(clientX, clientY);
+    return true;
+  };
+
   const pinchInfo = () => {
     const [a, b] = [...pointers.current.values()];
     return { dist: Math.hypot(a.x - b.x, a.y - b.y), cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2 };
@@ -127,6 +140,7 @@ export function CanvasView({ ed, assets, onFitRef }: { ed: Editor; assets: Asset
     canvas.current!.setPointerCapture(e.pointerId);
     pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (pointers.current.size === 2) {
+      stopLongPress();
       // второй палец — отменяем действие инструмента, начинаем щипок
       if (gesture.current?.kind === 'tool') toolRef.current.cancel?.();
       gesture.current = { kind: 'pinch', ...pinchInfo() };
@@ -140,6 +154,19 @@ export function CanvasView({ ed, assets, onFitRef }: { ed: Editor; assets: Asset
       return;
     }
     if (e.button !== 0) return;
+    if (e.pointerType === 'touch' && ed.state.tool === 'select') {
+      stopLongPress();
+      const { clientX: x, clientY: y } = e;
+      longPress.current = {
+        x, y, timer: window.setTimeout(() => {
+          longPress.current = null;
+          toolRef.current.cancel?.();
+          gesture.current = null;
+          openMenu(x, y);
+          schedule();
+        }, 550),
+      };
+    }
     gesture.current = { kind: 'tool' };
     toolRef.current.down?.(toWorld(e.clientX, e.clientY), e.nativeEvent);
     schedule();
@@ -147,6 +174,7 @@ export function CanvasView({ ed, assets, onFitRef }: { ed: Editor; assets: Asset
 
   const onPointerMove = (e: React.PointerEvent) => {
     if (pointers.current.has(e.pointerId)) pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (longPress.current && Math.hypot(e.clientX - longPress.current.x, e.clientY - longPress.current.y) > 10) stopLongPress();
     const g = gesture.current;
     const p = toWorld(e.clientX, e.clientY);
     cursorPt.current = p;
@@ -169,6 +197,7 @@ export function CanvasView({ ed, assets, onFitRef }: { ed: Editor; assets: Asset
   };
 
   const onPointerUp = (e: React.PointerEvent) => {
+    stopLongPress();
     pointers.current.delete(e.pointerId);
     const g = gesture.current;
     if (g?.kind === 'tool') toolRef.current.up?.(toWorld(e.clientX, e.clientY), e.nativeEvent);
@@ -184,6 +213,7 @@ export function CanvasView({ ed, assets, onFitRef }: { ed: Editor; assets: Asset
   };
 
   const onPointerCancel = (e: React.PointerEvent) => {
+    stopLongPress();
     pointers.current.delete(e.pointerId);
     if (gesture.current?.kind === 'tool') toolRef.current.cancel?.();
     if (!pointers.current.size) gesture.current = null;
@@ -228,7 +258,7 @@ export function CanvasView({ ed, assets, onFitRef }: { ed: Editor; assets: Asset
         onPointerCancel={onPointerCancel}
         onPointerLeave={() => { cursorPt.current = null; updateStatus(null); toolRef.current.move && schedule(); }}
         onDoubleClick={(e) => toolRef.current.dbl?.(toWorld(e.clientX, e.clientY))}
-        onContextMenu={(e) => e.preventDefault()}
+        onContextMenu={(e) => { e.preventDefault(); if (e.nativeEvent instanceof PointerEvent && e.nativeEvent.pointerType === 'touch') return; if (openMenu(e.clientX, e.clientY)) schedule(); }}
         aria-label={tr('Редактор карт')}
       />
       <div className="coords" ref={status} />

@@ -6,7 +6,7 @@ import { type Editor, type SelItem, type ToolId, edgeOf } from '../state/editor'
 import { uid } from '../model/doc';
 import { snapCenter, snapHalf, snapVertex } from '../geom/grid';
 import { difference, intersects, pointInPoly, rectPoly, ringArea, samePt, segDist, touches, union } from '../geom/poly';
-import { type WallSeg, nearestWall, orphanPortals, portalOnWall } from '../geom/walls';
+import { type WallSeg, nearestWall, orphanPortals, portalOnWall, slidePortal } from '../geom/walls';
 import { LIGHT_HIT, boxSelect, fromLocal, hitTest, labelCorners, objectCorners, toLocal } from './hit';
 import { curvePoints } from '../geom/curve';
 import { drawObject, polyPath } from '../render/render';
@@ -15,6 +15,8 @@ import { tr } from '../i18n';
 import { setBounds } from '../assets/tree.js';
 import { type Issue, checkObject, placeByRules, rollVariation } from '../geom/place';
 import { issueText } from '../ui/issues';
+import { fmtLen, pathSteps, polyLen, segLen } from '../geom/measure';
+import type { GridType } from '../model/types';
 
 export type ToolEnv = {
   ed: Editor;
@@ -36,6 +38,8 @@ export interface Tool {
   overlay?(c: CanvasRenderingContext2D, scale: number): void;
   preview?(): Floor | undefined;
   cursor?(p: Pt | null): string;
+  /** Правая кнопка / долгое нажатие: выбрать то, что под точкой (если оно ещё не выбрано). */
+  pick?(p: Pt): void;
 }
 
 const ACCENT = '#40E0D0', RED = '#ff5068', YELLOW = '#F1C40F';
@@ -177,6 +181,8 @@ class SelectTool implements Tool {
   private target: MapObject | null = null;
   private edited: MapObject | null = null;
   private shift = false;
+  /** Один выбранный проём тащится вдоль стены (или на соседнюю стену), а не свободно. */
+  private slide: { portal: Portal; to: { a: Pt; b: Pt } } | null = null;
   constructor(private env: ToolEnv) {}
 
   private get ed() { return this.env.ed; }
@@ -194,6 +200,11 @@ class SelectTool implements Tool {
   }
 
   private roofsOn() { return this.ed.state.settings.showRoofs !== 'hide'; }
+  pick(p: Pt) {
+    const hit = hitTest(this.ed.floor, p, this.ed.state.view.scale, this.roofsOn(), this.band);
+    if (!hit) this.ed.setSel([]);
+    else if (!this.ed.state.sel.some((s) => s.id === hit.id)) this.ed.setSel([hit]);
+  }
   private band = (key: string) => this.env.assets.entry(key)?.footprint[1] ?? 1;
 
   private single(): MapObject | null {
@@ -227,6 +238,9 @@ class SelectTool implements Tool {
     this.clickedSelected = isSel ? hit : null;
     if (!isSel) this.ed.setSel([hit]);
     this.mode = 'move';
+    const sel1 = this.ed.state.sel;
+    const portal = sel1.length === 1 && sel1[0].kind === 'portal' ? this.ed.floor.portals.find((x) => x.id === sel1[0].id) : undefined;
+    this.slide = portal ? { portal, to: { a: portal.a, b: portal.b } } : null;
     this.computeAttached();
   }
 
@@ -245,6 +259,11 @@ class SelectTool implements Tool {
       if (!this.moved && Math.hypot(raw.x, raw.y) * this.ed.state.view.scale < 4) return;
       this.moved = true;
       this.delta = this.snapDelta(raw, e);
+      if (this.slide) {
+        const { portal } = this.slide;
+        const c = { x: (portal.a.x + portal.b.x) / 2 + raw.x, y: (portal.a.y + portal.b.y) / 2 + raw.y };
+        this.slide.to = slidePortal(this.ed.floor, portal, c, this.env.snap(e)) ?? this.slide.to;
+      }
     } else if (this.mode === 'rotate' && this.target) {
       let a = (Math.atan2(p.y - this.target.y, p.x - this.target.x) * 180) / Math.PI + 90;
       if (this.env.snap(e)) a = Math.round(a / 15) * 15;
@@ -279,7 +298,15 @@ class SelectTool implements Tool {
   up(p: Pt) {
     const ed = this.ed;
     if (this.mode === 'move') {
-      if (this.moved && (this.delta.x || this.delta.y)) {
+      if (this.moved && this.slide) {
+        const { portal, to } = this.slide;
+        if (!samePt(to.a, portal.a) || !samePt(to.b, portal.b)) {
+          ed.commitFloor((f) => {
+            const x = f.portals.find((q) => q.id === portal.id);
+            if (x) Object.assign(x, to);
+          });
+        }
+      } else if (this.moved && (this.delta.x || this.delta.y)) {
         const d = this.delta, ids = new Set(ed.state.sel.map((s) => s.id)), att = this.attached;
         ed.commitFloor((f) => { Object.assign(f, moveFloor(f, ids, att, d)); });
       } else if (!this.moved && this.clickedSelected) {
@@ -303,12 +330,16 @@ class SelectTool implements Tool {
 
   private reset() {
     this.mode = 'idle'; this.moved = false; this.delta = { x: 0, y: 0 }; this.target = null; this.edited = null;
-    this.clickedSelected = null; this.attached = new Set();
+    this.clickedSelected = null; this.attached = new Set(); this.slide = null;
   }
   cancel() { this.reset(); this.env.redraw(); }
 
   preview(): Floor | undefined {
     const f = this.ed.floor;
+    if (this.mode === 'move' && this.moved && this.slide) {
+      const { portal, to } = this.slide;
+      return { ...f, portals: f.portals.map((x) => (x.id === portal.id ? { ...x, ...to } : x)) };
+    }
     if (this.mode === 'move' && this.moved) {
       return moveFloor(f, new Set(this.ed.state.sel.map((s) => s.id)), this.attached, this.delta);
     }
@@ -448,6 +479,7 @@ class PathTool implements Tool {
       c.restore();
       for (const q of this.pts) dot(c, q, 3.5 * px, col);
       dot(c, this.pts[0], 6 * px, YELLOW);
+      lengthLabels(c, pts, scale, col);
       return;
     }
     c.save();
@@ -465,6 +497,70 @@ class PathTool implements Tool {
     for (const q of this.pts) dot(c, q, 3.5 * px, col);
     dot(c, this.pts[0], 6 * px, YELLOW);
     c.restore();
+    lengthLabels(c, pts, scale, col);
+  }
+}
+
+/** Длина последнего отрезка (посередине) и, если отрезков больше одного, всего пути (у конца). */
+function lengthLabels(c: CanvasRenderingContext2D, pts: Pt[], scale: number, color: string) {
+  if (pts.length < 2) return;
+  const a = pts[pts.length - 2], b = pts[pts.length - 1];
+  const seg = segLen(a, b);
+  if (seg > 1e-6) label(c, fmtLen(seg, tr('кл'), tr('фт')), { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 - 12 / scale }, scale, color);
+  if (pts.length > 2) label(c, `Σ ${fmtLen(polyLen(pts), tr('кл'), tr('фт'))}`, { x: b.x, y: b.y + 18 / scale }, scale, YELLOW);
+}
+
+// ---------- линейка: щелчки ставят точки, протяжка — один отрезок; Enter / двойной щелчок — закончить, Esc — убрать
+class RulerTool implements Tool {
+  private pts: Pt[] = [];
+  private hover: Pt | null = null;
+  private done = false;
+  private downAt: Pt | null = null;
+  constructor(private env: ToolEnv) {}
+  private get grid(): GridType { return this.env.ed.doc.grid.type; }
+  private snap(p: Pt, e: { ctrlKey?: boolean; metaKey?: boolean }) { return this.env.snap(e) ? snapCenter(this.grid, p) : p; }
+  cursor() { return 'crosshair'; }
+  down(p: Pt, e: PointerEvent) {
+    if (this.done) { this.pts = []; this.done = false; }
+    const q = this.snap(p, e);
+    if (!this.pts.length || !samePt(q, this.pts[this.pts.length - 1])) this.pts.push(q);
+    this.downAt = q;
+    this.env.redraw();
+  }
+  move(p: Pt, e: PointerEvent) { if (!this.done) { this.hover = this.snap(p, e); this.env.redraw(); } }
+  up(p: Pt, e: PointerEvent) {
+    const q = this.snap(p, e);
+    // протяжка — отрезок от точки нажатия до отпускания, измерение закончено
+    if (this.downAt && segLen(this.downAt, q) > 0.3) { this.pts.push(q); this.done = true; this.hover = null; }
+    this.downAt = null;
+    this.env.redraw();
+  }
+  dbl() { this.done = true; this.hover = null; this.env.redraw(); }
+  key(e: KeyboardEvent) {
+    if (e.key === 'Enter') { this.dbl(); return true; }
+    if (e.key === 'Backspace' && this.pts.length && !this.done) { this.pts.pop(); this.env.redraw(); return true; }
+    return false;
+  }
+  cancel() { this.pts = []; this.hover = null; this.done = false; this.env.redraw(); }
+  overlay(c: CanvasRenderingContext2D, scale: number) {
+    const px = 1 / scale;
+    if (this.hover && !this.done) dot(c, this.hover, 4 * px, YELLOW);
+    const pts = this.hover && !this.done && this.pts.length ? [...this.pts, this.hover] : this.pts;
+    if (!pts.length) return;
+    c.save();
+    c.strokeStyle = YELLOW;
+    c.lineWidth = 2 * px;
+    c.setLineDash([6 * px, 4 * px]);
+    outlinePts(c, pts, false);
+    c.stroke();
+    c.restore();
+    for (const q of pts) dot(c, q, 3.5 * px, YELLOW);
+    if (pts.length < 2) return;
+    const end = pts[pts.length - 1];
+    const steps = pathSteps(this.grid, pts);
+    const lines = [fmtLen(polyLen(pts), tr('кл'), tr('фт'))];
+    if (steps !== null) lines.push(tr('по сетке: {0} кл · {1} фт', steps, steps * 5));
+    lines.forEach((t, i) => label(c, t, { x: end.x, y: end.y + (18 + i * 16) / scale }, scale, i ? ACCENT : YELLOW));
   }
 }
 
@@ -903,6 +999,7 @@ export function makeTool(id: ToolId, env: ToolEnv): Tool {
     case 'light': return new LightTool(env);
     case 'label': return new LabelTool(env);
     case 'roof': return new RoofTool(env);
+    case 'ruler': return new RulerTool(env);
     default: return new PanTool();
   }
 }

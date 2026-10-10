@@ -3,6 +3,7 @@ import { type Editor, useEditor } from '../state/editor';
 import { defaultLayers, newFloor, uid } from '../model/doc';
 import { tr } from '../i18n';
 import { toast } from './common';
+import { cloneFloor } from '../geom/ops';
 
 function move<T>(arr: T[], i: number, d: number): T[] {
   const j = i + d;
@@ -24,6 +25,13 @@ export function FloorsLayers({ ed }: { ed: Editor }) {
     const f = newFloor(tr('Этаж {0}', doc.floors.length + 1));
     ed.commit((d) => { d.floors.push(f); });
     ed.setFloor(f.id);
+  };
+  const dupFloor = (id: string) => {
+    const src = doc.floors.find((x) => x.id === id);
+    if (!src) return;
+    const copy = cloneFloor(src, uid('f'), tr('{0} (копия)', src.name));
+    ed.commit((d) => { const i = d.floors.findIndex((x) => x.id === id); d.floors.splice(i + 1, 0, copy); });
+    ed.setFloor(copy.id);
   };
   const renameFloor = (id: string, name: string) => {
     const v = window.prompt(tr('Новое название'), name);
@@ -61,10 +69,11 @@ export function FloorsLayers({ ed }: { ed: Editor }) {
           {floorsTop.map(({ f, i }) => (
             <li key={f.id} className={f.id === floorId ? 'on' : ''}>
               <button className="list-main" onClick={() => ed.setFloor(f.id)} onDoubleClick={() => renameFloor(f.id, f.name)}>{f.name}</button>
-              <button className="mini" title={tr('Выше')} disabled={i === doc.floors.length - 1} onClick={() => ed.commit((d) => { d.floors = move(d.floors, i, 1); })}>▲</button>
+              <span className="list-btns"><button className="mini" title={tr('Выше')} disabled={i === doc.floors.length - 1} onClick={() => ed.commit((d) => { d.floors = move(d.floors, i, 1); })}>▲</button>
               <button className="mini" title={tr('Ниже')} disabled={i === 0} onClick={() => ed.commit((d) => { d.floors = move(d.floors, i, -1); })}>▼</button>
+              <button className="mini" title={tr('Дублировать этаж — копия встанет выше')} onClick={() => dupFloor(f.id)}>⧉</button>
               <button className="mini" title={tr('Переименовать')} onClick={() => renameFloor(f.id, f.name)}>✎</button>
-              <button className="mini danger" title={tr('Удалить')} onClick={() => delFloor(f.id, f.name)}>✕</button>
+              <button className="mini danger" title={tr('Удалить')} onClick={() => delFloor(f.id, f.name)}>✕</button></span>
             </li>
           ))}
         </ul>
@@ -78,12 +87,12 @@ export function FloorsLayers({ ed }: { ed: Editor }) {
               <button className="list-main" title={tr('Двойной щелчок — переименовать')} onClick={() => ed.setLayer(l.id)} onDoubleClick={() => renameLayer(l.id, l.name)}>
                 {l.name}{l.aboveWalls && <span className="tag" title={tr('Над стенами — слой рисуется поверх стен')}>▲▦</span>}
               </button>
-              <button className={`mini${l.aboveWalls ? ' on' : ''}`} title={tr('Над стенами — слой рисуется поверх стен')} onClick={() => updLayer(l.id, { aboveWalls: !l.aboveWalls })}>▦</button>
+              <span className="list-btns"><button className={`mini${l.aboveWalls ? ' on' : ''}`} title={tr('Над стенами — слой рисуется поверх стен')} onClick={() => updLayer(l.id, { aboveWalls: !l.aboveWalls })}>▦</button>
               <button className={`mini${l.gmOnly ? ' on' : ''}`} title={tr('Только для мастера — слоя нет в версии для игроков')} onClick={() => updLayer(l.id, { gmOnly: !l.gmOnly })}>Ⓜ</button>
               <button className={`mini${l.locked ? ' on' : ''}`} title={tr('Заблокировать')} onClick={() => updLayer(l.id, { locked: !l.locked })}>{l.locked ? '🔒' : '🔓'}</button>
               <button className="mini" title={tr('Выше')} disabled={i === floor.layers.length - 1} onClick={() => ed.commitFloor((f) => { f.layers = move(f.layers, i, 1); })}>▲</button>
               <button className="mini" title={tr('Ниже')} disabled={i === 0} onClick={() => ed.commitFloor((f) => { f.layers = move(f.layers, i, -1); })}>▼</button>
-              <button className="mini danger" title={tr('Удалить')} onClick={() => delLayer(l.id, l.name)}>✕</button>
+              <button className="mini danger" title={tr('Удалить')} onClick={() => delLayer(l.id, l.name)}>✕</button></span>
             </li>
           ))}
         </ul>

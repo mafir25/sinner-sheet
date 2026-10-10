@@ -1,4 +1,5 @@
 // Левая панель: настройки текущего инструмента и свойства выделенного.
+import { useState } from 'react';
 import type { AssetStore } from '../assets/store';
 import { dirOf, findDir, switchDir, variantChain } from '../assets/tree.js';
 import type { AssetKey, FaceDir, MapObject, Portal, Pt, Rules, WallStyle } from '../model/types';
@@ -10,6 +11,9 @@ import { nm, tr } from '../i18n';
 import { edgeStyle, portalFaces, portalShape, resizePortal } from '../geom/walls';
 import { BrushPanel, LabelPanel, LightPanel, PathPanel, RoofPanel, SelectionExtras } from './Props2';
 import { AssetPicker, ColorInput, Field, NumInput, SetThumb, Slider, Thumb, assetName, toast, useStore } from './common';
+import { type AlignMode, alignObjects, distributeObjects, repeatObjects, sameObjects } from '../geom/ops';
+import { uid } from '../model/doc';
+import { FEET_PER_CELL, fmtLen, fmtNum, polyArea, polySize, segLen } from '../geom/measure';
 
 const FACE_DIRS: { id: FaceDir; label: string }[] = [
   { id: 'down', label: 'Вниз ↓' },
@@ -75,7 +79,7 @@ export function VariantPicker({ assets, value, onChange }: { assets: AssetStore;
 }
 
 /** Смена ассета объекта с сохранением масштаба. */
-function swapAsset(assets: AssetStore, o: MapObject, key: AssetKey): Partial<MapObject> {
+export function swapAsset(assets: AssetStore, o: MapObject, key: AssetKey): Partial<MapObject> {
   const a = assets.entry(o.asset)?.footprint ?? [o.w, o.h];
   const b = assets.entry(key)?.footprint ?? a;
   const k = o.w / a[0];
@@ -159,7 +163,7 @@ export function Props({ ed, assets }: { ed: Editor; assets: AssetStore }) {
   const updObjs = (fn: (o: MapObject) => void) => ed.commitFloor((fl) => { for (const o of fl.objects) if (ids.has(o.id)) fn(o); });
   const actions = (
     <div className="row wrap">
-      {objs.length > 0 && <button className="btn btn-sm" onClick={() => ed.duplicate()}>{tr('Дублировать (Ctrl+D)')}</button>}
+      <button className="btn btn-sm" onClick={() => ed.duplicate()}>{tr('Дублировать (Ctrl+D)')}</button>
       <button className="btn btn-sm btn-danger" onClick={() => ed.deleteSelection()}>{tr('Удалить (Del)')}</button>
     </div>
   );
@@ -194,6 +198,8 @@ export function Props({ ed, assets }: { ed: Editor; assets: AssetStore }) {
           <div className="row wrap">
             <button className="btn btn-sm" onClick={() => updObjs((o) => { o.flipX = !o.flipX; })}>{tr('Отразить ↔')}</button>
             <button className="btn btn-sm" onClick={() => updObjs((o) => { o.flipY = !o.flipY; })}>{tr('Отразить ↕')}</button>
+            <button className="btn btn-sm" title={tr('Выделить на этаже все такие же объекты (тот же ассет или его варианты) — например, чтобы заменить их разом')}
+              onClick={() => ed.setSel(sameObjects(f, objs, (k) => assets.entry(k)).map((id) => ({ kind: 'object' as const, id })))}>≡ {tr('Такие же')}</button>
             <button className="btn btn-sm" title={tr('Наверх')} onClick={() => ed.commitFloor((fl) => { fl.objects = [...fl.objects.filter((o) => !ids.has(o.id)), ...fl.objects.filter((o) => ids.has(o.id))]; })}>⤒ {tr('Наверх')}</button>
             <button className="btn btn-sm" title={tr('Вниз')} onClick={() => ed.commitFloor((fl) => { fl.objects = [...fl.objects.filter((o) => ids.has(o.id)), ...fl.objects.filter((o) => !ids.has(o.id))]; })}>⤓ {tr('Вниз')}</button>
           </div>
@@ -203,6 +209,7 @@ export function Props({ ed, assets }: { ed: Editor; assets: AssetStore }) {
               {objs.some((o) => o.tint) && <button className="btn btn-sm" onClick={() => updObjs((o) => { o.tint = null; })}>{tr('Без оттенка')}</button>}
             </div>
           </Field>
+          <Arrange ed={ed} objs={objs} />
           {objs.length > 1 && <button className="btn btn-sm" title={tr('Запомнить выбранные объекты как комплект набора — он появится в библиотеке')}
             onClick={() => void saveAsSet(ed, assets, objs)}>🧩 {tr('Сохранить как комплект')}</button>}
           <Field label={tr('Слой')}>
@@ -237,6 +244,7 @@ export function Props({ ed, assets }: { ed: Editor; assets: AssetStore }) {
         return (
           <>
             <p className="hint">{tr('Отдельная стена комнаты: настройки ниже — только для неё (Shift+щелчок — добавить ещё стены).')}</p>
+            <p className="hint">{tr('Длина: {0}', fmtLen(edges.reduce((s, e) => s + segLen(e.a, e.b), 0), tr('кл'), tr('фт')))}</p>
             <WallStyleEditor assets={assets} value={edgeStyle(e0.room, e0.a, e0.b)} onChange={(w) => setEdges(w)} />
             <div className="row wrap">
               <button className="btn btn-sm" onClick={() => setEdges(null)}>{tr('Как у всей комнаты')}</button>
@@ -247,6 +255,7 @@ export function Props({ ed, assets }: { ed: Editor; assets: AssetStore }) {
       })()}
       {rooms.length > 0 && (
         <>
+          <RoomSize rooms={rooms} />
           <Field label={tr('Тип комнаты')}>
             <select className="input" value={rooms.every((r) => (r.type ?? '') === (rooms[0].type ?? '')) ? rooms[0].type ?? '' : '*'}
               onChange={(e) => { const t = e.target.value; if (t === '*') return; ed.commitFloor((fl) => { for (const r of fl.rooms) if (ids.has(r.id)) { if (t) r.type = t; else delete r.type; } }); }}>
@@ -390,4 +399,60 @@ async function saveAsSet(ed: Editor, assets: AssetStore, objs: MapObject[]) {
   if (!pack.local) toast(tr('Комплект «{0}» добавлен в канон до перезагрузки. Чтобы сохранить — «✎ Разметить» → «Скачать _meta.json».', name));
   else if (await assets.writeMetasToDisk(packId, [dir])) toast(tr('Комплект «{0}» сохранён в папку набора', name));
   else toast(tr('Комплект «{0}» сохранён в браузере', name));
+}
+
+/** Размеры и площадь выбранных комнат (клетка = 5 футов, площадь клетки = 25 кв. футов). */
+function RoomSize({ rooms }: { rooms: { poly: Pt[][] }[] }) {
+  const area = rooms.reduce((s, r) => s + polyArea(r.poly), 0);
+  const ft2 = area * FEET_PER_CELL * FEET_PER_CELL;
+  if (rooms.length > 1) return <p className="hint">{tr('Площадь всех: {0} кл² · {1} кв. фт', fmtNum(area), fmtNum(ft2))}</p>;
+  const { w, h } = polySize(rooms[0].poly);
+  return (
+    <p className="hint">
+      {tr('Размер: {0} × {1} кл ({2} × {3} фт)', fmtNum(w), fmtNum(h), fmtNum(w * FEET_PER_CELL), fmtNum(h * FEET_PER_CELL))}<br />
+      {tr('Площадь: {0} кл² · {1} кв. фт', fmtNum(area), fmtNum(ft2))}
+    </p>
+  );
+}
+
+
+/** Выравнивание и распределение выделенных объектов, повтор рядом (стеллажи, парты, колонны). */
+function Arrange({ ed, objs }: { ed: Editor; objs: MapObject[] }) {
+  const [count, setCount] = useState(3);
+  const [step, setStep] = useState<Pt>({ x: 1, y: 0 });
+  const move = (m: Map<string, Pt>) => {
+    if (m.size) ed.commitFloor((fl) => { for (const o of fl.objects) { const p = m.get(o.id); if (p) { o.x = p.x; o.y = p.y; } } });
+  };
+  const ALIGN: [AlignMode, string, string][] = [
+    ['left', '⇤', 'По левому краю'], ['cx', '↔', 'По центру по горизонтали'], ['right', '⇥', 'По правому краю'],
+    ['top', '⤒', 'По верхнему краю'], ['cy', '↕', 'По центру по вертикали'], ['bottom', '⤓', 'По нижнему краю'],
+  ];
+  const repeat = () => {
+    const copies = repeatObjects(objs, Math.max(1, Math.round(count)), step, () => uid('o'));
+    ed.commitFloor((fl) => { fl.objects.push(...copies); });
+    ed.setSel([...objs, ...copies].map((o) => ({ kind: 'object' as const, id: o.id })));
+  };
+  return (
+    <div className="subsec stack">
+      {objs.length > 1 && (
+        <Field label={tr('Выровнять')}>
+          <div className="row wrap">
+            {ALIGN.map(([m, icon, title]) => <button key={m} className="icon-btn" title={tr(title)} aria-label={tr(title)} onClick={() => move(alignObjects(objs, m))}>{icon}</button>)}
+            {objs.length > 2 && <>
+              <button className="btn btn-sm" title={tr('Равные промежутки по горизонтали')} onClick={() => move(distributeObjects(objs, 'x'))}>⋯ {tr('Ряд')}</button>
+              <button className="btn btn-sm" title={tr('Равные промежутки по вертикали')} onClick={() => move(distributeObjects(objs, 'y'))}>⋮ {tr('Столбец')}</button>
+            </>}
+          </div>
+        </Field>
+      )}
+      <Field label={tr('Повторить')}>
+        <div className="row">
+          <Field label={tr('Копий')} row><NumInput value={count} step={1} min={1} max={100} digits={0} onCommit={setCount} /></Field>
+          <Field label={tr('Шаг X')} row><NumInput value={step.x} step={0.5} min={-100} max={100} onCommit={(x) => setStep({ ...step, x })} /></Field>
+          <Field label={tr('Шаг Y')} row><NumInput value={step.y} step={0.5} min={-100} max={100} onCommit={(y) => setStep({ ...step, y })} /></Field>
+        </div>
+        <button className="btn btn-sm" title={tr('Поставить копии выделенного подряд с этим шагом (в клетках)')} onClick={repeat}>⧉ {tr('Повторить')}</button>
+      </Field>
+    </div>
+  );
 }
