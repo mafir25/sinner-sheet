@@ -228,3 +228,12 @@ kbd { font-family: ui-monospace, Consolas, monospace; font-size: .78rem; border:
 .anchor button.on { color: #000; background: var(--accent); border-color: var(--accent); }
 .card-warn { font-size: .72rem; color: var(--yellow); }
 .warn { color: var(--yellow); font-size: .85rem; border-left: 2px solid var(--yellow); padding-left: 8px; }
+.ctx-menu { position: fixed; z-index: 150; min-width: 200px; max-height: calc(100vh - 8px); overflow-y: auto; background: #000; border: 1px solid var(--accent);
+  box-shadow: 0 8px 30px rgba(0,0,0,.8); padding: 4px 0; display: flex; flex-direction: column; }
+.ctx-menu button { display: flex; justify-content: space-between; gap: 16px; align-items: center; padding: 7px 12px; text-align: left; font-size: .85rem; }
+.ctx-menu button:hover, .ctx-menu button:focus-visible { background: rgba(64,224,208,.1); color: var(--accent); }
+.ctx-menu button.danger:hover { background: rgba(199,36,58,.2); color: #ff7b8b; }
+.ctx-menu kbd { font-size: .68rem; padding: 1px 4px; color: var(--dim); }
+.ctx-menu hr { border: none; border-top: 1px solid var(--line); margin: 4px 0; }
+.ctx-menu hr:first-child, .ctx-menu hr + hr { display: none; }
+@media (pointer: coarse) { .ctx-menu button { padding: 11px 14px; } }

@@ -18,6 +18,7 @@ import { FloorsLayers } from './ui/FloorsLayers';
 import { ExportDialog, GridSelect, Help, MapSettings } from './ui/Dialogs';
 import { GenBar, GenDialog, type GenState } from './ui/GenDialog';
 import { LinksDialog } from './ui/LinksDialog';
+import { ContextMenu, type MenuItem, menuItems } from './ui/ContextMenu';
 import { parseMapHash } from '../../site/site-links.js';
 import { Field, Modal, NumInput, Toasts, toast, useStore } from './ui/common';
 import { floorIssues } from './geom/place';
@@ -267,6 +268,8 @@ function Workspace({ ed, assets, user, onExit, onOpen }: { ed: Editor; assets: A
   const [saveState, setSaveState] = useState<'saved' | 'saving' | 'dirty'>('saved');
   const handle = useRef<SaveHandle>(null);
   const fit = useRef<() => void>(() => {});
+  const [menu, setMenu] = useState<{ x: number; y: number; items: MenuItem[] } | null>(null);
+  const closeMenu = useCallback(() => setMenu(null), []);
 
   // ---------- автосохранение в браузере
   useEffect(() => {
@@ -407,7 +410,9 @@ function Workspace({ ed, assets, user, onExit, onOpen }: { ed: Editor; assets: A
           </div>}
         </aside>
         <section className="center">
-          <CanvasView ed={ed} assets={assets} onFitRef={(f) => { fit.current = f; }} />
+          <CanvasView ed={ed} assets={assets} onFitRef={(f) => { fit.current = f; }}
+            onMenu={(x, y) => setMenu({ x, y, items: menuItems(ed, assets, { fit: () => fit.current() }) })} />
+          {menu && <ContextMenu ed={ed} at={menu} items={menu.items} onClose={closeMenu} />}
           {genLast && doc === genLast.doc && <GenBar ed={ed} assets={assets} last={genLast} onChange={setGenLast} onSettings={() => setDialog('gen')} />}
           <div className="bottombar">
             <button className={`btn btn-sm${panels.left ? ' btn-on' : ''}`} title={tr('Панель свойств (Tab — спрятать или показать обе панели)')}

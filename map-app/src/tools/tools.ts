@@ -38,6 +38,8 @@ export interface Tool {
   overlay?(c: CanvasRenderingContext2D, scale: number): void;
   preview?(): Floor | undefined;
   cursor?(p: Pt | null): string;
+  /** Правая кнопка / долгое нажатие: выбрать то, что под точкой (если оно ещё не выбрано). */
+  pick?(p: Pt): void;
 }
 
 const ACCENT = '#40E0D0', RED = '#ff5068', YELLOW = '#F1C40F';
@@ -196,6 +198,11 @@ class SelectTool implements Tool {
   }
 
   private roofsOn() { return this.ed.state.settings.showRoofs !== 'hide'; }
+  pick(p: Pt) {
+    const hit = hitTest(this.ed.floor, p, this.ed.state.view.scale, this.roofsOn(), this.band);
+    if (!hit) this.ed.setSel([]);
+    else if (!this.ed.state.sel.some((s) => s.id === hit.id)) this.ed.setSel([hit]);
+  }
   private band = (key: string) => this.env.assets.entry(key)?.footprint[1] ?? 1;
 
   private single(): MapObject | null {

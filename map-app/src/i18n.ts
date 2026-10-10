@@ -555,6 +555,11 @@ const EN: Record<string, string> = {
   'Карт только в браузере: {0}. Если очистить данные сайта или сменить браузер, они пропадут — сохрани их в файл или нажми «Скачать все карты».': 'Maps only in this browser: {0}. Clearing site data or switching browsers will lose them — save them to files or press “Download all maps”.',
   '«{0}» есть только в этом браузере. Сохрани её в файл (💾), чтобы не потерять.': '“{0}” exists only in this browser. Save it to a file (💾) so you don’t lose it.',
   'не в файле': 'not in a file',
+  'Дублировать': 'Duplicate',
+  'Вставить': 'Paste',
+  'Выделить такие же': 'Select the same',
+  'На слой «{0}»': 'To layer “{0}”',
+  'Выделить всё': 'Select all',
 };
 
 export function tr(ru: string, ...args: (string | number)[]): string {

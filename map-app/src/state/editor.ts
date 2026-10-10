@@ -185,6 +185,7 @@ export class Editor {
     }, { keepSel: false });
   }
 
+  canPaste() { return this.clipboard.length > 0; }
   copy() { this.clipboard = structuredClone(this.selected('object')); }
   paste(offset = 1) {
     if (!this.clipboard.length) return;
