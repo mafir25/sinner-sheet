@@ -3,6 +3,7 @@ import { useSyncExternalStore } from 'react';
 import type { AssetKey, Floor, Label, Light, MapDoc, MapObject, MapPath, PathStyle, Portal, Pt, Roof, Room, Wall, WallStyle } from '../model/types';
 import { DEFAULT_FLOOR, DEFAULT_PATH, DEFAULT_WALL, uid } from '../model/doc';
 import { orphanPortals } from '../geom/walls';
+import { share } from './share';
 
 export type ToolId = 'select' | 'room' | 'poly' | 'wall' | 'door' | 'window' | 'cut' | 'stamp' | 'brush' | 'path' | 'light' | 'label' | 'roof' | 'ruler' | 'pan';
 /** edge — отдельная стена комнаты: id «<id комнаты>|<кольцо>|<ребро>». */
@@ -97,9 +98,11 @@ export class Editor {
   // ---------- изменения документа
   /** Применяет изменение к копии документа и кладёт прежнюю версию в историю. */
   commit(fn: (d: MapDoc) => void, opts: { keepSel?: boolean } = {}) {
-    const next = structuredClone(this.doc);
-    fn(next);
-    next.updatedAt = Date.now();
+    const draft = structuredClone(this.doc);
+    fn(draft);
+    draft.updatedAt = Date.now();
+    // неизменённые части берутся из прошлой версии — история не держит десятки копий одинаковых этажей
+    const next = share(this.doc, draft);
     this.past.push(this.doc);
     if (this.past.length > HISTORY) this.past.shift();
     this.future = [];

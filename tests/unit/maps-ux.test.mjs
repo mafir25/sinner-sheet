@@ -115,3 +115,31 @@ describe('ассеты карты для .pmmap и экспорта', () => {
     for (const k of ['ground', 'scan', 'mud', 'road', 'fence', 'roof', 'brick']) expect(keys.has(`local:p/${k}.png`)).toBe(true);
   });
 });
+import { share } from '../../map-app/src/state/share.ts';
+import { Editor } from '../../map-app/src/state/editor.ts';
+describe('история отмены делит неизменённые части', () => {
+  it('share: равное — из прошлой версии, изменённое — новое; вставка в середину по id', () => {
+    const prev = { a: { x: 1 }, list: [{ id: 'p', v: 1 }, { id: 'q', v: 2 }], n: 1 };
+    const next = structuredClone(prev);
+    next.list.splice(1, 0, { id: 'new', v: 0 });
+    next.n = 2;
+    const r = share(prev, next);
+    expect(r).toEqual(next);
+    expect(r.a).toBe(prev.a);
+    expect(r.list[0]).toBe(prev.list[0]);
+    expect(r.list[2]).toBe(prev.list[1]);
+    expect(share(prev, structuredClone(prev))).toBe(prev);
+  });
+  it('правка одного этажа не копирует другие; отмена возвращает прежнее', () => {
+    const doc = withContent();
+    doc.floors.push({ ...structuredClone(doc.floors[0]), id: 'f2' });
+    const ed = new Editor(doc);
+    const f2 = ed.doc.floors[1];
+    ed.commitFloor((f) => { f.objects[0].x = 9; });
+    expect(ed.doc.floors[1]).toBe(f2);
+    expect(ed.doc.floors[0].objects[0].x).toBe(9);
+    expect(ed.doc.floors[0].rooms[0]).toBe(doc.floors[0].rooms[0]);
+    ed.undo();
+    expect(ed.doc.floors[0].objects[0].x).toBe(2);
+  });
+});
