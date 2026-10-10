@@ -105,3 +105,40 @@ export function repeatObjects(objs: MapObject[], count: number, step: Pt, newId:
   for (let k = 1; k <= count; k++) for (const o of objs) out.push({ ...o, id: newId(), x: o.x + step.x * k, y: o.y + step.y * k });
   return out;
 }
+
+// ---------- буфер обмена: всё выделенное, а не только объекты
+export type Clip = Pick<Floor, 'objects' | 'rooms' | 'walls' | 'portals' | 'paths' | 'lights' | 'labels' | 'roofs'>;
+const CLIP_KEYS = ['objects', 'rooms', 'walls', 'portals', 'paths', 'lights', 'labels', 'roofs'] as const;
+export const clipSize = (c: Clip) => CLIP_KEYS.reduce((s, k) => s + c[k].length, 0);
+
+/** Выделенное на этаже; проёмы на выделенных комнатах и стенах берутся вместе с ними. */
+export function copySelection(f: Floor, ids: Set<string>, onWalls: (part: Floor) => Set<string>): Clip {
+  const pick = <T extends { id: string }>(list: T[]) => structuredClone(list.filter((x) => ids.has(x.id)));
+  const rooms = pick(f.rooms), walls = pick(f.walls);
+  const attached = rooms.length || walls.length ? onWalls({ ...f, rooms, walls }) : new Set<string>();
+  return {
+    objects: pick(f.objects), rooms, walls, paths: pick(f.paths), lights: pick(f.lights), labels: pick(f.labels), roofs: pick(f.roofs),
+    portals: structuredClone(f.portals.filter((p) => ids.has(p.id) || attached.has(p.id))),
+  };
+}
+
+/** Копия буфера для вставки: новые id, сдвиг d; объекты и пути с чужим слоем — на слой layer. */
+export function pasteClip(c: Clip, d: Pt, layers: Set<string>, layer: string, newId: (prefix: string) => string): Clip {
+  const moved = shiftFloorAll({ ...emptyFloor(), ...structuredClone(c) }, d);
+  const fresh = <T extends { id: string }>(list: T[], prefix: string) => list.map((x) => ({ ...x, id: newId(prefix) }));
+  return {
+    objects: fresh(moved.objects, 'o').map((o) => (layers.has(o.layer) ? o : { ...o, layer })),
+    paths: fresh(moved.paths, 'pa').map((p) => (layers.has(p.layer) ? p : { ...p, layer })),
+    rooms: fresh(moved.rooms, 'r'), walls: fresh(moved.walls, 'w'), portals: fresh(moved.portals, 'd'),
+    lights: fresh(moved.lights, 'li'), labels: fresh(moved.labels, 'lb'), roofs: fresh(moved.roofs, 'rf'),
+  };
+}
+
+function emptyFloor(): Floor {
+  return { id: '', name: '', visible: true, rooms: [], walls: [], portals: [], objects: [], layers: [], ground: null, terrain: [], paths: [], lights: [], labels: [], roofs: [], image: null };
+}
+
+/** Копия этажа целиком (новый id и название) — основа для следующего этажа здания. */
+export function cloneFloor(f: Floor, id: string, name: string): Floor {
+  return { ...structuredClone(f), id, name };
+}

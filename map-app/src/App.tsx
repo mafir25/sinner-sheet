@@ -368,7 +368,8 @@ function Workspace({ ed, assets, user, onExit, onOpen }: { ed: Editor; assets: A
   const saveLabel = saveState === 'saved' ? tr('Сохранено в браузере') : saveState === 'saving' ? tr('Сохраняется…') : tr('Не сохранено');
   const fileOk = !unsavedToFile({ updatedAt: doc.updatedAt, fileSavedAt: ed.fileSavedAt });
   const leave = () => {
-    if (!fileOk) toast(tr('«{0}» есть только в этом браузере. Сохрани её в файл (💾), чтобы не потерять.', doc.name));
+    const drawn = doc.floors.some((f) => f.rooms.length || f.walls.length || f.objects.length || f.paths.length || f.terrain.length || f.image);
+    if (!fileOk && drawn) toast(tr('«{0}» есть только в этом браузере. Сохрани её в файл (💾), чтобы не потерять.', doc.name));
     onExit();
   };
 

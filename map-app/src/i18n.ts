@@ -561,6 +561,8 @@ const EN: Record<string, string> = {
   'На слой «{0}»': 'To layer “{0}”',
   'Выделить всё': 'Select all',
   'Недавние': 'Recent',
+  '{0} (копия)': '{0} (copy)',
+  'Дублировать этаж — копия встанет выше': 'Duplicate floor — the copy goes above',
 };
 
 export function tr(ru: string, ...args: (string | number)[]): string {

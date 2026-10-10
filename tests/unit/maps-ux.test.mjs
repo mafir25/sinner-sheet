@@ -158,3 +158,31 @@ describe('проём тащится вдоль стены', () => {
     expect(slidePortal(f, door, { x: 3, y: 2 }, true)).toBeNull();
   });
 });
+import { copySelection, pasteClip, cloneFloor, clipSize } from '../../map-app/src/geom/ops.ts';
+import { orphanPortals } from '../../map-app/src/geom/walls.ts';
+describe('буфер обмена: всё выделенное', () => {
+  it('комната копируется со своей дверью, вставка — новые id, сдвиг и слой по умолчанию', () => {
+    const doc = withContent();
+    const f = doc.floors[0];
+    f.portals.push({ id: 'd', kind: 'door', a: { x: 1.5, y: 1 }, b: { x: 2.5, y: 1 }, asset: null });
+    f.lights.push({ id: 'li', x: 5, y: 5, radius: 3, color: '#fff', intensity: 1, shadows: true });
+    const onWalls = (part) => { const o = orphanPortals(part); return new Set(part.portals.filter((p) => !o.has(p.id)).map((p) => p.id)); };
+    const clip = copySelection(f, new Set(['r', 'o']), onWalls);
+    expect(clipSize(clip)).toBe(3);
+    expect(clip.portals.map((p) => p.id)).toEqual(['d']);
+    let n = 0;
+    const out = pasteClip(clip, { x: 1, y: 1 }, new Set(['other']), 'other', (p) => `${p}${++n}`);
+    expect(out.rooms[0].id).not.toBe('r');
+    expect(out.rooms[0].poly[0][0]).toEqual({ x: 2, y: 2 });
+    expect(out.portals[0].a).toEqual({ x: 2.5, y: 2 });
+    expect(out.objects[0].layer).toBe('other');
+    expect(f.rooms[0].poly[0][0]).toEqual({ x: 1, y: 1 });
+  });
+  it('копия этажа — новый id и имя, содержимое не связано с исходным', () => {
+    const f = withContent().floors[0];
+    const c = cloneFloor(f, 'f2', 'Этаж 2');
+    c.objects[0].x = 99;
+    expect(c.id).toBe('f2');
+    expect(f.objects[0].x).toBe(2);
+  });
+});

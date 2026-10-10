@@ -163,7 +163,7 @@ export function Props({ ed, assets }: { ed: Editor; assets: AssetStore }) {
   const updObjs = (fn: (o: MapObject) => void) => ed.commitFloor((fl) => { for (const o of fl.objects) if (ids.has(o.id)) fn(o); });
   const actions = (
     <div className="row wrap">
-      {objs.length > 0 && <button className="btn btn-sm" onClick={() => ed.duplicate()}>{tr('Дублировать (Ctrl+D)')}</button>}
+      <button className="btn btn-sm" onClick={() => ed.duplicate()}>{tr('Дублировать (Ctrl+D)')}</button>
       <button className="btn btn-sm btn-danger" onClick={() => ed.deleteSelection()}>{tr('Удалить (Del)')}</button>
     </div>
   );
