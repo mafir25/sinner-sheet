@@ -6,6 +6,7 @@ import { db } from "./firebase.js";
 import { onAuth } from "./auth.js";
 import { DICT, SCHEMAS, fieldHtml as fieldHtmlBase, repeatRow as repeatRowBase, repeatMove, collectFields,
   CLASS_REGISTRY, classFileRel } from "./fields.js";
+import { fusionTier, parseChallenge, encounterBudget, rateEncounter } from "./compendium-tools.js";
 
 /* ============================================================
    0. ИНИЦИАЛИЗАЦИЯ
@@ -275,6 +276,7 @@ const CATS = {
     label:"Бестиарий", icon:"fa-skull", color:"#8FCC2A", kind:"data",
     title:"Бестиарий Города", customType:"bestiary", src:"bestiary.json",
     filters:[ { key:"Category", title:"Уровень угрозы", dict:"bestiaryCats" } ],
+    crTools:true,                 // фильтр и сортировка по опасности, кнопка «Во встречу»
     sort:(a,b)=>String(a.Name).localeCompare(String(b.Name)),
     /* Все поля, кроме Name, необязательны: старые записи (без новых полей)
        отображаются как раньше, пустые разделы просто не выводятся. */
@@ -334,6 +336,7 @@ const CATS = {
   gifts: {
     label:"Э.Г.О. Гифты", icon:"fa-gem", color:"#E67E22", kind:"data",
     title:"База данных: Э.Г.О. гифты", customType:"gift", src:"egogifts.json",
+    fusion:true,                  // кнопка «В слияние» и калькулятор Слияния
     filters:[
       { key:"Type", title:"Типы эффектов", dict:"types" },
       { key:"Level", title:"Уровень", dict:"giftLevels" }
@@ -503,10 +506,24 @@ const state = {
   user: null,
   isAdmin: false,
   editId: null,
-  draftCalcs: {}            // калькуляторы записи, открытой в конструкторе
+  draftCalcs: {},           // калькуляторы записи, открытой в конструкторе
+  cr: { min:"", max:"" },   // Бестиарий: диапазон опасности (CR)
+  order: "name",            // Бестиарий: name | cr-asc | cr-desc
+  fusion: [],               // Слияние Э.Г.О.: [{ uid, name, level, type }] — до 3 гифтов
+  fusionSame: false,        // показывать только гифты с типами ингредиентов
+  enc: { size:4, level:1, list:[] }   // Встреча: [{ uid, name, cr, xp, n }]
 };
 try { state.picks = JSON.parse(localStorage.getItem(PICK_KEY) || "[]"); } catch { state.picks = []; }
 const savePicks = () => { try { localStorage.setItem(PICK_KEY, JSON.stringify(state.picks)); } catch {} };
+const FUSION_KEY = "pm_fusion_v1", ENC_KEY = "pm_encounter_v1";
+try {
+  const f = JSON.parse(localStorage.getItem(FUSION_KEY) || "[]");
+  if (Array.isArray(f)) state.fusion = f.slice(0, 3);
+  const e = JSON.parse(localStorage.getItem(ENC_KEY) || "null");
+  if (e && Array.isArray(e.list)) state.enc = { size:+e.size || 4, level:+e.level || 1, list:e.list };
+} catch {}
+const saveFusion = () => { try { localStorage.setItem(FUSION_KEY, JSON.stringify(state.fusion)); } catch {} };
+const saveEnc = () => { try { localStorage.setItem(ENC_KEY, JSON.stringify(state.enc)); } catch {} };
 
 const catCfg = () => CATS[state.cat];
 const uidOf = (catId, it) => it.__origin === "custom"
@@ -598,6 +615,8 @@ async function setCategory(id){
   state.cat = id;
   state.search = "";
   state.filters = {};
+  state.cr = { min:"", max:"" };
+  state.order = "name";
   state.subtab = "data";
   const c = catCfg();
   applyTheme(c.color);
@@ -606,6 +625,8 @@ async function setCategory(id){
   $("#page-sub").textContent = c.sub || "";
   $("#system-select").style.display = c.systems ? "" : "none";
   $("#btn-base").style.display = c.systems ? "" : "none";
+  $("#btn-fusion").style.display = c.fusion ? "" : "none";
+  $("#btn-enc").style.display = c.crTools ? "" : "none";
   $("#src-switch").style.visibility = c.kind === "data" ? "visible" : "hidden";
   renderSubtabs();
   if (c.systems){
@@ -650,8 +671,23 @@ function renderFilters(){
     });
     html += `</div>`;
   });
+  if (c.crTools){
+    const opts = sel => ["", ...CR_STEPS].map(v => `<option value="${v}"${String(sel) === v ? " selected" : ""}>${v === "" ? "—" : v}</option>`).join("");
+    html += `<div class="filter-group-title">Опасность (CR) и порядок</div>
+      <div class="type-filters cr-tools">
+        <label>от <select class="cloud-select" id="cr-min" aria-label="Опасность от">${opts(state.cr.min)}</select></label>
+        <label>до <select class="cloud-select" id="cr-max" aria-label="Опасность до">${opts(state.cr.max)}</select></label>
+        <label>сортировка <select class="cloud-select" id="cr-order" aria-label="Сортировка">
+          <option value="name"${state.order === "name" ? " selected" : ""}>по названию</option>
+          <option value="cr-asc"${state.order === "cr-asc" ? " selected" : ""}>опасность ↑</option>
+          <option value="cr-desc"${state.order === "cr-desc" ? " selected" : ""}>опасность ↓</option>
+        </select></label>
+      </div>`;
+  }
   $("#filters").innerHTML = html;
 }
+const CR_STEPS = ["0","1/8","1/4","1/2", ...Array.from({ length:30 }, (_, i) => String(i + 1))];
+const crNum = v => v === "" ? null : parseChallenge(v).cr;
 function matches(it){
   const c = catCfg();
   for (const f of (c.filters || [])){
@@ -660,12 +696,27 @@ function matches(it){
     const vals = arr(it[f.key]).map(String);
     if (!vals.some(v => sel.has(v))) return false;
   }
+  if (c.crTools && (state.cr.min !== "" || state.cr.max !== "")){
+    const cr = parseChallenge(it.Challenge).cr, lo = crNum(state.cr.min), hi = crNum(state.cr.max);
+    if (cr == null || (lo != null && cr < lo) || (hi != null && cr > hi)) return false;
+  }
   if (state.search){
     const q = state.search.toLowerCase();
     const hay = (String(it.Name || "") + " " + (c.plain ? c.plain(it) : "")).toLowerCase();
     if (!hay.includes(q)) return false;
   }
   return true;
+}
+/* Порядок Бестиария по опасности; записи без CR — в конце */
+function ordered(list){
+  if (!catCfg().crTools || state.order === "name") return list;
+  const dir = state.order === "cr-desc" ? -1 : 1;
+  const key = it => parseChallenge(it.Challenge).cr;
+  return [...list].sort((a, b) => {
+    const x = key(a), y = key(b);
+    if (x == null || y == null) return (x == null) - (y == null);
+    return (x - y) * dir || String(a.Name).localeCompare(String(b.Name));
+  });
 }
 
 /* ============================================================
@@ -702,6 +753,13 @@ function cardHtml(it, catId = state.cat, opts = {}){
     <button class="ctrl-btn ctrl-copy" data-act="copy-item" data-uid="${esc(uid)}"><i class="fa-regular fa-copy"></i> Текст</button>
     <button class="ctrl-btn ctrl-dl" data-act="dl-item" data-uid="${esc(uid)}"><i class="fa-solid fa-download"></i> JSON</button>
     <button class="ctrl-btn ctrl-copy" data-act="copy-link" data-uid="${esc(uid)}" title="Скопировать ссылку на запись"><i class="fa-solid fa-link"></i> Ссылка</button>`;
+  if (catId === "gifts"){
+    const on = state.fusion.some(f => f.uid === uid);
+    ctrl += `
+    <button class="ctrl-btn ctrl-pick${on?" on":""}" data-act="fusion-toggle" data-uid="${esc(uid)}" title="Калькулятор Слияния Э.Г.О."><i class="fa-solid fa-flask"></i> ${on?"В слиянии":"В слияние"}</button>`;
+  }
+  if (catId === "bestiary") ctrl += `
+    <button class="ctrl-btn ctrl-pick" data-act="enc-add" data-uid="${esc(uid)}" title="Добавить во встречу"><i class="fa-solid fa-users-viewfinder"></i> Во встречу</button>`;
   if (opts.showCat) ctrl += `
     <button class="ctrl-btn ctrl-copy" data-act="open-in-base" data-uid="${esc(uid)}" title="Открыть в разделе базы"><i class="fa-solid fa-arrow-up-right-from-square"></i></button>`;
   if (canManage(it)) ctrl += `
@@ -764,7 +822,7 @@ async function renderGrid(){
     $("#result-count").textContent = "";
     return;
   }
-  visible = items.filter(matches);
+  visible = ordered(items.filter(matches));
   $("#result-count").textContent = `Показано ${visible.length} из ${items.length}`;
   grid.innerHTML = visible.length
     ? visible.map(it => cardHtml(it)).join("")
@@ -862,6 +920,141 @@ function renderPicks(){
   }).join("");
   mountCalcs(body);
 }
+
+/* ============================================================
+   10b. СЛИЯНИЕ Э.Г.О. И ВСТРЕЧА (справочные помощники, сайдбары)
+   Правило слияния — mechanics/rules.json («Слияние Э.Г.О.»), бюджет встречи — DMG 2024.
+   Логика без DOM — site/compendium-tools.js. Выбор хранится в этом браузере.
+   ============================================================ */
+const FUSION_MAX_TIER = Math.max(...Object.keys(DICT.giftLevels).map(Number));
+function syncToggleButtons(act, uid, on, labels){
+  document.querySelectorAll(`[data-act="${act}"][data-uid="${CSS.escape(uid)}"]`).forEach(b => {
+    b.classList.toggle("on", on);
+    b.innerHTML = `<i class="fa-solid fa-flask"></i> ${on ? labels[0] : labels[1]}`;
+  });
+}
+function toggleFusion(uid){
+  const i = state.fusion.findIndex(f => f.uid === uid);
+  if (i >= 0) state.fusion.splice(i, 1);
+  else {
+    const it = findItem(uid);
+    if (!it) return;
+    if (state.fusion.length >= 3) return toast("В слиянии не больше 3 гифтов");
+    state.fusion.push({ uid, name:it.Name, level:Number(it.Level) || 0, type:arr(it.Type).map(String) });
+    toast("Добавлено в слияние");
+  }
+  saveFusion(); renderFusion();
+  syncToggleButtons("fusion-toggle", uid, state.fusion.some(f => f.uid === uid), ["В слиянии", "В слияние"]);
+}
+async function giftPool(){
+  let canon = [], custom = [];
+  try { canon = await loadJson("egogifts.json"); } catch(e){ console.warn(e); }
+  if (state.source !== "canon") custom = (await loadCustom()).filter(x => x.__type === "gift");
+  return state.source === "custom" ? custom : [...canon, ...custom];
+}
+let fusionSeq = 0;
+async function renderFusion(){
+  $("#fusion-count").textContent = state.fusion.length;
+  const box = $("#fusion-body"), seq = ++fusionSeq;
+  const lvl = l => DICT.giftLevels[l] || { name:`Уровень ${l}`, color:"var(--text-dim)" };
+  let html = state.fusion.length
+    ? state.fusion.map(f => `<div class="pick-entry" style="border-left-color:${esc(lvl(f.level).color)}">
+        <div class="pick-top">
+          <div class="pick-name">${esc(f.name)} <span class="sub-level">${esc(roman(f.level))}</span></div>
+          <div class="pick-actions"><button class="mini-btn danger" data-act="fusion-remove" data-uid="${esc(f.uid)}">Убрать</button></div>
+        </div></div>`).join("")
+    : "";
+  const tier = fusionTier(state.fusion.map(f => f.level), FUSION_MAX_TIER);
+  if (tier == null){
+    box.innerHTML = html + `<div class="sidebar-empty">Отметьте 2 или 3 гифта кнопкой «В слияние» в разделе «Э.Г.О. Гифты» —
+      здесь появятся тир результата и подходящие гифты.</div>` + FUSION_RULE;
+    return;
+  }
+  const avg = state.fusion.reduce((s, f) => s + f.level, 0) / state.fusion.length;
+  const how = state.fusion.length === 2
+    ? `2 гифта: средний тир ${fmtAvg(avg)}, округление вниз`
+    : `3 гифта: средний тир ${fmtAvg(avg)}, округление вверх и +1`;
+  html += `<div class="fusion-result" style="border-color:${esc(lvl(tier).color)}">
+      <div class="fusion-tier" style="color:${esc(lvl(tier).color)}">Результат: ${esc(lvl(tier).name)}</div>
+      <div class="sidebar-empty">${esc(how)}${tier === FUSION_MAX_TIER && how.endsWith("+1") ? " (не выше максимального тира)" : ""}</div>
+    </div>
+    <label class="mode-toggle" style="margin:6px 0 4px"><input type="checkbox" id="fusion-same"${state.fusionSame ? " checked" : ""}>
+      Только гифты с типами ингредиентов</label>
+    <div id="fusion-list"><div class="sidebar-empty">Загрузка гифтов…</div></div>` + FUSION_RULE;
+  box.innerHTML = html;
+  const pool = await giftPool();
+  if (seq !== fusionSeq) return;
+  const names = new Set(state.fusion.map(f => f.name));
+  const types = new Set(state.fusion.flatMap(f => f.type).filter(t => t !== "None"));
+  const list = pool.filter(g => Number(g.Level) === tier && !names.has(g.Name)
+      && (!state.fusionSame || arr(g.Type).some(t => types.has(String(t)))))
+    .sort((a, b) => String(a.Name).localeCompare(String(b.Name)));
+  const host = $("#fusion-list");
+  if (!host) return;
+  host.innerHTML = `<div class="sidebar-h2">Подходящие гифты: ${list.length}</div>`
+    + (list.length
+      ? list.map(g => subBlock(g.Name, g.Description, lvl(tier).color)).join("")
+      : `<div class="sidebar-empty">Гифтов этого тира не найдено${state.fusionSame ? " — снимите отметку «Только гифты с типами ингредиентов»" : ""}.</div>`);
+  delete host.dataset.xl;
+  autolinkIn(host);
+}
+const fmtAvg = v => Number.isInteger(v) ? String(v) : v.toFixed(2).replace(/0$/, "").replace(".", ",");
+const FUSION_RULE = `<div class="sidebar-empty" style="margin-top:14px;border-top:1px dashed #333;padding-top:10px">
+  Слить можно до 3 гифтов за раз. Обычные существа делают это раз в день, сотрудники Отдела Извлечения — столько раз,
+  каков их бонус мастерства. Какой гифт получится, решает мастер; подробности — «Правила» → «Слияние Э.Г.О.».</div>`;
+
+const ENC_RATE = {
+  low:{ name:"Низкая", color:"#27AE60" }, moderate:{ name:"Умеренная", color:"#F1C40F" },
+  high:{ name:"Высокая", color:"#E67E22" }, over:{ name:"Выше высокой", color:"#C7243A" }
+};
+function addToEncounter(uid){
+  const it = findItem(uid);
+  if (!it) return;
+  const p = parseChallenge(it.Challenge);
+  const had = state.enc.list.find(e => e.uid === uid);
+  if (had) had.n = Math.min(99, had.n + 1);
+  else state.enc.list.push({ uid, name:it.Name, cr:p.cr == null ? "?" : p.label, xp:p.xp, n:1 });
+  saveEnc(); renderEnc();
+  toast(p.xp ? "Добавлено во встречу" : "Добавлено, но опасность не указана — опыт не учтён");
+}
+function renderEnc(){
+  const E = state.enc;
+  const total = E.list.reduce((s, e) => s + (Number(e.xp) || 0) * e.n, 0);
+  $("#enc-count").textContent = E.list.reduce((s, e) => s + e.n, 0);
+  const b = encounterBudget(E.level, E.size), rate = rateEncounter(total, b);
+  const r = ENC_RATE[rate];
+  const pct = v => Math.min(100, Math.round(v / (b.high || 1) * 100));
+  $("#enc-body").innerHTML = `
+    <div class="enc-party">
+      <label>Персонажей <input type="number" class="cloud-input" id="enc-size" min="1" max="12" value="${E.size}"></label>
+      <label>Уровень <input type="number" class="cloud-input" id="enc-level" min="1" max="20" value="${E.level}"></label>
+    </div>
+    ${E.list.length ? E.list.map((e, i) => `<div class="pick-entry enc-row">
+        <div class="pick-top">
+          <div class="pick-name" style="flex:1;min-width:0">${esc(e.name)}
+            <span class="sub-level">CR ${esc(e.cr)} · ${e.xp ? fmtXp(e.xp) : "опыт не указан"}</span></div>
+          <div class="pick-actions">
+            <button class="mini-btn" data-act="enc-dec" data-i="${i}" aria-label="Меньше">−</button>
+            <span class="enc-n">×${e.n}</span>
+            <button class="mini-btn" data-act="enc-inc" data-i="${i}" aria-label="Больше">+</button>
+            <button class="mini-btn danger" data-act="enc-remove" data-i="${i}">Убрать</button>
+          </div>
+        </div></div>`).join("")
+      : `<div class="sidebar-empty">Нажмите «Во встречу» на карточке существа — здесь посчитается сложность для вашей группы.</div>`}
+    <div class="enc-sum">
+      <div>Опыт существ: <b>${fmtXp(total)}</b>${r ? ` — <b style="color:${r.color}">${r.name} сложность</b>` : ""}</div>
+      <div class="enc-bar" role="img" aria-label="Опыт встречи относительно бюджета группы">
+        <div class="enc-fill" style="width:${pct(total)}%;background:${r ? r.color : "var(--text-dim)"}"></div>
+        <i style="left:${pct(b.low)}%"></i><i style="left:${pct(b.moderate)}%"></i>
+      </div>
+      <div class="enc-budget">Бюджет группы: низкая до ${fmtXp(b.low)} · умеренная до ${fmtXp(b.moderate)} · высокая до ${fmtXp(b.high)}</div>
+    </div>
+    ${E.list.length ? `<button class="action-btn ghost" data-act="enc-clear" style="margin-top:12px"><i class="fa-solid fa-trash"></i> Очистить встречу</button>` : ""}
+    <div class="sidebar-empty" style="margin-top:14px;border-top:1px dashed #333;padding-top:10px">
+      Подсчёт по правилам DMG 2024: опыт всех существ сравнивается с бюджетом группы. Это ориентир для подготовки —
+      Части Аномалий, укрытия и Свет он не учитывает.</div>`;
+}
+const fmtXp = v => `${Number(v || 0).toLocaleString("ru-RU")} опыта`;
 
 /* ============================================================
    11. ОСНОВА КЛАССА (сайдбар для Архетипов)
@@ -3249,6 +3442,8 @@ async function migrateFlags(){
 const closeSidebars = () => {
   $("#sb-picks").classList.remove("active");
   $("#sb-base").classList.remove("active");
+  $("#sb-fusion").classList.remove("active");
+  $("#sb-enc").classList.remove("active");
   $("#sb-overlay").classList.remove("active");
 };
 const openSidebar = id => { closeSidebars(); $(id).classList.add("active"); $("#sb-overlay").classList.add("active"); };
@@ -3312,6 +3507,18 @@ document.addEventListener("click", async ev => {
     case "dl-item": { const it = findItem(uid); if (it) downloadJson([cleanCopy(it)], `${it.Name || "item"}.json`); break; }
 
     case "open-picks": openSidebar("#sb-picks"); break;
+    case "open-fusion": renderFusion(); openSidebar("#sb-fusion"); break;
+    case "open-enc": renderEnc(); openSidebar("#sb-enc"); break;
+    case "fusion-toggle": toggleFusion(uid); break;
+    case "fusion-remove": toggleFusion(uid); break;
+    case "enc-add": addToEncounter(uid); break;
+    case "enc-inc": case "enc-dec": {
+      const e = state.enc.list[+el.dataset.i]; if (!e) break;
+      e.n = Math.max(1, Math.min(99, e.n + (act === "enc-inc" ? 1 : -1)));
+      saveEnc(); renderEnc(); break;
+    }
+    case "enc-remove": state.enc.list.splice(+el.dataset.i, 1); saveEnc(); renderEnc(); break;
+    case "enc-clear": state.enc.list = []; saveEnc(); renderEnc(); break;
     case "open-base": openSidebar("#sb-base"); break;
     case "open-class-archs": {
       const key = el.dataset.sys; if (!key) break;
@@ -3449,6 +3656,17 @@ document.addEventListener("change", async ev => {
   if (ev.target.matches("[data-fp-var]")) fpChooseVariant(ev.target);
   if (ev.target.id === "system-select"){ state.system = ev.target.value; loadBase(); await renderGrid(); }
   if (ev.target.id === "json-upload") await uploadJson(ev.target);
+  if (ev.target.id === "cr-min" || ev.target.id === "cr-max"){
+    state.cr[ev.target.id === "cr-min" ? "min" : "max"] = ev.target.value; await renderGrid();
+  }
+  if (ev.target.id === "cr-order"){ state.order = ev.target.value; await renderGrid(); }
+  if (ev.target.id === "fusion-same"){ state.fusionSame = ev.target.checked; await renderFusion(); }
+  if (ev.target.id === "enc-size" || ev.target.id === "enc-level"){
+    const max = ev.target.id === "enc-size" ? 12 : 20;
+    const v = Math.max(1, Math.min(max, Math.round(Number(ev.target.value) || 1)));
+    state.enc[ev.target.id === "enc-size" ? "size" : "level"] = v;
+    saveEnc(); renderEnc();
+  }
   if (ev.target.id === "badge-mode"){
     state.badgeMode = ev.target.checked ? "stats" : "types";
     document.body.setAttribute("data-badge", state.badgeMode);
@@ -3492,6 +3710,8 @@ async function uploadJson(input){
    15. СТАРТ
    ============================================================ */
 renderPicks();
+$("#fusion-count").textContent = state.fusion.length;
+renderEnc();
 
 /* Диплинки: compendium.html#feats, #bestiary, #lore и т.д.
    Позволяет оставить карточки в navigation.html — просто поменяйте href. */
