@@ -61,15 +61,17 @@ export function roomCenter(r: Room): Pt {
 
 /**
  * Насколько грань объёмной стены заходит в сторону n (единичная нормаль от стены): мебель встаёт к её основанию.
- * inner — эта сторона внутри помещения (правило inner), иначе — outer.
+ * inner — эта сторона внутри помещения (правило inner), иначе — outer. «По периметру» — полоса своей стороны;
+ * «вниз»/«вверх» — стена стоит на линии и поднимается, поэтому в сторону n заходит грань противоположной стороны
+ * (при «вниз» — у южной стены комнаты, северная растёт за пределы комнаты).
  */
 export function faceDepth(st: WallStyle, n: Pt, inner: boolean): number {
   const h = st.height ?? 0;
   if (h <= 0) return 0;
-  const dir = inner ? st.inner : st.outer;
-  if (dir === 'down') return n.y > 0.05 ? h * n.y : 0;
-  if (dir === 'up') return n.y < -0.05 ? -h * n.y : 0;
-  if (dir === 'normal') return h;
+  if ((inner ? st.inner : st.outer) === 'normal') return h;
+  const back = inner ? st.outer : st.inner;
+  if (back === 'down') return n.y < -0.05 ? -h * n.y : 0;
+  if (back === 'up') return n.y > 0.05 ? h * n.y : 0;
   return 0;
 }
 

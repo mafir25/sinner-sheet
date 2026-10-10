@@ -1,9 +1,10 @@
 // Что под курсором: объекты, проёмы, стены, комнаты. Порядок — как видно на экране (сверху вниз).
-import type { Floor, Label, MapObject, MapPath, Pt } from '../model/types';
+import type { Floor, Label, MapObject, MapPath, Pt, WallStyle } from '../model/types';
 import type { SelItem } from '../state/editor';
 import { type BBox, pointInPoly, ptsBBox, segDist } from '../geom/poly';
 import { curvePoints, polylineDist } from '../geom/curve';
 import { labelBox } from '../render/extras';
+import { edgeStyle, portalWall, wallLift } from '../geom/walls';
 
 let measureCtx: CanvasRenderingContext2D | null = null;
 /** Габариты подписи в клетках (без поворота). */
@@ -16,6 +17,13 @@ export function labelCorners(l: Label): Pt[] {
   return objectCorners({ x: l.x, y: l.y, w, h, rot: l.rot } as MapObject);
 }
 export const LIGHT_HIT = 0.35;
+
+/** Расстояние до стены: до её основания или до поднятой верхней линии объёмной стены — что ближе. */
+function wallDist(p: Pt, a: Pt, b: Pt, st: WallStyle): number {
+  const l = wallLift(st), d = segDist(p, a, b).d;
+  if (!l.x && !l.y) return d;
+  return Math.min(d, segDist(p, { x: a.x + l.x, y: a.y + l.y }, { x: b.x + l.x, y: b.y + l.y }).d);
+}
 
 /** Точка в системе координат объекта (центр — 0,0; без поворота). */
 export function toLocal(o: MapObject, p: Pt): Pt {
@@ -74,12 +82,18 @@ export function hitTest(f: Floor, p: Pt, scale: number, roofs = false, decorBand
   for (let i = f.portals.length - 1; i >= 0; i--) {
     const pt = f.portals[i];
     if (segDist(p, pt.a, pt.b).d <= Math.max(tol, 0.2)) return { kind: 'portal', id: pt.id };
+    // проём в объёмной стене виден между основанием и поднятой верхней линией
+    const w = portalWall(f, pt), l = w ? wallLift(w.style) : null;
+    if (l && (l.x || l.y)) {
+      const top = (q: Pt) => ({ x: q.x + l.x, y: q.y + l.y });
+      if (segDist(p, top(pt.a), top(pt.b)).d <= Math.max(tol, 0.2) || pointInPoly(p, [[pt.a, pt.b, top(pt.b), top(pt.a)]])) return { kind: 'portal', id: pt.id };
+    }
   }
   for (let i = f.walls.length - 1; i >= 0; i--) {
     const w = f.walls[i];
     const n = w.points.length;
     for (let j = 0; j < n - (w.closed ? 0 : 1); j++) {
-      if (segDist(p, w.points[j], w.points[(j + 1) % n]).d <= w.wall.width / 2 + tol) return { kind: 'wall', id: w.id };
+      if (wallDist(p, w.points[j], w.points[(j + 1) % n], w.wall) <= w.wall.width / 2 + tol) return { kind: 'wall', id: w.id };
     }
   }
   const b = objIn(below);
@@ -90,7 +104,8 @@ export function hitTest(f: Floor, p: Pt, scale: number, roofs = false, decorBand
     for (let ri = 0; ri < r.poly.length; ri++) {
       const ring = r.poly[ri];
       for (let j = 0; j < ring.length; j++) {
-        if (segDist(p, ring[j], ring[(j + 1) % ring.length]).d <= Math.max(r.wall.width / 2, 0) + tol * 0.8) return { kind: 'edge', id: `${r.id}|${ri}|${j}` };
+        const a = ring[j], b = ring[(j + 1) % ring.length];
+        if (wallDist(p, a, b, edgeStyle(r, a, b)) <= Math.max(r.wall.width / 2, 0) + tol * 0.8) return { kind: 'edge', id: `${r.id}|${ri}|${j}` };
       }
     }
   }
