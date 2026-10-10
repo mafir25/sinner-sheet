@@ -72,7 +72,7 @@ const EN: Record<string, string> = {
   'Привязка к сетке (зажать Ctrl — без привязки)': 'Snap to grid (hold Ctrl to disable)',
   'Режим: добавить или вырезать (Alt — вырезать)': 'Mode: add or cut out (Alt — cut out)',
   // подсказки инструментов
-  'Щелчок — выбрать, Shift — добавить к выбору, рамкой — выбрать несколько. Тащи — переместить. Щелчок по линии стены комнаты — выбрать только эту стену.': 'Click to select, Shift to add, drag a box to select many. Drag to move. Click a room wall line to select just that wall.',
+  'Щелчок — выбрать, Shift — добавить к выбору, рамкой — выбрать несколько. Тащи — переместить. Щелчок по линии стены комнаты — выбрать только эту стену. Дверь или окно тащатся вдоль стены. Правая кнопка — меню.': 'Click to select, Shift to add, drag a box to select many. Drag to move. Click a room wall line to select just that wall. Doors and windows slide along their wall. Right-click for a menu.',
   'Тяни прямоугольник. Комнаты одного стиля сливаются, Alt — вырезать.': 'Drag a rectangle. Rooms of the same style merge; Alt cuts out.',
   'Щелчками ставь вершины, двойной щелчок или Enter — замкнуть, Esc — отмена.': 'Click to place points; double-click or Enter closes, Esc cancels.',
   'Щелчками ставь точки стены, двойной щелчок или Enter — закончить, Esc — отмена.': 'Click to place wall points; double-click or Enter finishes, Esc cancels.',

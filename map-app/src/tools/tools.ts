@@ -6,7 +6,7 @@ import { type Editor, type SelItem, type ToolId, edgeOf } from '../state/editor'
 import { uid } from '../model/doc';
 import { snapCenter, snapHalf, snapVertex } from '../geom/grid';
 import { difference, intersects, pointInPoly, rectPoly, ringArea, samePt, segDist, touches, union } from '../geom/poly';
-import { type WallSeg, nearestWall, orphanPortals, portalOnWall } from '../geom/walls';
+import { type WallSeg, nearestWall, orphanPortals, portalOnWall, slidePortal } from '../geom/walls';
 import { LIGHT_HIT, boxSelect, fromLocal, hitTest, labelCorners, objectCorners, toLocal } from './hit';
 import { curvePoints } from '../geom/curve';
 import { drawObject, polyPath } from '../render/render';
@@ -181,6 +181,8 @@ class SelectTool implements Tool {
   private target: MapObject | null = null;
   private edited: MapObject | null = null;
   private shift = false;
+  /** Один выбранный проём тащится вдоль стены (или на соседнюю стену), а не свободно. */
+  private slide: { portal: Portal; to: { a: Pt; b: Pt } } | null = null;
   constructor(private env: ToolEnv) {}
 
   private get ed() { return this.env.ed; }
@@ -236,6 +238,9 @@ class SelectTool implements Tool {
     this.clickedSelected = isSel ? hit : null;
     if (!isSel) this.ed.setSel([hit]);
     this.mode = 'move';
+    const sel1 = this.ed.state.sel;
+    const portal = sel1.length === 1 && sel1[0].kind === 'portal' ? this.ed.floor.portals.find((x) => x.id === sel1[0].id) : undefined;
+    this.slide = portal ? { portal, to: { a: portal.a, b: portal.b } } : null;
     this.computeAttached();
   }
 
@@ -254,6 +259,11 @@ class SelectTool implements Tool {
       if (!this.moved && Math.hypot(raw.x, raw.y) * this.ed.state.view.scale < 4) return;
       this.moved = true;
       this.delta = this.snapDelta(raw, e);
+      if (this.slide) {
+        const { portal } = this.slide;
+        const c = { x: (portal.a.x + portal.b.x) / 2 + raw.x, y: (portal.a.y + portal.b.y) / 2 + raw.y };
+        this.slide.to = slidePortal(this.ed.floor, portal, c, this.env.snap(e)) ?? this.slide.to;
+      }
     } else if (this.mode === 'rotate' && this.target) {
       let a = (Math.atan2(p.y - this.target.y, p.x - this.target.x) * 180) / Math.PI + 90;
       if (this.env.snap(e)) a = Math.round(a / 15) * 15;
@@ -288,7 +298,15 @@ class SelectTool implements Tool {
   up(p: Pt) {
     const ed = this.ed;
     if (this.mode === 'move') {
-      if (this.moved && (this.delta.x || this.delta.y)) {
+      if (this.moved && this.slide) {
+        const { portal, to } = this.slide;
+        if (!samePt(to.a, portal.a) || !samePt(to.b, portal.b)) {
+          ed.commitFloor((f) => {
+            const x = f.portals.find((q) => q.id === portal.id);
+            if (x) Object.assign(x, to);
+          });
+        }
+      } else if (this.moved && (this.delta.x || this.delta.y)) {
         const d = this.delta, ids = new Set(ed.state.sel.map((s) => s.id)), att = this.attached;
         ed.commitFloor((f) => { Object.assign(f, moveFloor(f, ids, att, d)); });
       } else if (!this.moved && this.clickedSelected) {
@@ -312,12 +330,16 @@ class SelectTool implements Tool {
 
   private reset() {
     this.mode = 'idle'; this.moved = false; this.delta = { x: 0, y: 0 }; this.target = null; this.edited = null;
-    this.clickedSelected = null; this.attached = new Set();
+    this.clickedSelected = null; this.attached = new Set(); this.slide = null;
   }
   cancel() { this.reset(); this.env.redraw(); }
 
   preview(): Floor | undefined {
     const f = this.ed.floor;
+    if (this.mode === 'move' && this.moved && this.slide) {
+      const { portal, to } = this.slide;
+      return { ...f, portals: f.portals.map((x) => (x.id === portal.id ? { ...x, ...to } : x)) };
+    }
     if (this.mode === 'move' && this.moved) {
       return moveFloor(f, new Set(this.ed.state.sel.map((s) => s.id)), this.attached, this.delta);
     }

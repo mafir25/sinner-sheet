@@ -143,3 +143,18 @@ describe('история отмены делит неизменённые час
     expect(ed.doc.floors[0].objects[0].x).toBe(2);
   });
 });
+import { slidePortal } from '../../map-app/src/geom/walls.ts';
+describe('проём тащится вдоль стены', () => {
+  const room = { id: 'r', poly: [[{ x: 0, y: 0 }, { x: 6, y: 0 }, { x: 6, y: 4 }, { x: 0, y: 4 }]], floor: null, wall: { asset: null, color: '#000', width: 0.2 } };
+  const f = { id: 'f', name: '', visible: true, layers: [], objects: [], ground: null, terrain: [], paths: [], lights: [], labels: [], roofs: [], image: null, rooms: [room], walls: [], portals: [] };
+  const door = { id: 'd', kind: 'door', a: { x: 2, y: 0 }, b: { x: 1, y: 0 }, asset: null };
+  it('по той же стене, с привязкой края к полклетки и прежним направлением', () => {
+    const r = slidePortal(f, door, { x: 4.2, y: 0.3 }, true);
+    expect(r).toEqual({ a: { x: 4.5, y: 0 }, b: { x: 3.5, y: 0 } });
+  });
+  it('на соседнюю стену и не дальше её конца; вдали от стен — null', () => {
+    const r = slidePortal(f, door, { x: 6.2, y: 3.9 }, true);
+    expect(r.a.x).toBeCloseTo(6); expect(Math.max(r.a.y, r.b.y)).toBeCloseTo(4);
+    expect(slidePortal(f, door, { x: 3, y: 2 }, true)).toBeNull();
+  });
+});

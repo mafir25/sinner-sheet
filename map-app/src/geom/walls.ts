@@ -292,3 +292,17 @@ export function portalShape(p: Portal): { top: number; bottom: number; arch: boo
   const bottom = Math.max(0, Math.min(0.9 - top, p.bottom ?? def.bottom));
   return { top, bottom, arch: !!p.arch };
 }
+
+/**
+ * Проём, перетащенный к точке target: встаёт на ближайшую стену в пределах maxDist клеток (своей длины,
+ * с привязкой края к полклетки). null — рядом нет стены, куда он помещается.
+ */
+export function slidePortal(f: Floor, p: Portal, target: Pt, snap: boolean, maxDist = 1): { a: Pt; b: Pt } | null {
+  const hit = nearestWall(f, target, maxDist);
+  if (!hit) return null;
+  const r = portalOnWall(hit, Math.hypot(p.b.x - p.a.x, p.b.y - p.a.y), snap);
+  if (!r) return null;
+  // направление проёма (куда открывается дверь) сохраняется, насколько позволяет стена
+  const same = (r.b.x - r.a.x) * (p.b.x - p.a.x) + (r.b.y - r.a.y) * (p.b.y - p.a.y) >= 0;
+  return same ? r : { a: r.b, b: r.a };
+}
