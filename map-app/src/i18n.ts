@@ -547,6 +547,14 @@ const EN: Record<string, string> = {
   'Шаг X': 'Step X',
   'Шаг Y': 'Step Y',
   'Поставить копии выделенного подряд с этим шагом (в клетках)': 'Place copies of the selection in a row with this step (in cells)',
+  'Скачано карт: {0}': 'Maps downloaded: {0}',
+  'Карта есть только в этом браузере. Если очистить данные сайта, она пропадёт — сохрани её в файл.': 'This map exists only in this browser. Clearing site data will delete it — save it to a file.',
+  'Не сохранена в файл': 'Not saved to a file',
+  'Все карты этого браузера одним ZIP-архивом файлов .pmmap — резервная копия': 'All maps in this browser as one ZIP of .pmmap files — a backup',
+  'Скачать все карты': 'Download all maps',
+  'Карт только в браузере: {0}. Если очистить данные сайта или сменить браузер, они пропадут — сохрани их в файл или нажми «Скачать все карты».': 'Maps only in this browser: {0}. Clearing site data or switching browsers will lose them — save them to files or press “Download all maps”.',
+  '«{0}» есть только в этом браузере. Сохрани её в файл (💾), чтобы не потерять.': '“{0}” exists only in this browser. Save it to a file (💾) so you don’t lose it.',
+  'не в файле': 'not in a file',
 };
 
 export function tr(ru: string, ...args: (string | number)[]): string {

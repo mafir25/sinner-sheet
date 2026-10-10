@@ -5,8 +5,9 @@ import { AssetStore } from './assets/store';
 import { createDoc } from './model/doc';
 import type { GridType, MapDoc } from './model/types';
 import { Editor, type ToolId, useEditor } from './state/editor';
-import { maps as mapDb } from './storage/idb';
-import { EXT, buildPmmap, pickFile, readPmmap, safeName, saveBlob } from './storage/file';
+import { maps as mapDb, type StoredMap, unsavedToFile } from './storage/idb';
+import { EXT, buildPmmap, download, pickFile, readPmmap, safeName, saveBlob } from './storage/file';
+import JSZip from 'jszip';
 import { thumbnail } from './export/export';
 import { lang, tr } from './i18n';
 import { CanvasView, isTyping } from './ui/CanvasView';
@@ -66,7 +67,9 @@ async function openFromFile(assets: AssetStore): Promise<Editor | null> {
       await assets.addLocalPack(label, p.files, p.id);
       toast(tr('Ассеты из файла добавлены как набор «{0}»', label));
     }
-    return new Editor(doc);
+    const ed = new Editor(doc);
+    ed.fileSavedAt = Date.now();
+    return ed;
   } catch (e) {
     console.error(e);
     toast(tr('Не удалось открыть файл: {0}', e instanceof Error ? e.message : String(e)), 'error');
@@ -74,17 +77,46 @@ async function openFromFile(assets: AssetStore): Promise<Editor | null> {
   }
 }
 
+const editorOf = (s: StoredMap) => { const e = new Editor(s.doc); e.fileSavedAt = s.fileSavedAt ?? 0; return e; };
+
+/** Просим браузер не чистить хранилище сайта само (карты живут только в нём). */
+function persistStorage() {
+  try { void navigator.storage?.persist?.().catch(() => {}); } catch { /* старый браузер */ }
+}
+
+/** Все карты браузера одним ZIP-архивом .pmmap; после этого они считаются сохранёнными в файл. */
+async function downloadAll(assets: AssetStore) {
+  const list = await mapDb.list();
+  if (!list.length) return;
+  const zip = new JSZip(), used = new Set<string>();
+  const now = Date.now();
+  for (const m of list) {
+    const s = await mapDb.get(m.id);
+    if (!s) continue;
+    let name = safeName(s.name), n = 2;
+    while (used.has(name)) name = `${safeName(s.name)} (${n++})`;
+    used.add(name);
+    zip.file(`${name}${EXT}`, await buildPmmap(s.doc, assets));
+    await mapDb.put({ ...s, fileSavedAt: now });
+  }
+  const day = new Date(now).toISOString().slice(0, 10);
+  download(await zip.generateAsync({ type: 'blob' }), `maps-${day}.zip`);
+  toast(tr('Скачано карт: {0}', used.size));
+}
+
 function StartScreen({ assets, onOpen }: { assets: AssetStore; onOpen(e: Editor): void }) {
   const [list, setList] = useState<Awaited<ReturnType<typeof mapDb.list>> | null>(null);
   const [creating, setCreating] = useState(false);
   const refresh = useCallback(() => { mapDb.list().then(setList).catch((e) => { console.error(e); setList([]); }); }, []);
   useEffect(refresh, [refresh]);
+  useEffect(persistStorage, []);
+  const unsaved = list?.filter(unsavedToFile).length ?? 0;
   // ссылка из Ширмы: maps.html#map=<id>
   useEffect(() => {
     const want = parseMapHash(location.hash);
     if (!want) return;
     mapDb.get(want.id).then((s) => {
-      if (s) onOpen(new Editor(s.doc));
+      if (s) onOpen(editorOf(s));
       else {
         history.replaceState(null, '', location.pathname + location.search);
         toast(tr('Карты «{0}» нет в этом браузере — открой её файл .pmmap.', want.name || want.id), 'error');
@@ -99,11 +131,14 @@ function StartScreen({ assets, onOpen }: { assets: AssetStore; onOpen(e: Editor)
         <nav><a className="btn" href="index.html">{tr('⌂ ХАБ')}</a><h1 className="title">{tr('Редактор карт')}</h1></nav>
         <div className="row">
           <button className="btn" onClick={async () => { const e = await openFromFile(assets); if (e) onOpen(e); }}>{tr('Открыть файл')}</button>
+          {!!list?.length && <button className="btn" title={tr('Все карты этого браузера одним ZIP-архивом файлов .pmmap — резервная копия')}
+            onClick={() => { downloadAll(assets).then(refresh).catch((e) => toast(tr('Не удалось сохранить: {0}', String(e)), 'error')); }}>⇩ {tr('Скачать все карты')}</button>}
           <button className="btn btn-primary" onClick={() => setCreating(true)}>＋ {tr('Новая карта')}</button>
         </div>
       </header>
       <main className="start-body">
         <p className="hint">{tr('Карты хранятся у тебя: в браузере и в файлах. На сервер ничего не загружается.')}</p>
+        {unsaved > 0 && <p className="warn">{tr('Карт только в браузере: {0}. Если очистить данные сайта или сменить браузер, они пропадут — сохрани их в файл или нажми «Скачать все карты».', unsaved)}</p>}
         <h2>{tr('Недавние карты')}</h2>
         {list && !list.length && <p className="hint">{tr('Пока пусто — создай первую карту.')}</p>}
         <div className="cards">
@@ -111,11 +146,12 @@ function StartScreen({ assets, onOpen }: { assets: AssetStore; onOpen(e: Editor)
             <div key={m.id} className="card">
               <button className="card-open" onClick={async () => {
                 const s = await mapDb.get(m.id);
-                if (s) onOpen(new Editor(s.doc));
+                if (s) onOpen(editorOf(s));
               }}>
                 <span className="card-thumb">{m.thumb ? <img src={m.thumb} alt="" /> : null}</span>
                 <span className="card-name">{m.name || tr('Без названия')}</span>
                 <span className="hint">{tr('Изменено {0}', fmt(m.updatedAt))}</span>
+                {unsavedToFile(m) && <span className="card-warn" title={tr('Карта есть только в этом браузере. Если очистить данные сайта, она пропадёт — сохрани её в файл.')}>⚠ {tr('Не сохранена в файл')}</span>}
               </button>
               <button className="icon-btn danger card-del" title={tr('Удалить')} onClick={async () => {
                 if (!window.confirm(tr('Удалить карту «{0}» из браузера? Файлы на диске не пострадают.', m.name))) return;
@@ -213,6 +249,7 @@ function Workspace({ ed, assets, user, onExit, onOpen }: { ed: Editor; assets: A
   const canUndo = useEditor(ed, (s) => s.canUndo);
   const canRedo = useEditor(ed, (s) => s.canRedo);
   const settings = useEditor(ed, (s) => s.settings);
+  useEditor(ed, (s) => s.dirty); // перерисовка после сохранения в файл: fileSavedAt — не состояние редактора
   const [dialog, setDialog] = useState<'export' | 'settings' | 'help' | 'gen' | 'links' | null>(null);
   // адрес вкладки ведёт на открытую карту — его можно сохранить в закладки или вставить в Ширму
   useEffect(() => {
@@ -239,7 +276,7 @@ function Workspace({ ed, assets, user, onExit, onOpen }: { ed: Editor; assets: A
       setSaveState('saving');
       const d = ed.doc;
       try {
-        await mapDb.put({ id: d.id, name: d.name, updatedAt: d.updatedAt || Date.now(), thumb: thumbnail(d, assets), doc: d });
+        await mapDb.put({ id: d.id, name: d.name, updatedAt: d.updatedAt || Date.now(), thumb: thumbnail(d, assets), doc: d, fileSavedAt: ed.fileSavedAt });
         setSaveState('saved');
       } catch (e) {
         console.error(e);
@@ -261,7 +298,10 @@ function Workspace({ ed, assets, user, onExit, onOpen }: { ed: Editor; assets: A
       const r = await saveBlob(blob, `${safeName(ed.doc.name)}${EXT}`, handle.current, askWhere);
       if (!r) return;
       handle.current = r.handle;
+      ed.fileSavedAt = Date.now();
       ed.markSaved();
+      const d = ed.doc;
+      void mapDb.put({ id: d.id, name: d.name, updatedAt: d.updatedAt || Date.now(), thumb: thumbnail(d, assets), doc: d, fileSavedAt: ed.fileSavedAt }).catch(console.error);
       toast(tr('Файл сохранён: {0}', r.name));
     } catch (e) {
       console.error(e);
@@ -323,15 +363,21 @@ function Workspace({ ed, assets, user, onExit, onOpen }: { ed: Editor; assets: A
 
   const nick = user.displayName || user.email || '';
   const saveLabel = saveState === 'saved' ? tr('Сохранено в браузере') : saveState === 'saving' ? tr('Сохраняется…') : tr('Не сохранено');
+  const fileOk = !unsavedToFile({ updatedAt: doc.updatedAt, fileSavedAt: ed.fileSavedAt });
+  const leave = () => {
+    if (!fileOk) toast(tr('«{0}» есть только в этом браузере. Сохрани её в файл (💾), чтобы не потерять.', doc.name));
+    onExit();
+  };
 
   return (
     <div className="app">
       <header className="topbar">
         <nav>
           <a className="btn" href="index.html">{tr('⌂ ХАБ')}</a>
-          <button className="btn" onClick={onExit}>☰ {tr('Карты')}</button>
+          <button className="btn" onClick={leave}>☰ {tr('Карты')}</button>
           <NameInput value={doc.name} onCommit={(name) => ed.commit((d) => { d.name = name; })} />
           <span className={`save-state s-${saveState}`}>{saveLabel}</span>
+          {!fileOk && <span className="save-state s-dirty" title={tr('Карта есть только в этом браузере. Если очистить данные сайта, она пропадёт — сохрани её в файл.')}>· {tr('не в файле')}</span>}
         </nav>
         <div className="row">
           <button className="icon-btn" disabled={!canUndo} title={tr('Отменить (Ctrl+Z)')} onClick={() => ed.undo()}>↶</button>

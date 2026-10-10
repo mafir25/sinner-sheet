@@ -5,7 +5,10 @@ const DB = 'pm-maps';
 // 2: база могла появиться пустой (её открывала Ширма, site/site-links.js) — хранилища досоздаются
 const VERSION = 2;
 
-export type StoredMap = { id: string; name: string; updatedAt: number; thumb: string; doc: MapDoc };
+/** fileSavedAt — когда карту последний раз сохраняли в файл или открывали из файла (0 — ни разу). */
+export type StoredMap = { id: string; name: string; updatedAt: number; thumb: string; doc: MapDoc; fileSavedAt?: number };
+/** Карта есть только в браузере: в файл её не сохраняли или после сохранения меняли. */
+export const unsavedToFile = (m: { updatedAt: number; fileSavedAt?: number }) => !m.fileSavedAt || m.updatedAt > m.fileSavedAt;
 export type StoredPackFile = { path: string; blob: Blob; size: { w: number; h: number } | null };
 export type StoredPack = {
   id: string; label: string; createdAt: number; files: StoredPackFile[]; metas: Record<string, unknown>;

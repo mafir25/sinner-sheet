@@ -62,6 +62,8 @@ export class Editor {
   private listeners = new Set<() => void>();
   private docListeners = new Set<(d: MapDoc) => void>();
   clipboard: MapObject[] = [];
+  /** Когда карту сохраняли в файл (или открыли из файла); 0 — она есть только в браузере. */
+  fileSavedAt = 0;
 
   constructor(doc: MapDoc) {
     const floor = doc.floors[0];
