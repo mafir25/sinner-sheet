@@ -250,6 +250,22 @@ body[data-badge="stats"] .badge-type{display:none!important}
 .sidebar-h2{font-size:1.1rem;color:var(--accent-primary);border-bottom:1px solid #333;margin:20px 0 10px;
   padding-bottom:4px;font-family:'Oswald',sans-serif;text-transform:uppercase}
 .sidebar-empty{color:var(--text-dim);font-size:.88rem;line-height:1.5}
+.fusion-result{border:1px solid;border-left-width:3px;padding:10px 12px;margin:14px 0 6px;background:var(--panel-soft)}
+.fusion-tier{font-family:'Oswald',sans-serif;font-size:1.15rem;text-transform:uppercase;margin-bottom:4px}
+.cr-tools{align-items:center;gap:10px}
+.cr-tools label{display:flex;align-items:center;gap:6px;color:var(--text-dim);font-size:.85rem}
+.cr-tools select{width:auto;min-width:64px}
+.enc-party{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.enc-party label{display:flex;align-items:center;gap:6px;color:var(--text-dim);font-size:.9rem}
+.enc-party input{width:72px}
+.enc-row .pick-actions{align-items:center;flex-shrink:0}
+.enc-n{font-family:'Oswald',sans-serif;color:var(--text-main);min-width:28px;text-align:center}
+.enc-sum{margin-top:14px;font-size:.95rem;color:var(--text-main)}
+.enc-bar{position:relative;height:10px;border:1px solid #333;margin:8px 0 6px;background:#111}
+.enc-fill{position:absolute;left:0;top:0;bottom:0}
+.enc-bar i{position:absolute;top:-3px;bottom:-3px;width:1px;background:var(--text-dim)}
+.enc-budget{font-size:.8rem;color:var(--text-dim)}
+@media(max-width:600px){.enc-row .pick-top{flex-wrap:wrap}.enc-row .pick-name{flex-basis:100%}}
 .pick-entry{border:1px solid #262626;border-left:3px solid var(--accent-primary);padding:10px 12px;margin-bottom:10px;background:var(--panel-soft)}
 .pick-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .pick-name{font-family:'Oswald',sans-serif;font-size:1.02rem;color:var(--text-main)}
@@ -525,6 +541,8 @@ textarea.ce-code{font-family:Consolas,'Courier New',monospace;font-size:.85rem;m
 <div class="side-toggle">
   <button data-act="open-picks">Сборка<span class="side-count" id="pick-count">0</span></button>
   <button data-act="open-base" id="btn-base" style="display:none">Основа</button>
+  <button data-act="open-fusion" id="btn-fusion" style="display:none">Слияние<span class="side-count" id="fusion-count">0</span></button>
+  <button data-act="open-enc" id="btn-enc" style="display:none">Встреча<span class="side-count" id="enc-count">0</span></button>
 </div>
 
 <div class="wrap">
@@ -572,6 +590,22 @@ textarea.ce-code{font-family:Consolas,'Courier New',monospace;font-size:.85rem;m
     <button class="btn-close-modal" style="position:static" data-act="close-sidebars"><i class="fa-solid fa-xmark"></i></button>
   </div>
   <div id="base-body"><div class="sidebar-empty">Загрузка…</div></div>
+</div>
+
+<div class="sidebar" id="sb-fusion">
+  <div class="sidebar-title">
+    <span>Слияние Э.Г.О.</span>
+    <button class="btn-close-modal" style="position:static" data-act="close-sidebars" aria-label="Закрыть"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  <div id="fusion-body"></div>
+</div>
+
+<div class="sidebar" id="sb-enc">
+  <div class="sidebar-title">
+    <span>Встреча</span>
+    <button class="btn-close-modal" style="position:static" data-act="close-sidebars" aria-label="Закрыть"><i class="fa-solid fa-xmark"></i></button>
+  </div>
+  <div id="enc-body"></div>
 </div>
 
 <!-- ======== МОДАЛКА КОНСТРУКТОРА ======== -->

@@ -8,7 +8,7 @@
    Как устроено:
    1. Открытый офис и его агенты слушаются в реальном времени (onSnapshot) — после любой записи
       страница перерисовывается из пришедшего снимка, без повторной загрузки всего офиса.
-   2. Списки внутри документа (сводки, контракты, репутация, казна) меняются транзакцией mutate():
+   2. Списки внутри документа (сводки, контракты, репутация, казна, склад) меняются транзакцией mutate():
       читаем свежий документ → меняем массив целиком → записываем. Так правка или удаление не «промахиваются»,
       даже если объект в базе отличается от того, что в памяти.
    3. Всё, что пришло из базы, выводится через esc() / safeUrl() / md() (DOMPurify). */
@@ -72,6 +72,7 @@ const ICON_PRESETS = ['Burn', 'Bleed', 'Tremor', 'Rupture', 'Sinking', 'Poise', 
 const iconName = (ic) => ic.replace(/^.*\//, '').replace(/\.png$/, '');
 const DEFAULT_CS = { name: true, race: true, class: true, feats: true, desc: true, download: true };
 const LEDGER_MAX = 300;
+const STOCK_MAX = 300;
 const NEWS_MAX = 500;
 const PRESET_MAX = 590000;
 const LS_LAST = 'office.last.';
@@ -91,7 +92,7 @@ const st = {
   unsub: [], token: 0, normalized: new Set(),
   names: new Map(),      // uid → свежий ник
   open: { grades: new Set(), quests: new Set(), agents: new Set(), sessions: new Set() },
-  edit: { news: null, rep: null, quest: null, agent: null, session: null },
+  edit: { news: null, rep: null, quest: null, agent: null, session: null, stock: null },
 };
 
 /* ---------------- Уведомления ---------------- */
@@ -491,6 +492,7 @@ function renderOffice() {
   renderSessions();
   renderReps();
   renderBank();
+  renderStock();
   renderAssigneeOptions();
   if (!$('questManagerModal').hidden) renderQuestManager();
 }
@@ -1609,12 +1611,166 @@ async function undoLedger(id) {
     // отменили выплату награды — контракт снова считается неоплаченным
     const qs = listOf(d, 'customQuests');
     if (qs.some((q) => q.paidId === id)) patch.customQuests = qs.map((q) => (q.paidId === id ? { ...q, paidId: '', paidAmount: 0 } : q));
+    // отменили покупку или продажу — предмет остаётся на складе, но больше не ссылается на операцию
+    const items = listOf(d, 'storage');
+    if (items.some((x) => x.paidId === id)) patch.storage = items.map((x) => (x.paidId === id ? { ...x, paidId: '', cost: 0 } : x));
     return patch;
   }), { ok: 'Операция отменена', fail: 'Ошибка' });
 }
 
+/* ---------------- Склад ----------------
+   storage: [{ id, name, qty, holder, note, shop, cost, paidId, ts, by }] в документе офиса, меняет менеджер.
+   «Купить» одной транзакцией добавляет предмет и запись расхода в казну (paidId — id записи журнала, cost — цена),
+   «Продать» уменьшает количество и записывает доход. Отмена записи в казне оставляет предмет, но снимает связь. */
+const stockList = () => listOf(st.office, 'storage');
+let stockNames = null;
+async function loadStockNames() {
+  if (stockNames) return;
+  stockNames = [];
+  for (const f of ['equipment.json', 'egogifts.json']) {
+    try {
+      const res = await window.I18N.fetchData(f);
+      if (res.ok) (await res.json()).forEach((x) => { if (x?.Name) stockNames.push(String(x.Name)); });
+    } catch (e) { /* подсказки не обязательны */ }
+  }
+  $('stock-suggest').innerHTML = [...new Set(stockNames)].sort((a, b) => a.localeCompare(b))
+    .map((n) => `<option value="${esc(n)}"></option>`).join('');
+}
+$('stock-name').addEventListener('focus', loadStockNames);
+$('stock-holder').addEventListener('focus', () => {
+  $('stock-agents').innerHTML = [...new Set(st.agents.map((a) => a.name).filter(Boolean))].map((n) => `<option value="${esc(n)}"></option>`).join('');
+});
+$('stock-search').addEventListener('input', () => renderStock());
+
+function renderStock() {
+  if (!st.office) return;
+  const q = $('stock-search').value.trim().toLowerCase();
+  const all = stockList();
+  const list = [...all]
+    .filter((x) => !q || [x.name, x.holder, x.note, x.shop].some((v) => String(v || '').toLowerCase().includes(q)))
+    .sort((a, b) => String(a.name).localeCompare(String(b.name)));
+  const spent = all.reduce((s2, x) => s2 + (Number(x.cost) || 0), 0);
+  $('stock-stats').innerHTML = all.length
+    ? `<span><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i> ${esc(T('позиций:'))} ${all.length}</span>
+       <span><i class="fa-solid fa-hashtag" aria-hidden="true"></i> ${esc(T('штук:'))} ${esc(fmtNum(all.reduce((s2, x) => s2 + (Number(x.qty) || 0), 0)))}</span>
+       ${spent ? `<span title="${esc(T('Потрачено на покупки'))}"><i class="fa-solid fa-coins" aria-hidden="true"></i> ${esc(fmtNum(spent))} ${esc(T('Ан'))}</span>` : ''}`
+    : '';
+  $('stock-list').innerHTML = list.length ? list.map((x) => {
+    const tools = st.isCreator ? `<div class="item-tools">
+        <button class="icon-btn" data-act="stock-sell" data-id="${esc(x.id)}" title="${esc(T('Продать'))}" aria-label="${esc(T('Продать'))}"><i class="fa-solid fa-hand-holding-dollar" aria-hidden="true"></i></button>
+        <button class="icon-btn" data-act="stock-edit" data-id="${esc(x.id)}" title="${esc(T('Редактировать'))}" aria-label="${esc(T('Редактировать'))}"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>
+        <button class="icon-btn danger" data-act="stock-delete" data-id="${esc(x.id)}" title="${esc(T('Списать со склада'))}" aria-label="${esc(T('Списать со склада'))}"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
+      </div>` : '';
+    const meta = [
+      x.holder ? `<i class="fa-solid fa-user" aria-hidden="true"></i> <span class="notranslate">${esc(x.holder)}</span>` : '',
+      x.shop ? `<i class="fa-solid fa-store" aria-hidden="true"></i> <span class="notranslate">${esc(x.shop)}</span>` : '',
+      Number(x.cost) > 0 ? `${esc(T('куплено за'))} ${esc(fmtNum(x.cost))} ${esc(T('Ан'))}` : '',
+    ].filter(Boolean).join(' · ');
+    return `<div class="stock-item">
+      <div style="min-width:0;">
+        <div><span class="stock-name notranslate">${esc(x.name)}</span><span class="stock-qty">×${esc(fmtNum(x.qty))}</span></div>
+        ${meta ? `<div class="meta">${meta}</div>` : ''}
+        ${x.note ? `<div class="stock-note notranslate">${esc(x.note)}</div>` : ''}
+      </div>${tools}
+    </div>`;
+  }).join('') : `<p class="hint">${esc(T(all.length ? 'Ничего не найдено.' : 'Склад пуст.'))}</p>`;
+}
+function resetStockForm() {
+  st.edit.stock = null;
+  $('stock-form').reset();
+  $('stock-form').classList.remove('editing');
+  $('stock-editing').hidden = true;
+  $('stock-add').querySelector('span').textContent = T('ДОБАВИТЬ');
+}
+function editStock(id) {
+  const x = stockList().find((i) => i.id === id);
+  if (!x) return;
+  st.edit.stock = id;
+  $('stock-name').value = x.name || '';
+  $('stock-qty').value = x.qty || 1;
+  $('stock-holder').value = x.holder || '';
+  $('stock-note').value = x.note || '';
+  $('stock-form').classList.add('editing');
+  $('stock-editing').hidden = false;
+  $('stock-add').querySelector('span').textContent = T('СОХРАНИТЬ ИЗМЕНЕНИЯ');
+  switchTab('stock');
+  $('stock-name').focus();
+}
+$('stock-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const buy = e.submitter?.dataset.kind === 'buy' && !st.edit.stock;
+  const name = $('stock-name').value.replace(/\s+/g, ' ').trim().slice(0, 120);
+  const qty = clamp(Math.round(Number($('stock-qty').value) || 1), 1, 9999);
+  const holder = $('stock-holder').value.trim().slice(0, 80);
+  const note = $('stock-note').value.trim().slice(0, 300);
+  const shop = $('stock-shop').value.trim().slice(0, 80);
+  const price = Math.round(Number($('stock-price').value) || 0);
+  if (!name) { toast('Введите название предмета', 'error'); return; }
+  if (buy && price <= 0) { toast('Укажите цену покупки в Анах', 'error'); return; }
+  const editId = st.edit.stock;
+  const ok = await run(() => mutate((d) => {
+    const items = listOf(d, 'storage');
+    if (editId) {
+      if (!items.some((x) => x.id === editId)) throw userError('Предмет уже убран со склада');
+      return { storage: items.map((x) => (x.id === editId ? { ...x, name, qty, holder, note } : x)) };
+    }
+    if (items.length >= STOCK_MAX) throw userError(`${T('На складе не больше')} ${STOCK_MAX} ${T('позиций')}`);
+    const item = { id: newId(items), name, qty, holder, note, shop, cost: 0, paidId: '', ts: Date.now(), by: myNick() };
+    const patch = {};
+    if (buy) {
+      const t = d.treasury || {};
+      const log = Array.isArray(t.log) ? t.log : [];
+      const entry = { id: newId(log), ts: Date.now(), amount: -price, note: `${T('Покупка:')} ${name}${qty > 1 ? ` ×${qty}` : ''}${shop ? ` (${shop})` : ''}`.slice(0, 200), by: myNick() };
+      patch.treasury = { balance: (Number(t.balance) || 0) - price, log: [...log, entry].slice(-LEDGER_MAX) };
+      item.cost = price;
+      item.paidId = entry.id;
+    }
+    patch.storage = [...items, item];
+    return patch;
+  }), { ok: editId ? 'Предмет обновлён' : buy ? 'Куплено: цена списана из Казны' : 'Добавлено на склад', fail: 'Ошибка записи склада' });
+  if (ok) resetStockForm();
+});
+async function sellStock(id) {
+  const x = stockList().find((i) => i.id === id);
+  if (!x) return;
+  let n = 1;
+  if ((Number(x.qty) || 1) > 1) {
+    const raw = await dialog({ title: 'ПРОДАЖА', message: `${T('Сколько продать? Всего на складе:')} ${x.qty}`, input: { value: String(x.qty) }, ok: 'ДАЛЕЕ' });
+    if (raw === null) return;
+    n = Math.round(Number(raw));
+    if (!(n >= 1 && n <= x.qty)) { toast('Количество должно быть от 1 до числа на складе', 'error'); return; }
+  }
+  const raw = await dialog({ title: 'ПРОДАЖА', message: `${T('Выручка за')} «${x.name}» ×${n}, ${T('Ан (0 — отдать без оплаты):')}`, input: { value: '' }, ok: 'ПРОДАТЬ' });
+  if (raw === null) return;
+  const amount = Math.round(Number(raw));
+  if (!Number.isFinite(amount) || amount < 0) { toast('Введите сумму 0 или больше', 'error'); return; }
+  await run(() => mutate((d) => {
+    const items = listOf(d, 'storage');
+    const cur = items.find((i) => i.id === id);
+    if (!cur) throw userError('Предмет уже убран со склада');
+    const left = (Number(cur.qty) || 1) - n;
+    if (left < 0) throw userError('На складе уже меньше предметов');
+    const patch = { storage: left > 0 ? items.map((i) => (i.id === id ? { ...i, qty: left } : i)) : items.filter((i) => i.id !== id) };
+    if (amount > 0) {
+      const t = d.treasury || {};
+      const log = Array.isArray(t.log) ? t.log : [];
+      const entry = { id: newId(log), ts: Date.now(), amount, note: `${T('Продажа:')} ${cur.name}${n > 1 ? ` ×${n}` : ''}`.slice(0, 200), by: myNick() };
+      patch.treasury = { balance: (Number(t.balance) || 0) + amount, log: [...log, entry].slice(-LEDGER_MAX) };
+    }
+    return patch;
+  }), { ok: amount > 0 ? 'Продано: выручка зачислена в Казну' : 'Списано со склада', fail: 'Ошибка продажи' });
+  if (st.edit.stock === id && !stockList().some((i) => i.id === id)) resetStockForm();
+}
+async function deleteStock(id) {
+  const x = stockList().find((i) => i.id === id);
+  if (!x) return;
+  if (!await confirmDlg(`${T('Списать')} «${x.name}» ${T('со склада? Казна не изменится.')}`)) return;
+  await run(() => mutate((d) => ({ storage: listOf(d, 'storage').filter((i) => i.id !== id) })), { ok: 'Списано со склада', fail: 'Ошибка' });
+  if (st.edit.stock === id) resetStockForm();
+}
+
 /* ---------------- Вкладки ---------------- */
-const TABS = ['news', 'journal', 'rep', 'bank'];
+const TABS = ['news', 'journal', 'rep', 'bank', 'stock'];
 function switchTab(tab, focus = false) {
   if (!TABS.includes(tab)) tab = 'news';
   TABS.forEach((t) => {
@@ -1643,6 +1799,7 @@ function resetForms() {
   resetNewsForm();
   resetSessionForm();
   resetRepForm();
+  resetStockForm();
   $('bank-form').reset();
   ['agentModal', 'questBuilderModal', 'questManagerModal', 'dialogModal'].forEach(closeModal);
 }
@@ -1711,6 +1868,10 @@ const ACTIONS = {
   'rep-delete': (b) => deleteRep(b.dataset.id),
   'rep-cancel': resetRepForm,
   'bank-undo': (b) => undoLedger(b.dataset.id),
+  'stock-edit': (b) => editStock(b.dataset.id),
+  'stock-sell': (b) => sellStock(b.dataset.id),
+  'stock-delete': (b) => deleteStock(b.dataset.id),
+  'stock-cancel': resetStockForm,
   'rates-refresh': () => loadRates(true),
 };
 document.addEventListener('click', (e) => {

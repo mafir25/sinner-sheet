@@ -252,6 +252,32 @@
     'ПОКИНУТЬ ОФИС': 'LEAVE OFFICE', 'УДАЛИТЬ ОФИС': 'DELETE OFFICE',
     'КАЗНА': 'TREASURY', 'БАЛАНС ОФИСА': 'OFFICE BALANCE', 'ДОХОД': 'INCOME', 'РАСХОД': 'EXPENSE',
     'ЖУРНАЛ ОПЕРАЦИЙ': 'TRANSACTION LOG', 'КОНВЕРТЕР ВАЛЮТ': 'CURRENCY CONVERTER',
+    'СКЛАД': 'STORAGE', 'ПОПОЛНИТЬ СКЛАД': 'ADD TO STORAGE', 'РЕДАКТИРОВАНИЕ ПРЕДМЕТА': 'EDITING ITEM',
+    'ДОБАВИТЬ': 'ADD', 'КУПИТЬ': 'BUY', 'ПРОДАЖА': 'SALE', 'ПРОДАТЬ': 'SELL', 'ДАЛЕЕ': 'NEXT',
+    'Сводки, репутация, казна и склад': 'Reports, reputation, treasury and storage',
+    'Предмет, гифт, расходник...': 'Item, gift, consumable...', 'Название предмета': 'Item name',
+    'Кол-во': 'Qty', 'Количество': 'Quantity', 'У кого (необязательно)...': 'Held by (optional)...', 'У кого хранится': 'Held by',
+    'Заметка: состояние, откуда взялось...': 'Note: condition, where it came from...', 'Заметка': 'Note',
+    'Цена за всё, Ан...': 'Total price, Ahn...', 'Цена в Анах': 'Price in Ahn',
+    'Где куплено (мастерская)...': 'Bought at (workshop)...', 'Где куплено': 'Bought at',
+    'Добавить без оплаты: трофей, награда, находка': 'Add without paying: loot, reward, find',
+    'Купить: цена списывается из Казны': 'Buy: the price is taken from the Treasury',
+    '«Купить» списывает цену из Казны с записью в журнале операций. «Добавить» — без оплаты: трофеи, награды, находки.':
+      '"Buy" takes the price from the Treasury and logs it. "Add" is free: loot, rewards, finds.',
+    'Поиск по складу...': 'Search storage...', 'Поиск по складу': 'Search storage',
+    'позиций:': 'entries:', 'штук:': 'pieces:', 'Потрачено на покупки': 'Spent on purchases', 'куплено за': 'bought for',
+    'Продать': 'Sell', 'Списать со склада': 'Remove from storage', 'Склад пуст.': 'Storage is empty.', 'Ничего не найдено.': 'Nothing found.',
+    'Введите название предмета': 'Enter the item name', 'Укажите цену покупки в Анах': 'Enter the purchase price in Ahn',
+    'На складе не больше': 'Storage holds at most', 'позиций': 'entries', 'Покупка:': 'Purchase:', 'Продажа:': 'Sale:',
+    'Предмет обновлён': 'Item updated', 'Куплено: цена списана из Казны': 'Bought: price taken from the Treasury',
+    'Добавлено на склад': 'Added to storage', 'Ошибка записи склада': 'Storage write error',
+    'Сколько продать? Всего на складе:': 'How many to sell? In storage:', 'Выручка за': 'Proceeds for',
+    'Ан (0 — отдать без оплаты):': 'Ahn (0 to give away):',
+    'Количество должно быть от 1 до числа на складе': 'Quantity must be between 1 and the number in storage',
+    'Введите сумму 0 или больше': 'Enter an amount of 0 or more', 'На складе уже меньше предметов': 'There are fewer items in storage now',
+    'Продано: выручка зачислена в Казну': 'Sold: proceeds added to the Treasury', 'Списано со склада': 'Removed from storage',
+    'Ошибка продажи': 'Sale error', 'Списать': 'Remove', 'со склада? Казна не изменится.': 'from storage? The Treasury will not change.',
+    'Предмет уже убран со склада': 'The item is no longer in storage',
     'Ан': 'Ahn', 'АН': 'AHN', '0 Ан': '0 Ahn', 'Аны': 'Ahn', 'Рубли': 'Rubles', 'Доллары': 'Dollars', 'Обновить курс': 'Refresh rate',
     'По канону Project Moon курс Ана (Ahn) идентичен южнокорейской воне: 1 Ан = 1 ₩ (KRW). Рубли и доллары пересчитываются по текущему курсу воны.':
       'In Project Moon canon the Ahn is equal to the South Korean won: 1 Ahn = 1 ₩ (KRW). Rubles and dollars are converted at the current won rate.',
@@ -966,6 +992,53 @@
     [/^\[Ур\. (\d+)\]$/, '[Lv. $1]'],
     [/^Ур\. (\d+)$/, 'Lv. $1'],
     [/^(\d+) шт\.$/, '$1 pcs.']
+  );
+
+  /* ===================== База знаний: Слияние Э.Г.О. и Встреча ===================== */
+  Object.assign(dict, {
+    'Слияние': 'Fusion',
+    'Встреча': 'Encounter',
+    'Слияние Э.Г.О.': 'E.G.O. Fusion',
+    'В слияние': 'To fusion',
+    'В слиянии': 'In fusion',
+    'Калькулятор Слияния Э.Г.О.': 'E.G.O. Fusion calculator',
+    'Добавлено в слияние': 'Added to fusion',
+    'В слиянии не больше 3 гифтов': 'Fusion takes at most 3 gifts',
+    'Только гифты с типами ингредиентов': 'Only gifts with the ingredients\' types',
+    'Загрузка гифтов…': 'Loading gifts…',
+    'Отметьте 2 или 3 гифта кнопкой «В слияние» в разделе «Э.Г.О. Гифты» — здесь появятся тир результата и подходящие гифты.':
+      'Mark 2 or 3 gifts with "To fusion" in the E.G.O. Gifts section to see the resulting tier and matching gifts.',
+    'Слить можно до 3 гифтов за раз. Обычные существа делают это раз в день, сотрудники Отдела Извлечения — столько раз, каков их бонус мастерства. Какой гифт получится, решает мастер; подробности — «Правила» → «Слияние Э.Г.О.».':
+      'Up to 3 gifts can be fused at once. Ordinary creatures can do it once a day, Extraction Team employees as many times as their proficiency bonus. The GM decides which gift comes out; details are in Rules → E.G.O. Fusion.',
+    '(не выше максимального тира)': '(capped at the highest tier)',
+    'Во встречу': 'To encounter',
+    'Добавить во встречу': 'Add to encounter',
+    'Добавлено во встречу': 'Added to encounter',
+    'Добавлено, но опасность не указана — опыт не учтён': 'Added, but challenge is not set, so no XP is counted',
+    'Опасность (CR) и порядок': 'Challenge (CR) and order',
+    'от': 'from', 'до': 'to', 'сортировка': 'sort',
+    'по названию': 'by name', 'опасность ↑': 'challenge ↑', 'опасность ↓': 'challenge ↓',
+    'Опасность от': 'Challenge from', 'Опасность до': 'Challenge to', 'Сортировка': 'Sort',
+    'Персонажей': 'Characters',
+    'Меньше': 'Fewer', 'Больше': 'More',
+    'опыт не указан': 'XP not set',
+    'Очистить встречу': 'Clear encounter',
+    'Опыт существ:': 'Creature XP:',
+    'Низкая сложность': 'Low difficulty', 'Умеренная сложность': 'Moderate difficulty',
+    'Высокая сложность': 'High difficulty', 'Выше высокой сложность': 'Above high difficulty',
+    'Опыт встречи относительно бюджета группы': 'Encounter XP against the party budget',
+    'Нажмите «Во встречу» на карточке существа — здесь посчитается сложность для вашей группы.':
+      'Press "To encounter" on a creature card to work out the difficulty for your party here.',
+    'Подсчёт по правилам DMG 2024: опыт всех существ сравнивается с бюджетом группы. Это ориентир для подготовки — Части Аномалий, укрытия и Свет он не учитывает.':
+      'Calculated by the 2024 DMG rules: total creature XP against the party budget. A prep guide only: it ignores Abnormality parts, cover and Light.'
+  });
+  patterns.push(
+    [/^Результат: Уровень ([IVX]+)$/, 'Result: Tier $1'],
+    [/^Подходящие гифты: (\d+)$/, 'Matching gifts: $1'],
+    [/^2 гифта: средний тир ([\d,]+), округление вниз$/, '2 gifts: average tier $1, rounded down'],
+    [/^3 гифта: средний тир ([\d,]+), округление вверх и \+1$/, '3 gifts: average tier $1, rounded up, +1'],
+    [/^([\d\s\u00a0]+) опыта$/, '$1 XP'],
+    [/^Бюджет группы: низкая до (.+) опыта · умеренная до (.+) опыта · высокая до (.+) опыта$/, 'Party budget: low up to $1 XP · moderate up to $2 XP · high up to $3 XP']
   );
 
   /* ===================== Конструктор персонажа (builder.html) ===================== */

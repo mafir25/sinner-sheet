@@ -246,6 +246,13 @@
         .ledger-item .amt { font-family: 'Oswald'; white-space: nowrap; }
         .ledger-item .amt.plus { color: var(--accent-primary); } .ledger-item .amt.minus { color: var(--color-red); }
         .ledger-item .meta { font-size: 0.7rem; color: var(--text-dim); }
+        .stock-item { display: flex; justify-content: space-between; gap: 8px; align-items: flex-start; border-bottom: 1px dashed var(--line); padding: 7px 0; font-size: 0.85rem; }
+        .stock-item:hover .item-tools, .stock-item:focus-within .item-tools { opacity: 1; }
+        .stock-name { font-family: 'Oswald'; font-size: 0.98rem; color: var(--text-main); overflow-wrap: anywhere; }
+        .stock-qty { color: var(--color-yellow); font-family: 'Oswald'; margin-left: 6px; }
+        .stock-item .meta { font-size: 0.72rem; color: var(--text-dim); overflow-wrap: anywhere; }
+        .stock-note { font-size: 0.8rem; color: var(--text-main); opacity: 0.85; margin-top: 2px; overflow-wrap: anywhere; }
+        #stock-form.editing .stock-buy { display: none; }
         .converter { border: 1px solid var(--line-2); padding: 10px; margin-top: 12px; }
         .conv-row { display: grid; grid-template-columns: 1fr auto; gap: 6px; align-items: center; margin-bottom: 6px; }
         .conv-row .field { margin: 0; }
@@ -439,7 +446,7 @@
         </section>
 
         <!-- ПРАВАЯ КОЛОНКА -->
-        <section class="panel-outer cut-tl t-red col-feed" aria-label="Сводки, репутация и казна">
+        <section class="panel-outer cut-tl t-red col-feed" aria-label="Сводки, репутация, казна и склад">
             <div class="hazard-tape"></div>
             <div class="panel-inner cut-tl">
                 <div class="panel-title">
@@ -448,6 +455,7 @@
                         <button class="tab-btn" role="tab" id="tab-journal" aria-controls="wrapper-journal" aria-selected="false" tabindex="-1" data-tab="journal">ЖУРНАЛ</button>
                         <button class="tab-btn" role="tab" id="tab-rep" aria-controls="wrapper-rep" aria-selected="false" tabindex="-1" data-tab="rep">РЕПУТАЦИЯ</button>
                         <button class="tab-btn" role="tab" id="tab-bank" aria-controls="wrapper-bank" aria-selected="false" tabindex="-1" data-tab="bank">КАЗНА</button>
+                        <button class="tab-btn" role="tab" id="tab-stock" aria-controls="wrapper-stock" aria-selected="false" tabindex="-1" data-tab="stock">СКЛАД</button>
                     </div>
                 </div>
 
@@ -530,6 +538,33 @@
                         </div>
                         <p class="lore" style="margin-top: 8px;">По канону Project Moon курс Ана (Ahn) идентичен южнокорейской воне: 1 Ан = 1 ₩ (KRW). Рубли и доллары пересчитываются по текущему курсу воны.</p>
                     </div>
+                </div>
+
+                <div id="wrapper-stock" role="tabpanel" aria-labelledby="tab-stock" hidden>
+                    <form class="section creator-only" id="stock-form" autocomplete="off">
+                        <span class="label" style="color: var(--color-red);">ПОПОЛНИТЬ СКЛАД</span>
+                        <div class="editing-note" id="stock-editing" hidden><span>РЕДАКТИРОВАНИЕ ПРЕДМЕТА</span><button type="button" class="icon-btn" data-act="stock-cancel" aria-label="Отменить редактирование" title="Отменить"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div>
+                        <input type="text" id="stock-name" class="field" placeholder="Предмет, гифт, расходник..." maxlength="120" list="stock-suggest" aria-label="Название предмета">
+                        <datalist id="stock-suggest"></datalist>
+                        <div class="row" style="margin-bottom: 8px;">
+                            <input type="number" id="stock-qty" class="field" placeholder="Кол-во" min="1" max="9999" step="1" aria-label="Количество" style="flex: 0 0 90px; margin:0;">
+                            <input type="text" id="stock-holder" class="field" placeholder="У кого (необязательно)..." maxlength="80" list="stock-agents" aria-label="У кого хранится" style="margin:0;">
+                            <datalist id="stock-agents"></datalist>
+                        </div>
+                        <input type="text" id="stock-note" class="field" placeholder="Заметка: состояние, откуда взялось..." maxlength="300" aria-label="Заметка">
+                        <div class="row stock-buy" style="margin-bottom: 8px;">
+                            <input type="number" id="stock-price" class="field" placeholder="Цена за всё, Ан..." min="1" step="1" aria-label="Цена в Анах" style="margin:0;">
+                            <input type="text" id="stock-shop" class="field" placeholder="Где куплено (мастерская)..." maxlength="80" aria-label="Где куплено" style="margin:0;">
+                        </div>
+                        <div class="row">
+                            <button class="btn green" type="submit" data-kind="add" id="stock-add" style="flex:1" title="Добавить без оплаты: трофей, награда, находка"><i class="fa-solid fa-box" aria-hidden="true"></i> <span>ДОБАВИТЬ</span></button>
+                            <button class="btn red stock-buy" type="submit" data-kind="buy" style="flex:1" title="Купить: цена списывается из Казны"><i class="fa-solid fa-cart-shopping" aria-hidden="true"></i> КУПИТЬ</button>
+                        </div>
+                        <p class="hint" style="margin-top: 6px;">«Купить» списывает цену из Казны с записью в журнале операций. «Добавить» — без оплаты: трофеи, награды, находки.</p>
+                    </form>
+                    <input type="search" id="stock-search" class="field" placeholder="Поиск по складу..." aria-label="Поиск по складу">
+                    <div class="office-stats" id="stock-stats"></div>
+                    <div id="stock-list"></div>
                 </div>
             </div>
         </section>
