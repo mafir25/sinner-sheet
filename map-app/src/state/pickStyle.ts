@@ -69,9 +69,18 @@ export function pickStyle(ed: Editor, item: SelItem): string | null {
     case 'roof': {
       const r = find(f.roofs);
       if (!r) return null;
-      ed.setSettings({ roof: { asset: r.asset, color: r.color } });
+      const { id: _i, poly: _p, ...roof } = structuredClone(r);
+      ed.setSettings({ roof });
       ed.setTool('roof');
       return tr('Крыша');
+    }
+    case 'level': {
+      const l = find(f.levels);
+      if (!l) return null;
+      const { id: _i, poly: _p, ...level } = l;
+      ed.setSettings({ level, subtract: false });
+      ed.setTool('level');
+      return tr('Высота местности');
     }
   }
   return null;

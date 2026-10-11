@@ -146,7 +146,7 @@ describe('история отмены делит неизменённые час
 import { slidePortal } from '../../map-app/src/geom/walls.ts';
 describe('проём тащится вдоль стены', () => {
   const room = { id: 'r', poly: [[{ x: 0, y: 0 }, { x: 6, y: 0 }, { x: 6, y: 4 }, { x: 0, y: 4 }]], floor: null, wall: { asset: null, color: '#000', width: 0.2 } };
-  const f = { id: 'f', name: '', visible: true, layers: [], objects: [], ground: null, terrain: [], paths: [], lights: [], labels: [], roofs: [], image: null, rooms: [room], walls: [], portals: [] };
+  const f = { id: 'f', name: '', visible: true, layers: [], objects: [], ground: null, terrain: [], paths: [], lights: [], labels: [], roofs: [], levels: [], image: null, rooms: [room], walls: [], portals: [] };
   const door = { id: 'd', kind: 'door', a: { x: 2, y: 0 }, b: { x: 1, y: 0 }, asset: null };
   it('по той же стене, с привязкой края к полклетки и прежним направлением', () => {
     const r = slidePortal(f, door, { x: 4.2, y: 0.3 }, true);

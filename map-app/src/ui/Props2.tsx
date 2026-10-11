@@ -1,12 +1,13 @@
 // Настройки инструментов этапа 2 (кисть, путь, свет, подпись, крыша) и свойства выделенных путей, света, подписей, крыш.
 import { useEffect, useState } from 'react';
 import type { AssetStore } from '../assets/store';
-import type { Floor, Label, Light, MapPath, PathStyle, Roof } from '../model/types';
+import type { Floor, Label, Level, Light, MapPath, PathStyle, Roof } from '../model/types';
 import type { Editor } from '../state/editor';
 import { tr } from '../i18n';
 import { siteLink } from '../../../site/site-links.js';
 import { openLink } from './LinksDialog';
-import { AssetPicker, ColorInput, Field, NumInput, Slider } from './common';
+import { AssetPicker, ColorInput, Field, NumInput, Slider, toast } from './common';
+import { refitRoof } from '../geom/roof';
 
 type LightStyle = Omit<Light, 'id' | 'x' | 'y'>;
 type LabelStyle = Omit<Label, 'id' | 'x' | 'y' | 'text' | 'rot'>;
@@ -239,23 +240,98 @@ function TextArea({ value, onCommit }: { value: string; onCommit(v: string): voi
 }
 
 // ---------- крыши
+type RoofStyle = Omit<Roof, 'id' | 'poly'>;
+const SHAPES: { id: NonNullable<Roof['shape']>; label: string }[] = [
+  { id: 'hip', label: 'Вальмовая' }, { id: 'gable', label: 'Двускатная' }, { id: 'shed', label: 'Односкатная' }, { id: 'flat', label: 'Плоская' },
+];
+const FALLS: { id: NonNullable<Roof['fall']>; label: string }[] = [
+  { id: 's', label: 'Вниз ↓' }, { id: 'n', label: 'Вверх ↑' }, { id: 'w', label: 'Влево ←' }, { id: 'e', label: 'Вправо →' },
+];
+
 export function RoofPanel({ ed, assets }: { ed: Editor; assets: AssetStore }) {
   const r = ed.state.settings.roof;
   return (
     <div className="stack">
       <RoofEditor assets={assets} value={r} onChange={(roof) => ed.setSettings({ roof })} />
-      <p className="hint">{tr('Щелчок по комнате — крыша по её форме. Протянуть — прямоугольная крыша.')}</p>
+      <p className="hint">{tr('Объекты на крыше (вентиляция, люк, антенны) — на слой с отметкой ⌂ «на крыше»: они видны вместе с крышами.')}</p>
     </div>
   );
 }
 
-function RoofEditor({ assets, value, onChange }: { assets: AssetStore; value: Pick<Roof, 'asset' | 'color'>; onChange(v: Pick<Roof, 'asset' | 'color'>): void }) {
+function RoofEditor({ assets, value, onChange }: { assets: AssetStore; value: RoofStyle; onChange(v: RoofStyle): void }) {
+  const shape = value.shape ?? 'hip';
   return (
     <div className="stack">
       <Field label={tr('Кровля')}>
         <AssetPicker assets={assets} kind="roof" value={value.asset} allowNone noneLabel={tr('Без текстуры')} onChange={(asset) => onChange({ ...value, asset })} />
       </Field>
-      <Field label={tr('Цвет')} row><ColorInput value={value.color} onCommit={(color) => onChange({ ...value, color })} /></Field>
+      <Field label={tr('Форма')}>
+        <div className="seg">
+          {SHAPES.map((x) => <button key={x.id} className={shape === x.id ? 'on' : ''} onClick={() => onChange({ ...value, shape: x.id })}>{tr(x.label)}</button>)}
+        </div>
+      </Field>
+      {shape === 'gable' && (
+        <Field label={tr('Конёк')}>
+          <div className="seg">
+            <button className={!value.ridge ? 'on' : ''} onClick={() => onChange({ ...value, ridge: undefined })}>{tr('Авто')}</button>
+            <button className={value.ridge === 'h' ? 'on' : ''} onClick={() => onChange({ ...value, ridge: 'h' })}>{tr('Вдоль ↔')}</button>
+            <button className={value.ridge === 'v' ? 'on' : ''} onClick={() => onChange({ ...value, ridge: 'v' })}>{tr('Вдоль ↕')}</button>
+          </div>
+        </Field>
+      )}
+      {shape === 'shed' && (
+        <Field label={tr('Скат стекает')}>
+          <select className="input" value={value.fall ?? 's'} onChange={(e) => onChange({ ...value, fall: e.target.value as Roof['fall'] })}>
+            {FALLS.map((x) => <option key={x.id} value={x.id}>{tr(x.label)}</option>)}
+          </select>
+        </Field>
+      )}
+      <div className="row">
+        <Field label={tr('Цвет')} row><ColorInput value={value.color} onCommit={(color) => onChange({ ...value, color })} /></Field>
+        <Field label={tr('Высота, фт')} row><NumInput value={value.height ?? 0} step={5} min={0} max={1000} digits={0}
+          onCommit={(h) => onChange({ ...value, height: h > 0 ? h : undefined })} /></Field>
+      </div>
+      <span className="hint">{tr('Высота крыши над землёй видна мастеру подписью «⌂ N фт» (падение — 1d6 за каждые 10 фт). 0 — без подписи.')}</span>
+    </div>
+  );
+}
+
+// ---------- уровни местности
+type LevelStyle = Omit<Level, 'id' | 'poly'>;
+export function LevelPanel({ ed, assets }: { ed: Editor; assets: AssetStore }) {
+  const v = ed.state.settings.level;
+  return (
+    <div className="stack">
+      <div className="seg">
+        <button className={!ed.state.settings.subtract ? 'on' : ''} onClick={() => ed.setSettings({ subtract: false })}>＋ {tr('Добавить')}</button>
+        <button className={ed.state.settings.subtract ? 'on' : ''} onClick={() => ed.setSettings({ subtract: true })}>− {tr('Вырезать')}</button>
+      </div>
+      <LevelEditor assets={assets} value={v} onChange={(level) => ed.setSettings({ level })} />
+      <p className="hint">{tr('Плюс — возвышение (помост, платформа, насыпь, крыша пристройки), минус — яма, канал, котлован. Обрыв виден гранью у края, обращённого к зрителю; линейка показывает перепад высот.')}</p>
+    </div>
+  );
+}
+
+const HEIGHTS = [-20, -10, -5, 5, 10, 20];
+function LevelEditor({ assets, value, onChange }: { assets: AssetStore; value: LevelStyle; onChange(v: LevelStyle): void }) {
+  return (
+    <div className="stack">
+      <Field label={tr('Высота, фт (минус — яма)')}>
+        <NumInput value={value.h} step={5} min={-1000} max={1000} digits={1} onCommit={(h) => onChange({ ...value, h })} />
+        <div className="seg">
+          {HEIGHTS.map((h) => <button key={h} className={value.h === h ? 'on' : ''} onClick={() => onChange({ ...value, h })}>{h > 0 ? `+${h}` : h}</button>)}
+        </div>
+      </Field>
+      <Field label={tr('Покрытие сверху')}>
+        <AssetPicker assets={assets} kind="floor" value={value.floor} allowNone noneLabel={tr('Как под ним')} onChange={(floor) => onChange({ ...value, floor })} />
+      </Field>
+      <Field label={tr('Обрыв')}>
+        <AssetPicker assets={assets} kind="wall" value={value.face} allowNone noneLabel={tr('Без текстуры')} onChange={(face) => onChange({ ...value, face })} />
+      </Field>
+      <div className="row">
+        <Field label={tr('Цвет обрыва')} row><ColorInput value={value.color} onCommit={(color) => onChange({ ...value, color })} /></Field>
+        <label className="check"><input type="checkbox" checked={value.label} onChange={(e) => onChange({ ...value, label: e.target.checked })} /> {tr('Подпись высоты')}</label>
+      </div>
     </div>
   );
 }
@@ -263,7 +339,7 @@ function RoofEditor({ assets, value, onChange }: { assets: AssetStore; value: Pi
 // ---------- свойства выделенного
 export function SelectionExtras({ ed, assets }: { ed: Editor; assets: AssetStore }) {
   const ids = new Set(ed.state.sel.map((s) => s.id));
-  const paths = ed.selected('path'), lights = ed.selected('light'), labels = ed.selected('label'), roofs = ed.selected('roof');
+  const paths = ed.selected('path'), lights = ed.selected('light'), labels = ed.selected('label'), roofs = ed.selected('roof'), levels = ed.selected('level');
   const upd = <T extends { id: string }>(list: (f: Floor) => T[], patch: (x: T) => void) =>
     ed.commitFloor((f) => { for (const x of list(f)) if (ids.has(x.id)) patch(x); });
   return (
@@ -300,9 +376,27 @@ export function SelectionExtras({ ed, assets }: { ed: Editor; assets: AssetStore
           </>
         );
       })()}
-      {roofs.length > 0 && (
-        <RoofEditor assets={assets} value={roofs[0]} onChange={(v) => upd((f) => f.roofs, (r: Roof) => { r.asset = v.asset; r.color = v.color; })} />
-      )}
+      {roofs.length > 0 && (() => {
+        const { id: _i, poly: _p, ...style } = roofs[0];
+        return (
+          <>
+            <RoofEditor assets={assets} value={style} onChange={(v) => upd((f) => f.roofs, (r: Roof) => {
+              Object.assign(r, v);
+              for (const k of ['ridge', 'fall', 'height'] as const) if (v[k] === undefined) delete r[k];
+            })} />
+            <button className="btn btn-sm" title={tr('Форма крыши заново по комнатам под ней — после того как комнаты перерисовали')}
+              onClick={() => {
+                let n = 0;
+                ed.commitFloor((f) => { for (const r of f.roofs) if (ids.has(r.id)) { const p = refitRoof(f, r); if (p) { r.poly = p; n++; } } });
+                if (!n) toast(tr('Под крышей нет комнат'), 'error');
+              }}>↻ {tr('По комнатам')}</button>
+          </>
+        );
+      })()}
+      {levels.length > 0 && (() => {
+        const { id: _i, poly: _p, ...style } = levels[0];
+        return <LevelEditor assets={assets} value={style} onChange={(v) => upd((f) => f.levels, (l: Level) => { Object.assign(l, v); })} />;
+      })()}
     </>
   );
 }

@@ -1,6 +1,7 @@
 // Операции над документом целиком: сдвиг содержимого при изменении размера карты с якорем.
 import type { AssetKey, Floor, GridType, MapDoc, MapObject, Poly, Pt } from '../model/types';
 import { hexAt, hexCenter } from './grid';
+import { roofsOver } from './roof';
 
 const add = (p: Pt, d: Pt): Pt => ({ x: p.x + d.x, y: p.y + d.y });
 const shiftPoly = (poly: Poly, d: Pt): Poly => poly.map((ring) => ring.map((p) => add(p, d)));
@@ -22,6 +23,7 @@ export function shiftFloorAll(f: Floor, d: Pt): Floor {
     lights: f.lights.map((l) => ({ ...l, x: l.x + d.x, y: l.y + d.y })),
     labels: f.labels.map((l) => ({ ...l, x: l.x + d.x, y: l.y + d.y })),
     roofs: f.roofs.map((r) => ({ ...r, poly: shiftPoly(r.poly, d) })),
+    levels: f.levels.map((l) => ({ ...l, poly: shiftPoly(l.poly, d) })),
     image: f.image ? { ...f.image, x: f.image.x + d.x, y: f.image.y + d.y } : null,
   };
 }
@@ -107,35 +109,39 @@ export function repeatObjects(objs: MapObject[], count: number, step: Pt, newId:
 }
 
 // ---------- буфер обмена: всё выделенное, а не только объекты
-export type Clip = Pick<Floor, 'objects' | 'rooms' | 'walls' | 'portals' | 'paths' | 'lights' | 'labels' | 'roofs'>;
-const CLIP_KEYS = ['objects', 'rooms', 'walls', 'portals', 'paths', 'lights', 'labels', 'roofs'] as const;
-export const clipSize = (c: Clip) => CLIP_KEYS.reduce((s, k) => s + c[k].length, 0);
+export type Clip = Pick<Floor, 'objects' | 'rooms' | 'walls' | 'portals' | 'paths' | 'lights' | 'labels' | 'roofs' | 'levels'>;
+const CLIP_KEYS = ['objects', 'rooms', 'walls', 'portals', 'paths', 'lights', 'labels', 'roofs', 'levels'] as const;
+/** Буфер из старой версии (до уровней местности) — без levels. */
+export const clipSize = (c: Clip) => CLIP_KEYS.reduce((s, k) => s + (c[k]?.length ?? 0), 0);
 
-/** Выделенное на этаже; проёмы на выделенных комнатах и стенах берутся вместе с ними. */
+/** Выделенное на этаже; проёмы на выделенных комнатах и стенах и крыши над комнатами берутся вместе с ними. */
 export function copySelection(f: Floor, ids: Set<string>, onWalls: (part: Floor) => Set<string>): Clip {
   const pick = <T extends { id: string }>(list: T[]) => structuredClone(list.filter((x) => ids.has(x.id)));
   const rooms = pick(f.rooms), walls = pick(f.walls);
   const attached = rooms.length || walls.length ? onWalls({ ...f, rooms, walls }) : new Set<string>();
+  const over = roofsOver(f, rooms);
   return {
-    objects: pick(f.objects), rooms, walls, paths: pick(f.paths), lights: pick(f.lights), labels: pick(f.labels), roofs: pick(f.roofs),
+    objects: pick(f.objects), rooms, walls, paths: pick(f.paths), lights: pick(f.lights), labels: pick(f.labels),
+    roofs: structuredClone(f.roofs.filter((r) => ids.has(r.id) || over.has(r.id))), levels: pick(f.levels),
     portals: structuredClone(f.portals.filter((p) => ids.has(p.id) || attached.has(p.id))),
   };
 }
 
 /** Копия буфера для вставки: новые id, сдвиг d; объекты и пути с чужим слоем — на слой layer. */
 export function pasteClip(c: Clip, d: Pt, layers: Set<string>, layer: string, newId: (prefix: string) => string): Clip {
-  const moved = shiftFloorAll({ ...emptyFloor(), ...structuredClone(c) }, d);
+  const moved = shiftFloorAll({ ...emptyFloor(), ...structuredClone(c), levels: structuredClone(c.levels ?? []) }, d);
   const fresh = <T extends { id: string }>(list: T[], prefix: string) => list.map((x) => ({ ...x, id: newId(prefix) }));
   return {
     objects: fresh(moved.objects, 'o').map((o) => (layers.has(o.layer) ? o : { ...o, layer })),
     paths: fresh(moved.paths, 'pa').map((p) => (layers.has(p.layer) ? p : { ...p, layer })),
     rooms: fresh(moved.rooms, 'r'), walls: fresh(moved.walls, 'w'), portals: fresh(moved.portals, 'd'),
     lights: fresh(moved.lights, 'li'), labels: fresh(moved.labels, 'lb'), roofs: fresh(moved.roofs, 'rf'),
+    levels: fresh(moved.levels, 'lv'),
   };
 }
 
 function emptyFloor(): Floor {
-  return { id: '', name: '', visible: true, rooms: [], walls: [], portals: [], objects: [], layers: [], ground: null, terrain: [], paths: [], lights: [], labels: [], roofs: [], image: null };
+  return { id: '', name: '', visible: true, rooms: [], walls: [], portals: [], objects: [], layers: [], ground: null, terrain: [], paths: [], lights: [], labels: [], roofs: [], levels: [], image: null };
 }
 
 /** Копия этажа целиком (новый id и название) — основа для следующего этажа здания. */

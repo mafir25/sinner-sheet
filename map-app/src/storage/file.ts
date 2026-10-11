@@ -23,6 +23,7 @@ export function usedAssetKeys(doc: MapDoc): Set<string> {
     for (const t of f.terrain) add(t.asset);
     for (const pa of f.paths) { add(pa.style.asset); add(pa.style.decor); }
     for (const r of f.roofs) add(r.asset);
+    for (const l of f.levels ?? []) { add(l.floor); add(l.face); }
   }
   return keys;
 }
