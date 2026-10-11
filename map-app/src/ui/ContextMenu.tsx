@@ -53,7 +53,7 @@ export function menuItems(ed: Editor, assets: AssetStore, extra: { fit(): void }
     }
   }
   items.push('sep');
-  items.push({ label: tr('Выделить всё'), hint: 'Ctrl+A', run: () => ed.setSel(boxSelect(f, ALL)) });
+  items.push({ label: tr('Выделить всё'), hint: 'Ctrl+A', run: () => ed.setSel(boxSelect(f, ALL, ed.state.settings.showRoofs !== 'hide')) });
   items.push({ label: tr('Показать всю карту'), run: extra.fit });
   if (sel.length) {
     items.push('sep');

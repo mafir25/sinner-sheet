@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { Floor, Layer, Lighting, MapDoc, PathStyle, WallStyle } from './types';
+import type { Floor, Layer, Level, Lighting, MapDoc, PathStyle, WallStyle } from './types';
 import { tr } from '../i18n';
 
 export const uid = (p = '') => `${p}${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
@@ -7,6 +7,7 @@ export const uid = (p = '') => `${p}${Date.now().toString(36)}${Math.random().to
 export const DEFAULT_WALL: WallStyle = { asset: 'canon:walls/concrete.svg', color: '#0c0c0e', width: 0.1, height: 0.5, inner: 'down', outer: 'down' };
 export const DEFAULT_FLOOR = 'canon:floors/concrete.svg';
 export const DEFAULT_LIGHTING: Lighting = { enabled: false, darkness: 0.7, color: '#05060a', wallShadows: true };
+export const DEFAULT_LEVEL: Omit<Level, 'id' | 'poly'> = { h: 10, floor: null, face: 'canon:walls/concrete.svg', color: '#4a4740', label: true };
 export const DEFAULT_PATH: PathStyle = { width: 3, color: '#2a2b2e', asset: 'canon:floors/asphalt.svg', dash: 0, outline: '#141416', decor: null, decorMode: 'strip', decorScale: 1, spacing: 1, parallel: null };
 
 export function defaultLayers(): Layer[] {
@@ -20,7 +21,7 @@ export function defaultLayers(): Layer[] {
 export function newFloor(name: string): Floor {
   return {
     id: uid('f'), name, visible: true, rooms: [], walls: [], portals: [], objects: [], layers: defaultLayers(),
-    ground: null, terrain: [], paths: [], lights: [], labels: [], roofs: [], image: null,
+    ground: null, terrain: [], paths: [], lights: [], labels: [], roofs: [], levels: [], image: null,
   };
 }
 
@@ -47,10 +48,12 @@ const wallStyle = z.object({
   height: num.min(0).max(6).optional(),
   inner: z.enum(['none', 'down', 'up', 'normal']).optional(),
   outer: z.enum(['none', 'down', 'up', 'normal']).optional(),
+  low: z.boolean().optional(),
 });
 const layer = z.object({
   id: z.string(), name: z.string().default(''), visible: z.boolean().default(true),
   locked: z.boolean().default(false), aboveWalls: z.boolean().default(false), gmOnly: z.boolean().default(false),
+  roof: z.boolean().optional(),
 });
 const asset = z.string().nullable().default(null);
 const pathStyle = z.object({
@@ -65,6 +68,7 @@ const floor = z.object({
   id: z.string(),
   name: z.string().default(''),
   visible: z.boolean().default(true),
+  base: z.string().optional(),
   rooms: z.array(z.object({ id: z.string(), poly: z.array(ring).min(1), floor: z.string().nullable().default(null), wall: wallStyle, type: z.string().optional(),
     edgeStyles: z.array(z.object({ a: pt, b: pt, style: wallStyle.partial() })).optional() })).default([]),
   walls: z.array(z.object({ id: z.string(), points: z.array(pt).min(2), closed: z.boolean().default(false), wall: wallStyle })).default([]),
@@ -94,7 +98,15 @@ const floor = z.object({
     rot: num.default(0), font: z.enum(['head', 'body']).default('head'), box: z.boolean().default(false), gmOnly: z.boolean().default(false),
     link: z.string().max(2000).optional(),
   })).default([]),
-  roofs: z.array(z.object({ id: z.string(), poly: z.array(ring).min(1), asset, color: z.string().default('#3a3a40') })).default([]),
+  roofs: z.array(z.object({
+    id: z.string(), poly: z.array(ring).min(1), asset, color: z.string().default('#3a3a40'),
+    shape: z.enum(['flat', 'hip', 'gable', 'shed']).optional(), ridge: z.enum(['h', 'v']).optional(),
+    fall: z.enum(['n', 'e', 's', 'w']).optional(), height: num.min(0).max(1000).optional(),
+  })).default([]),
+  levels: z.array(z.object({
+    id: z.string(), poly: z.array(ring).min(1), h: num.min(-1000).max(1000), floor: asset, face: asset,
+    color: z.string().default('#4a4740'), label: z.boolean().default(true),
+  })).default([]),
   image: z.object({ asset: z.string(), x: num, y: num, ppc: num.positive(), opacity: num.min(0).max(1).default(1) }).nullable().default(null),
 });
 const docSchema = z.object({
@@ -122,6 +134,12 @@ const docSchema = z.object({
   }).optional(),
   links: z.array(z.object({ title: z.string().max(200), url: z.string().max(2000) })).optional(),
 });
+
+/** Дополняет документ из браузера (карты и версии, сохранённые до новых полей): этажи без уровней местности. */
+export function normalizeDoc(doc: MapDoc): MapDoc {
+  for (const f of doc.floors) f.levels ??= [];
+  return doc;
+}
 
 /** Проверяет и дополняет документ из файла. Бросает ошибку с понятным текстом. */
 export function parseDoc(raw: unknown): MapDoc {

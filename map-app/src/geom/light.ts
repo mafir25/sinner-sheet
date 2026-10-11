@@ -4,10 +4,11 @@ import { wallChains } from './walls';
 
 type Seg = [Pt, Pt];
 
-/** Отрезки, задерживающие свет: стены и двери (окна пропускают свет). */
+/** Отрезки, задерживающие свет: стены и двери (окна и низкие стены пропускают свет). */
 export function blockingSegments(f: Floor): Seg[] {
   const segs: Seg[] = [];
   for (const c of wallChains(f, new Set(['window']))) {
+    if (c.style.low) continue;
     const pts = c.closed ? [...c.pts, c.pts[0]] : c.pts;
     for (let i = 0; i < pts.length - 1; i++) segs.push([pts[i], pts[i + 1]]);
   }

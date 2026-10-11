@@ -24,12 +24,14 @@ export function ExportDialog({ ed, assets, onClose }: { ed: Editor; assets: Asse
   const doc = ed.doc;
   const set = (patch: Partial<ExportOpts>) => setO((x) => ({ ...x, ...patch }));
   const ok = fits(doc, o.ppc);
+  const hasRoofs = doc.floors.some((f) => f.roofs.length || f.layers.some((l) => l.roof));
+  const only = hasRoofs && !!o.roofsOnly;
 
   const run = async () => {
     setBusy(true);
     try { localStorage.setItem(LS_KEY, JSON.stringify(o)); } catch { /* приватный режим */ }
     try {
-      const { blob, filename } = await exportMap(doc, ed.state.floorId, assets, o);
+      const { blob, filename } = await exportMap(doc, ed.state.floorId, assets, { ...o, roofs: hasRoofs && o.roofs, roofsOnly: hasRoofs && !!o.roofsOnly });
       download(blob, filename);
       toast(tr('Готово: {0}', filename));
       onClose();
@@ -45,9 +47,9 @@ export function ExportDialog({ ed, assets, onClose }: { ed: Editor; assets: Asse
         <Field label={tr('Формат')}>
           <select className="input" value={o.format} onChange={(e) => set({ format: e.target.value as ExportFormat })}>
             <option value="png">{tr('Картинка PNG')}</option>
-            <option value="jpg">{tr('Картинка JPG')}</option>
+            {!only && <option value="jpg">{tr('Картинка JPG')}</option>}
             <option value="webp">{tr('Картинка WebP')}</option>
-            <option value="dd2vtt">{tr('Universal VTT (.dd2vtt) — стены и двери для Foundry и др.')}</option>
+            {!only && <option value="dd2vtt">{tr('Universal VTT (.dd2vtt) — стены и двери для Foundry и др.')}</option>}
           </select>
         </Field>
         <Field label={tr('Пикселей на клетку')}>
@@ -71,17 +73,26 @@ export function ExportDialog({ ed, assets, onClose }: { ed: Editor; assets: Asse
           </div>
           <span className="hint">{tr('Мастерская версия добавляет подписи и слои «только для мастера».')}</span>
         </Field>
-        <label className="check"><input type="checkbox" checked={o.grid} onChange={(e) => set({ grid: e.target.checked })} /> {tr('Рисовать сетку на картинке')}</label>
-        {doc.floors.some((f) => f.roofs.length) && (
-          <label className="check"><input type="checkbox" checked={o.roofs} onChange={(e) => set({ roofs: e.target.checked })} /> {tr('С крышами (вид снаружи)')}</label>
+        {!only && <label className="check"><input type="checkbox" checked={o.grid} onChange={(e) => set({ grid: e.target.checked })} /> {tr('Рисовать сетку на картинке')}</label>}
+        {hasRoofs && (
+          <Field label={tr('Крыши')}>
+            <div className="seg">
+              <button className={!o.roofs && !only ? 'on' : ''} onClick={() => set({ roofs: false, roofsOnly: false })}>{tr('Без крыш')}</button>
+              <button className={o.roofs && !only ? 'on' : ''} onClick={() => set({ roofs: true, roofsOnly: false })}>{tr('С крышами')}</button>
+              <button className={only ? 'on' : ''} onClick={() => set({ roofsOnly: true, format: o.format === 'webp' ? 'webp' : 'png' })}>{tr('Только крыши')}</button>
+            </div>
+            <span className="hint">{only
+              ? tr('Прозрачная картинка того же размера, что карта: в Foundry положи её «верхним» тайлом (Overhead) — крыша пропадёт, когда герои войдут внутрь; в Owlbear и Roll20 — отдельным слоем, который мастер убирает.')
+              : tr('С крышами — вид снаружи (улица, погоня по крышам). Для VTT удобнее карта без крыш + «Только крыши» отдельной картинкой.')}</span>
+          </Field>
         )}
-        {doc.lighting.enabled && (
+        {doc.lighting.enabled && !only && (
           <label className="check"><input type="checkbox" checked={o.bakeLight} onChange={(e) => set({ bakeLight: e.target.checked })} /> {tr('Запечь освещение в картинку')}</label>
         )}
         {(o.format === 'jpg' || o.format === 'webp') && (
           <Field label={tr('Качество')} row><NumInput value={o.quality} step={0.05} min={0.3} max={1} onCommit={(quality) => set({ quality })} /></Field>
         )}
-        {o.format === 'dd2vtt' && (
+        {o.format === 'dd2vtt' && !only && (
           <>
             <Field label={tr('Окна в .dd2vtt')}>
               <select className="input" value={o.windows} onChange={(e) => set({ windows: e.target.value as ExportOpts['windows'] })}>

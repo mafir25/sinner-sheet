@@ -1,14 +1,14 @@
 // Состояние редактора: документ карты, история (отмена/повтор), выделение, инструмент, вид.
 import { useSyncExternalStore } from 'react';
-import type { AssetKey, Floor, Label, Light, MapDoc, MapObject, MapPath, PathStyle, Portal, Pt, Roof, Room, Wall, WallStyle } from '../model/types';
-import { DEFAULT_FLOOR, DEFAULT_PATH, DEFAULT_WALL, uid } from '../model/doc';
+import type { AssetKey, Floor, Label, Level, Light, MapDoc, MapObject, MapPath, PathStyle, Portal, Pt, Roof, Room, Wall, WallStyle } from '../model/types';
+import { DEFAULT_FLOOR, DEFAULT_LEVEL, DEFAULT_PATH, DEFAULT_WALL, normalizeDoc, uid } from '../model/doc';
 import { orphanPortals } from '../geom/walls';
 import { share } from './share';
 import { type Clip, clipSize, copySelection, pasteClip } from '../geom/ops';
 
-export type ToolId = 'select' | 'room' | 'poly' | 'wall' | 'door' | 'window' | 'cut' | 'stamp' | 'brush' | 'path' | 'light' | 'label' | 'roof' | 'ruler' | 'pan';
+export type ToolId = 'select' | 'room' | 'poly' | 'wall' | 'door' | 'window' | 'cut' | 'stamp' | 'brush' | 'path' | 'light' | 'label' | 'roof' | 'level' | 'ruler' | 'pan';
 /** edge — отдельная стена комнаты: id «<id комнаты>|<кольцо>|<ребро>». */
-export type SelKind = 'object' | 'portal' | 'wall' | 'room' | 'path' | 'light' | 'label' | 'roof' | 'edge';
+export type SelKind = 'object' | 'portal' | 'wall' | 'room' | 'path' | 'light' | 'label' | 'roof' | 'level' | 'edge';
 export type SelItem = { kind: SelKind; id: string };
 export type View = { scale: number; ox: number; oy: number }; // px на клетку, сдвиг начала координат в px
 
@@ -34,7 +34,9 @@ export type ToolSettings = {
   path: { style: PathStyle; smooth: boolean };
   light: { radius: number; color: string; intensity: number; shadows: boolean };
   label: { size: number; color: string; font: 'head' | 'body'; box: boolean; gmOnly: boolean; numbering: boolean; next: number };
-  roof: { asset: AssetKey | null; color: string };
+  roof: Omit<Roof, 'id' | 'poly'>;
+  /** Уровень местности: высота (фт), покрытие, обрыв; mode — прямоугольник или многоугольник. */
+  level: Omit<Level, 'id' | 'poly'>;
   /** Вид в редакторе: крыши и предпросмотр освещения. */
   showRoofs: 'hide' | 'ghost' | 'show';
   showLight: boolean;
@@ -62,7 +64,7 @@ function getClip(): Clip {
   if (!clipboard) {
     try { clipboard = JSON.parse(localStorage.getItem(CLIP_KEY) || 'null'); } catch { clipboard = null; }
   }
-  return clipboard ?? { objects: [], rooms: [], walls: [], portals: [], paths: [], lights: [], labels: [], roofs: [] };
+  return clipboard ?? { objects: [], rooms: [], walls: [], portals: [], paths: [], lights: [], labels: [], roofs: [], levels: [] };
 }
 if (typeof window !== 'undefined') window.addEventListener('storage', (e) => { if (e.key === CLIP_KEY) clipboard = null; });
 function setClip(c: Clip) {
@@ -82,6 +84,7 @@ export class Editor {
   fileSavedAt = 0;
 
   constructor(doc: MapDoc) {
+    normalizeDoc(doc);
     const floor = doc.floors[0];
     this.state = {
       doc, floorId: floor.id, layerId: defaultLayer(floor),
@@ -93,7 +96,8 @@ export class Editor {
         path: { style: { ...DEFAULT_PATH }, smooth: true },
         light: { radius: 6, color: '#ffd9a0', intensity: 0.9, shadows: true },
         label: { size: 0.8, color: '#ffffff', font: 'head', box: false, gmOnly: false, numbering: false, next: 1 },
-        roof: { asset: 'canon:roofs/tiles.svg', color: '#3a3a40' },
+        roof: { asset: 'canon:roofs/tiles.svg', color: '#3a3a40', shape: 'hip' },
+        level: { ...DEFAULT_LEVEL },
         showRoofs: 'ghost', showLight: true,
       },
       canUndo: false, canRedo: false, dirty: false,
@@ -153,6 +157,7 @@ export class Editor {
 
   /** Новый документ целиком (открытие файла): история сбрасывается. */
   replaceDoc(doc: MapDoc) {
+    normalizeDoc(doc);
     this.past = []; this.future = [];
     const floor = doc.floors[0];
     this.set({ doc, floorId: floor.id, layerId: defaultLayer(floor), sel: [], canUndo: false, canRedo: false, dirty: false });
@@ -167,7 +172,11 @@ export class Editor {
     const f = this.doc.floors.find((x) => x.id === floorId);
     if (f) this.set({ floorId, layerId: defaultLayer(f), sel: [] });
   }
-  setLayer(layerId: string) { this.set({ layerId }); }
+  setLayer(layerId: string) {
+    // слой «на крыше» виден только с крышами — показываем их, чтобы было видно, что ставишь
+    const roof = this.floor.layers.find((l) => l.id === layerId)?.roof;
+    this.set(roof && this.state.settings.showRoofs === 'hide' ? { layerId, settings: { ...this.state.settings, showRoofs: 'ghost' } } : { layerId });
+  }
   setSettings(patch: Partial<ToolSettings>) { this.set({ settings: { ...this.state.settings, ...patch } }); }
 
   // ---------- частые операции
@@ -189,6 +198,7 @@ export class Editor {
       f.lights = f.lights.filter((x) => !ids.has(x.id));
       f.labels = f.labels.filter((x) => !ids.has(x.id));
       f.roofs = f.roofs.filter((x) => !ids.has(x.id));
+      f.levels = f.levels.filter((x) => !ids.has(x.id));
       // отдельная стена комнаты: «удалить» = убрать стену (проём без стены по всему ребру)
       for (const s of this.state.sel) {
         if (s.kind !== 'edge') continue;
@@ -217,13 +227,14 @@ export class Editor {
     this.commitFloor((f) => {
       f.rooms.push(...fresh.rooms); f.walls.push(...fresh.walls); f.portals.push(...fresh.portals); f.objects.push(...fresh.objects);
       f.paths.push(...fresh.paths); f.lights.push(...fresh.lights); f.labels.push(...fresh.labels); f.roofs.push(...fresh.roofs);
+      f.levels.push(...fresh.levels);
     });
     setClip(fresh); // следующая вставка — ещё на шаг дальше
     const sel: SelItem[] = [
       ...fresh.objects.map((x) => ({ kind: 'object' as const, id: x.id })), ...fresh.rooms.map((x) => ({ kind: 'room' as const, id: x.id })),
       ...fresh.walls.map((x) => ({ kind: 'wall' as const, id: x.id })), ...fresh.paths.map((x) => ({ kind: 'path' as const, id: x.id })),
       ...fresh.lights.map((x) => ({ kind: 'light' as const, id: x.id })), ...fresh.labels.map((x) => ({ kind: 'label' as const, id: x.id })),
-      ...fresh.roofs.map((x) => ({ kind: 'roof' as const, id: x.id })),
+      ...fresh.roofs.map((x) => ({ kind: 'roof' as const, id: x.id })), ...fresh.levels.map((x) => ({ kind: 'level' as const, id: x.id })),
       // проёмы на вставленных комнатах выделяются вместе с ними, отдельные — сами по себе
       ...(fresh.rooms.length || fresh.walls.length ? [] : fresh.portals.map((x) => ({ kind: 'portal' as const, id: x.id }))),
     ];
@@ -253,10 +264,10 @@ const samePts = (p: { a: Pt; b: Pt }, e: { a: Pt; b: Pt }) => {
   return (n(p.a, e.a) && n(p.b, e.b)) || (n(p.a, e.b) && n(p.b, e.a));
 };
 
-type SelType = { object: MapObject; portal: Portal; wall: Wall; room: Room; path: MapPath; light: Light; label: Label; roof: Roof; edge: Edge };
+type SelType = { object: MapObject; portal: Portal; wall: Wall; room: Room; path: MapPath; light: Light; label: Label; roof: Roof; level: Level; edge: Edge };
 export function listOf<K extends SelKind>(f: Floor, kind: K): SelType[K][] {
   const map: { [k in SelKind]: SelType[k][] } = {
-    object: f.objects, portal: f.portals, wall: f.walls, room: f.rooms, path: f.paths, light: f.lights, label: f.labels, roof: f.roofs, edge: [],
+    object: f.objects, portal: f.portals, wall: f.walls, room: f.rooms, path: f.paths, light: f.lights, label: f.labels, roof: f.roofs, level: f.levels, edge: [],
   };
   return map[kind] as SelType[K][];
 }

@@ -31,7 +31,11 @@ export type FaceDir = 'none' | 'down' | 'up' | 'normal';
  * по правилам inner (сторона внутри помещения) и outer (снаружи; у отдельных стен — обе стороны).
  * height 0 или нет — плоская стена прежнего вида (толстая линия с текстурой).
  */
-export type WallStyle = { asset: AssetKey | null; color: string; width: number; height?: number; inner?: FaceDir; outer?: FaceDir };
+export type WallStyle = {
+  asset: AssetKey | null; color: string; width: number; height?: number; inner?: FaceDir; outer?: FaceDir;
+  /** Низкая стена (по пояс: ограждение, перила, парапет): не закрывает обзор и свет, в `.dd2vtt` не попадает. */
+  low?: boolean;
+};
 
 export type Room = {
   id: string;
@@ -92,6 +96,8 @@ export type Layer = {
   aboveWalls: boolean;
   /** Только для мастера: не попадает в версию для игроков. */
   gmOnly: boolean;
+  /** На крыше: рисуется поверх крыш и только когда крыши видны (вентиляция, люк, антенны). */
+  roof?: boolean;
 };
 
 /** Мазок кисти местности: текстура по линии с мягким краем. asset = null — ластик. */
@@ -154,11 +160,40 @@ export type Label = {
   link?: string;
 };
 
+/** Форма крыши: плоская (с парапетом), вальмовая (скаты на все стороны), двускатная, односкатная. */
+export type RoofShape = 'flat' | 'hip' | 'gable' | 'shed';
+export type Side = 'n' | 'e' | 's' | 'w';
+
 export type Roof = {
   id: string;
   poly: Poly;
   asset: AssetKey | null;
   color: string;
+  /** Нет — вальмовая (так открываются старые карты). */
+  shape?: RoofShape;
+  /** Конёк двускатной: вдоль x (h) или вдоль y (v); нет — вдоль длинной стороны. */
+  ridge?: 'h' | 'v';
+  /** Куда стекает односкатная крыша (нижний край); нет — на юг. */
+  fall?: Side;
+  /** Высота крыши над землёй, фт: подпись для мастера (с какой высоты падать, куда допрыгнуть). */
+  height?: number;
+};
+
+/**
+ * Уровень местности: участок выше или ниже земли этажа (помост, насыпь, платформа — яма, канал, котлован).
+ * Высота h — в футах относительно земли. Участки не перекрываются: новый вырезает себе место у старых.
+ */
+export type Level = {
+  id: string;
+  poly: Poly;
+  h: number;
+  /** Покрытие верха; null — видно то, что под ним (пол, земля). */
+  floor: AssetKey | null;
+  /** Текстура обрыва (ассет вида «стена»); null — цвет color. */
+  face: AssetKey | null;
+  color: string;
+  /** Подпись высоты («+10 фт») на карте — видна и игрокам. */
+  label: boolean;
 };
 
 /** Картинка-подложка этажа (готовая карта, скан), подогнанная под сетку. */
@@ -181,7 +216,10 @@ export type Lighting = {
 export type Floor = {
   id: string;
   name: string;
+  /** Видимость: нижний этаж под текущим (полупрозрачно) и надстройка над текущим. */
   visible: boolean;
+  /** Надстройка или чердак: id этажа, над которым стоит; на нём рисуется поверх, на высоте стен (см. geom/storeys.ts). */
+  base?: string;
   rooms: Room[];
   walls: Wall[];
   portals: Portal[];
@@ -193,6 +231,8 @@ export type Floor = {
   lights: Light[];
   labels: Label[];
   roofs: Roof[];
+  /** Уровни местности (возвышения и ямы). Нет в старых картах — считается пустым. */
+  levels: Level[];
   image: FloorImage | null;
 };
 

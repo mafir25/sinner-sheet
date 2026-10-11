@@ -63,7 +63,7 @@ export function CanvasView({ ed, assets, onFitRef, onMenu }: {
     const shown = toolRef.current.preview?.();
     renderMap(ctx, doc, floorId, assets, {
       scale: view.scale * dpr, view: vis, grid: true, ghost: true, floorOverride: shown, gridPx: dpr,
-      roofs: showRoofs, lighting: showLight, gm: true,
+      roofs: showRoofs, lighting: showLight, gm: true, storeys: true,
     });
     ctx.strokeStyle = 'rgba(64,224,208,.35)';
     ctx.lineWidth = 1 / view.scale;

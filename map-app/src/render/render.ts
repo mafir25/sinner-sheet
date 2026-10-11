@@ -1,11 +1,14 @@
 // Отрисовка карты на Canvas 2D. Один и тот же код рисует экран и экспорт.
 // Перед вызовом ctx должен быть переведён в координаты клеток (1 единица = 1 клетка).
 import type { AssetStore } from '../assets/store';
-import type { Floor, MapDoc, MapObject, Portal, Poly, Pt, Roof } from '../model/types';
+import type { Floor, Layer, MapDoc, MapObject, Portal, Poly, Pt, Roof } from '../model/types';
 import { drawGrid } from '../geom/grid';
 import { portalFaces, portalShape, portalThickness, portalWall, wallChains, wallFaces, wallLift, type WallChain, type WallFace } from '../geom/walls';
 import { type BBox, pointInPoly, ptsBBox } from '../geom/poly';
-import { auxRes, drawLabel, drawLighting, drawPath, drawRoof, terrainCanvas } from './extras';
+import { auxRes, drawLabel, drawLighting, drawPath, drawRoof, drawRoofHeight, drawTag, terrainCanvas } from './extras';
+import { fmtHeight, labelSpot, levelFaces } from '../geom/levels';
+import { baseOf, storeyLift, storeyParts, storeysAbove } from '../geom/storeys';
+import { tr } from '../i18n';
 
 export type RenderOpts = {
   /** Пикселей на клетку — для выбора разрешения SVG и толщины линий сетки. */
@@ -27,6 +30,10 @@ export type RenderOpts = {
   gm: boolean;
   /** Экспорт: служебные холсты в полном разрешении и без кэша. */
   exporting?: boolean;
+  /** Только крыши и слои «на крыше» на прозрачном фоне — «верхний» тайл для VTT. */
+  onlyRoofs?: boolean;
+  /** Рисовать поверх видимые надстройки и чердаки над этажом (geom/storeys.ts). */
+  storeys?: boolean;
 };
 
 const NO_FLOOR_FILL = '#2f2f33';
@@ -40,17 +47,29 @@ export function polyPath(ctx: CanvasRenderingContext2D, poly: Poly) {
 }
 
 export function renderMap(ctx: CanvasRenderingContext2D, doc: MapDoc, floorId: string, assets: AssetStore, o: RenderOpts) {
+  const idx = Math.max(0, doc.floors.findIndex((f) => f.id === floorId));
+  if (o.onlyRoofs) {
+    const f = o.floorOverride ?? doc.floors[idx];
+    if (f) {
+      drawRoofs(ctx, f, assets, { ...o, roofs: 'show' });
+      if (o.storeys) drawStoreys(ctx, doc, f, assets, { ...o, roofs: 'show' });
+    }
+    return;
+  }
   ctx.fillStyle = doc.background;
   ctx.fillRect(0, 0, doc.width, doc.height);
-  const idx = Math.max(0, doc.floors.findIndex((f) => f.id === floorId));
-  if (o.ghost && idx > 0 && doc.floors[idx - 1].visible) {
+  // под надстройкой полупрозрачно — этаж, над которым она стоит; под обычным этажом — предыдущий в списке
+  const cur = doc.floors[idx];
+  const under = cur && (baseOf(doc, cur) ?? (idx > 0 ? doc.floors[idx - 1] : null));
+  if (o.ghost && under?.visible) {
     ctx.save();
     ctx.globalAlpha = 0.28;
-    drawFloor(ctx, doc, doc.floors[idx - 1], assets, { ...o, roofs: 'hide', lighting: false, floorOverride: undefined });
+    drawFloor(ctx, doc, under, assets, { ...o, roofs: 'hide', lighting: false, floorOverride: undefined });
     ctx.restore();
   }
-  const floor = o.floorOverride ?? doc.floors[idx];
+  const floor = o.floorOverride ?? cur;
   if (floor) drawFloor(ctx, doc, floor, assets, o);
+  if (floor && o.storeys) drawStoreys(ctx, doc, floor, assets, o);
   if (o.grid && doc.grid.show && doc.grid.type !== 'none') {
     ctx.save();
     ctx.globalAlpha = doc.grid.opacity;
@@ -58,7 +77,10 @@ export function renderMap(ctx: CanvasRenderingContext2D, doc: MapDoc, floorId: s
     drawGrid(ctx, doc.grid.type, doc.width, doc.height, o.view, (o.gridPx ?? 1) / o.scale);
     ctx.restore();
   }
-  if (floor) for (const l of floor.labels) if (o.gm || !l.gmOnly) drawLabel(ctx, l);
+  if (floor) {
+    for (const lv of floor.levels) if (lv.label && lv.h) drawTag(ctx, labelSpot(lv.poly), fmtHeight(lv.h, tr('фт')), lv.h > 0 ? '#9fe8c8' : '#9cc4ff');
+    for (const l of floor.labels) if (o.gm || !l.gmOnly) drawLabel(ctx, l);
+  }
 }
 
 export function drawFloor(ctx: CanvasRenderingContext2D, doc: MapDoc, f: Floor, assets: AssetStore, o: RenderOpts) {
@@ -89,7 +111,8 @@ export function drawFloor(ctx: CanvasRenderingContext2D, doc: MapDoc, f: Floor, 
   const res = auxRes(o.scale, W, H, !!o.exporting);
   const terrain = terrainCanvas(f, assets, res, W, H, !o.exporting);
   if (terrain) ctx.drawImage(terrain, 0, 0, W, H);
-  const visible = f.layers.filter((l) => l.visible && (o.gm || !l.gmOnly));
+  drawLevels(ctx, f, assets, o);
+  const visible = f.layers.filter((l) => l.visible && (o.gm || !l.gmOnly) && !l.roof);
   const below = visible.filter((l) => !l.aboveWalls).map((l) => l.id);
   const above = visible.filter((l) => l.aboveWalls).map((l) => l.id);
   // грани объёмных стен — под объектами: шкаф у стены стоит «перед» её гранью
@@ -99,24 +122,58 @@ export function drawFloor(ctx: CanvasRenderingContext2D, doc: MapDoc, f: Floor, 
   drawWalls(ctx, wallChains(f, new Set(), false), assets, o, doc.lighting.wallShadows);
   for (const p of f.portals) drawPortal(ctx, f, p, assets, o);
   drawLayers(ctx, f, above, assets, o);
-  if (o.roofs !== 'hide' && f.roofs.length) {
-    ctx.save();
-    if (o.roofs === 'ghost') ctx.globalAlpha *= 0.55;
-    for (const r of f.roofs) {
-      const l = roofLift(f, r);
-      ctx.save();
-      ctx.translate(l.x, l.y);
-      drawRoof(ctx, r, assets, o.scale);
-      ctx.restore();
-    }
-    ctx.restore();
-  }
+  drawRoofs(ctx, f, assets, o);
   if (o.lighting && doc.lighting.enabled) drawLighting(ctx, f, doc.lighting, res, W, H, !o.exporting);
 }
 
+/** Видимые надстройки и чердаки над этажом: каждое здание поднято на высоту стен под ним, туда, где была крыша. */
+function drawStoreys(ctx: CanvasRenderingContext2D, doc: MapDoc, from: Floor, assets: AssetStore, o: RenderOpts) {
+  for (const up of storeysAbove(doc, from.id)) {
+    for (const part of storeyParts(up)) {
+      const l = part.at ? storeyLift(doc, from, up, part.at) : { x: 0, y: 0 };
+      ctx.save();
+      ctx.translate(l.x, l.y);
+      drawFloor(ctx, doc, part.floor, assets, { ...o, lighting: false, floorOverride: undefined });
+      ctx.restore();
+    }
+  }
+}
+
+/** Слои «на крыше» видны вместе с крышами. */
+export const roofLayers = (f: Floor, o: { gm: boolean }): Layer[] => f.layers.filter((l) => l.roof && l.visible && (o.gm || !l.gmOnly));
+
+/** Крыши (подняты на верх стен), высоты крыш для мастера и слои «на крыше». */
+function drawRoofs(ctx: CanvasRenderingContext2D, f: Floor, assets: AssetStore, o: RenderOpts) {
+  const layers = roofLayers(f, o).map((l) => l.id);
+  if (o.roofs === 'hide' || (!f.roofs.length && !layers.length)) return;
+  ctx.save();
+  if (o.roofs === 'ghost') ctx.globalAlpha *= 0.55;
+  for (const r of f.roofs) {
+    const l = roofLift(f, r);
+    ctx.save();
+    ctx.translate(l.x, l.y);
+    drawRoof(ctx, r, assets, o.scale);
+    ctx.restore();
+  }
+  drawLayers(ctx, f, layers, assets, o);
+  if (o.gm) {
+    for (const r of f.roofs) {
+      if (!r.height) continue;
+      const l = roofLift(f, r);
+      ctx.save();
+      ctx.translate(l.x, l.y);
+      drawRoofHeight(ctx, r, `⌂ ${Math.round(r.height * 10) / 10} ${tr('фт')}`);
+      ctx.restore();
+    }
+  }
+  ctx.restore();
+}
+
 /** Крыша лежит на верху стен: поднята так же, как стены комнаты под ней. */
-function roofLift(f: Floor, r: Roof): Pt {
-  const b = ptsBBox(r.poly[0]), c = { x: (b.x0 + b.x1) / 2, y: (b.y0 + b.y1) / 2 };
+export function roofLift(f: Floor, r: Pick<Roof, 'poly'>): Pt {
+  const b = ptsBBox(r.poly[0]);
+  let c = { x: (b.x0 + b.x1) / 2, y: (b.y0 + b.y1) / 2 };
+  if (!pointInPoly(c, r.poly)) c = { x: (r.poly[0][0].x + r.poly[0][1].x) / 2 + 0.01, y: (r.poly[0][0].y + r.poly[0][1].y) / 2 + 0.01 };
   const room = f.rooms.find((rm) => pointInPoly(c, rm.poly));
   return room ? wallLift(room.wall) : { x: 0, y: 0 };
 }
@@ -355,4 +412,63 @@ export function drawFaces(ctx: CanvasRenderingContext2D, f: Floor, assets: Asset
     }
     ctx.restore();
   }
+}
+
+/**
+ * Уровни местности: покрытие верха, затемнение ям, грани обрывов (ближние поверх дальних), кромка.
+ * Рисуются поверх пола и местности, под гранями стен и объектами.
+ */
+export function drawLevels(ctx: CanvasRenderingContext2D, f: Floor, assets: AssetStore, o: RenderOpts) {
+  if (!f.levels.length) return;
+  const sorted = [...f.levels].sort((a, b) => a.h - b.h);
+  for (const lv of sorted) {
+    ctx.beginPath();
+    polyPath(ctx, lv.poly);
+    if (lv.floor) {
+      const pat = assets.pattern(ctx, lv.floor, o.scale);
+      if (pat) { ctx.fillStyle = pat; ctx.fill('evenodd'); }
+    }
+    // яма темнее с глубиной, возвышение чуть светлее
+    ctx.fillStyle = lv.h < 0 ? `rgba(0,0,0,${Math.min(0.5, 0.14 - lv.h * 0.012)})` : `rgba(255,255,255,${Math.min(0.1, 0.03 + lv.h * 0.002)})`;
+    if (lv.h) ctx.fill('evenodd');
+  }
+  const faces = levelFaces(f).sort((a, b) => Math.max(...a.pts.map((q) => q.y)) - Math.max(...b.pts.map((q) => q.y)));
+  const cache = new Map<string, FaceTex | null>();
+  const edge = Math.max(0.025, 1.2 / o.scale);
+  const BIG = 1e5;
+  for (const face of faces) {
+    ctx.save();
+    // грань ямы — только внутри неё, обрыв возвышения — только снаружи
+    ctx.beginPath();
+    if (!face.inside) ctx.rect(-BIG, -BIG, BIG * 2, BIG * 2);
+    polyPath(ctx, face.level.poly);
+    ctx.clip('evenodd');
+    const [p0, p1, p2, p3] = face.pts;
+    ctx.beginPath();
+    ctx.moveTo(p0.x, p0.y); ctx.lineTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.lineTo(p3.x, p3.y); ctx.closePath();
+    const t = faceTexture(ctx, assets, face.level.face, o.scale, cache);
+    if (t) fitTexture(t, p0, p1, face.v);
+    if (!face.inside) { ctx.shadowColor = 'rgba(0,0,0,.55)'; ctx.shadowBlur = 0.3 * o.scale; ctx.shadowOffsetY = 0.12 * o.scale; }
+    ctx.fillStyle = t?.pat ?? face.level.color;
+    ctx.fill();
+    ctx.shadowColor = 'transparent';
+    ctx.fillStyle = shadeFace(ctx, p0, face.v);
+    ctx.fill();
+    ctx.beginPath(); ctx.moveTo(p3.x, p3.y); ctx.lineTo(p2.x, p2.y);
+    ctx.lineWidth = edge; ctx.strokeStyle = 'rgba(0,0,0,0.7)'; ctx.stroke();
+    ctx.restore();
+  }
+  // кромка участка
+  ctx.save();
+  ctx.lineJoin = 'round';
+  for (const lv of sorted) {
+    if (!lv.h) continue;
+    ctx.beginPath();
+    polyPath(ctx, lv.poly);
+    ctx.lineWidth = edge * 1.6;
+    ctx.strokeStyle = 'rgba(0,0,0,.65)';
+    ctx.stroke();
+    if (lv.h > 0) { ctx.lineWidth = edge * 0.8; ctx.strokeStyle = 'rgba(255,255,255,.18)'; ctx.stroke(); }
+  }
+  ctx.restore();
 }

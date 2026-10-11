@@ -9,11 +9,12 @@ import { ROTATE_LABEL, WHERE_LABEL, PLACE_LABEL, issueText, roomTypeName, target
 import { type Editor, useEditor } from '../state/editor';
 import { nm, tr } from '../i18n';
 import { edgeStyle, portalFaces, portalShape, resizePortal } from '../geom/walls';
-import { BrushPanel, LabelPanel, LightPanel, PathPanel, RoofPanel, SelectionExtras } from './Props2';
+import { BrushPanel, LabelPanel, LevelPanel, LightPanel, PathPanel, RoofPanel, SelectionExtras } from './Props2';
 import { AssetPicker, ColorInput, Field, NumInput, SetThumb, Slider, Thumb, assetName, toast, useStore } from './common';
 import { type AlignMode, alignObjects, distributeObjects, repeatObjects, sameObjects } from '../geom/ops';
 import { uid } from '../model/doc';
 import { FEET_PER_CELL, fmtLen, fmtNum, polyArea, polySize, segLen } from '../geom/measure';
+import { FACE_PER_FOOT } from '../geom/levels';
 
 const FACE_DIRS: { id: FaceDir; label: string }[] = [
   { id: 'down', label: 'Вниз ↓' },
@@ -38,9 +39,13 @@ function WallStyleEditor({ assets, value, onChange, standalone }: { assets: Asse
         <Field label={h > 0 ? tr('Цвет линии') : tr('Цвет')} row><ColorInput value={value.color} onCommit={(color) => onChange({ ...value, color })} /></Field>
         <Field label={tr('Толщина')} row><NumInput value={value.width} step={0.05} min={0} max={2} onCommit={(width) => onChange({ ...value, width })} /></Field>
       </div>
-      <Field label={tr('Дальность грани (0 — плоская стена)')}>
+      <Field label={h > 0 ? tr('Высота грани: {0} кл ≈ {1} фт (0 — плоская стена)', fmtNum(h), Math.round(h / FACE_PER_FOOT)) : tr('Дальность грани (0 — плоская стена)')}>
         <Slider value={h} min={0} max={3} step={0.05} onCommit={(height) => onChange({ ...value, height, inner: value.inner ?? 'down', outer: value.outer ?? 'down' })} />
       </Field>
+      <label className="check" title={tr('Ограждение, перила, парапет, баррикада: свет и взгляд проходят, в .dd2vtt стены нет (укрытие — на усмотрение мастера)')}>
+        <input type="checkbox" checked={!!value.low} onChange={(e) => { const { low: _l, ...rest } = value; onChange(e.target.checked ? { ...rest, low: true } : rest); }} />
+        {' '}{tr('Низкая стена (по пояс): не закрывает обзор и свет')}
+      </label>
       {h > 0 && (
         <p className="hint">{tr('Вниз — как в Enter the Gungeon: грань видна у стен, обращённых к зрителю. По периметру — у всех стен этой стороны.')}</p>
       )}
@@ -154,6 +159,7 @@ export function Props({ ed, assets }: { ed: Editor; assets: AssetStore }) {
   if (tool === 'light') return <LightPanel ed={ed} />;
   if (tool === 'label') return <LabelPanel ed={ed} />;
   if (tool === 'roof') return <RoofPanel ed={ed} assets={assets} />;
+  if (tool === 'level') return <LevelPanel ed={ed} assets={assets} />;
   if (tool !== 'select') return null;
 
   // ---------- свойства выделенного

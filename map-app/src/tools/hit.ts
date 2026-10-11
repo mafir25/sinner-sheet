@@ -4,6 +4,7 @@ import type { SelItem } from '../state/editor';
 import { type BBox, pointInPoly, ptsBBox, segDist } from '../geom/poly';
 import { curvePoints, polylineDist } from '../geom/curve';
 import { labelBox } from '../render/extras';
+import { roofLift } from '../render/render';
 import { edgeStyle, portalWall, wallLift } from '../geom/walls';
 
 let measureCtx: CanvasRenderingContext2D | null = null;
@@ -60,10 +61,10 @@ export function hitTest(f: Floor, p: Pt, scale: number, roofs = false, decorBand
     const l = f.lights[i];
     if (Math.hypot(p.x - l.x, p.y - l.y) <= Math.max(LIGHT_HIT, tol * 1.5)) return { kind: 'light', id: l.id };
   }
-  if (roofs) for (let i = f.roofs.length - 1; i >= 0; i--) if (pointInPoly(p, f.roofs[i].poly)) return { kind: 'roof', id: f.roofs[i].id };
-  const layers = f.layers.filter((l) => l.visible && !l.locked);
-  const above = layers.filter((l) => l.aboveWalls).map((l) => l.id).reverse();
-  const below = layers.filter((l) => !l.aboveWalls).map((l) => l.id).reverse();
+  const layers = f.layers.filter((l) => l.visible && !l.locked && (roofs || !l.roof));
+  const onRoof = layers.filter((l) => l.roof).map((l) => l.id).reverse();
+  const above = layers.filter((l) => l.aboveWalls && !l.roof).map((l) => l.id).reverse();
+  const below = layers.filter((l) => !l.aboveWalls && !l.roof).map((l) => l.id).reverse();
   const objIn = (ids: string[]): SelItem | null => {
     for (const lid of ids) {
       for (let i = f.objects.length - 1; i >= 0; i--) {
@@ -77,6 +78,15 @@ export function hitTest(f: Floor, p: Pt, scale: number, roofs = false, decorBand
     }
     return null;
   };
+  // крыши и то, что на них, — поверх всего (когда крыши видны)
+  const r = objIn(onRoof);
+  if (r) return r;
+  if (roofs) {
+    for (let i = f.roofs.length - 1; i >= 0; i--) {
+      const l = roofLift(f, f.roofs[i]); // крыша лежит на поднятом верху стен
+      if (pointInPoly({ x: p.x - l.x, y: p.y - l.y }, f.roofs[i].poly)) return { kind: 'roof', id: f.roofs[i].id };
+    }
+  }
   const a = objIn(above);
   if (a) return a;
   for (let i = f.portals.length - 1; i >= 0; i--) {
@@ -109,14 +119,15 @@ export function hitTest(f: Floor, p: Pt, scale: number, roofs = false, decorBand
       }
     }
   }
+  for (let i = f.levels.length - 1; i >= 0; i--) if (pointInPoly(p, f.levels[i].poly)) return { kind: 'level', id: f.levels[i].id };
   for (let i = f.rooms.length - 1; i >= 0; i--) if (pointInPoly(p, f.rooms[i].poly)) return { kind: 'room', id: f.rooms[i].id };
   return null;
 }
 
-/** Всё, что целиком внутри рамки. */
-export function boxSelect(f: Floor, box: BBox): SelItem[] {
+/** Всё, что целиком внутри рамки; крыши и слои «на крыше» — только если крыши видны. */
+export function boxSelect(f: Floor, box: BBox, roofs = true): SelItem[] {
   const inside = (q: Pt) => q.x >= box.x0 && q.x <= box.x1 && q.y >= box.y0 && q.y <= box.y1;
-  const locked = new Set(f.layers.filter((l) => l.locked || !l.visible).map((l) => l.id));
+  const locked = new Set(f.layers.filter((l) => l.locked || !l.visible || (l.roof && !roofs)).map((l) => l.id));
   const out: SelItem[] = [];
   for (const o of f.objects) if (!locked.has(o.layer) && objectCorners(o).every(inside)) out.push({ kind: 'object', id: o.id });
   for (const p of f.portals) if (inside(p.a) && inside(p.b)) out.push({ kind: 'portal', id: p.id });
@@ -125,6 +136,8 @@ export function boxSelect(f: Floor, box: BBox): SelItem[] {
   for (const pa of f.paths) if (!locked.has(pa.layer) && pa.points.every(inside)) out.push({ kind: 'path', id: pa.id });
   for (const l of f.lights) if (inside(l)) out.push({ kind: 'light', id: l.id });
   for (const l of f.labels) if (inside(l)) out.push({ kind: 'label', id: l.id });
+  for (const l of f.levels) if (l.poly[0].every(inside)) out.push({ kind: 'level', id: l.id });
+  if (roofs) for (const r of f.roofs) if (r.poly[0].every(inside)) out.push({ kind: 'roof', id: r.id });
   return out;
 }
 
@@ -136,6 +149,7 @@ export function selectionBBox(f: Floor, sel: SelItem[]): BBox | null {
   for (const w of f.walls) if (ids.has(w.id)) pts.push(...w.points);
   for (const r of f.rooms) if (ids.has(r.id)) pts.push(...r.poly[0]);
   for (const r of f.roofs) if (ids.has(r.id)) pts.push(...r.poly[0]);
+  for (const l of f.levels) if (ids.has(l.id)) pts.push(...l.poly[0]);
   for (const pa of f.paths) if (ids.has(pa.id)) pts.push(...pa.points);
   for (const l of f.lights) if (ids.has(l.id)) pts.push(l);
   for (const l of f.labels) if (ids.has(l.id)) pts.push(...labelCorners(l));

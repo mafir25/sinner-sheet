@@ -2,6 +2,8 @@
 // Местность и карта освещения рисуются в отдельный холст размером с карту и кэшируются.
 import type { AssetStore } from '../assets/store';
 import type { Floor, Label, Lighting, MapPath, Pt, Roof, TerrainStroke } from '../model/types';
+import { type RoofRaster, roofRaster, roofShape } from '../geom/roof';
+import { pointInPoly, ptsBBox } from '../geom/poly';
 import { curvePoints, offsetPolyline, roundCorners, walkAlong } from '../geom/curve';
 import { blockingSegments, visibility } from '../geom/light';
 import { polyPath } from './render';
@@ -293,6 +295,42 @@ export function drawLighting(ctx: CanvasRenderingContext2D, f: Floor, lighting: 
 }
 
 // ---------- крыши
+/** Свет на крыше — с северо-запада (сверху слева): скаты к нему светлее, от него темнее. */
+const SUN = { x: -0.55, y: -0.83 };
+
+/**
+ * Тени скатов и линии коньков/ендов крыши — картинка поверх кровли (кэш по крыше и разрешению).
+ * Скат, обращённый к свету, светлее; граница скатов — тёмная линия.
+ */
+type Shade = { c: HTMLCanvasElement; r: RoofRaster } | null;
+const roofShades = new WeakMap<Roof, Map<number, Shade>>();
+function roofShade(roof: Roof, res: number): Shade {
+  let byRes = roofShades.get(roof);
+  if (!byRes) { byRes = new Map(); roofShades.set(roof, byRes); }
+  if (byRes.has(res)) return byRes.get(res)!;
+  const raster = roofRaster(roof, res);
+  let out: Shade = null;
+  if (raster) {
+    const { w, h, face, dx, dy } = raster;
+    const c = canvas(w, h);
+    const ctx = c.getContext('2d')!;
+    const img = ctx.createImageData(w, h), d = img.data;
+    for (let k = 0; k < w * h; k++) {
+      if (face[k] < 0) continue;
+      const i = k % w, j = (k - i) / w;
+      const edge = (i + 1 < w && face[k + 1] >= 0 && face[k + 1] !== face[k]) || (j + 1 < h && face[k + w] >= 0 && face[k + w] !== face[k]);
+      const lit = dx[k] * SUN.x + dy[k] * SUN.y;
+      if (edge) { d[k * 4 + 3] = 150; continue; }
+      if (lit > 0) { d[k * 4] = d[k * 4 + 1] = d[k * 4 + 2] = 255; d[k * 4 + 3] = Math.round(26 * lit); }
+      else d[k * 4 + 3] = Math.round(-90 * lit);
+    }
+    ctx.putImageData(img, 0, 0);
+    out = { c, r: raster };
+  }
+  byRes.set(res, out);
+  return out;
+}
+
 export function drawRoof(ctx: CanvasRenderingContext2D, roof: Roof, assets: AssetStore, scale: number) {
   // карниз: тёмная кромка наружу накрывает стены по контуру
   ctx.save();
@@ -309,32 +347,59 @@ export function drawRoof(ctx: CanvasRenderingContext2D, roof: Roof, assets: Asse
   ctx.fillStyle = (roof.asset && assets.pattern(ctx, roof.asset, scale)) || roof.color;
   ctx.fill('evenodd');
   ctx.clip('evenodd');
-  // скаты прямоугольной крыши: конёк по длинной стороне и рёбра к углам
-  const ring = roof.poly[0];
-  if (roof.poly.length === 1 && ring.length === 4) {
-    const xs = ring.map((p) => p.x), ys = ring.map((p) => p.y);
-    const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
-    const axis = ring.every((p) => (p.x === x0 || p.x === x1) && (p.y === y0 || p.y === y1));
-    if (axis) {
-      const wide = x1 - x0 >= y1 - y0, half = Math.min(x1 - x0, y1 - y0) / 2;
-      const a = wide ? { x: x0 + half, y: (y0 + y1) / 2 } : { x: (x0 + x1) / 2, y: y0 + half };
-      const b = wide ? { x: x1 - half, y: (y0 + y1) / 2 } : { x: (x0 + x1) / 2, y: y1 - half };
-      // затенённые скаты
-      ctx.fillStyle = 'rgba(0,0,0,.22)';
-      ctx.beginPath();
-      if (wide) { ctx.moveTo(x0, y1); ctx.lineTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.lineTo(x1, y1); }
-      else { ctx.moveTo(x1, y0); ctx.lineTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.lineTo(x1, y1); }
-      ctx.closePath();
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(0,0,0,.55)';
-      ctx.lineWidth = 0.06;
-      ctx.beginPath();
-      ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y);
-      ctx.moveTo(x0, y0); ctx.lineTo(a.x, a.y); ctx.lineTo(x0, y1);
-      ctx.moveTo(x1, y0); ctx.lineTo(b.x, b.y); ctx.lineTo(x1, y1);
-      ctx.stroke();
+  if (roofShape(roof) === 'flat') {
+    // плоская крыша: парапет по краю
+    ctx.beginPath();
+    polyPath(ctx, roof.poly);
+    ctx.lineJoin = 'miter';
+    ctx.lineWidth = 0.42; ctx.strokeStyle = 'rgba(0,0,0,.45)'; ctx.stroke();
+    ctx.lineWidth = 0.3; ctx.strokeStyle = 'rgba(255,255,255,.12)'; ctx.stroke();
+  } else if (roofShape(roof) === 'shed') {
+    // односкатная: светлее у высокого края, темнее у низкого, по низкому краю — водосток
+    const b = ptsBBox(roof.poly[0]), f = roof.fall ?? 's';
+    const [x0, y0, x1, y1] = f === 's' ? [b.x0, b.y0, b.x0, b.y1] : f === 'n' ? [b.x0, b.y1, b.x0, b.y0] : f === 'e' ? [b.x0, b.y0, b.x1, b.y0] : [b.x1, b.y0, b.x0, b.y0];
+    const g = ctx.createLinearGradient(x0, y0, x1, y1);
+    const gut = Math.max(0.5, 1 - 0.15 / Math.max(0.3, Math.hypot(x1 - x0, y1 - y0)));
+    g.addColorStop(0, 'rgba(255,255,255,.1)');
+    g.addColorStop(gut, 'rgba(0,0,0,.28)');
+    g.addColorStop(gut, 'rgba(0,0,0,.5)');
+    g.addColorStop(1, 'rgba(0,0,0,.5)');
+    ctx.fillStyle = g;
+    ctx.fillRect(b.x0, b.y0, b.x1 - b.x0, b.y1 - b.y0);
+  } else {
+    // скаты: растр не мельче 8 и не крупнее 48 пикселей на клетку
+    const res = Math.max(8, Math.min(48, 2 ** Math.round(Math.log2(Math.max(1, scale)))));
+    const sh = roofShade(roof, res);
+    if (sh) {
+      ctx.imageSmoothingEnabled = true;
+      ctx.drawImage(sh.c, sh.r.x0, sh.r.y0, sh.r.w / sh.r.res, sh.r.h / sh.r.res);
     }
   }
+  ctx.restore();
+}
+
+/** Подпись высоты крыши для мастера: «⌂ 20 фт». */
+export function drawRoofHeight(ctx: CanvasRenderingContext2D, roof: Roof, text: string) {
+  const b = ptsBBox(roof.poly[0]);
+  let p = { x: (b.x0 + b.x1) / 2, y: (b.y0 + b.y1) / 2 };
+  if (!pointInPoly(p, roof.poly)) p = roof.poly[0][0];
+  drawTag(ctx, p, text, '#ffe08a');
+}
+
+/** Небольшая надпись на тёмной подложке (высоты уровней и крыш). */
+export function drawTag(ctx: CanvasRenderingContext2D, p: Pt, text: string, color: string) {
+  const size = 0.42;
+  ctx.save();
+  ctx.font = `600 ${size}px Inter, system-ui, sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  const w = ctx.measureText(text).width + size * 0.7, h = size * 1.35;
+  ctx.fillStyle = 'rgba(0,0,0,.7)';
+  ctx.beginPath();
+  ctx.roundRect(p.x - w / 2, p.y - h / 2, w, h, h / 2);
+  ctx.fill();
+  ctx.fillStyle = color;
+  ctx.fillText(text, p.x, p.y + size * 0.04);
   ctx.restore();
 }
 

@@ -8,7 +8,7 @@ import { buildDd2vtt } from '../../map-app/src/export/export.ts';
 
 const WALL = { asset: null, color: '#000', width: 0.25 };
 const floorWith = (rooms, portals = [], walls = []) => ({
-  id: 'f', name: '', visible: true, layers: [], objects: [], ground: null, terrain: [], paths: [], lights: [], labels: [], roofs: [], image: null,
+  id: 'f', name: '', visible: true, layers: [], objects: [], ground: null, terrain: [], paths: [], lights: [], labels: [], roofs: [], levels: [], image: null,
   rooms: rooms.map((poly, i) => ({ id: `r${i}`, poly, floor: null, wall: WALL })), portals, walls,
 });
 
@@ -173,7 +173,7 @@ describe('этап 2: пути, свет, совместимость', async () 
     for (const f of old.floors) { for (const k of ['ground', 'terrain', 'paths', 'lights', 'labels', 'roofs', 'image']) delete f[k]; for (const l of f.layers) delete l.gmOnly; }
     const p = parseDoc(old);
     expect(p.lighting).toMatchObject({ enabled: false, wallShadows: true });
-    expect(p.floors[0]).toMatchObject({ terrain: [], paths: [], lights: [], labels: [], roofs: [], image: null, ground: null });
+    expect(p.floors[0]).toMatchObject({ terrain: [], paths: [], lights: [], labels: [], roofs: [], levels: [], image: null, ground: null });
     expect(p.floors[0].layers[0].gmOnly).toBe(false);
   });
   it('.dd2vtt: источники света и общий свет', () => {

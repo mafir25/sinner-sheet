@@ -40,8 +40,14 @@ export function FloorsLayers({ ed }: { ed: Editor }) {
   const delFloor = (id: string, name: string) => {
     if (doc.floors.length < 2) { toast(tr('Нельзя удалить единственный этаж'), 'error'); return; }
     if (!window.confirm(tr('Удалить этаж «{0}» со всем содержимым?', name))) return;
-    ed.commit((d) => { d.floors = d.floors.filter((f) => f.id !== id); });
+    // надстройки над удалённым этажом встают на его основание (или становятся обычными этажами)
+    ed.commit((d) => {
+      const gone = d.floors.find((f) => f.id === id);
+      d.floors = d.floors.filter((f) => f.id !== id);
+      for (const f of d.floors) if (f.base === id) { if (gone?.base) f.base = gone.base; else delete f.base; }
+    });
   };
+  const nameOf = (id: string) => doc.floors.find((f) => f.id === id)?.name ?? '';
 
   const addLayer = () => {
     const l = { ...defaultLayers()[1], id: uid('l'), name: tr('Слой {0}', floor.layers.length + 1) };
@@ -68,7 +74,11 @@ export function FloorsLayers({ ed }: { ed: Editor }) {
         <ul className="list">
           {floorsTop.map(({ f, i }) => (
             <li key={f.id} className={f.id === floorId ? 'on' : ''}>
-              <button className="list-main" onClick={() => ed.setFloor(f.id)} onDoubleClick={() => renameFloor(f.id, f.name)}>{f.name}</button>
+              {f.base && <button className="mini" title={tr('Показать/скрыть надстройку на этажах ниже — скрыть, чтобы заглянуть внутрь здания')}
+                onClick={() => ed.commit((d) => { const x = d.floors.find((y) => y.id === f.id); if (x) x.visible = !x.visible; })}>{f.visible ? '👁' : '◌'}</button>}
+              <button className="list-main" onClick={() => ed.setFloor(f.id)} onDoubleClick={() => renameFloor(f.id, f.name)}>
+                {f.name}{f.base && <span className="tag" title={tr('Надстройка над «{0}»: видна на нём поверх крыш', nameOf(f.base))}>⇧</span>}
+              </button>
               <span className="list-btns"><button className="mini" title={tr('Выше')} disabled={i === doc.floors.length - 1} onClick={() => ed.commit((d) => { d.floors = move(d.floors, i, 1); })}>▲</button>
               <button className="mini" title={tr('Ниже')} disabled={i === 0} onClick={() => ed.commit((d) => { d.floors = move(d.floors, i, -1); })}>▼</button>
               <button className="mini" title={tr('Дублировать этаж — копия встанет выше')} onClick={() => dupFloor(f.id)}>⧉</button>
@@ -85,10 +95,11 @@ export function FloorsLayers({ ed }: { ed: Editor }) {
             <li key={l.id} className={l.id === layerId ? 'on' : ''}>
               <button className="mini" title={tr('Показать/скрыть')} onClick={() => updLayer(l.id, { visible: !l.visible })}>{l.visible ? '👁' : '◌'}</button>
               <button className="list-main" title={tr('Двойной щелчок — переименовать')} onClick={() => ed.setLayer(l.id)} onDoubleClick={() => renameLayer(l.id, l.name)}>
-                {l.name}{l.aboveWalls && <span className="tag" title={tr('Над стенами — слой рисуется поверх стен')}>▲▦</span>}
+                {l.name}{l.aboveWalls && !l.roof && <span className="tag" title={tr('Над стенами — слой рисуется поверх стен')}>▲▦</span>}{l.roof && <span className="tag" title={tr('На крыше — слой рисуется поверх крыш и виден только вместе с ними')}>⌂</span>}
               </button>
               <span className="list-btns"><button className={`mini${l.aboveWalls ? ' on' : ''}`} title={tr('Над стенами — слой рисуется поверх стен')} onClick={() => updLayer(l.id, { aboveWalls: !l.aboveWalls })}>▦</button>
               <button className={`mini${l.gmOnly ? ' on' : ''}`} title={tr('Только для мастера — слоя нет в версии для игроков')} onClick={() => updLayer(l.id, { gmOnly: !l.gmOnly })}>Ⓜ</button>
+              <button className={`mini${l.roof ? ' on' : ''}`} title={tr('На крыше — слой рисуется поверх крыш и виден только вместе с ними')} onClick={() => updLayer(l.id, l.roof ? { roof: undefined } : { roof: true })}>⌂</button>
               <button className={`mini${l.locked ? ' on' : ''}`} title={tr('Заблокировать')} onClick={() => updLayer(l.id, { locked: !l.locked })}>{l.locked ? '🔒' : '🔓'}</button>
               <button className="mini" title={tr('Выше')} disabled={i === floor.layers.length - 1} onClick={() => ed.commitFloor((f) => { f.layers = move(f.layers, i, 1); })}>▲</button>
               <button className="mini" title={tr('Ниже')} disabled={i === 0} onClick={() => ed.commitFloor((f) => { f.layers = move(f.layers, i, -1); })}>▼</button>

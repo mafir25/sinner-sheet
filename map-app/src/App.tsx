@@ -218,6 +218,7 @@ const TOOLS: { id: ToolId; icon: string; title: string; key?: string }[] = [
   { id: 'light', icon: '💡', title: 'Свет (L)', key: 'l' },
   { id: 'label', icon: 'T', title: 'Подпись (T)', key: 't' },
   { id: 'roof', icon: '⌂', title: 'Крыша (R)', key: 'r' },
+  { id: 'level', icon: '⛰', title: 'Высота местности (U)', key: 'u' },
   { id: 'ruler', icon: '📏', title: 'Линейка (M)', key: 'm' },
   { id: 'pan', icon: '✋', title: 'Панорама (H)', key: 'h' },
 ];
@@ -235,7 +236,8 @@ const HINTS: Record<ToolId, string> = {
   path: 'Щелчками ставь точки пути, двойной щелчок или Enter — закончить, Esc — отмена.',
   light: 'Щелчок — поставить источник света. Тени от стен считаются сами.',
   label: 'Щелчок — подпись. Включи нумерацию, чтобы ставить номера комнат подряд.',
-  roof: 'Щелчок по комнате — крыша по её форме. Протянуть — прямоугольная крыша.',
+  roof: 'Щелчок по комнате — крыша на всё здание (все касающиеся комнаты), Shift — только на эту комнату. Протянуть — прямоугольная крыша.',
+  level: 'Возвышения и ямы: протяни прямоугольник или щёлкай вершины многоугольника (двойной щелчок или Enter — замкнуть). Участки одной высоты сливаются, Alt — вырезать (вернуть землю).',
   ruler: 'Протяни — расстояние между двумя точками. Щелчками — путь из нескольких отрезков, двойной щелчок или Enter — закончить. По сетке диагональ считается за одну клетку.',
 };
 const ROOF_NEXT = { hide: 'ghost', ghost: 'show', show: 'hide' } as const;
@@ -336,7 +338,7 @@ function Workspace({ ed, assets, user, onExit, onOpen }: { ed: Editor; assets: A
         else if (k === 'c') ed.copy();
         else if (k === 'v') { ed.setTool('select'); ed.paste(); }
         else if (k === 'd') { e.preventDefault(); ed.duplicate(); }
-        else if (k === 'a') { e.preventDefault(); ed.setTool('select'); ed.setSel(boxSelect(ed.floor, ALL)); }
+        else if (k === 'a') { e.preventDefault(); ed.setTool('select'); ed.setSel(boxSelect(ed.floor, ALL, ed.state.settings.showRoofs !== 'hide')); }
         return;
       }
       if (e.altKey) return;

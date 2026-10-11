@@ -42,7 +42,7 @@ const rectToPoly = (r: Rect) => rectPoly({ x: r.x0, y: r.y0 }, { x: r.x1, y: r.y
 
 // ---------- общее
 function clearFloor(f: Floor) {
-  Object.assign(f, { rooms: [], walls: [], portals: [], objects: [], terrain: [], paths: [], lights: [], labels: [], roofs: [] });
+  Object.assign(f, { rooms: [], walls: [], portals: [], objects: [], terrain: [], paths: [], lights: [], labels: [], roofs: [], levels: [] });
 }
 
 /** Слои для генератора: декор пола, объекты, над стенами и «Ловушки» (только для мастера). */
@@ -280,7 +280,7 @@ export function building(doc: MapDoc, floorId: string, kit: GenKit, o: BuildingO
   const rooms = buildRooms(ctx, r, o.type, Math.max(1, o.rooms), style);
   if (style.ground && !f.ground) f.ground = kit.pick('floor', [style.ground]);
   finish(ctx, rooms, style, o.fill, { doors: true, windows: true, entrances: rooms.length >= 6 ? 2 : 1 });
-  if (o.roof) f.roofs.push({ id: uid('rf'), poly: rectToPoly(r), asset: kit.pick('roof', [pick(rnd, style.roofs)]), color: '#3a3a40' });
+  if (o.roof) f.roofs.push({ id: uid('rf'), poly: rectToPoly(r), asset: kit.pick('roof', [pick(rnd, style.roofs)]), color: '#3a3a40', shape: pick(rnd, style.roofShapes) });
   if (o.fill.lights) doc.lighting.enabled = true;
 }
 
@@ -417,7 +417,7 @@ export function streets(doc: MapDoc, floorId: string, kit: GenKit, o: StreetsOpt
       allRooms.push(...rooms);
       const c = { x: (lot.x0 + lot.x1) / 2, y: (lot.y0 + lot.y1) / 2 };
       finish(ctx, rooms, bStyle, { ...o.fill, condition: o.fill.condition === 'style' ? condition : o.fill.condition }, { doors: true, windows: true, entrances: 1, toward: towardStreet(b, c, W, H), signChance: 0.4 });
-      if (o.roofs) f.roofs.push({ id: uid('rf'), poly: rectToPoly(lot), asset: kit.pick('roof', [pick(rnd, bStyle.roofs)]), color: '#3a3a40' });
+      if (o.roofs) f.roofs.push({ id: uid('rf'), poly: rectToPoly(lot), asset: kit.pick('roof', [pick(rnd, bStyle.roofs)]), color: '#3a3a40', shape: pick(rnd, bStyle.roofShapes) });
     });
   }
   streetProps(ctx, roads, o.fill);

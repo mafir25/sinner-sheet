@@ -9,7 +9,7 @@ import { createDoc, parseDoc } from '../../map-app/src/model/doc.ts';
 
 const wall3d = (inner, outer, height = 1) => ({ asset: null, color: '#000', width: 0.1, height, inner, outer });
 const floor = (rooms, portals = [], walls = []) => ({
-  id: 'f', name: '', visible: true, layers: [], objects: [], ground: null, terrain: [], paths: [], lights: [], labels: [], roofs: [], image: null,
+  id: 'f', name: '', visible: true, layers: [], objects: [], ground: null, terrain: [], paths: [], lights: [], labels: [], roofs: [], levels: [], image: null,
   rooms, portals, walls,
 });
 const room = (id, a, b, wall) => ({ id, poly: rectPoly(a, b), floor: null, wall });

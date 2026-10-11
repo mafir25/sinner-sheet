@@ -8,7 +8,7 @@ import {
 
 const WALL = { asset: null, color: '#000', width: 0.25 };
 const floor = (extra = {}) => ({
-  id: 'f', name: '', visible: true, layers: [], objects: [], ground: null, terrain: [], paths: [], lights: [], labels: [], roofs: [], image: null,
+  id: 'f', name: '', visible: true, layers: [], objects: [], ground: null, terrain: [], paths: [], lights: [], labels: [], roofs: [], levels: [], image: null,
   rooms: [{ id: 'r', poly: rectPoly({ x: 0, y: 0 }, { x: 6, y: 4 }), floor: null, wall: WALL }], portals: [], walls: [], ...extra,
 });
 const obj = (id, asset, x, y, w = 1, h = 1, rot = 0) => ({ id, asset, layer: 'l', x, y, w, h, rot, flipX: false, flipY: false, opacity: 1 });

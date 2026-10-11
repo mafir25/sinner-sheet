@@ -3,8 +3,9 @@ import JSZip from 'jszip';
 import type { AssetStore } from '../assets/store';
 import type { Floor, MapDoc, Portal } from '../model/types';
 import { renderMap } from '../render/render';
-import { wallChains } from '../geom/walls';
+import { portalWall, wallChains } from '../geom/walls';
 import { safeName, usedAssetKeys } from '../storage/file';
+import { tr } from '../i18n';
 
 export type ExportFormat = 'png' | 'jpg' | 'webp' | 'dd2vtt';
 export type WindowMode = 'gap' | 'wall' | 'door';
@@ -12,12 +13,14 @@ export type ExportOpts = {
   format: ExportFormat; ppc: number; grid: boolean; floors: 'current' | 'all'; windows: WindowMode; quality: number;
   /** Крыши поверх карты (вид снаружи). */
   roofs: boolean;
+  /** Только крыши на прозрачном фоне (PNG/WebP): кладётся поверх карты «верхним» тайлом в Foundry, Owlbear и др. */
+  roofsOnly?: boolean;
   /** Запечь освещение в картинку. Для VTT с динамическим светом обычно выключают. */
   bakeLight: boolean;
   /** Мастерская версия: с подписями и слоями «только для мастера». */
   gm: boolean;
 };
-export type RenderFlags = Pick<ExportOpts, 'roofs' | 'bakeLight' | 'gm'>;
+export type RenderFlags = Pick<ExportOpts, 'roofs' | 'roofsOnly' | 'bakeLight' | 'gm'>;
 
 /** Ограничение браузеров на размер холста. */
 export const MAX_SIDE = 16384;
@@ -38,7 +41,8 @@ export async function renderFloorCanvas(doc: MapDoc, floorId: string, assets: As
   renderMap(ctx, doc, floorId, assets, {
     scale: ppc, view: { x0: 0, y0: 0, x1: doc.width, y1: doc.height }, grid, ghost: false,
     gridPx: Math.max(1, Math.round(ppc / 70)),
-    roofs: flags.roofs ? 'show' : 'hide', lighting: flags.bakeLight, gm: flags.gm, exporting: true,
+    roofs: flags.roofs ? 'show' : 'hide', lighting: flags.bakeLight, gm: flags.gm, exporting: true, onlyRoofs: flags.roofsOnly,
+    storeys: !!(flags.roofs || flags.roofsOnly),
   });
   return c;
 }
@@ -70,9 +74,10 @@ const argb = (hex: string, alpha = 'ff') => `${alpha}${(/^#?([\da-f]{6})$/i.exec
 /** Документ Universal VTT для этажа. image — PNG в base64. baked — освещение уже запечено в картинку. */
 export function buildDd2vtt(doc: MapDoc, f: Floor, ppc: number, image: string, windows: WindowMode, baked = false) {
   const gaps = new Set<Portal['kind']>(windows === 'wall' ? ['door'] : ['door', 'window']);
-  const los = wallChains(f, gaps).map((c) => { const pts = c.pts.map((q) => P(q.x, q.y)); return c.closed ? [...pts, pts[0]] : pts; });
+  // низкие стены (ограждения, перила) не закрывают обзор — в VTT их нет
+  const los = wallChains(f, gaps).filter((c) => !c.style.low).map((c) => { const pts = c.pts.map((q) => P(q.x, q.y)); return c.closed ? [...pts, pts[0]] : pts; });
   const portals = f.portals
-    .filter((p) => !!p.asset && (p.kind === 'door' || (p.kind === 'window' && windows === 'door')))
+    .filter((p) => !!p.asset && (p.kind === 'door' || (p.kind === 'window' && windows === 'door')) && !portalWall(f, p)?.style.low)
     .map((p) => vttPortal(p, true));
   return {
     format: 0.3,
@@ -96,6 +101,12 @@ function ambient(doc: MapDoc): string {
 }
 
 async function exportFloor(doc: MapDoc, f: Floor, assets: AssetStore, o: ExportOpts): Promise<{ blob: Blob; ext: string }> {
+  if (o.roofsOnly) {
+    // прозрачный фон: только PNG или WebP, без сетки
+    const canvas = await renderFloorCanvas(doc, f.id, assets, o.ppc, false, o);
+    const fmt = o.format === 'webp' ? 'webp' : 'png';
+    return { blob: await toBlob(canvas, MIME[fmt], o.quality), ext: fmt };
+  }
   const canvas = await renderFloorCanvas(doc, f.id, assets, o.ppc, o.grid, o);
   if (o.format === 'dd2vtt') {
     const png = await toBlob(canvas, 'image/png');
@@ -116,7 +127,7 @@ async function exportFloor(doc: MapDoc, f: Floor, assets: AssetStore, o: ExportO
 }
 
 export async function exportMap(doc: MapDoc, floorId: string, assets: AssetStore, o: ExportOpts): Promise<{ blob: Blob; filename: string }> {
-  const base = safeName(doc.name);
+  const base = safeName(doc.name) + (o.roofsOnly ? ` - ${safeName(tr('крыши'))}` : '');
   if (o.floors === 'current' || doc.floors.length === 1) {
     const f = doc.floors.find((x) => x.id === floorId) ?? doc.floors[0];
     const r = await exportFloor(doc, f, assets, o);

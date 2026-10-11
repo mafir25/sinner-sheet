@@ -5,6 +5,7 @@ import type { MapDoc } from '../model/types';
 import type { Editor } from '../state/editor';
 import { type MapVersion, versions } from '../storage/idb';
 import { thumbnail } from '../export/export';
+import { normalizeDoc } from '../model/doc';
 import { lang, tr } from '../i18n';
 import { Modal, toast } from './common';
 
@@ -29,7 +30,7 @@ export function VersionsDialog({ ed, assets, onClose }: { ed: Editor; assets: As
   const fmt = (t: number) => new Date(t).toLocaleString(lang === 'en' ? 'en-GB' : 'ru-RU', { dateStyle: 'short', timeStyle: 'short' });
   const restore = (v: MapVersion) => {
     snapshot(ed.doc, assets, 'restore');
-    ed.commit((d) => { const id = d.id; Object.assign(d, structuredClone(v.doc), { id }); }, { keepSel: false });
+    ed.commit((d) => { const id = d.id; Object.assign(d, normalizeDoc(structuredClone(v.doc)), { id }); }, { keepSel: false });
     toast(tr('Версия от {0} возвращена (Ctrl+Z — отменить)', fmt(v.at)));
     onClose();
   };
