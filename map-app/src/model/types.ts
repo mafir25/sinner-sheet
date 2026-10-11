@@ -216,7 +216,10 @@ export type Lighting = {
 export type Floor = {
   id: string;
   name: string;
+  /** Видимость: нижний этаж под текущим (полупрозрачно) и надстройка над текущим. */
   visible: boolean;
+  /** Надстройка или чердак: id этажа, над которым стоит; на нём рисуется поверх, на высоте стен (см. geom/storeys.ts). */
+  base?: string;
   rooms: Room[];
   walls: Wall[];
   portals: Portal[];

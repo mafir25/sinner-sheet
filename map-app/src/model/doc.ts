@@ -68,6 +68,7 @@ const floor = z.object({
   id: z.string(),
   name: z.string().default(''),
   visible: z.boolean().default(true),
+  base: z.string().optional(),
   rooms: z.array(z.object({ id: z.string(), poly: z.array(ring).min(1), floor: z.string().nullable().default(null), wall: wallStyle, type: z.string().optional(),
     edgeStyles: z.array(z.object({ a: pt, b: pt, style: wallStyle.partial() })).optional() })).default([]),
   walls: z.array(z.object({ id: z.string(), points: z.array(pt).min(2), closed: z.boolean().default(false), wall: wallStyle })).default([]),

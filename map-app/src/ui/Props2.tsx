@@ -8,6 +8,7 @@ import { siteLink } from '../../../site/site-links.js';
 import { openLink } from './LinksDialog';
 import { AssetPicker, ColorInput, Field, NumInput, Slider, toast } from './common';
 import { refitRoof } from '../geom/roof';
+import { buildStorey, builtOver, storeyNo, upperOf } from '../geom/storeys';
 
 type LightStyle = Omit<Light, 'id' | 'x' | 'y'>;
 type LabelStyle = Omit<Label, 'id' | 'x' | 'y' | 'text' | 'rot'>;
@@ -296,6 +297,28 @@ function RoofEditor({ assets, value, onChange }: { assets: AssetStore; value: Ro
   );
 }
 
+/** Надстроить этаж на плоской крыше / сделать чердак под скатной. */
+function StoreyButton({ ed, roof }: { ed: Editor; roof: Roof }) {
+  const attic = (roof.shape ?? 'hip') !== 'flat';
+  const go = () => {
+    const doc = ed.doc, base = ed.floor;
+    if (builtOver(doc, base.id, roof)) { toast(tr('Над этой крышей уже есть этаж'), 'error'); return; }
+    const name = upperOf(doc, base.id)?.name ?? tr('Этаж {0}', storeyNo(doc, base) + 1);
+    const ref = { id: null as string | null };
+    ed.commit((d) => { ref.id = buildStorey(d, base.id, roof.id, name); }, { keepSel: false });
+    const up = ed.doc.floors.find((f) => f.id === ref.id);
+    if (up) toast(attic ? tr('Чердак — на этаже «{0}»: там под крышей комната. Скройте этаж (👁 в списке этажей), чтобы заглянуть в дом', up.name)
+      : tr('Этаж надстроен — «{0}»: план рисуйте на нём, скрыть можно 👁 в списке этажей', up.name));
+  };
+  return (
+    <button className="btn btn-sm" onClick={go}
+      title={attic ? tr('Под скатной крышей — чердак: комната с дощатым полом на этаже выше, крыша переезжает над ним')
+        : tr('На плоской крыше — новый этаж той же формы со своей плоской крышей')}>
+      {attic ? `⌂ ${tr('Сделать чердак')}` : `⇧ ${tr('Надстроить этаж')}`}
+    </button>
+  );
+}
+
 // ---------- уровни местности
 type LevelStyle = Omit<Level, 'id' | 'poly'>;
 export function LevelPanel({ ed, assets }: { ed: Editor; assets: AssetStore }) {
@@ -390,6 +413,7 @@ export function SelectionExtras({ ed, assets }: { ed: Editor; assets: AssetStore
                 ed.commitFloor((f) => { for (const r of f.roofs) if (ids.has(r.id)) { const p = refitRoof(f, r); if (p) { r.poly = p; n++; } } });
                 if (!n) toast(tr('Под крышей нет комнат'), 'error');
               }}>↻ {tr('По комнатам')}</button>
+            {roofs.length === 1 && <StoreyButton ed={ed} roof={roofs[0]} />}
           </>
         );
       })()}

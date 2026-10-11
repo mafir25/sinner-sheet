@@ -7,6 +7,7 @@ import { blockingSegments } from '../../map-app/src/geom/light.ts';
 import { buildDd2vtt } from '../../map-app/src/export/export.ts';
 import { createDoc, parseDoc, normalizeDoc } from '../../map-app/src/model/doc.ts';
 import { copySelection, pasteClip, clipSize } from '../../map-app/src/geom/ops.ts';
+import { buildStorey, builtOver, storeyLift, storeyNo, storeyParts, storeysAbove } from '../../map-app/src/geom/storeys.ts';
 
 const floor = (o = {}) => ({
   id: 'f', name: '', visible: true, layers: [], objects: [], ground: null, terrain: [], paths: [], lights: [], labels: [], roofs: [], levels: [],
@@ -153,5 +154,63 @@ describe('низкие стены', () => {
     const v = buildDd2vtt(d, f, 70, '', 'gap');
     expect(v.line_of_sight.flat().some((p) => p.y === 5)).toBe(false);
     expect(v.portals).toEqual([]);
+  });
+});
+
+describe('этажи над зданиями', () => {
+  const tall = { ...wall, height: 0.5, inner: 'down', outer: 'down' };
+  const base = () => {
+    const d = createDoc({ name: 'X', width: 20, height: 10, grid: 'square', floorName: 'F' });
+    const f = d.floors[0];
+    f.rooms = [room('a', P(0, 0), P(4, 3), tall), room('b', P(10, 0), P(14, 3), tall)];
+    f.roofs = [roof(rectPoly(P(0, 0), P(4, 3)), { id: 'flat', shape: 'flat', height: 10 }), roof(rectPoly(P(10, 0), P(14, 3)), { id: 'hip' })];
+    return d;
+  };
+  it('на плоской крыше — этаж той же формы со своей крышей; нижняя крыша остаётся перекрытием', () => {
+    const d = base(), f = d.floors[0];
+    const id = buildStorey(d, f.id, 'flat', 'Этаж 2');
+    const up = d.floors[1];
+    expect(up.id).toBe(id);
+    expect(up.base).toBe(f.id);
+    expect(up.rooms).toHaveLength(1);
+    expect(up.rooms[0].wall.height).toBe(0.5);
+    expect(up.roofs[0]).toMatchObject({ shape: 'flat', height: 20 });
+    expect(f.roofs.map((r) => r.id)).toEqual(['flat', 'hip']);
+    expect(builtOver(d, f.id, f.roofs[0])).toBe(true);
+    expect(storeyNo(d, up)).toBe(2);
+  });
+  it('скатная крыша — чердак: комната с дощатым полом, крыша переезжает наверх; второй дом — на тот же этаж', () => {
+    const d = base(), f = d.floors[0];
+    buildStorey(d, f.id, 'flat', 'Этаж 2');
+    buildStorey(d, f.id, 'hip', 'Этаж 2');
+    expect(d.floors).toHaveLength(2);
+    const up = d.floors[1];
+    expect(up.rooms.map((r) => r.floor)).toContain('canon:floors/wood.svg');
+    expect(f.roofs.map((r) => r.id)).toEqual(['flat']);
+    expect(up.roofs.map((r) => r.id)).toContain('hip');
+  });
+  it('надстройка рисуется по зданиям, поднятая на высоту стен; скрытая — не рисуется вместе со всем, что над ней', () => {
+    const d = base(), f = d.floors[0];
+    buildStorey(d, f.id, 'flat', 'Этаж 2');
+    buildStorey(d, f.id, 'hip', 'Этаж 2');
+    const up = d.floors[1];
+    const parts = storeyParts(up);
+    expect(parts).toHaveLength(2);
+    expect(parts[0].floor.roofs).toHaveLength(1);
+    expect(storeyLift(d, f, up, parts[0].at)).toEqual({ x: 0, y: -0.5 });
+    expect(storeyLift(d, f, up, P(7, 7))).toEqual({ x: 0, y: 0 }); // между домами — земля
+    up.rooms[0].wall = tall;
+    buildStorey(d, up.id, up.roofs[0].id, 'Этаж 3');
+    const third = d.floors[2];
+    expect(storeysAbove(d, f.id).map((x) => x.id)).toEqual([up.id, third.id]);
+    expect(storeyLift(d, f, third, P(2, 1))).toEqual({ x: 0, y: -1 });
+    up.visible = false;
+    expect(storeysAbove(d, f.id)).toEqual([]);
+    expect(storeysAbove(d, up.id).map((x) => x.id)).toEqual([third.id]);
+  });
+  it('файл: основание этажа сохраняется', () => {
+    const d = base();
+    buildStorey(d, d.floors[0].id, 'flat', 'Этаж 2');
+    expect(parseDoc(JSON.parse(JSON.stringify(d))).floors[1].base).toBe(d.floors[0].id);
   });
 });

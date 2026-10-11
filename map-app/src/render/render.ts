@@ -7,6 +7,7 @@ import { portalFaces, portalShape, portalThickness, portalWall, wallChains, wall
 import { type BBox, pointInPoly, ptsBBox } from '../geom/poly';
 import { auxRes, drawLabel, drawLighting, drawPath, drawRoof, drawRoofHeight, drawTag, terrainCanvas } from './extras';
 import { fmtHeight, labelSpot, levelFaces } from '../geom/levels';
+import { baseOf, storeyLift, storeyParts, storeysAbove } from '../geom/storeys';
 import { tr } from '../i18n';
 
 export type RenderOpts = {
@@ -31,6 +32,8 @@ export type RenderOpts = {
   exporting?: boolean;
   /** Только крыши и слои «на крыше» на прозрачном фоне — «верхний» тайл для VTT. */
   onlyRoofs?: boolean;
+  /** Рисовать поверх видимые надстройки и чердаки над этажом (geom/storeys.ts). */
+  storeys?: boolean;
 };
 
 const NO_FLOOR_FILL = '#2f2f33';
@@ -47,19 +50,26 @@ export function renderMap(ctx: CanvasRenderingContext2D, doc: MapDoc, floorId: s
   const idx = Math.max(0, doc.floors.findIndex((f) => f.id === floorId));
   if (o.onlyRoofs) {
     const f = o.floorOverride ?? doc.floors[idx];
-    if (f) drawRoofs(ctx, f, assets, { ...o, roofs: 'show' });
+    if (f) {
+      drawRoofs(ctx, f, assets, { ...o, roofs: 'show' });
+      if (o.storeys) drawStoreys(ctx, doc, f, assets, { ...o, roofs: 'show' });
+    }
     return;
   }
   ctx.fillStyle = doc.background;
   ctx.fillRect(0, 0, doc.width, doc.height);
-  if (o.ghost && idx > 0 && doc.floors[idx - 1].visible) {
+  // под надстройкой полупрозрачно — этаж, над которым она стоит; под обычным этажом — предыдущий в списке
+  const cur = doc.floors[idx];
+  const under = cur && (baseOf(doc, cur) ?? (idx > 0 ? doc.floors[idx - 1] : null));
+  if (o.ghost && under?.visible) {
     ctx.save();
     ctx.globalAlpha = 0.28;
-    drawFloor(ctx, doc, doc.floors[idx - 1], assets, { ...o, roofs: 'hide', lighting: false, floorOverride: undefined });
+    drawFloor(ctx, doc, under, assets, { ...o, roofs: 'hide', lighting: false, floorOverride: undefined });
     ctx.restore();
   }
-  const floor = o.floorOverride ?? doc.floors[idx];
+  const floor = o.floorOverride ?? cur;
   if (floor) drawFloor(ctx, doc, floor, assets, o);
+  if (floor && o.storeys) drawStoreys(ctx, doc, floor, assets, o);
   if (o.grid && doc.grid.show && doc.grid.type !== 'none') {
     ctx.save();
     ctx.globalAlpha = doc.grid.opacity;
@@ -114,6 +124,19 @@ export function drawFloor(ctx: CanvasRenderingContext2D, doc: MapDoc, f: Floor, 
   drawLayers(ctx, f, above, assets, o);
   drawRoofs(ctx, f, assets, o);
   if (o.lighting && doc.lighting.enabled) drawLighting(ctx, f, doc.lighting, res, W, H, !o.exporting);
+}
+
+/** Видимые надстройки и чердаки над этажом: каждое здание поднято на высоту стен под ним, туда, где была крыша. */
+function drawStoreys(ctx: CanvasRenderingContext2D, doc: MapDoc, from: Floor, assets: AssetStore, o: RenderOpts) {
+  for (const up of storeysAbove(doc, from.id)) {
+    for (const part of storeyParts(up)) {
+      const l = part.at ? storeyLift(doc, from, up, part.at) : { x: 0, y: 0 };
+      ctx.save();
+      ctx.translate(l.x, l.y);
+      drawFloor(ctx, doc, part.floor, assets, { ...o, lighting: false, floorOverride: undefined });
+      ctx.restore();
+    }
+  }
 }
 
 /** Слои «на крыше» видны вместе с крышами. */

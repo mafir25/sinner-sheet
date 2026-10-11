@@ -42,6 +42,7 @@ export async function renderFloorCanvas(doc: MapDoc, floorId: string, assets: As
     scale: ppc, view: { x0: 0, y0: 0, x1: doc.width, y1: doc.height }, grid, ghost: false,
     gridPx: Math.max(1, Math.round(ppc / 70)),
     roofs: flags.roofs ? 'show' : 'hide', lighting: flags.bakeLight, gm: flags.gm, exporting: true, onlyRoofs: flags.roofsOnly,
+    storeys: !!(flags.roofs || flags.roofsOnly),
   });
   return c;
 }
