@@ -60,7 +60,7 @@ describe('модуль: статусы на имитации Foundry', () => {
     const a = W.actor('Жаба');
     await S.setStacks(a, 'tremor', 25);
     const e = [...a.effects.values()][0];
-    expect(e).toMatchObject({ name: 'Тремор 25', img: 'modules/pm5e/icons/Tremor.png', flags: { pm5e: { status: { id: 'tremor', stacks: 25 } } } });
+    expect(e).toMatchObject({ name: 'Тремор 25', img: 'modules/pm5e/icons/pm/limbus/Basic%20Effects/Tremor/Tremor.webp', flags: { pm5e: { status: { id: 'tremor', stacks: 25 } } } });
     expect([...e.statuses]).toEqual(['pm5e-tremor']);
     expect(e.changes).toEqual([{ key: 'system.attributes.ac.bonus', mode: 2, value: '-2' }]);
     await S.addStacks(a, 'tremor', 100);
@@ -69,7 +69,7 @@ describe('модуль: статусы на имитации Foundry', () => {
     expect(S.getStacks(a, 'bind')).toBe(2);
     await S.setStacks(a, 'tremor', 0);
     expect(S.getStacks(a, 'tremor')).toBe(0);
-    expect(CONFIG.statusEffects.some((s) => s.id === 'pm5e-burn' && s.img === 'modules/pm5e/icons/Burn.png')).toBe(true);
+    expect(CONFIG.statusEffects.some((s) => s.id === 'pm5e-burn' && s.img === 'modules/pm5e/icons/pm/limbus/Basic%20Effects/Burn/Burn.webp')).toBe(true);
   });
 
   it('значок из меню токена становится статусом с 1 стаком', () => {
@@ -91,13 +91,13 @@ describe('модуль: статусы на имитации Foundry', () => {
     W.damage.length = 0; W.chat.length = 0;
     await upd(combat, { round: 1, turn: 0 }, {});                 // начало боя: раунд 1, ход А
     expect(W.damage).toEqual([['А', [{ value: 9, type: 'fire' }]]]);
-    expect(S.getStacks(a, 'burn')).toBe(6);
+    expect(S.getStacks(a, 'burn')).toBe(3);
     combat.combatant = combatants.get('c2');
     await upd(combat, { turn: 1 }, {});                           // конец хода А, начало хода Б
     expect(S.getStacks(a, 'sinking')).toBe(5);
     expect(W.damage.at(-1)).toEqual(['Б', [{ value: 10, type: 'poison' }]]);
     expect(S.getStacks(b, 'poison')).toBe(15);
-    expect(W.chat.some((c) => c.includes('Горение') && c.includes('9 → 6'))).toBe(true);
+    expect(W.chat.some((c) => c.includes('Горение') && c.includes('9 → 3'))).toBe(true);
     const n = W.damage.length;
     await upd(combat, { turn: 0 }, { direction: -1 });            // откат — без автоматики
     expect(W.damage.length).toBe(n);

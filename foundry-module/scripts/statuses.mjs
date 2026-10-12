@@ -11,7 +11,7 @@ const ID = 'pm5e';
 const t = (k, data) => (data ? game.i18n.format(k, data) : game.i18n.localize(k));
 const lang = () => (game.i18n.lang === 'en' ? 'en' : 'ru');
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
-export const iconPath = (p) => (p.startsWith('icons/svg/') ? p : `modules/${ID}/${p}`);
+export const iconPath = (p) => (p.startsWith('icons/svg/') ? p : `modules/${ID}/${encodeURI(p)}`);   // в путях иконок сеттинга есть пробелы
 const flagOf = (e) => e?.flags?.[ID]?.status;
 const isActiveGM = () => (game.users.activeGM ? game.users.activeGM.isSelf : game.user.isGM);
 const DMG_NAME = { fire: 'огнём', necrotic: 'некротической энергией', poison: 'ядом', psychic: 'психической энергией', thunder: 'звуком' };

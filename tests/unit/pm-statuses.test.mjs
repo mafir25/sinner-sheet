@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import { STATUSES, INSTANT, statusByName, statusById, statusChanges, tick, tremorBurst, statusCondition, clampStacks } from '../../site/pm-statuses.js';
 
 const canon = (lang) => JSON.parse(readFileSync(new URL(`../../Assets/${lang}/mechanics/statuses.json`, import.meta.url), 'utf8'));
@@ -9,6 +9,13 @@ describe('статусы канона', () => {
     for (const lang of ['Rus', 'Eng']) {
       for (const s of canon(lang)) expect(statusByName(s.Name) || INSTANT.includes(s.Name), `${lang}: ${s.Name}`).toBeTruthy();
     }
+  });
+  it('иконки: файл модуля существует (иконки сеттинга) или значок Foundry', () => {
+    for (const s of STATUSES) {
+      if (s.icon.startsWith('icons/svg/')) continue;
+      expect(existsSync(new URL(`../../foundry-module/${s.icon}`, import.meta.url)), `${s.id}: ${s.icon}`).toBe(true);
+    }
+    expect(STATUSES.filter((s) => s.icon.startsWith('icons/pm/')).length).toBeGreaterThanOrEqual(38);
   });
   it('id уникальны, у всех есть максимум и значок', () => {
     expect(new Set(STATUSES.map((s) => s.id)).size).toBe(STATUSES.length);
@@ -42,8 +49,9 @@ describe('изменения по стакам', () => {
 });
 
 describe('моменты боя', () => {
-  it('начало раунда: Горение — урон огнём, теряется треть', () => {
-    expect(tick('roundStart', [{ id: 'burn', stacks: 9 }])).toEqual([{ id: 'burn', from: 9, stacks: 6, damage: { value: 9, type: 'fire' } }]);
+  it('начало раунда: Горение — урон огнём, остаётся треть (9 → 3)', () => {
+    expect(tick('roundStart', [{ id: 'burn', stacks: 9 }])).toEqual([{ id: 'burn', from: 9, stacks: 3, damage: { value: 9, type: 'fire' } }]);
+    expect(tick('roundStart', [{ id: 'burn', stacks: 2 }])[0]).toMatchObject({ stacks: 0 });
     expect(tick('roundStart', [{ id: 'poison', stacks: 9 }])).toEqual([]);
   });
   it('начало хода: Яд (−5, при Кровотечении −4), временные бонусы сгорают, Аггро −1', () => {
