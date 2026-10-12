@@ -28,11 +28,21 @@ export function usedAssetKeys(doc: MapDoc): Set<string> {
   return keys;
 }
 
+/** То же плюс варианты бесшовных текстур пола и стен (файлы их групп): они встают в раскладку сами. */
+export function usedAssetKeysWithVariants(doc: MapDoc, assets: AssetStore): Set<string> {
+  const keys = usedAssetKeys(doc);
+  for (const k of [...keys]) {
+    const kind = assets.entry(k)?.kind;
+    if (kind === 'floor' || kind === 'wall') for (const v of assets.variants(k)) keys.add(v);
+  }
+  return keys;
+}
+
 export async function buildPmmap(doc: MapDoc, assets: AssetStore): Promise<Blob> {
   const zip = new JSZip();
   zip.file('map.json', JSON.stringify(doc));
   const labels: Record<string, string> = {};
-  for (const key of usedAssetKeys(doc)) {
+  for (const key of usedAssetKeysWithVariants(doc, assets)) {
     const k = assets.parse(key);
     if (!k || k.packId === 'canon') continue;
     const blob = await assets.blob(key);

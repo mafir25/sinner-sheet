@@ -1,12 +1,12 @@
 // Инструменты холста. Координаты — в клетках. Пока идёт перетаскивание, документ не меняется:
 // инструмент отдаёт предпросмотр (preview), а в историю попадает одно изменение при отпускании.
 import type { AssetStore } from '../assets/store';
-import type { AssetEntry, Floor, Label, Light, MapObject, MapPath, Poly, Portal, Pt, Roof, Rules, TerrainStroke } from '../model/types';
+import type { AssetEntry, Floor, Label, Light, MapObject, MapPath, Poly, Portal, Pt, Roof, Rules, TerrainStroke, WallStyle } from '../model/types';
 import { type Editor, type SelItem, type ToolId, edgeOf } from '../state/editor';
 import { uid } from '../model/doc';
 import { snapCenter, snapHalf, snapVertex } from '../geom/grid';
 import { difference, intersects, pointInPoly, rectPoly, ringArea, samePt, segDist, touches, union } from '../geom/poly';
-import { type WallSeg, nearestWall, orphanPortals, portalOnWall, slidePortal } from '../geom/walls';
+import { type WallHit, type WallSeg, insertOnWall, nearestWall, orphanPortals, portalOnWall, slidePortal, wallAt } from '../geom/walls';
 import { roofPolyOver, buildingRooms, roofsOver } from '../geom/roof';
 import { fmtHeight, heightAt } from '../geom/levels';
 import { LIGHT_HIT, boxSelect, fromLocal, hitTest, labelCorners, objectCorners, toLocal } from './hit';
@@ -268,7 +268,8 @@ class SelectTool implements Tool {
       if (this.slide) {
         const { portal } = this.slide;
         const c = { x: (portal.a.x + portal.b.x) / 2 + raw.x, y: (portal.a.y + portal.b.y) / 2 + raw.y };
-        this.slide.to = slidePortal(this.ed.floor, portal, c, this.env.snap(e)) ?? this.slide.to;
+        const tileOf = (st: WallStyle) => (st.asset && this.env.assets.entry(st.asset)?.footprint[0]) || Math.hypot(portal.b.x - portal.a.x, portal.b.y - portal.a.y);
+        this.slide.to = slidePortal(this.ed.floor, portal, c, this.env.snap(e), 1, tileOf) ?? this.slide.to;
       }
     } else if (this.mode === 'rotate' && this.target) {
       let a = (Math.atan2(p.y - this.target.y, p.x - this.target.x) * 180) / Math.PI + 90;
@@ -581,7 +582,7 @@ class PortalTool implements Tool {
   private len() { return this.env.assets.entry(this.asset())?.footprint[0] ?? 1; }
   cursor() { return this.place ? 'copy' : 'not-allowed'; }
   move(p: Pt, e: PointerEvent) {
-    const hit = nearestWall(this.env.ed.floor, p, 0.75);
+    const hit = wallAt(this.env.ed.floor, p, 0.75);
     this.place = hit ? portalOnWall(hit, this.len(), this.env.snap(e)) : null;
     this.env.redraw();
   }
@@ -609,6 +610,61 @@ class PortalTool implements Tool {
   }
 }
 const near = (a: Pt, b: Pt) => Math.hypot(a.x - b.x, a.y - b.y) < 0.05;
+
+// ---------- вставка в стену (вариант текстуры грани)
+class InsertTool implements Tool {
+  private place: { a: Pt; b: Pt; asset: string } | null = null;
+  private roll: string | null = null;
+  private rollFor = '';
+  constructor(private env: ToolEnv) {}
+  /** Что вставить в эту стену: выбранный вариант или случайный вариант её текстуры (держится до установки). */
+  private assetFor(hit: WallHit): string | null {
+    const chosen = this.env.ed.state.settings.insert;
+    if (chosen) return chosen;
+    const base = hit.seg.style.asset;
+    if (!base) return null;
+    const others = this.env.assets.variants(base).filter((k) => k !== base);
+    if (!others.length) return null;
+    if (!this.roll || this.rollFor !== base) { this.roll = others[Math.floor(Math.random() * others.length)]; this.rollFor = base; }
+    return this.roll;
+  }
+  cursor() { return this.place ? 'copy' : 'not-allowed'; }
+  move(p: Pt, e: PointerEvent) {
+    const hit = wallAt(this.env.ed.floor, p, 0.75);
+    this.place = null;
+    if (hit && (hit.seg.style.height ?? 0) > 0) {
+      const asset = this.assetFor(hit);
+      const len = asset ? this.env.assets.entry(asset)?.footprint[0] ?? 1 : 0;
+      const tile = (hit.seg.style.asset && this.env.assets.entry(hit.seg.style.asset)?.footprint[0]) || len;
+      const pl = asset ? (this.env.snap(e) ? insertOnWall(hit, len, tile) : portalOnWall(hit, len, false)) : null;
+      if (pl && asset) this.place = { ...pl, asset };
+    }
+    this.env.redraw();
+  }
+  down(p: Pt, e: PointerEvent) {
+    this.move(p, e);
+    const pl = this.place;
+    if (!pl) return;
+    const id = uid('d');
+    this.env.ed.commitFloor((f) => {
+      // вставка на месте другой вставки заменяет её
+      f.portals = f.portals.filter((q) => !(q.kind === 'insert' && ((near(q.a, pl.a) && near(q.b, pl.b)) || (near(q.a, pl.b) && near(q.b, pl.a)))));
+      f.portals.push({ id, kind: 'insert', a: pl.a, b: pl.b, asset: pl.asset });
+    });
+    this.roll = null; // следующая — новый случайный вариант
+  }
+  cancel() { this.place = null; }
+  overlay(c: CanvasRenderingContext2D, scale: number) {
+    if (!this.place) return;
+    c.save();
+    c.strokeStyle = ACCENT;
+    c.lineWidth = Math.max(5 / scale, 0.18);
+    c.globalAlpha = 0.85;
+    outlinePts(c, [this.place.a, this.place.b], false);
+    c.stroke();
+    c.restore();
+  }
+}
 
 // ---------- объект из библиотеки (или комплект)
 type Made = { objs: MapObject[]; guide?: Pt[]; issues: Issue[] };
@@ -1109,6 +1165,7 @@ export function makeTool(id: ToolId, env: ToolEnv): Tool {
     case 'wall': return new PathTool(env, 'wall');
     case 'door': return new PortalTool(env, 'door');
     case 'window': return new PortalTool(env, 'window');
+    case 'insert': return new InsertTool(env);
     case 'cut': return new WallCutTool(env);
     case 'stamp': return new StampTool(env);
     case 'brush': return new BrushTool(env);

@@ -8,7 +8,8 @@ import { objectCorners } from '../tools/hit';
 import { ROTATE_LABEL, WHERE_LABEL, PLACE_LABEL, issueText, roomTypeName, targetName } from './issues';
 import { type Editor, useEditor } from '../state/editor';
 import { nm, tr } from '../i18n';
-import { edgeStyle, portalFaces, portalShape, resizePortal } from '../geom/walls';
+import { edgeStyle, portalFaces, portalShape, portalWall, resizePortal } from '../geom/walls';
+import { effectiveChance } from '../geom/variants';
 import { BrushPanel, LabelPanel, LevelPanel, LightPanel, PathPanel, RoofPanel, SelectionExtras } from './Props2';
 import { AssetPicker, ColorInput, Field, NumInput, SetThumb, Slider, Thumb, assetName, toast, useStore } from './common';
 import { type AlignMode, alignObjects, distributeObjects, repeatObjects, sameObjects } from '../geom/ops';
@@ -23,6 +24,28 @@ const FACE_DIRS: { id: FaceDir; label: string }[] = [
   { id: 'none', label: 'Нет' },
 ];
 
+/** Новое зерно раскладки вариантов (кнопка 🎲). */
+const newVarySeed = () => 1 + Math.floor(Math.random() * 1e6);
+
+/**
+ * Доля вариантов бесшовной текстуры (другие файлы её группы встают в последовательность основы) и 🎲 — другая
+ * раскладка. Показывается, только если у текстуры есть варианты.
+ */
+function VaryControl({ assets, asset, chance, onChange }: { assets: AssetStore; asset: AssetKey | null; chance: number | undefined; onChange(chance: number, reseed: boolean): void }) {
+  if (!asset) return null;
+  const n = assets.variants(asset).length - 1;
+  if (n < 1) return null;
+  const c = effectiveChance(chance);
+  return (
+    <div className="row" title={tr('Варианты — файлы той же группы, что и текстура (решётки, люки, светодиоды). Края у них совпадают с основой.')}>
+      <Field label={tr('Варианты текстуры ({0}), %', n)}>
+        <Slider value={Math.round(c * 100)} min={0} max={50} step={1} onCommit={(v) => onChange(v / 100, false)} />
+      </Field>
+      <button className="btn btn-sm" title={tr('Другая случайная раскладка вариантов')} onClick={() => onChange(c, true)}>🎲</button>
+    </div>
+  );
+}
+
 function WallStyleEditor({ assets, value, onChange, standalone }: { assets: AssetStore; value: WallStyle; onChange(v: WallStyle): void; standalone?: boolean }) {
   const h = value.height ?? 0;
   const dirSelect = (v: FaceDir | undefined, set: (d: FaceDir) => void) => (
@@ -35,6 +58,8 @@ function WallStyleEditor({ assets, value, onChange, standalone }: { assets: Asse
       <Field label={h > 0 ? tr('Текстура грани стены') : tr('Текстура стены')}>
         <AssetPicker assets={assets} kind="wall" value={value.asset} allowNone noneLabel={tr('Без текстуры')} onChange={(asset) => onChange({ ...value, asset })} />
       </Field>
+      {h > 0 && <VaryControl assets={assets} asset={value.asset} chance={value.vary}
+        onChange={(vary, reseed) => onChange({ ...value, vary, ...(reseed ? { varySeed: newVarySeed() } : {}) })} />}
       <div className="row">
         <Field label={h > 0 ? tr('Цвет линии') : tr('Цвет')} row><ColorInput value={value.color} onCommit={(color) => onChange({ ...value, color })} /></Field>
         <Field label={tr('Толщина')} row><NumInput value={value.width} step={0.05} min={0} max={2} onCommit={(width) => onChange({ ...value, width })} /></Field>
@@ -114,6 +139,15 @@ export function Props({ ed, assets }: { ed: Editor; assets: AssetStore }) {
     );
   }
   if (tool === 'wall') return <WallStyleEditor assets={assets} value={settings.wall} onChange={(wall) => ed.setSettings({ wall })} />;
+  if (tool === 'insert') {
+    return (
+      <Field label={tr('Что вставлять')}>
+        <AssetPicker assets={assets} kind="wall" value={settings.insert} allowNone noneLabel={tr('🎲 Случайный вариант стены под курсором')}
+          onChange={(insert) => ed.setSettings({ insert })} />
+        <span className="hint">{tr('Вставка — вариант текстуры объёмной стены (щиток, решётка, светодиод) на её грани. Она остаётся стеной: свет, взгляд и .dd2vtt её не замечают. Край встаёт на границу плитки текстуры.')}</span>
+      </Field>
+    );
+  }
   if (tool === 'door' || tool === 'window') {
     return (
       <Field label={tool === 'door' ? tr('Вид двери') : tr('Вид окна')}>
@@ -274,6 +308,8 @@ export function Props({ ed, assets }: { ed: Editor; assets: AssetStore }) {
             <AssetPicker assets={assets} kind="floor" value={rooms[0].floor} allowNone noneLabel={tr('Без пола')}
               onChange={(k) => ed.commitFloor((fl) => { for (const r of fl.rooms) if (ids.has(r.id)) r.floor = k; })} />
           </Field>
+          <VaryControl assets={assets} asset={rooms[0].floor} chance={rooms[0].floorVary}
+            onChange={(v, reseed) => ed.commitFloor((fl) => { const seed = newVarySeed(); for (const r of fl.rooms) if (ids.has(r.id)) { r.floorVary = v; if (reseed) r.floorSeed = seed; } })} />
           <WallStyleEditor assets={assets} value={rooms[0].wall}
             onChange={(w) => ed.commitFloor((fl) => { for (const r of fl.rooms) if (ids.has(r.id)) r.wall = { ...w }; })} />
         </>
@@ -299,7 +335,27 @@ export function Props({ ed, assets }: { ed: Editor; assets: AssetStore }) {
             </div>
           );
         }
-        if (kind === 'gap') return null;
+        if (same && kind === 'insert') {
+          const reroll = () => ed.commitFloor((fl) => {
+            for (const p of fl.portals) {
+              if (!ids.has(p.id) || p.kind !== 'insert') continue;
+              const base = portalWall(fl, p)?.style.asset;
+              const pool = base ? assets.variants(base).filter((k) => k !== base && k !== p.asset) : [];
+              if (pool.length) p.asset = pool[Math.floor(Math.random() * pool.length)];
+            }
+          });
+          return (
+            <div className="stack">
+              <Field label={tr('Вариант стены')}>
+                <AssetPicker assets={assets} kind="wall" value={portals[0].asset}
+                  onChange={(k) => k && ed.commitFloor((fl) => { const len = assets.entry(k)?.footprint[0] ?? 1; for (const p of fl.portals) if (ids.has(p.id)) Object.assign(p, { asset: k }, resizePortal(p, len)); })} />
+              </Field>
+              <button className="btn btn-sm" onClick={reroll}>{tr('🎲 Другой вариант')}</button>
+              <p className="hint">{tr('Вставка остаётся стеной: свет и взгляд не проходят, в .dd2vtt её нет. Тащи вдоль стены инструментом «Выделение».')}</p>
+            </div>
+          );
+        }
+        if (kind === 'gap' || kind === 'insert') return null;
         const shape = portalShape(portals[0]);
         const updP = (patch: Partial<Portal>) => ed.commitFloor((fl) => { for (const p of fl.portals) if (ids.has(p.id)) Object.assign(p, patch); });
         return same && (

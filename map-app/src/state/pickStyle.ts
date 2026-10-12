@@ -41,6 +41,7 @@ export function pickStyle(ed: Editor, item: SelItem): string | null {
     case 'portal': {
       const p = find(f.portals);
       if (!p || p.kind === 'gap') return null;
+      if (p.kind === 'insert') { ed.setSettings({ insert: p.asset }); ed.setTool('insert'); return tr('Вставка в стену'); }
       ed.setSettings(p.kind === 'door' ? { door: p.asset } : { window: p.asset });
       ed.setTool(p.kind);
       return p.kind === 'door' ? tr('Дверь') : tr('Окно');

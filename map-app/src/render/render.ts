@@ -3,7 +3,8 @@
 import type { AssetStore } from '../assets/store';
 import type { Floor, Layer, MapDoc, MapObject, Portal, Poly, Pt, Roof } from '../model/types';
 import { drawGrid } from '../geom/grid';
-import { portalFaces, portalShape, portalThickness, portalWall, wallChains, wallFaces, wallLift, type WallChain, type WallFace } from '../geom/walls';
+import { faceItems, portalFaces, portalShape, portalThickness, portalWall, wallChains, wallLift, wallLineLift, type WallChain, type WallFace } from '../geom/walls';
+import { effectiveChance, pickTile, wallLine } from '../geom/variants';
 import { type BBox, pointInPoly, ptsBBox } from '../geom/poly';
 import { auxRes, drawLabel, drawLighting, drawPath, drawRoof, drawRoofHeight, drawTag, terrainCanvas } from './extras';
 import { fmtHeight, labelSpot, levelFaces } from '../geom/levels';
@@ -106,6 +107,7 @@ export function drawFloor(ctx: CanvasRenderingContext2D, doc: MapDoc, f: Floor, 
     polyPath(ctx, room.poly);
     ctx.fillStyle = assets.pattern(ctx, room.floor, o.scale) ?? NO_FLOOR_FILL;
     ctx.fill('evenodd');
+    drawFloorVariants(ctx, room, assets, o.scale);
   }
   // местность поверх полов: грязь, кровь, вода
   const res = auxRes(o.scale, W, H, !!o.exporting);
@@ -223,12 +225,38 @@ function missing(ctx: CanvasRenderingContext2D, x: number, y: number, w: number,
   ctx.fillText('?', x + w / 2, y + h / 2);
 }
 
+/** Другие файлы группы текстуры (её варианты); без группы — пусто. */
+function variantsOf(assets: AssetStore, key: string): string[] {
+  return assets.variants(key).filter((k) => k !== key);
+}
+
 /**
- * Путь верхней линии стены (у объёмной — поднята над основанием, см. wallLift); торцы отдельных стен продлеваются
+ * Варианты пола: клетки текстуры (footprint) по сетке узора, в части из них (шанс комнаты) вместо основы — вариант.
+ * Края вариантов совпадают с основой, поэтому рисуем их поверх уже залитого пола, обрезая по контуру комнаты.
+ */
+function drawFloorVariants(ctx: CanvasRenderingContext2D, room: Floor['rooms'][number], assets: AssetStore, scale: number) {
+  const key = room.floor!, others = variantsOf(assets, key), chance = effectiveChance(room.floorVary);
+  if (!others.length || chance <= 0) return;
+  const [fw] = assets.entry(key)?.footprint ?? [1, 1];
+  const b = ptsBBox(room.poly[0]), seed = room.floorSeed ?? 0;
+  ctx.save();
+  ctx.clip('evenodd');
+  for (let j = Math.floor(b.y0 / fw); j * fw < b.y1; j++) {
+    for (let i = Math.floor(b.x0 / fw); i * fw < b.x1; i++) {
+      const v = pickTile(others, chance, seed, i, j);
+      const src = v ? assets.source(v, scale) : null;
+      if (src) ctx.drawImage(src, i * fw, j * fw, fw, fw);
+    }
+  }
+  ctx.restore();
+}
+
+/**
+ * Путь верхней линии стены (у объёмной — поднята над гранью, см. wallLineLift); торцы отдельных стен продлеваются
  * на полтолщины, чтобы углы смыкались.
  */
 function chainPath(ctx: CanvasRenderingContext2D, c: WallChain) {
-  const l = wallLift(c.style);
+  const l = wallLineLift(c.style);
   const pts = c.pts.map((q) => ({ x: q.x + l.x, y: q.y + l.y })), e = c.style.width / 2;
   const ext = (from: Pt, to: Pt): Pt => {
     const dx = to.x - from.x, dy = to.y - from.y, L = Math.hypot(dx, dy) || 1;
@@ -283,14 +311,15 @@ export function drawWalls(ctx: CanvasRenderingContext2D, all: WallChain[], asset
 
 export function drawPortal(ctx: CanvasRenderingContext2D, f: Floor, p: Portal, assets: AssetStore, o: RenderOpts) {
   // проём без стены и пустой проём — рисовать нечего; на объёмной стене проём вписан в грань (drawFaces)
-  if (p.kind === 'gap' || !p.asset || portalFaces(f, p).length) return;
+  // вставка — вариант текстуры грани: на плоской стене её не видно
+  if (p.kind === 'gap' || p.kind === 'insert' || !p.asset || portalFaces(f, p).length) return;
   const dx = p.b.x - p.a.x, dy = p.b.y - p.a.y, L = Math.hypot(dx, dy);
   if (L < 1e-6) return;
   const th = portalThickness(f, p);
   const e = p.asset ? assets.entry(p.asset) : undefined;
   const h = Math.max(th, e ? (e.footprint[1] / e.footprint[0]) * L : th);
   // на объёмной стене без грани здесь (боковая при «вниз») проём — на поднятой верхней линии
-  const w = portalWall(f, p), l = w ? wallLift(w.style) : { x: 0, y: 0 };
+  const w = portalWall(f, p), l = w ? wallLineLift(w.style) : { x: 0, y: 0 };
   ctx.save();
   ctx.translate((p.a.x + p.b.x) / 2 + l.x, (p.a.y + p.b.y) / 2 + l.y);
   ctx.rotate(Math.atan2(dy, dx));
@@ -351,52 +380,91 @@ function openingShape(top: number, bottom: number, arch: boolean): Pt[] {
   return pts;
 }
 
-/** Грани объёмных стен и вписанные в них двери, окна, арки. Рисуются под объектами. */
+/**
+ * Обрезка грани: «внутрь» видна только в своей комнате, «наружу» — только вне её (на углах они не залезают
+ * друг на друга). У поднятой стены (проекция) и контур комнаты поднят — как будто смотрим на высоте верха стен.
+ */
+export function clipFace(ctx: CanvasRenderingContext2D, face: WallFace) {
+  if (!face.room) return;
+  const BIG = 1e5;
+  ctx.beginPath();
+  if (face.side === 'out') ctx.rect(-BIG, -BIG, BIG * 2, BIG * 2);
+  ctx.translate(face.lift.x, face.lift.y);
+  polyPath(ctx, face.room.poly);
+  ctx.translate(-face.lift.x, -face.lift.y);
+  ctx.clip('evenodd');
+}
+
+/**
+ * Варианты на грани: плитки текстуры вдоль стены (отсчёт как у узора — fitTexture), часть из них (шанс стиля)
+ * заменяется вариантом. Раскладка не зависит от направления рисования стены (wallLine).
+ */
+function drawFaceVariants(ctx: CanvasRenderingContext2D, face: WallFace, t: FaceTex, assets: AssetStore, scale: number) {
+  const key = face.style.asset!, others = variantsOf(assets, key), chance = effectiveChance(face.style.vary);
+  if (!others.length || chance <= 0) return;
+  const [p0, p1] = face.pts, L = Math.hypot(p1.x - p0.x, p1.y - p0.y);
+  if (L < 1e-6) return;
+  const u = { x: (p1.x - p0.x) / L, y: (p1.y - p0.y) / L }, line = wallLine(p0, p1);
+  const flip = u.x * line.u.x + u.y * line.u.y < 0;
+  const a0 = p0.x * u.x + p0.y * u.y, a1 = p1.x * u.x + p1.y * u.y, o = { x: p0.x - u.x * a0, y: p0.y - u.y * a0 };
+  const fw = t.fw, seed = face.style.varySeed ?? 0;
+  for (let m = Math.floor(Math.min(a0, a1) / fw); m * fw < Math.max(a0, a1) - 1e-6; m++) {
+    const v = pickTile(others, chance, seed, flip ? -(m + 1) : m, 0, line.salt);
+    const src = v ? assets.source(v, scale * 4) : null;
+    if (!src) continue;
+    ctx.save();
+    ctx.transform(u.x * fw, u.y * fw, face.v.x, face.v.y, o.x + u.x * m * fw, o.y + u.y * m * fw);
+    ctx.drawImage(src, 0, 0, 1, 1);
+    ctx.restore();
+  }
+}
+
+/** Грани объёмных стен и вписанные в них двери, окна, арки, вставки. Рисуются под объектами. */
 export function drawFaces(ctx: CanvasRenderingContext2D, f: Floor, assets: AssetStore, o: RenderOpts) {
-  type Item = { face: WallFace; portal?: Portal };
-  const items: Item[] = wallFaces(f).map((face) => ({ face }));
-  for (const p of f.portals) if (p.kind !== 'gap') for (const face of portalFaces(f, p)) items.push({ face, portal: p });
+  const items = faceItems(f);
   if (!items.length) return;
-  // ближние к зрителю (ниже на экране) грани поверх дальних
-  const depth = (it: Item) => Math.max(...it.face.pts.map((q) => q.y));
-  items.sort((a, b) => depth(a) - depth(b));
   const cache = new Map<string, FaceTex | null>();
   const edge = Math.max(0.025, 1.2 / o.scale);
   const quad = (pts: Pt[]) => { ctx.moveTo(pts[0].x, pts[0].y); for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i].x, pts[i].y); ctx.closePath(); };
-  const material = (face: WallFace) => {
+  const texture = (face: WallFace) => {
     const t = faceTexture(ctx, assets, face.style.asset, o.scale, cache);
     if (t) fitTexture(t, face.pts[0], face.pts[1], face.v);
-    return t?.pat ?? face.style.color;
+    return t;
   };
-  const BIG = 1e5;
   for (const { face, portal } of items) {
     ctx.save();
-    // грань «внутрь» видна только в своей комнате, «наружу» — только вне её: на углах они не залезают друг на друга.
-    // У поднятой стены (проекция) и контур комнаты поднят — как будто смотрим на комнату на высоте верха стен
-    if (face.room) {
-      ctx.beginPath();
-      if (face.side === 'out') ctx.rect(-BIG, -BIG, BIG * 2, BIG * 2);
-      ctx.translate(face.lift.x, face.lift.y);
-      polyPath(ctx, face.room.poly);
-      ctx.translate(-face.lift.x, -face.lift.y);
-      ctx.clip('evenodd');
-    }
+    clipFace(ctx, face);
     const [p0, p1, p2, p3] = face.pts;
-    if (!portal) {
+    const ex = { x: p1.x - p0.x, y: p1.y - p0.y };
+    if (!portal || portal.kind === 'insert') {
+      const t = texture(face);
       ctx.beginPath(); quad(face.pts);
-      ctx.fillStyle = material(face); ctx.fill();
+      ctx.fillStyle = t?.pat ?? face.style.color; ctx.fill();
+      ctx.save();
+      ctx.clip();
+      if (!portal && t) drawFaceVariants(ctx, face, t, assets, o.scale);
+      // вставка: картинка варианта на всю высоту грани в пределах проёма (стена остаётся стеной)
+      const src = portal?.asset ? assets.source(portal.asset, o.scale * 4) : null;
+      if (src) {
+        ctx.transform(ex.x, ex.y, face.v.x, face.v.y, p0.x, p0.y);
+        ctx.imageSmoothingEnabled = !assets.entry(portal!.asset)?.pixelated;
+        ctx.drawImage(src, 0, 0, 1, 1);
+      }
+      ctx.restore();
+      ctx.beginPath(); quad(face.pts);
       ctx.fillStyle = shadeFace(ctx, p0, face.v); ctx.fill();
-      ctx.beginPath(); ctx.moveTo(p3.x, p3.y); ctx.lineTo(p2.x, p2.y);
-      ctx.lineWidth = edge; ctx.strokeStyle = 'rgba(0,0,0,0.7)'; ctx.stroke();
+      if (!portal) {
+        ctx.beginPath(); ctx.moveTo(p3.x, p3.y); ctx.lineTo(p2.x, p2.y);
+        ctx.lineWidth = edge; ctx.strokeStyle = 'rgba(0,0,0,0.7)'; ctx.stroke();
+      }
     } else {
       // проём: стена вокруг выреза (перемычка, подоконник), картинка двери/окна в вырезе, кромка выреза
       const shape = portalShape(portal);
       const src = portal.asset ? assets.source(portal.asset, o.scale * 4) : null;
-      const ex = { x: p1.x - p0.x, y: p1.y - p0.y };
       const M = (q: Pt): Pt => ({ x: p0.x + ex.x * q.x + face.v.x * q.y, y: p0.y + ex.y * q.x + face.v.y * q.y });
       const hole = openingShape(shape.top, shape.bottom, shape.arch).map(M);
       ctx.beginPath(); quad(face.pts); quad(hole);
-      ctx.fillStyle = material(face); ctx.fill('evenodd');
+      ctx.fillStyle = texture(face)?.pat ?? face.style.color; ctx.fill('evenodd');
       ctx.fillStyle = shadeFace(ctx, p0, face.v); ctx.fill('evenodd');
       if (src) {
         ctx.save();

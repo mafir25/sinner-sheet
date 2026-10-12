@@ -35,6 +35,9 @@ export type WallStyle = {
   asset: AssetKey | null; color: string; width: number; height?: number; inner?: FaceDir; outer?: FaceDir;
   /** Низкая стена (по пояс: ограждение, перила, парапет): не закрывает обзор и свет, в `.dd2vtt` не попадает. */
   low?: boolean;
+  /** Варианты текстуры грани (файлы её группы): шанс плитки 0…1 (нет — DEFAULT_VARY) и зерно раскладки. */
+  vary?: number;
+  varySeed?: number;
 };
 
 export type Room = {
@@ -46,6 +49,9 @@ export type Room = {
   type?: string;
   /** Отдельные стены комнаты со своими настройками: ребро a–b (в любом порядке) и что в нём отличается. */
   edgeStyles?: EdgeStyle[];
+  /** Варианты текстуры пола: шанс клетки 0…1 (нет — DEFAULT_VARY) и зерно раскладки. */
+  floorVary?: number;
+  floorSeed?: number;
 };
 export type EdgeStyle = { a: Pt; b: Pt; style: Partial<WallStyle> };
 
@@ -56,8 +62,12 @@ export type Wall = {
   wall: WallStyle;
 };
 
-/** gap — проём без стены (гараж, навес): стены нет, двери тоже. */
-export type PortalKind = 'door' | 'window' | 'gap';
+/**
+ * gap — проём без стены (гараж, навес): стены нет, двери тоже.
+ * insert — вставка варианта текстуры стены (щиток, решётка, светодиод): ставится как дверь, но остаётся стеной —
+ * свет, взгляд и `.dd2vtt` её не замечают; картинка ложится на грань целиком.
+ */
+export type PortalKind = 'door' | 'window' | 'gap' | 'insert';
 
 export type Portal = {
   id: string;
