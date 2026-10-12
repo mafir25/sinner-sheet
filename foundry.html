@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="manifest" href="/manifest.webmanifest">
+    <meta name="theme-color" content="#0a0a0a">
+    <link rel="apple-touch-icon" href="/Assets/App/icon-192.png">
+    <title>Mephistopheles Terminal / Foundry VTT</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Merriweather:ital,wght@0,300;1,300;1,700&family=Oswald:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Страница модуля Foundry VTT «pm5e» (docs/foundry.md, этап 7): установка, возможности, перенос с сайта -->
+    <style>
+        :root {
+            --bg-main: #070707; --bg-panel: #000000;
+            --accent: #8FCC2A; /* цвет «Универсальных систем» главной */
+            --color-cyan: #45B3CB; --text-main: #E0D8C8; --text-dim: #8a8a8a;
+            --chamfer: 18px;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background-color: var(--bg-main); color: var(--text-main); font-family: 'Inter', sans-serif; padding: 70px 16px 40px;
+            background-image: radial-gradient(circle at 50% 0%, #10180a 0%, #070707 60%); min-height: 100vh; }
+        .oswald { font-family: 'Oswald', sans-serif; text-transform: uppercase; }
+        .top-nav-btn { position: fixed; top: 10px; left: 16px; padding: 6px 12px; font-size: 0.8rem; color: var(--accent); font-family: 'Oswald', sans-serif; z-index: 100;
+            background: var(--bg-main); text-decoration: none; display: flex; align-items: center; gap: 6px; border: 1px solid var(--accent); text-transform: uppercase; transition: 0.2s; }
+        .top-nav-btn:hover { background-color: var(--accent); color: #000; }
+        .wrap { max-width: 1100px; margin: 0 auto; }
+        header { text-align: center; margin-bottom: 30px; }
+        header i { font-size: 2.6rem; color: var(--accent); margin-bottom: 10px; }
+        header h1 { font-size: clamp(1.6rem, 6vw, 2.6rem); color: var(--accent); letter-spacing: 3px; }
+        header p { color: var(--text-dim); font-family: 'Merriweather', serif; font-style: italic; margin-top: 8px; }
+        .panel-outer { background: var(--accent); padding: 1px; clip-path: polygon(var(--chamfer) 0, 100% 0, 100% 100%, 0 100%, 0 var(--chamfer)); margin-bottom: 24px; }
+        .panel-inner { background: var(--bg-panel); padding: 22px 20px; clip-path: polygon(var(--chamfer) 0, 100% 0, 100% 100%, 0 100%, 0 var(--chamfer)); }
+        h2 { color: var(--accent); font-size: 1.3rem; letter-spacing: 1px; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
+        h3 { font-size: 1rem; color: var(--text-main); margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+        h3 i { color: var(--accent); }
+        p, li { line-height: 1.55; font-size: 0.95rem; }
+        p + p { margin-top: 8px; }
+        ol, ul { padding-left: 22px; }
+        li + li { margin-top: 4px; }
+        .dim { color: var(--text-dim); font-size: 0.85rem; }
+        code { background: #151515; border: 1px solid #2a2a2a; padding: 1px 5px; font-size: 0.85em; }
+        .copy-row { display: flex; gap: 8px; margin: 10px 0 14px; flex-wrap: wrap; }
+        .copy-row input { flex: 1 1 320px; min-width: 0; background: #0d0d0d; border: 1px solid #333; color: var(--text-main); padding: 8px 10px; font-family: monospace; font-size: 0.85rem; }
+        .btn { background: transparent; border: 1px solid var(--accent); color: var(--accent); padding: 8px 14px; font-family: 'Oswald', sans-serif; text-transform: uppercase;
+            letter-spacing: 1px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; font-size: 0.85rem; transition: 0.2s; }
+        .btn:hover { background: var(--accent); color: #000; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(230px, 100%), 1fr)); gap: 16px; }
+        .feature { border-left: 3px solid var(--accent); padding: 4px 0 4px 14px; }
+        .two { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .two .panel-outer { display: flex; }
+        .two .panel-inner { flex: 1; }
+        @media (max-width: 900px) { .two { grid-template-columns: 1fr; } }
+        .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #000; border: 1px solid var(--accent); color: var(--accent);
+            padding: 8px 16px; font-family: 'Oswald', sans-serif; opacity: 0; transition: 0.3s; pointer-events: none; }
+        .toast.show { opacity: 1; }
+    </style>
+    <script src="site/i18n.js"></script>
+    <script type="module" src="site/ui.js"></script>
+</head>
+<body>
+    <a href="index.html" class="top-nav-btn"><i class="fa-solid fa-house"></i> ХАБ</a>
+
+    <div class="wrap">
+        <header>
+            <i class="fa-solid fa-dice-d20"></i>
+            <h1 class="oswald">Foundry VTT</h1>
+            <p>Модуль Mephistopheles Terminal для системы D&amp;D 5e: База знаний, статусы Project Moon, Свет и Э.Г.О. прямо за игровым столом.</p>
+        </header>
+
+        <section class="panel-outer"><div class="panel-inner">
+            <h2 class="oswald"><i class="fa-solid fa-download"></i> Установка</h2>
+            <ol>
+                <li>Нужны Foundry VTT v13–v14 и система <b>Dungeons &amp; Dragons Fifth Edition</b> (dnd5e).</li>
+                <li>Стартовый экран Foundry → «Дополнительные модули» → «Установить модуль».</li>
+                <li>Вставьте ссылку на манифест в поле внизу окна и нажмите «Установить»:</li>
+            </ol>
+            <div class="copy-row">
+                <input id="manifest" readonly value="https://github.com/mafir25/sinner-sheet/releases/latest/download/module.json" aria-label="Ссылка на манифест модуля">
+                <button class="btn" data-copy="manifest"><i class="fa-regular fa-copy"></i> Копировать</button>
+            </div>
+            <ol start="4">
+                <li>Откройте мир на системе dnd5e → «Управление модулями» → включите «Mephistopheles Terminal — Project Moon 5e».</li>
+            </ol>
+            <p class="dim">Без ссылки: скачайте архив и распакуйте в папку данных Foundry: <code>Data/modules/pm5e/</code> (путь к папке данных — на вкладке «Настройки» стартового экрана). Новые версии по ссылке ставятся кнопкой «Обновить».</p>
+            <div class="copy-row">
+                <a class="btn" href="https://github.com/mafir25/sinner-sheet/releases/latest/download/pm5e.zip"><i class="fa-solid fa-file-zipper"></i> Скачать pm5e.zip</a>
+                <a class="btn" href="https://github.com/mafir25/sinner-sheet/releases" target="_blank" rel="noopener"><i class="fa-brands fa-github"></i> Все версии</a>
+            </div>
+        </div></section>
+
+        <section class="panel-outer"><div class="panel-inner">
+            <h2 class="oswald"><i class="fa-solid fa-cubes"></i> Что в модуле</h2>
+            <div class="grid">
+                <div class="feature">
+                    <h3><i class="fa-solid fa-book-skull"></i> База знаний</h3>
+                    <p>Кнопка «База знаний» в каталогах актёров, предметов и журналов. Разделы и поиск как на сайте, канон — свежий, с сайта. «В мир» создаёт документ, «Выдать» отдаёт предмет персонажу.</p>
+                </div>
+                <div class="feature">
+                    <h3><i class="fa-solid fa-biohazard"></i> Статусы</h3>
+                    <p>Горение, Кровотечение, Тремор, Потопление и ещё 40 статусов со стаками и иконками. Панель статусов у выделенного токена, урон и убыль стаков по ходам и раундам — сами.</p>
+                </div>
+                <div class="feature">
+                    <h3><i class="fa-solid fa-gem"></i> Свет и Э.Г.О.</h3>
+                    <p>Окно персонажа: Свет, его Э.Г.О. и дары. Слияние даров по правилу Базы знаний — результат из канона нужного уровня.</p>
+                </div>
+                <div class="feature">
+                    <h3><i class="fa-solid fa-dice"></i> Атаки</h3>
+                    <p>Атаки и спасброски существ — настоящие броски с уроном, статусы при попадании накладываются на цель из карточки броска. Оружие персонажей — по SRD 5e.</p>
+                </div>
+            </div>
+        </div></section>
+
+        <div class="two">
+            <section class="panel-outer"><div class="panel-inner">
+                <h2 class="oswald"><i class="fa-solid fa-right-left"></i> Перенос с сайта</h2>
+                <ul>
+                    <li><b>База знаний:</b> кнопка «Foundry» на карточке, в «Моей сборке» и во «Встрече».</li>
+                    <li><b>Конструктор персонажа:</b> «В FOUNDRY» — актёр со всеми умениями и владениями; «ИЗ FOUNDRY» — обратно.</li>
+                    <li><b>Редактор карт:</b> экспорт «Сцена Foundry VTT» — стены, двери, свет, звуки, заметки.</li>
+                </ul>
+                <p class="dim">Перенесённое вставляется в окно «Mephistopheles» модуля (или запускается макросом без модуля). Повторный перенос обновляет, а не дублирует.</p>
+                <div class="copy-row">
+                    <a class="btn" href="navigation.html"><i class="fa-solid fa-network-wired"></i> База знаний</a>
+                    <a class="btn" href="builder.html"><i class="fa-solid fa-user-gear"></i> Конструктор</a>
+                    <a class="btn" href="maps.html"><i class="fa-solid fa-map-location-dot"></i> Редактор карт</a>
+                </div>
+            </div></section>
+
+            <section class="panel-outer"><div class="panel-inner">
+                <h2 class="oswald"><i class="fa-solid fa-screwdriver-wrench"></i> Если что-то не так</h2>
+                <ul>
+                    <li>Модуля нет в «Управлении модулями» — мир создан не на системе dnd5e.</li>
+                    <li>Внизу окна Базы знаний «Встроенная копия ⚠» — сайт не ответил, показывается копия из модуля; наведите на ⚠, чтобы увидеть ошибку.</li>
+                    <li>Автоматику статусов, панель и значки в меню токена можно выключить в настройках модуля.</li>
+                    <li>Ошибки — консоль браузера (F12): пришлите текст вместе со скриншотом.</li>
+                </ul>
+                <div class="copy-row">
+                    <a class="btn" href="https://github.com/mafir25/sinner-sheet/issues" target="_blank" rel="noopener"><i class="fa-solid fa-bug"></i> Сообщить об ошибке</a>
+                </div>
+            </div></section>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+    <script>
+        document.querySelectorAll('[data-copy]').forEach((b) => b.addEventListener('click', async () => {
+            const input = document.getElementById(b.dataset.copy);
+            const toast = document.getElementById('toast');
+            const t = (s) => (window.I18N ? window.I18N.t(s) : s);
+            try { await navigator.clipboard.writeText(input.value); toast.textContent = t('Скопировано в буфер'); }
+            catch (e) { input.select(); toast.textContent = t('Не удалось скопировать'); }
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 1800);
+        }));
+    </script>
+</body>
+</html>

@@ -101,6 +101,16 @@
         .card-ego .status-badge { border-color: var(--color-magenta); color: var(--color-magenta); background: rgba(217, 66, 133, 0.1); margin-top: auto; }
 
         /* Большая кнопка PMD (Навигация) */
+        /* Пара карточек «Редактор карт | Foundry VTT» в универсальных системах — цвет колонки, разделены как конструкторы */
+        .uni-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .card-uni .panel-outer { background-color: var(--color-office); }
+        .card-uni .hazard-tape { background: repeating-linear-gradient(45deg, #000 0px, #000 10px, var(--color-office) 10px, var(--color-office) 20px); border-color: var(--color-office); }
+        .card-uni i { color: var(--color-office); font-size: 2.5rem; margin-bottom: 15px; transition: 0.3s; }
+        .card-uni:hover .panel-outer { box-shadow: 0 0 15px rgba(143, 204, 42, 0.4); }
+        .card-uni:hover .panel-inner { background-color: #050a00; }
+        .card-uni .panel-inner { padding: 20px 15px; justify-content: flex-start; }
+        .card-uni .system-title { font-size: 1.3rem; margin-bottom: 6px; color: var(--text-main); line-height: 1.2; }
+        .card-uni .status-badge { border-color: var(--color-office); color: var(--color-office); background: rgba(143, 204, 42, 0.1); margin-top: auto; }
         .card-full-width .panel-inner { padding: 30px 15px; justify-content: center; }
         .card-full-width .system-title { font-size: 1.5rem; }
 
@@ -113,7 +123,7 @@
         }
         @media (max-width: 600px) {
             .hub-container { grid-template-columns: 1fr; }
-            .pmd-grid { grid-template-columns: 1fr; }
+            .pmd-grid, .uni-pair { grid-template-columns: 1fr; }
             /* «МЕФИСТОФЕЛЬ» одним словом не помещается в узкий экран при 3rem */
             .terminal-header h1 { font-size: clamp(1.6rem, 9vw, 3rem); letter-spacing: 2px; overflow-wrap: anywhere; }
             .terminal-header p { letter-spacing: 1px; }
@@ -162,6 +172,33 @@
                         </div>
                     </div>
                 </a>
+
+                <!-- Редактор карт | Foundry VTT -->
+                <div class="uni-pair">
+                    <a href="maps.html" class="system-card card-uni">
+                        <div class="panel-outer cut-tl">
+                            <div class="hazard-tape"></div>
+                            <div class="panel-inner cut-tl" style="border-top: none;">
+                                <i class="fa-solid fa-map-location-dot"></i>
+                                <div class="system-title oswald">РЕДАКТОР КАРТ</div>
+                                <div class="lore-text" style="margin-bottom: 16px;">Боевые карты, районы и здания Города. Экспорт в Foundry, Roll20 и другие VTT.</div>
+                                <div class="status-badge">РАЗВЕРНУТЬ ХОЛСТ</div>
+                            </div>
+                        </div>
+                    </a>
+
+                    <a href="foundry.html" class="system-card card-uni">
+                        <div class="panel-outer cut-tl">
+                            <div class="hazard-tape"></div>
+                            <div class="panel-inner cut-tl" style="border-top: none;">
+                                <i class="fa-solid fa-dice-d20"></i>
+                                <div class="system-title oswald">FOUNDRY VTT</div>
+                                <div class="lore-text" style="margin-bottom: 16px;">Модуль Mephistopheles: База знаний, статусы, Свет и Э.Г.О. прямо в Foundry.</div>
+                                <div class="status-badge">СВЯЗЬ С VTT</div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
             </div>
         </div>
 

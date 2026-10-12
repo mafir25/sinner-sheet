@@ -7,7 +7,8 @@ const ROOT = process.cwd();
 const OUT = join(ROOT, 'dist');
 const SKIP = new Set(['node_modules', 'dist', 'shirm-app', 'map-app', 'docs', 'scripts', 'CLAUDE.md', 'vite.maps.config.mjs', '.git', '.github', '.vite',
   'package.json', 'package-lock.json', 'vite.config.mjs', 'vercel.json', 'firestore.rules', '.gitignore', 'README.md',
-  'tests', 'firebase.json', 'firestore-debug.log']);
+  'tests', 'firebase.json', 'firestore-debug.log',
+  'foundry-module', 'dist-foundry']);   // модуль Foundry собирается отдельно (scripts/build-foundry-module.mjs) и живёт в релизах GitHub
 const EXT = new Set(['.html', '.json', '.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg', '.ico', '.css', '.js',
   '.txt', '.webmanifest', '.mp3', '.ogg', '.wav', '.ttf', '.otf', '.woff', '.woff2', '.pdf']);
 

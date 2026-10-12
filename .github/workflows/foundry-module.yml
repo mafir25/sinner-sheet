@@ -1,0 +1,45 @@
+# Релиз модуля Foundry «pm5e» (docs/foundry.md, этап 3). Два способа:
+#   1) тег: git tag pm5e-v0.6.0 && git push origin pm5e-v0.6.0 — версия из тега;
+#   2) коммит с «[pm5e-release]» в сообщении (в любой ветке) — версия из foundry-module/module.json, тег pm5e-v<версия>
+#      создаётся релизом на этом коммите (так выпускают из сред, где пуш тегов закрыт).
+name: Foundry module
+
+on:
+  push:
+    tags: ['pm5e-v*']
+    branches: ['**']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    if: startsWith(github.ref, 'refs/tags/pm5e-v') || contains(github.event.head_commit.message, '[pm5e-release]')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - name: Версия
+        id: v
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/pm5e-v* ]]; then V="${GITHUB_REF_NAME#pm5e-v}"; else V=$(node -p "require('./foundry-module/module.json').version"); fi
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+      - run: node scripts/build-foundry-module.mjs ${{ steps.v.outputs.version }}
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: pm5e-v${{ steps.v.outputs.version }}
+          target_commitish: ${{ github.sha }}
+          name: Модуль Foundry pm5e ${{ steps.v.outputs.version }}
+          make_latest: true
+          body: |
+            Модуль Mephistopheles Terminal для Foundry VTT (dnd5e). Установка — ссылка на манифест:
+            https://github.com/mafir25/sinner-sheet/releases/latest/download/module.json
+            Подробно — страница «Foundry VTT» на сайте и docs/foundry.md.
+          files: |
+            dist-foundry/module.json
+            dist-foundry/pm5e.zip

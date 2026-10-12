@@ -1,0 +1,75 @@
+/* Модуль pm5e (Mephistopheles Terminal) */
+.pm5e-import textarea { width: 100%; min-height: 160px; font-family: monospace; font-size: 12px; }
+.pm5e-import .hint { margin: 0 0 8px; color: var(--color-text-secondary, #888); }
+.pm5e-dir-btn { flex: 0 0 auto; }
+
+/* Окно «База знаний» */
+.pm5e-kb .window-content { padding: 0; overflow: hidden; }
+.pm5e-kb-layout { display: grid; grid-template-columns: 190px 260px 1fr; height: 100%; min-height: 0; }
+.pm5e-cats { display: flex; flex-direction: column; gap: 2px; padding: 8px; border-right: 1px solid var(--color-border, #555); overflow-y: auto; }
+.pm5e-cat { display: flex; align-items: center; gap: 6px; text-align: left; justify-content: flex-start; }
+.pm5e-cat span { flex: 1; }
+.pm5e-cat small { opacity: .6; }
+.pm5e-cat.active { background: var(--color-warm-2, #c9593f); color: #fff; }
+.pm5e-src { margin-top: auto; font-size: 11px; opacity: .8; display: flex; align-items: center; gap: 6px; }
+.pm5e-src button { flex: 0 0 auto; width: auto; }
+.pm5e-list-col { display: flex; flex-direction: column; min-height: 0; border-right: 1px solid var(--color-border, #555); }
+.pm5e-search { margin: 8px; width: calc(100% - 16px); }
+.pm5e-list { list-style: none; margin: 0; padding: 0 0 8px; overflow-y: auto; flex: 1; }
+.pm5e-list li { padding: 5px 10px; cursor: pointer; display: flex; flex-direction: column; border-left: 3px solid transparent; }
+.pm5e-list li small { opacity: .6; font-size: 11px; }
+.pm5e-list li:hover { background: rgba(255, 255, 255, .06); }
+.pm5e-list li.active { border-left-color: var(--color-warm-2, #c9593f); background: rgba(201, 89, 63, .15); }
+.pm5e-entry { padding: 12px 16px; overflow-y: auto; min-height: 0; }
+.pm5e-entry h2 { margin: 0 0 4px; border: none; }
+.pm5e-meta { opacity: .75; font-style: italic; margin-bottom: 6px; }
+.pm5e-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
+.pm5e-tags span { border: 1px solid currentColor; padding: 0 6px; border-radius: 3px; font-size: 11px; opacity: .8; }
+.pm5e-actions { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 10px; }
+.pm5e-actions button { flex: 0 0 auto; width: auto; }
+.pm5e-note { font-size: 12px; opacity: .75; }
+.pm5e-sub { border-left: 3px solid var(--color-warm-2, #c9593f); padding: 2px 10px; margin: 8px 0; }
+.pm5e-sub h4 { margin: 4px 0; border: none; }
+.pm5e-sub h4 small { opacity: .6; font-weight: normal; }
+.pm5e-stats { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; text-align: center; margin: 8px 0; }
+.pm5e-stats div { display: flex; flex-direction: column; border: 1px solid var(--color-border, #555); padding: 2px; }
+.pm5e-line { margin: 2px 0; }
+.pm5e-link { text-decoration: underline dotted; cursor: pointer; }
+.pm5e-empty { padding: 16px; opacity: .7; }
+
+/* Панель статусов выделенного токена */
+#pm5e-tray { position: fixed; left: 110px; bottom: 120px; z-index: 70; width: 260px; max-height: 50vh; overflow-y: auto;
+  background: rgba(15, 15, 20, .92); color: #eee; border: 1px solid #c9593f; border-radius: 4px; font-size: 12px; }
+#pm5e-tray header { padding: 4px 8px; font-weight: bold; border-bottom: 1px solid #444; }
+#pm5e-tray ul { list-style: none; margin: 0; padding: 4px; }
+#pm5e-tray li { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; padding: 2px 0; }
+#pm5e-tray li img { width: 20px; height: 20px; border: none; }
+#pm5e-tray li .n { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#pm5e-tray li b { min-width: 22px; text-align: right; }
+#pm5e-tray li .x { flex-basis: 100%; display: flex; gap: 4px; padding-left: 24px; }
+#pm5e-tray li.empty { opacity: .6; }
+#pm5e-tray button { width: auto; min-width: 20px; height: 20px; line-height: 18px; padding: 0 5px; font-size: 11px; color: #eee; background: #333; border: 1px solid #555; }
+#pm5e-tray footer { display: flex; gap: 4px; padding: 4px; border-top: 1px solid #444; }
+#pm5e-tray footer select { flex: 1; min-width: 0; }
+#pm5e-tray footer input { width: 44px; }
+.pm5e-chat h4 { margin: 0 0 4px; }
+.pm5e-chat ul { margin: 0; padding-left: 16px; }
+.pm5e-kb .pm5e-n { width: 56px; flex: 0 0 auto; }
+
+/* Окно «Свет и Э.Г.О.» */
+.pm5e-ego .window-content { padding: 8px 12px; gap: 6px; }
+.pm5e-ego h3 { margin: 6px 0 4px; border-bottom: 1px solid var(--color-border, #555); }
+.pm5e-light-row { display: flex; align-items: center; gap: 8px; }
+.pm5e-pips { display: flex; flex-wrap: wrap; gap: 3px; flex: 1; }
+.pm5e-pips span { width: 12px; height: 12px; border-radius: 50%; border: 1px solid #c9a23f; }
+.pm5e-pips span.on { background: radial-gradient(#fff6c8, #f0c040); box-shadow: 0 0 4px #f0c040; }
+.pm5e-row-btns { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 4px 0; }
+.pm5e-row-btns button { flex: 0 0 auto; width: auto; }
+.pm5e-row-btns input[type=number] { width: 52px; }
+.pm5e-ilist { list-style: none; margin: 0; padding: 0; }
+.pm5e-ilist li { display: flex; align-items: center; gap: 6px; padding: 2px 0; }
+.pm5e-ilist li a, .pm5e-ilist li span { flex: 1; cursor: pointer; }
+.pm5e-ilist li small { opacity: .7; }
+.pm5e-ilist li button { flex: 0 0 auto; width: auto; }
+#pm5e-tray header { display: flex; align-items: center; justify-content: space-between; }
+.pm5e-ilist.pm5e-fuse { max-height: 260px; overflow-y: auto; border: 1px solid var(--color-border, #555); padding: 2px 6px; }

@@ -238,6 +238,11 @@
         .cp-opt:hover { border-color: var(--color-yellow); }
         .cp-opt.on { background: var(--color-yellow); border-color: var(--color-yellow); color: #000; }
         .cp-opt.dis { opacity: 0.4; cursor: not-allowed; }
+        .prof-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+        .prof-grid .cp-opt.cls { border-color: #27AE60; }
+        .prof-grid .cp-opt.exp { background: #D94285; border-color: #D94285; color: #fff; }
+        .prof-grid .cp-opt b { font-weight: 600; margin-left: 4px; }
+        .prof-hint { color: var(--text-dim); font-size: 0.8rem; margin-bottom: 6px; }
         .cp-hint { font-size: 0.72rem; color: var(--text-dim); }
         .tip { position: fixed; z-index: 4000; background: #111; border: 1px solid #444; color: var(--text-main); font-size: 0.75rem; padding: 6px 8px; white-space: pre-line; pointer-events: none; line-height: 1.4; }
 
@@ -329,6 +334,8 @@
     <div class="toolbar">
         <label class="tool-btn" style="--c: var(--color-cyan)"><i class="fa-solid fa-download"></i> ЗАГРУЗИТЬ ПРЕСЕТ<input type="file" id="preset-in" accept=".json"></label>
         <button class="tool-btn" id="btn-export" style="--c: var(--color-yellow)"><i class="fa-solid fa-file-export"></i> СКАЧАТЬ ПРЕСЕТ</button>
+        <button class="tool-btn" id="btn-foundry" style="--c: #FF6400" data-tip="Актёр для Foundry VTT (dnd5e): макрос или JSON для «Import Data»"><i class="fa-solid fa-dice-d20"></i> В FOUNDRY</button>
+        <label class="tool-btn" style="--c: #FF6400" data-tip="Актёр Foundry (правый щелчок → «Export Data») обратно в конструктор"><i class="fa-solid fa-file-import"></i> ИЗ FOUNDRY<input type="file" id="foundry-in" accept=".json"></label>
         <button class="tool-btn" id="btn-copy" style="--c: var(--color-cyan)"><i class="fa-regular fa-copy"></i> КОПИРОВАТЬ ДОСЬЕ</button>
         <label class="tool-btn" style="--c: #B0B0B0" data-tip="Класс, черта, предмет, дар Э.Г.О. или Э.Г.О. в формате JSON. Такие объекты помечаются как «на усмотрение ДМ-а»."><i class="fa-solid fa-upload"></i> СВОЙ JSON<input type="file" id="custom-in" accept=".json"></label>
         <button class="tool-btn" id="btn-levelup" style="--c: var(--color-yellow)"><i class="fa-solid fa-arrow-up"></i> ПОВЫСИТЬ УРОВЕНЬ</button>
@@ -387,6 +394,15 @@
                 <div class="panel-inner cut-tl">
                     <div class="panel-title"><i class="fa-solid fa-dice-d20"></i> ХАРАКТЕРИСТИКИ И БРОСКИ <small>наведите на итог, чтобы увидеть источники прибавок</small></div>
                     <div id="stats-panel"></div>
+                </div>
+            </div>
+
+            <!-- ВЛАДЕНИЯ (site/proficiencies.js) -->
+            <div class="panel-outer cut-tl" style="--pc: #27AE60; --pc-muted: #14532d;">
+                <div class="hazard-tape"></div>
+                <div class="panel-inner cut-tl">
+                    <div class="panel-title"><i class="fa-solid fa-user-check"></i> ВЛАДЕНИЯ <small>спасброски и навыки; щелчок по навыку: владение → компетентность → нет</small></div>
+                    <div id="prof-panel"></div>
                 </div>
             </div>
 

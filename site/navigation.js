@@ -7,6 +7,7 @@ import { onAuth } from "./auth.js";
 import { DICT, SCHEMAS, fieldHtml as fieldHtmlBase, repeatRow as repeatRowBase, repeatMove, collectFields,
   CLASS_REGISTRY, classFileRel } from "./fields.js";
 import { fusionTier, parseChallenge, encounterBudget, rateEncounter } from "./compendium-tools.js";
+import { canExport, buildPackage, packageSize, importDataJson, foundryMacro } from "./foundry-export.js";
 
 /* ============================================================
    0. ИНИЦИАЛИЗАЦИЯ
@@ -753,6 +754,8 @@ function cardHtml(it, catId = state.cat, opts = {}){
     <button class="ctrl-btn ctrl-copy" data-act="copy-item" data-uid="${esc(uid)}"><i class="fa-regular fa-copy"></i> Текст</button>
     <button class="ctrl-btn ctrl-dl" data-act="dl-item" data-uid="${esc(uid)}"><i class="fa-solid fa-download"></i> JSON</button>
     <button class="ctrl-btn ctrl-copy" data-act="copy-link" data-uid="${esc(uid)}" title="Скопировать ссылку на запись"><i class="fa-solid fa-link"></i> Ссылка</button>`;
+  if (canExport(catId)) ctrl += `
+    <button class="ctrl-btn ctrl-dl" data-act="foundry-item" data-uid="${esc(uid)}" title="Экспорт в Foundry VTT (dnd5e)"><i class="fa-solid fa-dice-d20"></i> Foundry</button>`;
   if (catId === "gifts"){
     const on = state.fusion.some(f => f.uid === uid);
     ctrl += `
@@ -922,6 +925,77 @@ function renderPicks(){
 }
 
 /* ============================================================
+   10a. ЭКСПОРТ В FOUNDRY VTT (docs/foundry.md, этап 1)
+   Документы собирает site/foundry-export.js; здесь — окно с макросом и файлом для «Import Data».
+   ============================================================ */
+let FOUNDRY = null;                                   // { pkg, macro }
+/* Текст окна — сразу на двух языках: абзацы с разметкой словарь i18n-en.js по кускам не переведёт */
+const FOUNDRY_TEXT = {
+  ru: {
+    kind:{ items:"Предметы", actors:"Актёры", journals:"Журналы" },
+    macro:`<b>Макрос</b> (удобнее): в Foundry откройте панель макросов → новый макрос → тип «Скрипт» → вставьте текст → «Выполнить».
+      Запускает мастер, нужна система <b>dnd5e</b>. Всё ляжет в папку «Mephistopheles Terminal»; повторный запуск
+      обновит уже перенесённое, а не создаст копии.`,
+    json: hint => `<b>Файл JSON</b>: создайте в Foundry ${hint}, щёлкните по нему правой кнопкой → «Import Data» → выберите файл.`,
+    hint:{ actor:"актёра типа «NPC»", journal:"запись журнала", weapon:"предмет типа «Оружие» (weapon)", equipment:"предмет типа «Снаряжение» (equipment)", feat:"предмет типа «Особенность» (feat)" },
+    note:"Атаки и умения переносятся текстом: броски настраиваются в Foundry (позже это возьмёт на себя модуль).",
+    empty:"Здесь нечего переносить в Foundry"
+  },
+  en: {
+    kind:{ items:"Items", actors:"Actors", journals:"Journals" },
+    macro:`<b>Macro</b> (easiest): in Foundry open the macro bar → new macro → type “Script” → paste the text → “Execute”.
+      Run it as the GM; the <b>dnd5e</b> system is required. Everything goes to the “Mephistopheles Terminal” folder; running
+      it again updates what was imported before instead of making copies.`,
+    json: hint => `<b>JSON file</b>: create ${hint} in Foundry, right-click it → “Import Data” → pick the file.`,
+    hint:{ actor:"an “NPC” actor", journal:"a journal entry", weapon:"a “Weapon” item", equipment:"an “Equipment” item", feat:"a “Feature” item" },
+    note:"Attacks and abilities are exported as text: set up the rolls in Foundry (the module will handle this later).",
+    empty:"Nothing here to export to Foundry"
+  }
+};
+/* Запись из индекса (с __origin/__id), если она там есть: у сборки и встречи хранятся только копии */
+async function fullEntry(uid, cat, data){
+  const r = REG.get(uid);
+  if (r) return { uid, cat:r.cat, it:r.it };
+  try { const e = (await getIndex()).entries.find(x => x.uid === uid); if (e) return { uid, cat:e.cat, it:e.it }; } catch {}
+  return data ? { uid, cat, it:data } : null;
+}
+function openFoundry(list){
+  const lang = I18N.lang === "en" ? "en" : "ru";
+  const folders = Object.fromEntries(Object.entries(CATS).map(([k, c]) => [k, I18N.t(c.label)]));
+  const entries = list.filter(e => e && canExport(e.cat)).map(e => ({
+    cat:e.cat, it:e.it,
+    ref:{ key:e.uid.slice(e.cat.length + 1), url:linkFor({ it:e.it, cat:e.cat }) }
+  }));
+  const pkg = buildPackage(entries, { origin:location.origin, lang, folders,
+    toHtml: v => DOMPurify.sanitize(marked.parse(String(v ?? ""))) });
+  const T = FOUNDRY_TEXT[lang];
+  if (!packageSize(pkg)){ toast(T.empty); return; }
+  FOUNDRY = { pkg, macro:foundryMacro(pkg, lang) };
+  const docs = [...pkg.items, ...pkg.actors, ...pkg.journals];
+  const counts = Object.entries(T.kind).filter(([k]) => pkg[k].length)
+    .map(([k, label]) => `${label}: ${pkg[k].length}`).join(" · ");
+  const single = docs.length === 1;
+  const hint = pkg.actors.length ? T.hint.actor : pkg.journals.length ? T.hint.journal : (T.hint[docs[0].type] || docs[0].type);
+  $("#foundry-body").innerHTML = `
+    <div class="md notranslate" style="margin-bottom:12px">
+      <p><b>${esc(counts)}</b> — ${docs.slice(0, 8).map(d => esc(d.name)).join(", ")}${docs.length > 8 ? " …" : ""}</p>
+      <p>${T.macro}</p>
+      ${single ? `<p>${T.json(hint)}</p>` : ""}
+      <p style="color:var(--text-dim)">${T.note}</p>
+    </div>`;
+  $("#foundry-json").style.display = single ? "" : "none";
+  $("#foundryModal").classList.add("active");
+}
+function downloadText(text, filename, type = "text/javascript"){
+  const url = URL.createObjectURL(new Blob([text], { type }));
+  const a = document.createElement("a");
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
+const fileSafe = s => String(s || "export").replace(/[\\/:*?"<>|]+/g, "_").slice(0, 80);
+
+/* ============================================================
    10b. СЛИЯНИЕ Э.Г.О. И ВСТРЕЧА (справочные помощники, сайдбары)
    Правило слияния — mechanics/rules.json («Слияние Э.Г.О.»), бюджет встречи — DMG 2024.
    Логика без DOM — site/compendium-tools.js. Выбор хранится в этом браузере.
@@ -1049,7 +1123,9 @@ function renderEnc(){
       </div>
       <div class="enc-budget">Бюджет группы: низкая до ${fmtXp(b.low)} · умеренная до ${fmtXp(b.moderate)} · высокая до ${fmtXp(b.high)}</div>
     </div>
-    ${E.list.length ? `<button class="action-btn ghost" data-act="enc-clear" style="margin-top:12px"><i class="fa-solid fa-trash"></i> Очистить встречу</button>` : ""}
+    ${E.list.length ? `<div class="b-row" style="margin-top:12px">
+      <button class="action-btn" data-act="enc-foundry"><i class="fa-solid fa-dice-d20"></i> В Foundry</button>
+      <button class="action-btn ghost" data-act="enc-clear"><i class="fa-solid fa-trash"></i> Очистить встречу</button></div>` : ""}
     <div class="sidebar-empty" style="margin-top:14px;border-top:1px dashed #333;padding-top:10px">
       Подсчёт по правилам DMG 2024: опыт всех существ сравнивается с бюджетом группы. Это ориентир для подготовки —
       Части Аномалий, укрытия и Свет он не учитывает.</div>`;
@@ -3502,6 +3578,16 @@ document.addEventListener("click", async ev => {
     case "pick": togglePick(uid); break;
     case "copy-item": { const it = findItem(uid); if (it) copyText(stripLinkTargets(withCalcText(CATS[catOf(uid)].plain(it), it.Calcs, uid))); break; }
     case "copy-link": { const r = REG.get(uid); if (r) { copyText(linkFor({ it:r.it, cat:r.cat })); } break; }
+    case "foundry-item": { const r = REG.get(uid); if (r) openFoundry([{ uid, cat:r.cat, it:r.it }]); break; }
+    case "picks-foundry": openFoundry(await Promise.all(state.picks.map(p => fullEntry(p.uid, p.cat, p.data)))); break;
+    case "enc-foundry": openFoundry(await Promise.all(state.enc.list.map(e => fullEntry(e.uid, "bestiary", null)))); break;
+    case "foundry-copy": if (FOUNDRY) copyText(FOUNDRY.macro); break;
+    case "foundry-macro": if (FOUNDRY) downloadText(FOUNDRY.macro, "Mephistopheles - Foundry macro.js"); break;
+    case "foundry-json": {
+      const d = FOUNDRY && [...FOUNDRY.pkg.items, ...FOUNDRY.pkg.actors, ...FOUNDRY.pkg.journals][0];
+      if (d) downloadJson(importDataJson(d), `fvtt-${fileSafe(d.name)}.json`);
+      break;
+    }
     case "gs-open": openGlobalSearch(); break;
     case "gs-go": { const e = GS.results[+el.dataset.i]; if (e){ closeGlobalSearch(); await openInBase(e); } break; }
     case "dl-item": { const it = findItem(uid); if (it) downloadJson([cleanCopy(it)], `${it.Name || "item"}.json`); break; }
