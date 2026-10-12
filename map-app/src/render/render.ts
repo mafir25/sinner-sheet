@@ -317,15 +317,27 @@ export function drawPortal(ctx: CanvasRenderingContext2D, f: Floor, p: Portal, a
   if (L < 1e-6) return;
   const th = portalThickness(f, p);
   const e = p.asset ? assets.entry(p.asset) : undefined;
-  const h = Math.max(th, e ? (e.footprint[1] / e.footprint[0]) * L : th);
   // на объёмной стене без грани здесь (боковая при «вниз») проём — на поднятой верхней линии
   const w = portalWall(f, p), l = w ? wallLineLift(w.style) : { x: 0, y: 0 };
   ctx.save();
   ctx.translate((p.a.x + p.b.x) / 2 + l.x, (p.a.y + p.b.y) / 2 + l.y);
   ctx.rotate(Math.atan2(dy, dx));
-  const src = p.asset ? assets.source(p.asset, o.scale * (L / (e?.footprint[0] ?? L))) : null;
-  if (src) ctx.drawImage(src, -L / 2, -h / 2, L, h);
-  else {
+  const src = p.asset ? assets.source(p.asset, o.scale * (L / (e?.footprint[0] ?? L))) as HTMLCanvasElement | HTMLImageElement | null : null;
+  // Картинка «вид спереди» (двери и окна Крыльев, высота ≥ половины ширины) на стене без грани не помещается:
+  // целиком она легла бы на пол наклейкой. Рисуем её участком стены — полосой чуть толще линии стены из средней
+  // части картинки (створки, шов, боковые рамки), с тёмной кромкой, как у самой стены.
+  const front = !!e && e.footprint[1] / e.footprint[0] >= 0.5;
+  if (src && front) {
+    const sw = src instanceof HTMLImageElement ? src.naturalWidth : src.width, sh = src instanceof HTMLImageElement ? src.naturalHeight : src.height;
+    const h = Math.max(th * 1.5, 0.12);
+    ctx.drawImage(src, 0, sh * 0.35, sw, sh * 0.3, -L / 2, -h / 2, L, h);
+    ctx.lineWidth = Math.max(0.02, 1.2 / o.scale);
+    ctx.strokeStyle = 'rgba(0,0,0,0.75)';
+    ctx.strokeRect(-L / 2, -h / 2, L, h);
+  } else if (src) {
+    const h = Math.max(th, e ? (e.footprint[1] / e.footprint[0]) * L : th);
+    ctx.drawImage(src, -L / 2, -h / 2, L, h);
+  } else {
     ctx.fillStyle = p.kind === 'door' ? '#6b4a2f' : '#9fdde9';
     ctx.fillRect(-L / 2, -th / 2, L, th);
   }
