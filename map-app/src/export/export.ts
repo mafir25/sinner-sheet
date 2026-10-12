@@ -1,13 +1,13 @@
-// Экспорт: PNG / JPG / WebP и Universal VTT (.dd2vtt). docs/map-editor.md §6.
+// Экспорт: PNG / JPG / WebP, Universal VTT (.dd2vtt) и сцена Foundry VTT (.json + картинка). docs/map-editor.md §6.
 import JSZip from 'jszip';
 import type { AssetStore } from '../assets/store';
-import type { Floor, MapDoc, Portal } from '../model/types';
+import type { Floor, MapDoc, Portal, WallStyle } from '../model/types';
 import { renderMap } from '../render/render';
-import { portalWall, wallChains } from '../geom/walls';
+import { innerNormal, portalWall, wallChains } from '../geom/walls';
 import { safeName, usedAssetKeysWithVariants } from '../storage/file';
 import { tr } from '../i18n';
 
-export type ExportFormat = 'png' | 'jpg' | 'webp' | 'dd2vtt';
+export type ExportFormat = 'png' | 'jpg' | 'webp' | 'dd2vtt' | 'foundry';
 export type WindowMode = 'gap' | 'wall' | 'door';
 export type ExportOpts = {
   format: ExportFormat; ppc: number; grid: boolean; floors: 'current' | 'all'; windows: WindowMode; quality: number;
@@ -28,7 +28,7 @@ export const MAX_AREA = 268_000_000;
 export const fits = (doc: MapDoc, ppc: number) =>
   doc.width * ppc <= MAX_SIDE && doc.height * ppc <= MAX_SIDE && doc.width * doc.height * ppc * ppc <= MAX_AREA;
 
-const MIME: Record<Exclude<ExportFormat, 'dd2vtt'>, string> = { png: 'image/png', jpg: 'image/jpeg', webp: 'image/webp' };
+const MIME: Record<Exclude<ExportFormat, 'dd2vtt' | 'foundry'>, string> = { png: 'image/png', jpg: 'image/jpeg', webp: 'image/webp' };
 
 export async function renderFloorCanvas(doc: MapDoc, floorId: string, assets: AssetStore, ppc: number, grid: boolean, flags: RenderFlags): Promise<HTMLCanvasElement> {
   await assets.whenLoaded([...usedAssetKeysWithVariants(doc, assets)]);
@@ -71,14 +71,25 @@ function vttPortal(p: Portal, closed: boolean) {
 
 const argb = (hex: string, alpha = 'ff') => `${alpha}${(/^#?([\da-f]{6})$/i.exec(hex.trim())?.[1] ?? 'ffffff').toLowerCase()}`;
 
-/** Документ Universal VTT для этажа. image — PNG в base64. baked — освещение уже запечено в картинку. */
+/** Окно в VTT: своё (Portal.vtt) или как выбрано при экспорте. */
+export const windowMode = (p: Portal, windows: WindowMode): WindowMode => p.vtt ?? windows;
+const isSecret = (p: Portal) => p.kind === 'door' && !!p.secret;
+
+/**
+ * Документ Universal VTT для этажа. image — PNG в base64. baked — освещение уже запечено в картинку.
+ * Тайные двери в формате не описываются — там сплошная стена; прозрачные стены (стекло) взгляд не закрывают.
+ */
 export function buildDd2vtt(doc: MapDoc, f: Floor, ppc: number, image: string, windows: WindowMode, baked = false) {
-  const gaps = new Set<Portal['kind']>(windows === 'wall' ? ['door'] : ['door', 'window']);
-  // низкие стены (ограждения, перила) не закрывают обзор — в VTT их нет
-  const los = wallChains(f, gaps).filter((c) => !c.style.low).map((c) => { const pts = c.pts.map((q) => P(q.x, q.y)); return c.closed ? [...pts, pts[0]] : pts; });
+  // разрыв в линии взгляда: проём без стены, пустой проём, дверь (портал) и окна «видно сквозь» / «как дверь»
+  const cut = (p: Portal) => p.kind === 'gap' || (!isSecret(p) && p.kind !== 'insert' && (!p.asset || p.kind === 'door'
+    || (p.kind === 'window' && windowMode(p, windows) !== 'wall')));
+  // низкие стены (ограждения, перила) и прозрачные не закрывают обзор — в VTT их нет
+  const los = wallChains(f, undefined, true, cut).filter((c) => !c.style.low && c.style.vtt !== 'clear')
+    .map((c) => { const pts = c.pts.map((q) => P(q.x, q.y)); return c.closed ? [...pts, pts[0]] : pts; });
   const portals = f.portals
-    .filter((p) => !!p.asset && (p.kind === 'door' || (p.kind === 'window' && windows === 'door')) && !portalWall(f, p)?.style.low)
-    .map((p) => vttPortal(p, true));
+    .filter((p) => !!p.asset && !isSecret(p) && (p.kind === 'door' || (p.kind === 'window' && windowMode(p, windows) === 'door'))
+      && !portalWall(f, p)?.style.low)
+    .map((p) => vttPortal(p, p.state !== 'open'));
   return {
     format: 0.3,
     resolution: { map_origin: P(0, 0), map_size: P(doc.width, doc.height), pixels_per_grid: ppc },
@@ -90,6 +101,115 @@ export function buildDd2vtt(doc: MapDoc, f: Floor, ppc: number, image: string, w
       position: P(l.x, l.y), range: Math.round(l.radius * 100) / 100, intensity: l.intensity, color: argb(l.color), shadows: l.shadows,
     })),
     image,
+  };
+}
+
+// ---------- Foundry VTT
+// Константы Foundry (CONST.WALL_SENSE_TYPES, WALL_MOVEMENT_TYPES, WALL_DOOR_TYPES, WALL_DOOR_STATES).
+const NONE = 0, LIMITED = 10, NORMAL = 20;
+type Senses = { move: number; sight: number; light: number; sound: number };
+const SENSES: Record<NonNullable<WallStyle['vtt']>, Senses> = {
+  normal: { move: NORMAL, sight: NORMAL, light: NORMAL, sound: NORMAL },
+  clear: { move: NORMAL, sight: NONE, light: NONE, sound: NORMAL },
+  ethereal: { move: NONE, sight: NORMAL, light: NORMAL, sound: NONE },
+  terrain: { move: NORMAL, sight: LIMITED, light: LIMITED, sound: LIMITED },
+};
+const WINDOW_SENSES: Senses = { move: NORMAL, sight: NONE, light: NONE, sound: LIMITED };
+const DOOR_STATE = { closed: 0, open: 1, locked: 2 } as const;
+/**
+ * Направление односторонней стены (CONST.WALL_DIRECTIONS: 1 — LEFT, 2 — RIGHT). Foundry не учитывает стену для
+ * источника на стороне, равной dir (Wall#orientPoint, orient2dFast), — ставим сторону, откуда видно сквозь стену.
+ */
+function wallDir(a: { x: number; y: number }, b: { x: number; y: number }, see: { x: number; y: number }): number {
+  const c = { x: (a.x + b.x) / 2 + see.x, y: (a.y + b.y) / 2 + see.y };
+  const o = (a.y - c.y) * (b.x - c.x) - (a.x - c.x) * (b.y - c.y);
+  return o < 0 ? 1 : 2;
+}
+const escapeHtml = (t: string) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+/** Сетка Foundry (CONST.GRID_TYPES): без сетки, квадрат, гексы «строками» (острые) и «столбцами» (плоские). */
+const GRID_TYPE: Record<MapDoc['grid']['type'], number> = { none: 0, square: 1, 'hex-pointy': 2, 'hex-flat': 4 };
+const FEET_PER_CELL = 5;
+
+/**
+ * Сцена Foundry VTT (v10–v13) для «Import Data»: стены с типами (прозрачные, эфирные, ограничивающие обзор), двери
+ * с состоянием (закрыта / открыта / заперта), тайные двери, окна, свет (яркий/тусклый радиус, конус, анимация),
+ * сетка и темнота. image — имя файла картинки (кладётся рядом). Отступ сцены (padding) — 0, координаты в пикселях.
+ */
+export function buildFoundryScene(doc: MapDoc, f: Floor, ppc: number, image: string, windows: WindowMode, baked = false) {
+  const px = (v: number) => Math.round(v * ppc * 10) / 10;
+  const wall = (a: { x: number; y: number }, b: { x: number; y: number }, s: Senses, door = 0, ds = 0, dir = 0) => ({
+    c: [px(a.x), px(a.y), px(b.x), px(b.y)], ...s, dir, door, ds,
+    threshold: { light: null, sight: null, sound: null, attenuation: false }, flags: {},
+  });
+  const walls: ReturnType<typeof wall>[] = [];
+  // стены режутся всеми настоящими проёмами — их отрезки добавляются отдельно, со своим типом
+  const isOpening = (p: Portal) => p.kind === 'gap' || (p.kind !== 'insert' && !p.asset && !isSecret(p));
+  for (const c of wallChains(f, undefined, true, (p) => p.kind !== 'insert')) {
+    if (c.style.low) continue;
+    const s = SENSES[c.style.vtt ?? 'normal'];
+    const pts = c.closed ? [...c.pts, c.pts[0]] : c.pts;
+    for (let i = 0; i < pts.length - 1; i++) {
+      let dir = 0;
+      if (c.style.oneWay) {
+        const n = innerNormal(pts[i], pts[i + 1], c.room);
+        dir = wallDir(pts[i], pts[i + 1], c.style.oneWay === 'in' ? n : { x: -n.x, y: -n.y });
+      }
+      walls.push(wall(pts[i], pts[i + 1], s, 0, 0, dir));
+    }
+  }
+  for (const p of f.portals) {
+    if (p.kind === 'insert' || isOpening(p)) continue;
+    const host = portalWall(f, p);
+    if (host?.style.low) continue;
+    const ds = DOOR_STATE[p.state ?? 'closed'];
+    if (p.kind === 'door') walls.push(wall(p.a, p.b, SENSES.normal, p.secret ? 2 : 1, ds));
+    else if (p.kind === 'window') {
+      const m = windowMode(p, windows);
+      walls.push(m === 'door' ? wall(p.a, p.b, SENSES.normal, 1, ds) : wall(p.a, p.b, m === 'wall' ? SENSES[host?.style.vtt ?? 'normal'] : WINDOW_SENSES));
+    }
+  }
+  const lights = f.lights.map((l) => ({
+    x: px(l.x), y: px(l.y), rotation: Math.round((((l.rot ?? 0) % 360) + 360) % 360), walls: l.shadows, vision: false, hidden: false,
+    config: {
+      dim: Math.round(l.radius * FEET_PER_CELL * 10) / 10,
+      bright: Math.round(l.radius * (l.bright ?? 0.5) * FEET_PER_CELL * 10) / 10,
+      angle: Math.round(l.angle ?? 360), color: l.color, alpha: Math.round(Math.min(1, 0.6 * l.intensity) * 100) / 100,
+      coloration: 1, luminosity: 0.5, attenuation: 0.5, saturation: 0, contrast: 0, shadows: 0,
+      animation: { type: l.anim && l.anim !== 'none' ? l.anim : null, speed: 5, intensity: 5, reverse: false },
+      darkness: { min: 0, max: 1 },
+    },
+    flags: {},
+  }));
+  const marks = f.marks ?? [];
+  const sounds = marks.flatMap((m) => (m.kind !== 'sound' || !m.path ? [] : [{
+    x: px(m.x), y: px(m.y), radius: Math.round(m.radius * FEET_PER_CELL * 10) / 10, path: m.path, repeat: true,
+    volume: m.volume, walls: m.walls, easing: m.easing, hidden: false, darkness: { min: 0, max: 1 },
+    flags: { 'pm-maps': { name: m.name } },
+  }]));
+  const notes = marks.flatMap((m) => (m.kind !== 'note' ? [] : [{
+    x: px(m.x), y: px(m.y), entryId: null, pageId: null,
+    texture: { src: 'icons/svg/book.svg' }, icon: 'icons/svg/book.svg', iconSize: 40,
+    text: m.title, fontSize: 32, textAnchor: 1, textColor: '#FFFFFF', global: false,
+    flags: { 'pm-maps': { text: m.text } },
+  }]));
+  // свет запечён в картинку — у Foundry своей темноты нет (иначе двойная)
+  const dark = doc.lighting.enabled && !baked ? Math.round(doc.lighting.darkness * 100) / 100 : 0;
+  const globalLight = !doc.lighting.enabled || baked;
+  return {
+    name: f.name && doc.floors.length > 1 ? `${doc.name} — ${f.name}` : doc.name,
+    navigation: false,
+    width: Math.round(doc.width * ppc), height: Math.round(doc.height * ppc), padding: 0,
+    backgroundColor: doc.background,
+    background: { src: image }, img: image,
+    grid: {
+      type: GRID_TYPE[doc.grid.type], size: Math.round(ppc), distance: FEET_PER_CELL, units: 'ft',
+      color: doc.grid.color, alpha: doc.grid.show ? doc.grid.opacity : 0,
+    },
+    tokenVision: true, fogExploration: true,
+    environment: { darknessLevel: dark, globalLight: { enabled: globalLight } },
+    darkness: dark, globalLight,
+    walls, lights, notes, tokens: [], drawings: [], tiles: [], sounds, templates: [],
+    flags: { 'pm-maps': { map: doc.id, floor: f.id } },
   };
 }
 
@@ -108,6 +228,7 @@ async function exportFloor(doc: MapDoc, f: Floor, assets: AssetStore, o: ExportO
     return { blob: await toBlob(canvas, MIME[fmt], o.quality), ext: fmt };
   }
   const canvas = await renderFloorCanvas(doc, f.id, assets, o.ppc, o.grid, o);
+  if (o.format === 'foundry') throw new Error('foundry: exportFoundry');
   if (o.format === 'dd2vtt') {
     const png = await toBlob(canvas, 'image/png');
     const json = buildDd2vtt(doc, f, o.ppc, await blobToBase64(png), o.windows, o.bakeLight && doc.lighting.enabled);
@@ -126,7 +247,41 @@ async function exportFloor(doc: MapDoc, f: Floor, assets: AssetStore, o: ExportO
   return { blob: await toBlob(c, MIME[o.format], o.quality), ext: o.format };
 }
 
+/**
+ * Foundry: ZIP с картинкой этажа (WebP) и сценой (.json) рядом — на каждый выбранный этаж. В сцене фон — имя файла
+ * картинки: её загружают в Foundry и, если путь другой, выбирают фоном сцены после «Import Data».
+ */
+/**
+ * Журнал заметок мастера для Foundry (JournalEntry для «Import Data»): страница на каждую заметку этажей. null — заметок нет.
+ */
+export function buildFoundryJournal(doc: MapDoc, floors: Floor[]) {
+  const pages = floors.flatMap((f) => (f.marks ?? []).flatMap((m) => (m.kind !== 'note' ? [] : [{
+    name: (floors.length > 1 && f.name ? `${f.name}: ` : '') + (m.title || tr('Заметка')),
+    type: 'text', title: { show: true, level: 1 },
+    text: { format: 1, content: m.text.split(/\n{2,}/).map((p) => `<p>${escapeHtml(p).replace(/\n/g, '<br>')}</p>`).join('') },
+  }])));
+  if (!pages.length) return null;
+  return { name: `${doc.name} — ${tr('заметки')}`, pages, flags: { 'pm-maps': { map: doc.id } } };
+}
+
+async function exportFoundry(doc: MapDoc, floorId: string, assets: AssetStore, o: ExportOpts): Promise<{ blob: Blob; filename: string }> {
+  const base = safeName(doc.name);
+  const list = o.floors === 'current' || doc.floors.length === 1 ? [doc.floors.find((x) => x.id === floorId) ?? doc.floors[0]] : doc.floors;
+  const zip = new JSZip();
+  for (const f of list) {
+    const name = list.length > 1 || doc.floors.length > 1 ? `${base} - ${safeName(f.name)}` : base;
+    const canvas = await renderFloorCanvas(doc, f.id, assets, o.ppc, o.grid, o);
+    zip.file(`${name}.webp`, await toBlob(canvas, 'image/webp', o.quality));
+    const scene = buildFoundryScene(doc, f, o.ppc, `${name}.webp`, o.windows, o.bakeLight && doc.lighting.enabled);
+    zip.file(`${name}.json`, JSON.stringify(scene, null, 2));
+  }
+  const journal = buildFoundryJournal(doc, list);
+  if (journal) zip.file(`${base} - ${safeName(tr('заметки'))}.json`, JSON.stringify(journal, null, 2));
+  return { blob: await zip.generateAsync({ type: 'blob' }), filename: `${base} - Foundry.zip` };
+}
+
 export async function exportMap(doc: MapDoc, floorId: string, assets: AssetStore, o: ExportOpts): Promise<{ blob: Blob; filename: string }> {
+  if (o.format === 'foundry' && !o.roofsOnly) return exportFoundry(doc, floorId, assets, o);
   const base = safeName(doc.name) + (o.roofsOnly ? ` - ${safeName(tr('крыши'))}` : '');
   if (o.floors === 'current' || doc.floors.length === 1) {
     const f = doc.floors.find((x) => x.id === floorId) ?? doc.floors[0];

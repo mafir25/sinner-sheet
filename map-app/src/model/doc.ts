@@ -51,6 +51,8 @@ const wallStyle = z.object({
   vary: num.min(0).max(1).optional(),
   varySeed: num.optional(),
   low: z.boolean().optional(),
+  vtt: z.enum(['normal', 'clear', 'ethereal', 'terrain']).optional(),
+  oneWay: z.enum(['in', 'out']).optional(),
 });
 const layer = z.object({
   id: z.string(), name: z.string().default(''), visible: z.boolean().default(true),
@@ -77,7 +79,8 @@ const floor = z.object({
   walls: z.array(z.object({ id: z.string(), points: z.array(pt).min(2), closed: z.boolean().default(false), wall: wallStyle })).default([]),
   portals: z.array(z.object({ id: z.string(), kind: z.enum(['door', 'window', 'gap', 'insert']), a: pt, b: pt, asset: z.string().nullable().default(null),
     top: num.min(0).max(0.9).optional(), bottom: num.min(0).max(0.9).optional(), arch: z.boolean().optional(),
-    view: z.enum(['auto', 'face', 'line']).optional() })).default([]),
+    view: z.enum(['auto', 'face', 'line']).optional(), secret: z.boolean().optional(),
+    state: z.enum(['closed', 'open', 'locked']).optional(), vtt: z.enum(['gap', 'wall', 'door']).optional() })).default([]),
   objects: z.array(z.object({
     id: z.string(), asset: z.string(), layer: z.string(), x: num, y: num, w: num.positive(), h: num.positive(),
     rot: num.default(0), flipX: z.boolean().default(false), flipY: z.boolean().default(false), opacity: num.min(0).max(1).default(1),
@@ -96,7 +99,16 @@ const floor = z.object({
   lights: z.array(z.object({
     id: z.string(), x: num, y: num, radius: num.positive(), color: z.string().default('#ffe8b0'),
     intensity: num.min(0).max(1).default(0.9), shadows: z.boolean().default(true),
+    angle: num.min(1).max(360).optional(), rot: num.optional(), bright: num.min(0).max(1).optional(),
+    anim: z.enum(['none', 'torch', 'flame', 'pulse', 'siren', 'emanation', 'fog', 'wave', 'energy']).optional(),
   })).default([]),
+  marks: z.array(z.discriminatedUnion('kind', [
+    z.object({
+      id: z.string(), kind: z.literal('sound'), x: num, y: num, radius: num.positive().default(6), path: z.string().max(2000).default(''),
+      name: z.string().max(200).default(''), volume: num.min(0).max(1).default(0.5), walls: z.boolean().default(true), easing: z.boolean().default(true),
+    }),
+    z.object({ id: z.string(), kind: z.literal('note'), x: num, y: num, title: z.string().max(500).default(''), text: z.string().max(20000).default('') }),
+  ])).optional(),
   labels: z.array(z.object({
     id: z.string(), x: num, y: num, text: z.string(), size: num.positive().default(0.6), color: z.string().default('#ffffff'),
     rot: num.default(0), font: z.enum(['head', 'body']).default('head'), box: z.boolean().default(false), gmOnly: z.boolean().default(false),

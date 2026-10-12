@@ -21,6 +21,7 @@ export function shiftFloorAll(f: Floor, d: Pt): Floor {
     terrain: f.terrain.map((s) => ({ ...s, points: s.points.map(mv) })),
     paths: f.paths.map((p) => ({ ...p, points: p.points.map(mv) })),
     lights: f.lights.map((l) => ({ ...l, x: l.x + d.x, y: l.y + d.y })),
+    ...(f.marks ? { marks: f.marks.map((m) => ({ ...m, x: m.x + d.x, y: m.y + d.y })) } : {}),
     labels: f.labels.map((l) => ({ ...l, x: l.x + d.x, y: l.y + d.y })),
     roofs: f.roofs.map((r) => ({ ...r, poly: shiftPoly(r.poly, d) })),
     levels: f.levels.map((l) => ({ ...l, poly: shiftPoly(l.poly, d) })),
@@ -109,8 +110,8 @@ export function repeatObjects(objs: MapObject[], count: number, step: Pt, newId:
 }
 
 // ---------- буфер обмена: всё выделенное, а не только объекты
-export type Clip = Pick<Floor, 'objects' | 'rooms' | 'walls' | 'portals' | 'paths' | 'lights' | 'labels' | 'roofs' | 'levels'>;
-const CLIP_KEYS = ['objects', 'rooms', 'walls', 'portals', 'paths', 'lights', 'labels', 'roofs', 'levels'] as const;
+export type Clip = Pick<Floor, 'objects' | 'rooms' | 'walls' | 'portals' | 'paths' | 'lights' | 'marks' | 'labels' | 'roofs' | 'levels'>;
+const CLIP_KEYS = ['objects', 'rooms', 'walls', 'portals', 'paths', 'lights', 'marks', 'labels', 'roofs', 'levels'] as const;
 /** Буфер из старой версии (до уровней местности) — без levels. */
 export const clipSize = (c: Clip) => CLIP_KEYS.reduce((s, k) => s + (c[k]?.length ?? 0), 0);
 
@@ -121,7 +122,7 @@ export function copySelection(f: Floor, ids: Set<string>, onWalls: (part: Floor)
   const attached = rooms.length || walls.length ? onWalls({ ...f, rooms, walls }) : new Set<string>();
   const over = roofsOver(f, rooms);
   return {
-    objects: pick(f.objects), rooms, walls, paths: pick(f.paths), lights: pick(f.lights), labels: pick(f.labels),
+    objects: pick(f.objects), rooms, walls, paths: pick(f.paths), lights: pick(f.lights), marks: pick(f.marks ?? []), labels: pick(f.labels),
     roofs: structuredClone(f.roofs.filter((r) => ids.has(r.id) || over.has(r.id))), levels: pick(f.levels),
     portals: structuredClone(f.portals.filter((p) => ids.has(p.id) || attached.has(p.id))),
   };
@@ -135,7 +136,7 @@ export function pasteClip(c: Clip, d: Pt, layers: Set<string>, layer: string, ne
     objects: fresh(moved.objects, 'o').map((o) => (layers.has(o.layer) ? o : { ...o, layer })),
     paths: fresh(moved.paths, 'pa').map((p) => (layers.has(p.layer) ? p : { ...p, layer })),
     rooms: fresh(moved.rooms, 'r'), walls: fresh(moved.walls, 'w'), portals: fresh(moved.portals, 'd'),
-    lights: fresh(moved.lights, 'li'), labels: fresh(moved.labels, 'lb'), roofs: fresh(moved.roofs, 'rf'),
+    lights: fresh(moved.lights, 'li'), marks: fresh(moved.marks ?? [], 'mk'), labels: fresh(moved.labels, 'lb'), roofs: fresh(moved.roofs, 'rf'),
     levels: fresh(moved.levels, 'lv'),
   };
 }

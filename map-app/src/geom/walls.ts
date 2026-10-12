@@ -71,8 +71,10 @@ function portalSpan(seg: WallSeg, p: Portal): [number, number] | null {
  * Стены этажа, разрезанные проёмами указанных видов, — непрерывными ломаными. Проёмы без стены (gap) режут всегда,
  * пустые проёмы (без картинки — арка, вырез) — если openEmpty (для света и взгляда; верхнюю линию стены — нет).
  */
-export function wallChains(f: Floor, gapKinds: Set<Portal['kind']> = new Set(['door', 'window']), openEmpty = true): WallChain[] {
-  const portals = f.portals.filter((p) => p.kind === 'gap' || (openEmpty && !p.asset) || gapKinds.has(p.kind));
+export function wallChains(f: Floor, gapKinds: Set<Portal['kind']> = new Set(['door', 'window']), openEmpty = true, cut?: (p: Portal) => boolean): WallChain[] {
+  // тайная дверь на карте — сплошная стена (режет её только явный cut — экспорт в Foundry)
+  const portals = f.portals.filter((p) => (cut ? cut(p)
+    : p.kind === 'gap' || (!(p.secret && p.kind === 'door') && ((openEmpty && !p.asset) || gapKinds.has(p.kind)))));
   const out: WallChain[] = [];
   for (const path of floorPaths(f)) {
     // куски отрезков; joinA/joinB — конец лежит в вершине контура (а не на краю проёма)
@@ -116,6 +118,23 @@ export function wallChains(f: Floor, gapKinds: Set<Portal['kind']> = new Set(['d
       pts, closed: false, style: path.style, room: path.room,
       capStart: !path.closed && joins[i].start, capEnd: !path.closed && joins[i].end,
     }));
+  }
+  return out;
+}
+
+/**
+ * Отрезки односторонних стен (WallStyle.oneWay) и нормаль n в сторону, откуда видно сквозь них (свет оттуда проходит).
+ * chains — цепочки стен (как для света или экспорта).
+ */
+export function oneWaySegs(chains: WallChain[]): { a: Pt; b: Pt; n: Pt }[] {
+  const out: { a: Pt; b: Pt; n: Pt }[] = [];
+  for (const c of chains) {
+    if (!c.style.oneWay) continue;
+    const pts = c.closed ? [...c.pts, c.pts[0]] : c.pts;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const n = innerNormal(pts[i], pts[i + 1], c.room);
+      out.push({ a: pts[i], b: pts[i + 1], n: c.style.oneWay === 'in' ? n : { x: -n.x, y: -n.y } });
+    }
   }
   return out;
 }
@@ -245,7 +264,7 @@ function projVector(dir: FaceDir | undefined, n: Pt, h: number): Pt | null {
 }
 
 /** Нормаль «внутрь»: у стены комнаты — в комнату, у отдельной — влево по ходу рисования. */
-function innerNormal(a: Pt, b: Pt, room?: Room): Pt {
+export function innerNormal(a: Pt, b: Pt, room?: Room): Pt {
   const L = Math.hypot(b.x - a.x, b.y - a.y) || 1;
   const n = { x: -(b.y - a.y) / L, y: (b.x - a.x) / L };
   if (room) {
@@ -342,7 +361,7 @@ export function faceItems(f: Floor): FaceItem[] {
   const depth = (face: WallFace) => Math.max(...face.pts.map((q) => q.y));
   const items: { it: FaceItem; d: number; k: number }[] = walls.map((face) => ({ it: { face }, d: depth(face), k: 0 }));
   for (const p of f.portals) {
-    if (p.kind === 'gap') continue;
+    if (p.kind === 'gap' || (p.secret && p.kind === 'door')) continue;
     for (const face of portalFaces(f, p)) {
       // вставка не режет стену и лежит на её грани: рисуется сразу после этой грани (у косой стены грань целиком
       // уходит ниже вставки и иначе закрыла бы её)

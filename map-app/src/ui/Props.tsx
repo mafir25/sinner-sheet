@@ -10,7 +10,7 @@ import { type Editor, useEditor } from '../state/editor';
 import { nm, tr } from '../i18n';
 import { edgeStyle, portalFaces, portalShape, portalWall, resizePortal } from '../geom/walls';
 import { effectiveChance } from '../geom/variants';
-import { BrushPanel, LabelPanel, LevelPanel, LightPanel, PathPanel, RoofPanel, SelectionExtras } from './Props2';
+import { BrushPanel, LabelPanel, LevelPanel, LightPanel, PathPanel, RoofPanel, SelectionExtras, SoundPanel } from './Props2';
 import { AssetPicker, ColorInput, Field, NumInput, SetThumb, Slider, Thumb, assetName, toast, useStore } from './common';
 import { type AlignMode, alignObjects, distributeObjects, repeatObjects, sameObjects } from '../geom/ops';
 import { uid } from '../model/doc';
@@ -46,6 +46,13 @@ function VaryControl({ assets, asset, chance, onChange }: { assets: AssetStore; 
   );
 }
 
+const WALL_VTT: { id: NonNullable<WallStyle['vtt']>; label: string; hint: string }[] = [
+  { id: 'normal', label: 'Обычная', hint: 'Не пройти, не видно, свет не проходит' },
+  { id: 'clear', label: 'Прозрачная (стекло, силовое поле)', hint: 'Не пройти, но видно сквозь и свет проходит' },
+  { id: 'ethereal', label: 'Эфирная (голограмма, завеса)', hint: 'Пройти можно, но сквозь не видно' },
+  { id: 'terrain', label: 'Ограничивает обзор (кусты, занавес)', hint: 'Сквозь одну такую стену видно, сквозь две — нет' },
+];
+
 function WallStyleEditor({ assets, value, onChange, standalone }: { assets: AssetStore; value: WallStyle; onChange(v: WallStyle): void; standalone?: boolean }) {
   const h = value.height ?? 0;
   const dirSelect = (v: FaceDir | undefined, set: (d: FaceDir) => void) => (
@@ -71,6 +78,25 @@ function WallStyleEditor({ assets, value, onChange, standalone }: { assets: Asse
         <input type="checkbox" checked={!!value.low} onChange={(e) => { const { low: _l, ...rest } = value; onChange(e.target.checked ? { ...rest, low: true } : rest); }} />
         {' '}{tr('Низкая стена (по пояс): не закрывает обзор и свет')}
       </label>
+      {!value.low && (
+        <Field label={tr('Односторонняя стена')}>
+          <select className="input" value={value.oneWay ?? ''}
+            title={tr('С одной стороны — обычная стена, с другой видно сквозь неё и свет проходит (зеркальное стекло, засада)')}
+            onChange={(e) => { const { oneWay: _o, ...rest } = value; const v = e.target.value as 'in' | 'out' | ''; onChange(v ? { ...rest, oneWay: v } : rest); }}>
+            <option value="">{tr('Нет — закрывает с обеих сторон')}</option>
+            <option value="in">{standalone ? tr('Видно сквозь слева (по ходу стены)') : tr('Видно сквозь изнутри помещения')}</option>
+            <option value="out">{standalone ? tr('Видно сквозь справа') : tr('Видно сквозь снаружи')}</option>
+          </select>
+        </Field>
+      )}
+      {!value.low && (
+        <Field label={tr('Стена в VTT (Foundry)')}>
+          <select className="input" value={value.vtt ?? 'normal'}
+            onChange={(e) => { const { vtt: _v, ...rest } = value; const v = e.target.value as NonNullable<WallStyle['vtt']>; onChange(v === 'normal' ? rest : { ...rest, vtt: v }); }}>
+            {WALL_VTT.map((d) => <option key={d.id} value={d.id} title={tr(d.hint)}>{tr(d.label)}</option>)}
+          </select>
+        </Field>
+      )}
       {h > 0 && (
         <p className="hint">{tr('Вниз — как в Enter the Gungeon: грань видна у стен, обращённых к зрителю. По периметру — у всех стен этой стороны.')}</p>
       )}
@@ -154,6 +180,12 @@ export function Props({ ed, assets }: { ed: Editor; assets: AssetStore }) {
         <AssetPicker assets={assets} kind={tool} value={tool === 'door' ? settings.door : settings.window} allowNone noneLabel={tr('Пустой проём (арка, вырез)')}
           onChange={(k) => ed.setSettings(tool === 'door' ? { door: k } : { window: k })} />
         <span className="hint">{tr('Проём вырезает стену вместе с гранью. ∅ — пустой проём: арка или вырез, взгляд и свет проходят. Форму меняй в свойствах проёма.')}</span>
+        {tool === 'door' && (
+          <label className="check" title={tr('На карте для игроков — сплошная стена; у мастера — значок «S». В Foundry — секретная дверь, в .dd2vtt — стена.')}>
+            <input type="checkbox" checked={!!settings.doorSecret} onChange={(e) => ed.setSettings({ doorSecret: e.target.checked })} />
+            {' '}{tr('Тайная дверь')}
+          </label>
+        )}
       </Field>
     );
   }
@@ -191,6 +223,8 @@ export function Props({ ed, assets }: { ed: Editor; assets: AssetStore }) {
   if (tool === 'brush') return <BrushPanel ed={ed} assets={assets} />;
   if (tool === 'path') return <PathPanel ed={ed} assets={assets} />;
   if (tool === 'light') return <LightPanel ed={ed} />;
+  if (tool === 'sound') return <SoundPanel ed={ed} />;
+  if (tool === 'note') return <p className="hint">{tr('Щелчок — поставить заметку мастера; текст пишется в её свойствах.')}</p>;
   if (tool === 'label') return <LabelPanel ed={ed} />;
   if (tool === 'roof') return <RoofPanel ed={ed} assets={assets} />;
   if (tool === 'level') return <LevelPanel ed={ed} assets={assets} />;
@@ -371,7 +405,34 @@ export function Props({ ed, assets }: { ed: Editor; assets: AssetStore }) {
                 });
               }} />
           </Field>
-          {portals.some((p) => portalFaces(f, p).length > 0) && (
+          {kind === 'door' && (
+            <>
+              <label className="check" title={tr('На карте для игроков — сплошная стена; у мастера — значок «S». В Foundry — секретная дверь, в .dd2vtt — стена.')}>
+                <input type="checkbox" checked={!!portals[0].secret} onChange={(e) => updP({ secret: e.target.checked || undefined })} />
+                {' '}{tr('Тайная дверь')}
+              </label>
+              <Field label={tr('Дверь в VTT')}>
+                <div className="seg">
+                  {([['closed', 'Закрыта'], ['open', 'Открыта'], ['locked', 'Заперта']] as const).map(([id, label]) => (
+                    <button key={id} className={(portals[0].state ?? 'closed') === id ? 'on' : ''}
+                      title={id === 'open' ? tr('Открытая дверь пропускает свет и в редакторе') : undefined}
+                      onClick={() => updP({ state: id === 'closed' ? undefined : id })}>{tr(label)}</button>
+                  ))}
+                </div>
+              </Field>
+            </>
+          )}
+          {kind === 'window' && (
+            <Field label={tr('Окно в VTT')}>
+              <select className="input" value={portals[0].vtt ?? ''} onChange={(e) => updP({ vtt: (e.target.value || undefined) as Portal['vtt'] })}>
+                <option value="">{tr('Как выбрано при экспорте')}</option>
+                <option value="gap">{tr('Пропускает взгляд (не пройти)')}</option>
+                <option value="wall">{tr('Как стена')}</option>
+                <option value="door">{tr('Как дверь (открывается)')}</option>
+              </select>
+            </Field>
+          )}
+          {portals.some((p) => portalFaces(f, p).length > 0) && !(kind === 'door' && portals[0].secret) && (
             <Field label={tr('Вид на объёмной стене')}>
               <div className="seg">
                 {([['auto', 'Авто'], ['face', 'В грани'], ['line', 'Линией']] as const).map(([id, label]) => (
@@ -382,7 +443,7 @@ export function Props({ ed, assets }: { ed: Editor; assets: AssetStore }) {
               </div>
             </Field>
           )}
-          {portals.some((p) => portalFaces(f, p).length > 0) ? (
+          {kind === 'door' && portals[0].secret ? null : portals.some((p) => portalFaces(f, p).length > 0) ? (
             <>
               <Field label={tr('Перемычка сверху')}><Slider value={shape.top} max={0.9} onCommit={(top) => updP({ top })} /></Field>
               <Field label={tr('Снизу (подоконник)')}><Slider value={shape.bottom} max={0.9} onCommit={(bottom) => updP({ bottom })} /></Field>

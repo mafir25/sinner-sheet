@@ -1,8 +1,8 @@
 // Настройки инструментов этапа 2 (кисть, путь, свет, подпись, крыша) и свойства выделенных путей, света, подписей, крыш.
 import { useEffect, useState } from 'react';
 import type { AssetStore } from '../assets/store';
-import type { Floor, Label, Level, Light, MapPath, PathStyle, Roof } from '../model/types';
-import type { Editor } from '../state/editor';
+import type { Floor, Label, Level, Light, LightAnim, Mark, MapPath, PathStyle, Roof } from '../model/types';
+import { type Editor, type SoundStyle, DEFAULT_SOUND } from '../state/editor';
 import { tr } from '../i18n';
 import { siteLink } from '../../../site/site-links.js';
 import { openLink } from './LinksDialog';
@@ -160,6 +160,11 @@ export function PathPanel({ ed, assets }: { ed: Editor; assets: AssetStore }) {
 }
 
 // ---------- свет
+const LIGHT_ANIMS: [LightAnim, string][] = [
+  ['none', 'Нет'], ['torch', 'Факел'], ['flame', 'Пламя'], ['pulse', 'Пульс'], ['siren', 'Сирена'],
+  ['emanation', 'Излучение'], ['fog', 'Туман'], ['wave', 'Волны'], ['energy', 'Энергия'],
+];
+
 export function LightEditor({ value, onChange }: { value: LightStyle; onChange(v: LightStyle): void }) {
   const set = (patch: Partial<LightStyle>) => onChange({ ...value, ...patch });
   return (
@@ -170,6 +175,20 @@ export function LightEditor({ value, onChange }: { value: LightStyle; onChange(v
       </div>
       <Field label={tr('Яркость')}><Slider value={value.intensity} min={0.05} onCommit={(intensity) => set({ intensity })} /></Field>
       <label className="check"><input type="checkbox" checked={value.shadows} onChange={(e) => set({ shadows: e.target.checked })} /> {tr('Тени от стен')}</label>
+      <Field label={tr('Конус, ° (360 — во все стороны)')}>
+        <Slider value={value.angle ?? 360} min={10} max={360} step={5} onCommit={(angle) => set({ angle: angle >= 360 ? undefined : angle })} />
+      </Field>
+      {(value.angle ?? 360) < 360 && (
+        <Field label={tr('Направление, ° (0 — вниз, по часовой)')} row>
+          <NumInput value={value.rot ?? 0} step={15} min={-360} max={360} onCommit={(rot) => set({ rot: ((rot % 360) + 360) % 360 })} />
+        </Field>
+      )}
+      <Field label={tr('Яркий свет — доля радиуса (Foundry)')}><Slider value={value.bright ?? 0.5} min={0} max={1} step={0.05} onCommit={(bright) => set({ bright })} /></Field>
+      <Field label={tr('Анимация в Foundry')}>
+        <select className="input" value={value.anim ?? 'none'} onChange={(e) => set({ anim: e.target.value === 'none' ? undefined : e.target.value as LightAnim })}>
+          {LIGHT_ANIMS.map(([id, label]) => <option key={id} value={id}>{tr(label)}</option>)}
+        </select>
+      </Field>
     </div>
   );
 }
@@ -230,6 +249,57 @@ export function LabelPanel({ ed }: { ed: Editor }) {
         onChange={(e) => ed.setSettings({ label: { ...s, numbering: e.target.checked, gmOnly: e.target.checked ? true : s.gmOnly, box: e.target.checked ? true : s.box } })} /> {tr('Номера комнат: 1, 2, 3…')}</label>
       {numbering && <Field label={tr('Следующий номер')} row><NumInput value={next} step={1} min={0} digits={0} onCommit={(v) => ed.setSettings({ label: { ...s, next: Math.round(v) } })} /></Field>}
       <LabelStyleEditor value={style} onChange={(v) => ed.setSettings({ label: { ...s, ...v } })} />
+    </div>
+  );
+}
+
+/** Текстовое поле, которое сохраняет по уходу фокуса (пустое тоже можно). */
+function TextField({ value, onCommit, rows = 0, placeholder }: { value: string; onCommit(v: string): void; rows?: number; placeholder?: string }) {
+  const [t, setT] = useState(value);
+  useEffect(() => setT(value), [value]);
+  const done = () => { if (t !== value) onCommit(t); };
+  return rows
+    ? <textarea className="input" rows={rows} value={t} placeholder={placeholder} onChange={(e) => setT(e.target.value)} onBlur={done} />
+    : <input className="input" value={t} placeholder={placeholder} onChange={(e) => setT(e.target.value)} onBlur={done}
+      onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }} />;
+}
+
+// ---------- звуки и заметки (метки для VTT)
+export function SoundEditor({ value, onChange }: { value: SoundStyle; onChange(v: SoundStyle): void }) {
+  const set = (patch: Partial<SoundStyle>) => onChange({ ...value, ...patch });
+  return (
+    <div className="stack">
+      <Field label={tr('Название (в редакторе)')}><TextField value={value.name} placeholder={tr('Дождь, гул машин…')} onCommit={(name) => set({ name })} /></Field>
+      <Field label={tr('Файл звука в Foundry')}><TextField value={value.path} placeholder="sounds/rain.ogg" onCommit={(path) => set({ path: path.trim() })} /></Field>
+      <div className="row">
+        <Field label={tr('Радиус')} row><NumInput value={value.radius} step={0.5} min={0.5} max={200} onCommit={(radius) => set({ radius })} /></Field>
+      </div>
+      <Field label={tr('Громкость')}><Slider value={value.volume} onCommit={(volume) => set({ volume })} /></Field>
+      <label className="check"><input type="checkbox" checked={value.walls} onChange={(e) => set({ walls: e.target.checked })} /> {tr('Стены глушат звук')}</label>
+      <label className="check"><input type="checkbox" checked={value.easing} onChange={(e) => set({ easing: e.target.checked })} /> {tr('Тише к краю')}</label>
+      <p className="hint">{tr('Звук слышен в VTT (сцена Foundry): файл загрузи в Foundry и укажи путь к нему. На картинку звук не попадает.')}</p>
+    </div>
+  );
+}
+
+export function SoundPanel({ ed }: { ed: Editor }) {
+  return <SoundEditor value={ed.state.settings.sound ?? DEFAULT_SOUND} onChange={(sound) => ed.setSettings({ sound })} />;
+}
+
+function MarkProps({ ed, marks }: { ed: Editor; marks: Mark[] }) {
+  const ids = new Set(marks.map((m) => m.id));
+  const upd = (patch: (m: Mark) => void) => ed.commitFloor((f) => { for (const m of f.marks ?? []) if (ids.has(m.id)) patch(m); });
+  const m = marks[0];
+  if (!marks.every((x) => x.kind === m.kind)) return null;
+  if (m.kind === 'sound') {
+    const { id: _i, kind: _k, x: _x, y: _y, ...style } = m;
+    return <SoundEditor value={style} onChange={(v) => upd((x) => { Object.assign(x, v); })} />;
+  }
+  return (
+    <div className="stack">
+      <Field label={tr('Заголовок заметки')}><TextField value={m.title} onCommit={(title) => upd((x) => { if (x.kind === 'note') x.title = title; })} /></Field>
+      <Field label={tr('Текст для мастера')}><TextField rows={6} value={m.text} onCommit={(text) => upd((x) => { if (x.kind === 'note') x.text = text; })} /></Field>
+      <p className="hint">{tr('Заметка уходит в сцену Foundry значком с заголовком, а текст — в журнал «заметки» (отдельный .json в архиве). На картинку не попадает.')}</p>
     </div>
   );
 }
@@ -362,7 +432,7 @@ function LevelEditor({ assets, value, onChange }: { assets: AssetStore; value: L
 // ---------- свойства выделенного
 export function SelectionExtras({ ed, assets }: { ed: Editor; assets: AssetStore }) {
   const ids = new Set(ed.state.sel.map((s) => s.id));
-  const paths = ed.selected('path'), lights = ed.selected('light'), labels = ed.selected('label'), roofs = ed.selected('roof'), levels = ed.selected('level');
+  const paths = ed.selected('path'), lights = ed.selected('light'), marks = ed.selected('mark'), labels = ed.selected('label'), roofs = ed.selected('roof'), levels = ed.selected('level');
   const upd = <T extends { id: string }>(list: (f: Floor) => T[], patch: (x: T) => void) =>
     ed.commitFloor((f) => { for (const x of list(f)) if (ids.has(x.id)) patch(x); });
   return (
@@ -384,6 +454,7 @@ export function SelectionExtras({ ed, assets }: { ed: Editor; assets: AssetStore
           </Field>
         </>
       )}
+      {marks.length > 0 && <MarkProps ed={ed} marks={marks} />}
       {lights.length > 0 && (() => {
         const { id: _i, x: _x, y: _y, ...style } = lights[0];
         return <LightEditor value={style} onChange={(v) => upd((f) => f.lights, (l: Light) => { Object.assign(l, v); })} />;

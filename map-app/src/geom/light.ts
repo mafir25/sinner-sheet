@@ -1,16 +1,25 @@
 // Видимость от источника света: многоугольник, который не загораживают стены и закрытые двери.
-import type { Floor, Pt } from '../model/types';
-import { wallChains } from './walls';
+import type { Floor, Portal, Pt } from '../model/types';
+import { innerNormal, wallChains } from './walls';
 
-type Seg = [Pt, Pt];
+/** Отрезок стены; третий элемент — у односторонней стены нормаль в сторону, откуда свет проходит сквозь неё. */
+type Seg = [Pt, Pt] | [Pt, Pt, Pt];
 
-/** Отрезки, задерживающие свет: стены и двери (окна и низкие стены пропускают свет). */
+/** Проём пропускает свет: окно, открытая дверь, пустой проём и проём без стены (тайная дверь — всегда стена). */
+export const passesLight = (p: Portal) => p.kind === 'gap' || (p.kind === 'window')
+  || (p.kind === 'door' && !p.secret && (!p.asset || p.state === 'open'));
+
+/** Отрезки, задерживающие свет: стены и закрытые двери (окна, открытые двери, низкие и прозрачные стены пропускают свет). */
 export function blockingSegments(f: Floor): Seg[] {
   const segs: Seg[] = [];
-  for (const c of wallChains(f, new Set(['window']))) {
-    if (c.style.low) continue;
+  for (const c of wallChains(f, undefined, true, passesLight)) {
+    if (c.style.low || c.style.vtt === 'clear') continue;
     const pts = c.closed ? [...c.pts, c.pts[0]] : c.pts;
-    for (let i = 0; i < pts.length - 1; i++) segs.push([pts[i], pts[i + 1]]);
+    for (let i = 0; i < pts.length - 1; i++) {
+      if (!c.style.oneWay) { segs.push([pts[i], pts[i + 1]]); continue; }
+      const n = innerNormal(pts[i], pts[i + 1], c.room);
+      segs.push([pts[i], pts[i + 1], c.style.oneWay === 'in' ? n : { x: -n.x, y: -n.y }]);
+    }
   }
   return segs;
 }
@@ -29,7 +38,8 @@ function rayHit(o: Pt, dx: number, dy: number, s: Seg): number {
 /** Многоугольник видимости в круге радиуса r (стены за пределами круга не учитываются). */
 export function visibility(o: Pt, r: number, all: Seg[]): Pt[] {
   const R = r * 1.05;
-  const near = all.filter(([a, b]) =>
+  // односторонняя стена не задерживает свет с той стороны, откуда видно сквозь неё
+  const near = all.filter(([a, b, see]) => !(see && (o.x - a.x) * see.x + (o.y - a.y) * see.y > 1e-9) &&
     Math.min(a.x, b.x) <= o.x + R && Math.max(a.x, b.x) >= o.x - R && Math.min(a.y, b.y) <= o.y + R && Math.max(a.y, b.y) >= o.y - R);
   // рамка вокруг круга — лучи всегда во что-то упираются
   const box: Pt[] = [{ x: o.x - R, y: o.y - R }, { x: o.x + R, y: o.y - R }, { x: o.x + R, y: o.y + R }, { x: o.x - R, y: o.y + R }];

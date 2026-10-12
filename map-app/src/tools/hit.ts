@@ -61,6 +61,9 @@ export function hitTest(f: Floor, p: Pt, scale: number, roofs = false, decorBand
     const l = f.lights[i];
     if (Math.hypot(p.x - l.x, p.y - l.y) <= Math.max(LIGHT_HIT, tol * 1.5)) return { kind: 'light', id: l.id };
   }
+  for (const m of [...(f.marks ?? [])].reverse()) {
+    if (Math.hypot(p.x - m.x, p.y - m.y) <= Math.max(LIGHT_HIT, tol * 1.5)) return { kind: 'mark', id: m.id };
+  }
   const layers = f.layers.filter((l) => l.visible && !l.locked && (roofs || !l.roof));
   const onRoof = layers.filter((l) => l.roof).map((l) => l.id).reverse();
   const above = layers.filter((l) => l.aboveWalls && !l.roof).map((l) => l.id).reverse();
@@ -135,6 +138,7 @@ export function boxSelect(f: Floor, box: BBox, roofs = true): SelItem[] {
   for (const r of f.rooms) if (r.poly[0].every(inside)) out.push({ kind: 'room', id: r.id });
   for (const pa of f.paths) if (!locked.has(pa.layer) && pa.points.every(inside)) out.push({ kind: 'path', id: pa.id });
   for (const l of f.lights) if (inside(l)) out.push({ kind: 'light', id: l.id });
+  for (const m of f.marks ?? []) if (inside(m)) out.push({ kind: 'mark', id: m.id });
   for (const l of f.labels) if (inside(l)) out.push({ kind: 'label', id: l.id });
   for (const l of f.levels) if (l.poly[0].every(inside)) out.push({ kind: 'level', id: l.id });
   if (roofs) for (const r of f.roofs) if (r.poly[0].every(inside)) out.push({ kind: 'roof', id: r.id });
@@ -152,6 +156,7 @@ export function selectionBBox(f: Floor, sel: SelItem[]): BBox | null {
   for (const l of f.levels) if (ids.has(l.id)) pts.push(...l.poly[0]);
   for (const pa of f.paths) if (ids.has(pa.id)) pts.push(...pa.points);
   for (const l of f.lights) if (ids.has(l.id)) pts.push(l);
+  for (const m of f.marks ?? []) if (ids.has(m.id)) pts.push(m);
   for (const l of f.labels) if (ids.has(l.id)) pts.push(...labelCorners(l));
   return pts.length ? ptsBBox(pts) : null;
 }
