@@ -1,3 +1,23 @@
 {
-  "kind": "wall"
+  "kind": "wall",
+  "files": {
+    "exterior.png": {
+      "name": {
+        "ru": "Тёмная панель с неоном",
+        "en": "Dark neon panel"
+      }
+    },
+    "interior.png": {
+      "name": {
+        "ru": "Светлая панель",
+        "en": "Light panel"
+      }
+    },
+    "glass.png": {
+      "name": {
+        "ru": "Стеклянная стена",
+        "en": "Curtain glass"
+      }
+    }
+  }
 }

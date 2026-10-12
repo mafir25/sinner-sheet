@@ -1,3 +1,29 @@
 {
-  "kind": "floor"
+  "kind": "floor",
+  "files": {
+    "hall.png": {
+      "name": {
+        "ru": "Холл, светлый глянец",
+        "en": "Lobby, polished"
+      }
+    },
+    "work.png": {
+      "name": {
+        "ru": "Рабочая плитка",
+        "en": "Office tiles"
+      }
+    },
+    "service.png": {
+      "name": {
+        "ru": "Служебный металл",
+        "en": "Service plates"
+      }
+    },
+    "runner.png": {
+      "name": {
+        "ru": "Зелёная дорожка",
+        "en": "Green runner"
+      }
+    }
+  }
 }

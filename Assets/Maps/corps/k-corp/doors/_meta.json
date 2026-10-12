@@ -1,3 +1,17 @@
 {
-  "kind": "door"
+  "kind": "door",
+  "files": {
+    "door.png": {
+      "name": {
+        "ru": "Раздвижная дверь",
+        "en": "Sliding door"
+      }
+    },
+    "gate.png": {
+      "name": {
+        "ru": "Лифт / шлюз",
+        "en": "Lift / airlock"
+      }
+    }
+  }
 }

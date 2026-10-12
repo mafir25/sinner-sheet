@@ -1,3 +1,11 @@
 {
-  "kind": "roof"
+  "kind": "roof",
+  "files": {
+    "roof.png": {
+      "name": {
+        "ru": "Кровля K Corp",
+        "en": "K Corp roof"
+      }
+    }
+  }
 }
