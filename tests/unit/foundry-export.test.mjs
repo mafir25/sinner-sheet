@@ -244,7 +244,9 @@ describe('персонаж конструктора ↔ актёр', () => {
     expect(by('Клинок')).toMatchObject({ type: 'weapon', system: { equipped: true, rarity: 'rare' } });
     expect(by('Извращение').system.requirements).toContain('Э.Г.О. гифт');
     expect(by('Гарпун').system.requirements).toBe('Атака Э.Г.О. | ZAYIN');
-    expect(a.items.every((i) => !i.flags)).toBe(true);
+    expect(a.items.filter((i) => i.flags).map((i) => [i.name, i.flags.pm5e.cat])).toEqual([['Извращение', 'gifts'], ['Гарпун', 'ego']]);
+    expect(by('Извращение').flags.pm5e).toMatchObject({ level: 1, types: ['Charge'] });
+    expect(a.flags.pm5e.light).toEqual({ value: 9, max: 9 });
   });
   it('биография: описание, сводка, выборы, замечания ДМ-у', () => {
     const bio = a.system.details.biography.value;

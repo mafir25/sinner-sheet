@@ -1823,7 +1823,7 @@ function foundryCharacter() {
       .concat(byT('equip').map((e) => ({ data: e.data }))),
     gifts: byT('gift').map((e) => ({ data: e.data })),
     egos: [...R.slots.filter((s) => s.kind === 'ego' && s.entry?.ego).map((s) => s.entry), ...byT('ego')].map((e) => ({
-      name: entryName(e), meta: window.EgoCore.metaLine(e.ego), text: window.EgoCore.summaryText(e.ego) })),
+      name: entryName(e), meta: window.EgoCore.metaLine(e.ego), text: window.EgoCore.summaryText(e.ego), kind: e.ego.kind === 'attack' ? 'attack' : e.ego.effType === 'pb' ? 'volatile' : 'bloomed' })),
     texts: byT('text').map((e) => ({ name: e.data.Name, desc: e.data.desc })),
     choices: R.choices.map((c) => ({ label: c.label || '', value: choiceValueLabel(c) })),
     prof: { saves: [...S.prof.saves], skills: { ...S.prof.skills } },

@@ -40,7 +40,7 @@ for (const f of await files(src)) {
   zip.file(rel, await readFile(f));
 }
 zip.file('module.json', manifestText);
-for (const f of ['foundry-import.js', 'foundry-export.js', 'foundry-kb.js', 'canon-reader.js', 'pm-statuses.js']) {
+for (const f of ['foundry-import.js', 'foundry-export.js', 'foundry-kb.js', 'canon-reader.js', 'pm-statuses.js', 'pm-ego.js', 'compendium-tools.js']) {
   zip.file(`scripts/${f}`, await readFile(join(root, 'site', f)));
 }
 zip.file('scripts/vendor/marked.esm.js', await readFile(join(root, 'node_modules/marked/lib/marked.esm.js')));

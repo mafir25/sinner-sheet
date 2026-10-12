@@ -55,3 +55,21 @@
 .pm5e-chat h4 { margin: 0 0 4px; }
 .pm5e-chat ul { margin: 0; padding-left: 16px; }
 .pm5e-kb .pm5e-n { width: 56px; flex: 0 0 auto; }
+
+/* Окно «Свет и Э.Г.О.» */
+.pm5e-ego .window-content { padding: 8px 12px; gap: 6px; }
+.pm5e-ego h3 { margin: 6px 0 4px; border-bottom: 1px solid var(--color-border, #555); }
+.pm5e-light-row { display: flex; align-items: center; gap: 8px; }
+.pm5e-pips { display: flex; flex-wrap: wrap; gap: 3px; flex: 1; }
+.pm5e-pips span { width: 12px; height: 12px; border-radius: 50%; border: 1px solid #c9a23f; }
+.pm5e-pips span.on { background: radial-gradient(#fff6c8, #f0c040); box-shadow: 0 0 4px #f0c040; }
+.pm5e-row-btns { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin: 4px 0; }
+.pm5e-row-btns button { flex: 0 0 auto; width: auto; }
+.pm5e-row-btns input[type=number] { width: 52px; }
+.pm5e-ilist { list-style: none; margin: 0; padding: 0; }
+.pm5e-ilist li { display: flex; align-items: center; gap: 6px; padding: 2px 0; }
+.pm5e-ilist li a, .pm5e-ilist li span { flex: 1; cursor: pointer; }
+.pm5e-ilist li small { opacity: .7; }
+.pm5e-ilist li button { flex: 0 0 auto; width: auto; }
+#pm5e-tray header { display: flex; align-items: center; justify-content: space-between; }
+.pm5e-ilist.pm5e-fuse { max-height: 260px; overflow-y: auto; border: 1px solid var(--color-border, #555); padding: 2px 6px; }

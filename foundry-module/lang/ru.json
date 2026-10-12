@@ -51,5 +51,20 @@
   "PM5E.Status.Remove": "Снять",
   "PM5E.Status.None": "Статусов нет",
   "PM5E.Status.Add": "Добавить",
-  "PM5E.Status.NoTokens": "Выделите токены, на которые наложить статус."
+  "PM5E.Status.NoTokens": "Выделите токены, на которые наложить статус.",
+  "PM5E.Ego.Title": "Свет и Э.Г.О.",
+  "PM5E.Ego.Light": "Свет",
+  "PM5E.Ego.Restore": "Восстановить",
+  "PM5E.Ego.Max": "Максимум",
+  "PM5E.Ego.Egos": "Э.Г.О.",
+  "PM5E.Ego.Gifts": "Дары Э.Г.О.",
+  "PM5E.Ego.NoEgo": "Нет Э.Г.О. — их переносит «В FOUNDRY» из конструктора.",
+  "PM5E.Ego.NoGifts": "Нет даров — выдайте их из Базы знаний или конструктора.",
+  "PM5E.Ego.Fuse": "Слияние",
+  "PM5E.Ego.SameTypes": "только с типами ингредиентов",
+  "PM5E.Ego.Result": "Результат — дар уровня {tier}:",
+  "PM5E.Ego.NoOptions": "В Базе знаний нет подходящих даров уровня {tier}.",
+  "PM5E.Ego.Take": "Получить",
+  "PM5E.Ego.FuseBad": "Для слияния нужно 2 или 3 дара с известным уровнем.",
+  "PM5E.Ego.Confirm": "Слить {from} в «{to}»? Ингредиенты будут убраны."
 }

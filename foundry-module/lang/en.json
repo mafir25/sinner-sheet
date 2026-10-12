@@ -51,5 +51,20 @@
   "PM5E.Status.Remove": "Remove",
   "PM5E.Status.None": "No statuses",
   "PM5E.Status.Add": "Add",
-  "PM5E.Status.NoTokens": "Select the tokens to apply the status to."
+  "PM5E.Status.NoTokens": "Select the tokens to apply the status to.",
+  "PM5E.Ego.Title": "Light and E.G.O.",
+  "PM5E.Ego.Light": "Light",
+  "PM5E.Ego.Restore": "Restore",
+  "PM5E.Ego.Max": "Max",
+  "PM5E.Ego.Egos": "E.G.O.",
+  "PM5E.Ego.Gifts": "E.G.O. Gifts",
+  "PM5E.Ego.NoEgo": "No E.G.O. — the builder's “TO FOUNDRY” brings them over.",
+  "PM5E.Ego.NoGifts": "No gifts — give them from the Knowledge Base or the builder.",
+  "PM5E.Ego.Fuse": "Fusion",
+  "PM5E.Ego.SameTypes": "only with the ingredients' types",
+  "PM5E.Ego.Result": "Result — a tier {tier} gift:",
+  "PM5E.Ego.NoOptions": "No suitable tier {tier} gifts in the Knowledge Base.",
+  "PM5E.Ego.Take": "Take",
+  "PM5E.Ego.FuseBad": "Fusion needs 2 or 3 gifts with a known tier.",
+  "PM5E.Ego.Confirm": "Fuse {from} into “{to}”? The ingredients will be removed."
 }

@@ -2,12 +2,14 @@
    - окно «База знаний» (kb.mjs): канон сайта прямо в Foundry, «В мир» и «Выдать персонажу»;
    - окно импорта (макрос или JSON с сайта, файл);
    - ссылки «Открыть в Базе знаний» в описаниях документов открывают окно, а не сайт;
-   - статусы Project Moon (statuses.mjs): стаки, палитра меню токена, панель статусов, автоматика боя.
+   - статусы Project Moon (statuses.mjs): стаки, палитра меню токена, панель статусов, автоматика боя;
+   - окно «Свет и Э.Г.О.» персонажа (ego.mjs): Свет, Э.Г.О., дары и их Слияние.
    Кнопки — в шапке каталогов актёров, предметов и журналов. API: game.modules.get('pm5e').api.
    foundry-*.js, canon-reader.js, config.js, vendor/, data/ кладёт сюда сборка (scripts/build-foundry-module.mjs). */
 import { importPackage, parsePackage } from './foundry-import.js';
 import { parseSiteLink } from './foundry-kb.js';
 import { KnowledgeBase } from './kb.mjs';
+import { EgoWindow, initEgo } from './ego.mjs';
 import { initStatuses, registerStatusSettings, applyToSelected, setStacks, addStacks, getStacks, runTick } from './statuses.mjs';
 
 const ID = 'pm5e';
@@ -96,10 +98,10 @@ Hooks.once('init', () => {
   });
   registerStatusSettings();
   game.modules.get(ID).api = {
-    importData, openImporter, parsePackage, openKB: (target) => KnowledgeBase.open(target),
+    importData, openImporter, parsePackage, openKB: (target) => KnowledgeBase.open(target), openEgo: (actor) => EgoWindow.open(actor),
     statuses: { get: getStacks, set: setStacks, add: addStacks, applyToSelected, tick: runTick },
   };
 });
-Hooks.once('setup', initStatuses);
+Hooks.once('setup', () => { initStatuses(); initEgo(); });
 Hooks.once('ready', () => document.addEventListener('click', interceptSiteLinks, true));
 for (const hook of ['renderActorDirectory', 'renderItemDirectory', 'renderJournalDirectory']) Hooks.on(hook, addDirectoryButtons);

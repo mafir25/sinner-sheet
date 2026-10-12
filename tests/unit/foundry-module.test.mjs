@@ -42,7 +42,7 @@ describe('модуль pm5e (собранный архив) на имитаци�
     expect(manifest.download).toBe('https://github.com/mafir25/sinner-sheet/releases/download/pm5e-v1.2.3/pm5e.zip');
     expect(manifest.relationships.systems[0].id).toBe('dnd5e');
     for (const f of [...manifest.esmodules, ...manifest.styles, ...manifest.languages.map((l) => l.path),
-      'scripts/kb.mjs', 'scripts/config.js', 'scripts/vendor/marked.esm.js', 'scripts/vendor/purify.es.mjs', 'data/Rus/world/bestiary.json', 'data/Eng/characters/classes.json']) {
+      'scripts/kb.mjs', 'scripts/ego.mjs', 'scripts/pm-ego.js', 'scripts/compendium-tools.js', 'scripts/config.js', 'scripts/vendor/marked.esm.js', 'scripts/vendor/purify.es.mjs', 'data/Rus/world/bestiary.json', 'data/Eng/characters/classes.json']) {
       expect(() => readFileSync(join(dir, f))).not.toThrow();
     }
     const ru = JSON.parse(readFileSync(join(dir, 'lang/ru.json'), 'utf8'));

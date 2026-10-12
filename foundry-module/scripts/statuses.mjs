@@ -173,7 +173,8 @@ export function renderTray() {
       ${own && extra ? `<div class="x">${extra}</div>` : ''}</li>`;
   }).join('');
   const options = STATUSES.map((s) => `<option value="${s.id}">${esc(statusName(s, L))}</option>`).join('');
-  TRAY.innerHTML = `<header>${esc(actor.name)}</header><ul>${rows || `<li class="empty">${esc(t('PM5E.Status.None'))}</li>`}</ul>
+  const egoBtn = actor.type === 'character' ? `<button type="button" data-act="ego" title="${esc(t('PM5E.Ego.Title'))}"><i class="fa-solid fa-gem"></i></button>` : '';
+  TRAY.innerHTML = `<header><span>${esc(actor.name)}</span>${egoBtn}</header><ul>${rows || `<li class="empty">${esc(t('PM5E.Status.None'))}</li>`}</ul>
     ${own ? `<footer><select>${options}</select><input type="number" value="1" min="1" max="99"><button type="button" data-act="add">${esc(t('PM5E.Status.Add'))}</button></footer>` : ''}`;
 }
 async function onTrayClick(ev) {
@@ -183,6 +184,7 @@ async function onTrayClick(ev) {
   const id = b.dataset.id;
   const s = getStacks(actor, id);
   switch (b.dataset.act) {
+    case 'ego': game.modules.get(ID)?.api?.openEgo?.(actor); return;
     case 'inc': await setStacks(actor, id, s + 1); break;
     case 'dec': await setStacks(actor, id, s - 1); break;
     case 'del': await setStacks(actor, id, 0); break;

@@ -369,8 +369,13 @@ export function characterActor(ch, opts) {
     d.system.equipped = true;
     push(d);
   });
-  arr(ch.gifts).forEach((g) => { const d = giftItem(g.data, { cat: 'gifts', key: g.data?.Name }, opts); delete d.flags; push(d); });
-  arr(ch.egos).forEach((e) => push(feat(c, e.name, c.html(e.text), { requirements: str(e.meta) })));
+  // дары и Э.Г.О. помечены: их находит окно «Свет и Э.Г.О.» модуля (слияние даров, список Э.Г.О.)
+  arr(ch.gifts).forEach((g) => {
+    const d = giftItem(g.data, { cat: 'gifts', key: g.data?.Name }, opts);
+    d.flags = { [FLAG]: { cat: 'gifts', level: Number(g.data?.Level) || null, types: arr(g.data?.Type) } };
+    push(d);
+  });
+  arr(ch.egos).forEach((e) => { const d = feat(c, e.name, c.html(e.text), { requirements: str(e.meta) }); d.flags = { [FLAG]: { cat: 'ego', kind: str(e.kind) } }; push(d); });
   arr(ch.texts).forEach((t) => push(feat(c, t.name, c.html(t.desc))));
 
   // сводка в биографию: то, чему у dnd5e нет своего поля
@@ -405,7 +410,8 @@ export function characterActor(ch, opts) {
     },
     items,
     prototypeToken: { name, actorLink: true, disposition: 1 },
-    flags: { [FLAG]: { key: `character/${ch.id || name}`, cat: 'character', exported: c.now, preset: ch.preset ?? null } },
+    flags: { [FLAG]: { key: `character/${ch.id || name}`, cat: 'character', exported: c.now, preset: ch.preset ?? null,
+      ...(ch.light ? { light: { value: ch.light, max: ch.light } } : {}) } },
   };
 }
 
