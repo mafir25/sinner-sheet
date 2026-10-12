@@ -10,6 +10,8 @@
       и их эффектам: собирает прибавки к характеристикам, слоты, точки выбора, скорость, хиты и т. д.
    3. Интерфейс рисуется из результата compute(). Все данные выводятся через esc() или DOMPurify. */
 
+import { characterPackage, foundryMacro, importDataJson, presetFromActor } from './foundry-export.js';
+
 const T = (s) => (window.I18N ? window.I18N.t(s) : s);
 const STATS = ['Str', 'Dex', 'Con', 'Int', 'Wis', 'Cha'];
 const STAT_NAME = { Str: 'Сила', Dex: 'Ловкость', Con: 'Телосложение', Int: 'Интеллект', Wis: 'Мудрость', Cha: 'Харизма' };
@@ -1191,6 +1193,30 @@ function entryBlock(title, body, color, sub) {
       <div class="copy-msg">Скопировано!</div>
     </div>`;
 }
+/* Что требует внимания ДМ-а: нерешённые выборы, невыполненные требования, пользовательские объекты */
+function dossierWarnings() {
+  const warns = [];
+  if (R.pending) warns.push(`${T('Нерешённые выборы')}: ${R.pending}`);
+  R.slots.forEach((s) => (s.req?.fails || []).forEach((f) => warns.push(`${s.label}: ${f}`)));
+  R.feats.filter((r) => !r.ctx.slot && !r.ctx.extra).forEach((r) => r.req.fails.forEach((f) => warns.push(`${r.entry.data.Name}: ${f}`)));
+  S.extras.forEach((x) => warns.push(`${T('Вне слотов')} — ${entryName(xe(x).entry)}: ${(xe(x).why || []).join('; ')}`));
+  [R.arch, ...R.slots.map((s) => s.entry)].filter(isCustom).forEach((e) => warns.push(`${entryName(e)}: ${T('пользовательский объект — на усмотрение ДМ-а')}`));
+  if (S.stats.method === 'pointbuy' && pointsLeft() < 0) warns.push(T('Покупка очков: превышен бюджет'));
+  return warns;
+}
+
+/* Выбранные варианты умений основного класса: номер умения → названия вариантов */
+function basePicks() {
+  const out = {};
+  R.slots.forEach((s) => {
+    const eff = (R.base.effects || []).find((x) => (x.type === 'pickList' && s.listId === x.id && s.src?.isBase) || (x.type === 'choice' && s.id === `base:${x.id}`));
+    if (!eff || eff.talent == null) return;
+    const d = slotDisplay(s);
+    if (d.filled) (out[eff.talent] ||= []).push(d.name);
+  });
+  return out;
+}
+
 function renderDossier() {
   $('out-name').textContent = S.name || T('БЕЗ ИМЕНИ');
   $('out-meta').textContent = [R.race ? R.race.name : T('Раса не выбрана'), R.base.name + (R.arch ? ` / ${entryName(R.arch)}` : ''), `${T('Уровень')} ${R.L}`].join(' | ');
@@ -1203,13 +1229,7 @@ function renderDossier() {
     R.L >= 2 ? `${T('Свет')}: <b>${R.lightPool}</b>` : '', `${T('Кость хитов')}: <b>${S.opts.durability ? 2 : 1}d${R.die}</b>`,
   ].filter(Boolean).join(' · ')}</div>`;
 
-  const warns = [];
-  if (R.pending) warns.push(`${T('Нерешённые выборы')}: ${R.pending}`);
-  R.slots.forEach((s) => (s.req?.fails || []).forEach((f) => warns.push(`${s.label}: ${f}`)));
-  R.feats.filter((r) => !r.ctx.slot && !r.ctx.extra).forEach((r) => r.req.fails.forEach((f) => warns.push(`${r.entry.data.Name}: ${f}`)));
-  S.extras.forEach((x) => warns.push(`${T('Вне слотов')} — ${entryName(xe(x).entry)}: ${(xe(x).why || []).join('; ')}`));
-  [R.arch, ...R.slots.map((s) => s.entry)].filter(isCustom).forEach((e) => warns.push(`${entryName(e)}: ${T('пользовательский объект — на усмотрение ДМ-а')}`));
-  if (S.stats.method === 'pointbuy' && pointsLeft() < 0) warns.push(T('Покупка очков: превышен бюджет'));
+  const warns = dossierWarnings();
   if (warns.length) h += `<div class="dm-warn"><div class="dm-warn-t"><i class="fa-solid fa-triangle-exclamation"></i> ${esc(T('Требует внимания / на усмотрение ДМ-а'))}</div>${warns.map((w) => `<div>• ${esc(w)}</div>`).join('')}</div>`;
 
   const levels = Array.isArray(S.levels) ? S.levels.filter((x) => x.level <= R.L) : [];
@@ -1223,13 +1243,7 @@ function renderDossier() {
   }
   // основной класс
   const hide = new Set(R.base.hide || []);
-  const pickedByTalent = {};
-  R.slots.forEach((s) => {
-    const eff = (R.base.effects || []).find((x) => (x.type === 'pickList' && s.listId === x.id && s.src?.isBase) || (x.type === 'choice' && s.id === `base:${x.id}`));
-    if (!eff || eff.talent == null) return;
-    const d = slotDisplay(s);
-    if (d.filled) (pickedByTalent[eff.talent] ||= []).push(d.name);
-  });
+  const pickedByTalent = basePicks();
   h += block(`${T('Основной класс:')} ${R.base.name}`, 'var(--color-cyan)', (R.baseData.Talents || []).map((t, i) => {
     if (hide.has(i) || Number(t.level) > R.L) return '';
     const picked = pickedByTalent[i] ? `<div class="picked">${esc(T('Выбрано:'))} ${pickedByTalent[i].map(esc).join(', ')}</div>` : '';
@@ -1719,6 +1733,10 @@ function importPreset(p) {
       const f = DB.feats.find((x) => lower(x.data.Name) === lower(typeof n === 'string' ? n : n?.Name));
       if (f) S.extras.push({ id: uid(), ref: makeRef(f) });
     });
+    if (p.level) S.level = Math.max(1, Math.min(20, parseInt(p.level, 10) || 1));
+    if (p.stats && STATS.every((k) => Number.isFinite(Number(p.stats[k])))) {
+      S.stats = { method: 'manual', base: Object.fromEntries(STATS.map((k) => [k, Number(p.stats[k])])), pool: [], assign: {} };
+    }
     if (S.extras.length) setTimeout(() => toast('Черты из старого пресета добавлены вне слотов — перенесите их в слоты'), 300);
   } else throw new Error('bad preset');
   renderAll();
@@ -1733,6 +1751,88 @@ function readFile(ev, cb) {
     try { cb(JSON.parse(r.result)); } catch (e) { console.error(e); alert(T('Ошибка чтения JSON файла.')); }
   };
   r.readAsText(file);
+}
+
+/* ---------- Foundry VTT (docs/foundry.md, этап 2): персонаж ↔ актёр dnd5e ---------- */
+/** Снимок персонажа для site/foundry-export.js (characterActor) — без DOM, только данные. */
+function foundryCharacter() {
+  if (!S.fid) { S.fid = uid(); saveState(); }          // постоянный ключ: повторный экспорт обновит того же актёра
+  const hide = new Set(R.base.hide || []);
+  const picks = basePicks();
+  const extras = S.extras.map((x) => xe(x).entry).filter(Boolean);
+  const byT = (t) => extras.filter((e) => e.t === t);
+  return {
+    id: S.fid, name: S.name, desc: S.desc, level: R.L,
+    base: { id: S.base, name: R.base.name, die: R.die }, durability: S.opts.durability,
+    stats: R.stats, hp: R.hp, sp: S.opts.sanity ? R.sp : 0, light: R.lightPool, speed: R.speedTotal,
+    dc: R.dcValue, dcStat: T(STAT_SHORT[R.dcStat] || R.dcStat), atk: R.atk, pb: R.pb,
+    race: R.race ? { name: R.race.name, traits: R.race.traits || [] } : null,
+    baseTalents: (R.baseData.Talents || []).map((t, i) => ({ ...t, picked: picks[i] || [] }))
+      .filter((t, i) => !hide.has(i) && Number(t.level) <= R.L),
+    archs: [R.arch, R.arch2].filter(Boolean).map((a) => ({ Name: entryName(a), Talents: (a.data.Talents || []).filter((t) => Number(t.level) <= R.L) })),
+    feats: R.feats.map((r) => ({ data: r.entry.data })),
+    gear: R.slots.filter((s) => s.kind === 'gear' && s.entry && s.entry.t === 'equip').map((s) => ({ data: s.entry.data, slot: s.label }))
+      .concat(byT('equip').map((e) => ({ data: e.data }))),
+    gifts: byT('gift').map((e) => ({ data: e.data })),
+    egos: [...R.slots.filter((s) => s.kind === 'ego' && s.entry?.ego).map((s) => s.entry), ...byT('ego')].map((e) => ({
+      name: entryName(e), meta: window.EgoCore.metaLine(e.ego), text: window.EgoCore.summaryText(e.ego) })),
+    texts: byT('text').map((e) => ({ name: e.data.Name, desc: e.data.desc })),
+    choices: R.choices.map((c) => ({ label: c.label || '', value: choiceValueLabel(c) })),
+    warnings: dossierWarnings(),
+    preset: buildPreset(),
+  };
+}
+let FOUNDRY = null;
+function openFoundry() {
+  const lang = window.I18N?.lang === 'en' ? 'en' : 'ru';
+  const en = lang === 'en';
+  const pkg = characterPackage(foundryCharacter(), {
+    origin: location.origin, lang, toHtml: (v) => window.DOMPurify.sanitize(window.marked.parse(String(v ?? ''))) });
+  FOUNDRY = { pkg, macro: foundryMacro(pkg, lang), actor: pkg.actors[0] };
+  const t = en ? {
+    lead: `The character goes to Foundry (<b>dnd5e</b>) as a “Character” actor: abilities, HP, speed, level, class, race and archetype features, feats, gear, gifts and E.G.O.; Light and Sanity as resources.`,
+    macro: `<b>Macro</b>: Foundry → new macro, type “Script” → paste → “Execute” (as GM). The actor lands in “Mephistopheles Terminal / Characters”; exporting again updates it.`,
+    json: `<b>JSON</b>: create a “Character” actor, right-click it → “Import Data”.`,
+    back: `Proficiencies (saves, skills) are not tracked here — mark them on the sheet. To bring the character back: Foundry → right-click the actor → “Export Data” → “From Foundry” here.`,
+    copy: 'Copy macro', file: 'Macro as file', dl: 'JSON for Import Data',
+  } : {
+    lead: `Персонаж уйдёт в Foundry (<b>dnd5e</b>) актёром «Персонаж»: характеристики, хиты, скорость, уровень, умения класса, расы и архетипа, черты, снаряжение, дары и Э.Г.О.; Свет и Рассудок — ресурсами.`,
+    macro: `<b>Макрос</b>: Foundry → новый макрос типа «Скрипт» → вставить → «Выполнить» (мастер). Актёр ляжет в «Mephistopheles Terminal / Персонажи»; повторный экспорт обновит его.`,
+    json: `<b>JSON</b>: создайте актёра типа «Персонаж», правый щелчок → «Import Data».`,
+    back: `Владения (спасброски, навыки) конструктор не хранит — отметьте их на листе. Вернуть персонажа: Foundry → правый щелчок по актёру → «Export Data» → здесь «Из Foundry».`,
+    copy: 'Скопировать макрос', file: 'Макрос файлом', dl: 'JSON для Import Data',
+  };
+  const warns = dossierWarnings().length;
+  openModal(en ? 'Export to Foundry VTT' : 'Экспорт в Foundry VTT', `<div class="md notranslate">
+      <p>${t.lead}</p><p>${t.macro}</p><p>${t.json}</p><p>${t.back}</p>
+      ${warns ? `<p style="color:var(--color-yellow)">⚠ ${esc(en ? `${warns} item(s) need the GM's attention — listed in the actor's biography.` : `Требует внимания ДМ-а: ${warns} — список попадёт в биографию актёра.`)}</p>` : ''}
+    </div>
+    <div class="modal-actions notranslate">
+      <button class="btn-mini accent" id="fvtt-copy"><i class="fa-regular fa-copy"></i> ${esc(t.copy)}</button>
+      <button class="btn-mini" id="fvtt-macro"><i class="fa-solid fa-download"></i> ${esc(t.file)}</button>
+      <button class="btn-mini" id="fvtt-json"><i class="fa-solid fa-download"></i> ${esc(t.dl)}</button>
+    </div>`, '#FF6400');
+  const fileBase = (S.name || 'Character').replace(/[\\/:*?"<>|]+/g, '_');
+  $('fvtt-copy').onclick = () => navigator.clipboard.writeText(FOUNDRY.macro)
+    .then(() => toast(en ? 'Copied to clipboard' : 'Скопировано в буфер')).catch(() => toast(en ? 'Could not copy' : 'Не удалось скопировать'));
+  $('fvtt-macro').onclick = () => downloadBlob(FOUNDRY.macro, `${fileBase} - Foundry macro.js`, 'text/javascript');
+  $('fvtt-json').onclick = () => downloadBlob(JSON.stringify(importDataJson(FOUNDRY.actor), null, 2), `fvtt-${fileBase}.json`, 'application/json');
+}
+function downloadBlob(text, filename, type) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], { type }));
+  a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+/** «Из Foundry»: актёр (Export Data) → пресет. Свой актёр возвращается целиком, чужой — именем, уровнем, характеристиками и чертами. */
+function importFoundryActor(data) {
+  const p = presetFromActor(data);
+  if (!p) { alert(T('Это не актёр-персонаж Foundry: нужен файл «Export Data» актёра типа «Персонаж».')); return; }
+  if (!confirm(T('Заменить текущего персонажа персонажем из Foundry?'))) return;
+  importPreset(p);
+  if (p.fromFoundry) setTimeout(() => toast(T('Персонаж не из конструктора: перенесены имя, уровень, характеристики, описание и черты по названиям')), 400);
+  else toast(T('Персонаж загружен из Foundry'));
 }
 
 function importCustomJson(data) {
@@ -1778,6 +1878,8 @@ function bind() {
   }));
   $('custom-in').addEventListener('change', (ev) => readFile(ev, importCustomJson));
   $('btn-export').addEventListener('click', exportPreset);
+  $('btn-foundry').addEventListener('click', openFoundry);
+  $('foundry-in').addEventListener('change', (ev) => readFile(ev, importFoundryActor));
   $('btn-levelup').addEventListener('click', openLevelUp);
   $('btn-copy').addEventListener('click', () => {
     navigator.clipboard.writeText($('output-area').innerText).then(() => alert(T('Досье скопировано в буфер обмена!'))).catch((e) => console.error(e));

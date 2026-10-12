@@ -320,6 +320,128 @@ export function bestiaryActor(it, ref, opts) {
   };
 }
 
+/* ---------- Персонаж из конструктора → актёр character (этап 2) ---------- */
+
+const STAT_KEYS = { Str: 'str', Dex: 'dex', Con: 'con', Int: 'int', Wis: 'wis', Cha: 'cha' };
+const slug = (v, def) => (/^[a-z0-9_-]+$/i.test(String(v ?? '')) ? String(v).toLowerCase() : def);
+
+/**
+ * Снимок персонажа конструктора (site/builder.js → foundryCharacter()) → актёр «character» dnd5e.
+ * ch: { id, name, desc, level, base: { id, name, die }, stats: { Str… }, hp, sp, light, speed, dc, dcStat, atk, pb,
+ *   race: { name, traits: [{ name, desc }] }, baseTalents: [{ name, desc, level, picked }], archs: [{ Name, Talents }],
+ *   feats: [{ data, via }], gear: [{ data, slot }], gifts: [{ data }], egos: [{ name, meta, text }], texts: [{ name, desc }],
+ *   choices: [{ label, value }], warnings: [], preset } — preset кладётся во флаги: по нему актёр возвращается в конструктор.
+ */
+export function characterActor(ch, opts) {
+  const c = ctx(opts);
+  const en = c.lang === 'en';
+  const L = Math.max(1, Math.min(20, Number(ch.level) || 1));
+  const abilities = Object.fromEntries(Object.entries(STAT_KEYS).map(([k, v]) => [v, { value: Number(ch.stats?.[k]) || 10 }]));
+  const items = [];
+  const push = (d) => { d.sort = items.length * 100; items.push(d); return d; };
+  const lvl = (n) => (n ? `, ${en ? 'level' : 'ур.'} ${n}` : '');
+
+  // класс: уровень (от него dnd5e считает бонус мастерства) и кость хитов; хиты — готовые из конструктора
+  const die = `d${Number(ch.base?.die) || 10}`;
+  push({ name: str(ch.base?.name) || 'Класс', type: 'class',
+    system: { identifier: slug(ch.base?.id, 'pm-class'), levels: L, hitDice: die, hd: { denomination: die, spent: 0 },
+      description: { value: '' }, source } });
+  if (ch.race) arr(ch.race.traits).forEach((t) => push(feat(c, t.name, c.html(t.desc), { type: 'race', requirements: str(ch.race.name) })));
+  arr(ch.baseTalents).forEach((t) => {
+    const picked = arr(t.picked).length ? c.html(`*${en ? 'Chosen' : 'Выбрано'}: ${arr(t.picked).join(', ')}*`) : '';
+    push(feat(c, t.name, picked + c.html(t.desc), { type: 'class', requirements: `${str(ch.base?.name)}${lvl(t.level)}` }));
+  });
+  arr(ch.archs).forEach((a) => arr(a.Talents).forEach((t) =>
+    push(feat(c, t.name, c.html(t.desc), { type: 'class', requirements: `${str(a.Name)}${lvl(t.level)}` }))));
+  arr(ch.feats).forEach((f) => {
+    const d = featItem(f.data, { cat: 'feats', key: f.data?.Name }, opts);
+    delete d.flags;
+    push(d);
+  });
+  arr(ch.gear).forEach((g) => {
+    const d = equipmentItem(g.data, { cat: 'equipment', key: g.data?.Name }, opts);
+    delete d.flags;
+    d.system.equipped = true;
+    push(d);
+  });
+  arr(ch.gifts).forEach((g) => { const d = giftItem(g.data, { cat: 'gifts', key: g.data?.Name }, opts); delete d.flags; push(d); });
+  arr(ch.egos).forEach((e) => push(feat(c, e.name, c.html(e.text), { requirements: str(e.meta) })));
+  arr(ch.texts).forEach((t) => push(feat(c, t.name, c.html(t.desc))));
+
+  // сводка в биографию: то, чему у dnd5e нет своего поля
+  const sum = [
+    [ch.race?.name, `${str(ch.base?.name)}${arr(ch.archs).length ? ` / ${arr(ch.archs).map((a) => a.Name).join(', ')}` : ''}`, `${en ? 'Level' : 'Уровень'} ${L}`].filter(Boolean).join(' · '),
+    [`${en ? 'DC' : 'СЛ'} ${ch.dc}${ch.dcStat ? ` (${ch.dcStat})` : ''}`, `${en ? 'Attack' : 'Атака'} ${ch.atk >= 0 ? '+' : ''}${ch.atk}`,
+      ch.light ? `${en ? 'Light' : 'Свет'} ${ch.light}` : '', ch.sp ? `${en ? 'Sanity' : 'Рассудок'} ${ch.sp}` : '',
+      `${en ? 'Hit die' : 'Кость хитов'} ${ch.durability ? 2 : 1}${die}`].filter(Boolean).join(' · '),
+  ];
+  const choices = arr(ch.choices).filter((x) => str(x.value)).map((x) => `- ${x.label}: **${x.value}**`).join('\n');
+  const warns = arr(ch.warnings).map((w) => `- ${w}`).join('\n');
+  const bio = [
+    c.html(ch.desc),
+    c.html(sum.map((x) => `**${x}**`).join('\n\n')),
+    choices ? c.html(`**${en ? 'Choices' : 'Выборы'}**\n\n${choices}`) : '',
+    warns ? c.html(`**${en ? 'For the GM to review' : 'На усмотрение ДМ-а'}**\n\n${warns}`) : '',
+    c.html(`*${en ? 'Saving throw and skill proficiencies are not tracked by the builder — mark them on the sheet.'
+      : 'Владения спасбросками и навыками конструктор не хранит — отметьте их на листе.'}*`),
+  ].join('');
+
+  const resources = {};
+  if (ch.light) resources.primary = { label: en ? 'Light' : 'Свет', value: ch.light, max: ch.light, sr: false, lr: false };
+  if (ch.sp) resources.secondary = { label: en ? 'Sanity' : 'Рассудок', value: ch.sp, max: ch.sp, sr: false, lr: false };
+
+  const name = str(ch.name) || (en ? 'Unnamed' : 'Без имени');
+  return {
+    name, type: 'character',
+    system: {
+      abilities,
+      attributes: { hp: { value: ch.hp, max: ch.hp }, movement: { walk: Number(ch.speed) || 30, units: 'ft' } },
+      details: { biography: { value: bio }, race: str(ch.race?.name) },
+      resources,
+    },
+    items,
+    prototypeToken: { name, actorLink: true, disposition: 1 },
+    flags: { [FLAG]: { key: `character/${ch.id || name}`, cat: 'character', exported: c.now, preset: ch.preset ?? null } },
+  };
+}
+
+/** Пакет с одним персонажем — в папку «Персонажи». */
+export function characterPackage(ch, opts = {}) {
+  const actor = characterActor(ch, opts);
+  actor._folder = opts.folder || (opts.lang === 'en' ? 'Characters' : 'Персонажи');
+  return { format: FORMAT, version: 1, source: opts.origin || '', exported: opts.now || new Date().toISOString(), items: [], actors: [actor], journals: [] };
+}
+
+const htmlText = (h) => String(h ?? '').replace(/<br\s*\/?>/gi, '\n').replace(/<\/p>\s*/gi, '\n\n').replace(/<[^>]+>/g, '')
+  .replace(/&nbsp;/g, ' ').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&')
+  .replace(/\n{3,}/g, '\n\n').trim();
+
+/**
+ * Актёр Foundry («Export Data», .json) → пресет конструктора. Актёр, выгруженный отсюда, несёт полный пресет во флагах;
+ * чужой актёр даёт имя, уровень, характеристики (вручную), описание, архетип и черты — по названиям.
+ * null — это не актёр-персонаж.
+ */
+export function presetFromActor(a) {
+  if (!a || typeof a !== 'object' || (a.type && a.type !== 'character')) return null;
+  const saved = a.flags?.[FLAG]?.preset;
+  if (saved && saved.builder) {
+    // имя и описание могли поправить в Foundry — берём оттуда
+    return { ...saved, characterName: a.name ?? saved.characterName, builder: { ...saved.builder, name: a.name ?? saved.builder.name } };
+  }
+  const items = arr(a.items);
+  const cls = items.filter((i) => i.type === 'class');
+  const level = cls.reduce((s, i) => s + (Number(i.system?.levels) || 0), 0) || Number(a.system?.details?.level) || 1;
+  const stats = Object.fromEntries(Object.entries(STAT_KEYS).map(([k, v]) => [k, Number(a.system?.abilities?.[v]?.value) || 10]));
+  const sub = items.find((i) => i.type === 'subclass');
+  return {
+    format: 'sinner-sheet.character', version: 2, fromFoundry: true,
+    characterName: str(a.name), desc: htmlText(a.system?.details?.biography?.value),
+    className: str(sub?.name || cls[0]?.name), race: str(typeof a.system?.details?.race === 'string' ? a.system.details.race : ''),
+    level: Math.max(1, Math.min(20, level)), stats,
+    feats: items.filter((i) => i.type === 'feat' && i.system?.type?.value !== 'class' && i.system?.type?.value !== 'race').map((i) => i.name),
+  };
+}
+
 /* ---------- Пакет ---------- */
 
 /** Что из раздела Базы знаний уходит в Foundry. Статусы — через сеттинг (docs/foundry.md §1), их здесь нет. */

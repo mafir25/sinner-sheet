@@ -4,6 +4,7 @@ import {
   prepMarkdown, parseMeta, parseSpeed, parseSenses, parseSaves, parseSkills, parseCR,
   featItem, giftItem, equipmentItem, talentItems, journalEntry, bestiaryActor,
   buildPackage, packageSize, importDataJson, foundryMacro, canExport, FORMAT,
+  characterActor, characterPackage, presetFromActor,
 } from '../../site/foundry-export.js';
 
 const load = (f) => JSON.parse(readFileSync(new URL(`../../Assets/${f}`, import.meta.url), 'utf8'));
@@ -194,5 +195,86 @@ describe('пакет и макрос', () => {
     await run(foundryMacro(pkg, 'en'), g);
     expect(stores.items.length).toBe(0);
     expect(log.notes).toEqual(['Only the GM can import.']);
+  });
+});
+
+describe('персонаж конструктора ↔ актёр', () => {
+  const preset = { format: 'sinner-sheet.character', version: 2, characterName: 'Ишмаэль', builder: { v: 2, name: 'Ишмаэль', level: 5, fid: 'abc' } };
+  const ch = {
+    id: 'abc', name: 'Ишмаэль', desc: 'Капитан.', level: 5,
+    base: { id: 'fixer', name: 'Фиксер', die: 10 }, durability: false,
+    stats: { Str: 16, Dex: 14, Con: 14, Int: 10, Wis: 12, Cha: 8 }, hp: 44, sp: 30, light: 9, speed: 30,
+    dc: 14, dcStat: 'СИЛ', atk: 6, pb: 3,
+    race: { name: 'Человек', traits: [{ name: 'Упорство', desc: 'т' }] },
+    baseTalents: [{ name: 'Боевой стиль', desc: 'с', level: 2, picked: ['Оборона'] }],
+    archs: [{ Name: 'Ассоциация Семь', Talents: [{ name: 'Расследование', desc: 'р', level: 1 }] }],
+    feats: [{ data: { Name: 'Тело, усиленное грехом', Need: '', Base: ['Background'], desc: 'ч' } }],
+    gear: [{ data: { Name: 'Клинок', ItemType: 'Weapon', Rarity: 'Rare', Level: 1, Desc: 'о' }, slot: 'Оружие' }],
+    gifts: [{ data: { Name: 'Извращение', Level: 1, Type: ['Charge'], Description: 'г' } }],
+    egos: [{ name: 'Гарпун', meta: 'Атака Э.Г.О. | ZAYIN', text: 'урон' }],
+    texts: [{ name: 'Своё', desc: 'с' }],
+    choices: [{ label: 'Аномальная способность', value: 'Сила +1' }, { label: 'Пусто', value: '' }],
+    warnings: ['Нерешённые выборы: 1'],
+    preset,
+  };
+  const a = characterActor(ch, opts);
+
+  it('актёр character: характеристики, хиты, скорость, ресурсы Свет и Рассудок', () => {
+    expect(a.type).toBe('character');
+    expect(a.system.abilities).toMatchObject({ str: { value: 16 }, cha: { value: 8 } });
+    expect(a.system.attributes.hp).toEqual({ value: 44, max: 44 });
+    expect(a.system.attributes.movement.walk).toBe(30);
+    expect(a.system.resources.primary).toMatchObject({ label: 'Свет', value: 9, max: 9 });
+    expect(a.system.resources.secondary).toMatchObject({ label: 'Рассудок', value: 30 });
+    expect(a.prototypeToken).toMatchObject({ actorLink: true, disposition: 1 });
+    expect(a.flags.pm5e).toMatchObject({ key: 'character/abc', cat: 'character', preset });
+  });
+  it('предметы: класс с уровнем, умения, черты, снаряжение (надето), дары, Э.Г.О.', () => {
+    const cls = a.items[0];
+    expect(cls).toMatchObject({ type: 'class', name: 'Фиксер', system: { identifier: 'fixer', levels: 5, hitDice: 'd10' } });
+    const by = (n) => a.items.find((i) => i.name === n);
+    expect(by('Упорство').system.type.value).toBe('race');
+    expect(by('Боевой стиль').system.requirements).toBe('Фиксер, ур. 2');
+    expect(by('Боевой стиль').system.description.value).toContain('Оборона');
+    expect(by('Расследование').system.requirements).toBe('Ассоциация Семь, ур. 1');
+    expect(by('Тело, усиленное грехом').type).toBe('feat');
+    expect(by('Клинок')).toMatchObject({ type: 'weapon', system: { equipped: true, rarity: 'rare' } });
+    expect(by('Извращение').system.requirements).toContain('Э.Г.О. гифт');
+    expect(by('Гарпун').system.requirements).toBe('Атака Э.Г.О. | ZAYIN');
+    expect(a.items.every((i) => !i.flags)).toBe(true);
+  });
+  it('биография: описание, сводка, выборы, замечания ДМ-у', () => {
+    const bio = a.system.details.biography.value;
+    expect(bio).toContain('Капитан.');
+    expect(bio).toContain('СЛ 14 (СИЛ)');
+    expect(bio).toContain('Аномальная способность: <strong>Сила +1</strong>');
+    expect(bio).not.toContain('Пусто');
+    expect(bio).toContain('Нерешённые выборы: 1');
+  });
+  it('пакет персонажа — в папку «Персонажи», макрос его создаёт', () => {
+    const pkg = characterPackage(ch, opts);
+    expect(pkg.actors[0]._folder).toBe('Персонажи');
+    expect(foundryMacro(pkg)).toContain('"type":"character"');
+  });
+  it('обратно: свой актёр возвращает пресет (имя — из Foundry)', () => {
+    const back = presetFromActor({ ...importDataJson(a), name: 'Измаил' });
+    expect(back.builder).toMatchObject({ v: 2, level: 5, fid: 'abc', name: 'Измаил' });
+    expect(back.characterName).toBe('Измаил');
+  });
+  it('обратно: чужой актёр — имя, уровень, характеристики, черты', () => {
+    const back = presetFromActor({
+      name: 'Чужой', type: 'character',
+      system: { abilities: { str: { value: 18 }, dex: { value: 12 } }, details: { biography: { value: '<p>Био &amp; всё</p>' } } },
+      items: [{ type: 'class', name: 'Воин', system: { levels: 3 } }, { type: 'class', name: 'Плут', system: { levels: 2 } },
+        { type: 'subclass', name: 'Мастер боевых искусств' }, { type: 'feat', name: 'Атлет', system: { type: { value: 'feat' } } },
+        { type: 'feat', name: 'Второе дыхание', system: { type: { value: 'class' } } }, { type: 'weapon', name: 'Меч' }],
+    });
+    expect(back).toMatchObject({ characterName: 'Чужой', level: 5, className: 'Мастер боевых искусств', desc: 'Био & всё', feats: ['Атлет'], fromFoundry: true });
+    expect(back.stats).toEqual({ Str: 18, Dex: 12, Con: 10, Int: 10, Wis: 10, Cha: 10 });
+  });
+  it('не персонаж — null', () => {
+    expect(presetFromActor({ type: 'npc', name: 'x' })).toBeNull();
+    expect(presetFromActor(null)).toBeNull();
+    expect(presetFromActor('строка')).toBeNull();
   });
 });
