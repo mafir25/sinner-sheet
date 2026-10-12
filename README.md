@@ -14,6 +14,7 @@
 | `shirm-app/` | Ширма (React), собирается Vite в `dist/shirm.html` |
 | `map-app/` | Редактор карт (React), собирается Vite в `dist/maps.html` — см. «Редактор карт» ниже |
 | `docs/map-editor.md` | ТЗ редактора карт: решения, этапы и их статус, форматы файлов |
+| `foundry-module/` | модуль Foundry VTT `pm5e` (импорт с сайта и др.); сборка `scripts/build-foundry-module.mjs`, релиз по тегу `pm5e-v*` — см. `docs/foundry.md`, этап 3 |
 | `docs/foundry.md` | ТЗ поддержки Foundry VTT: решения, этапы и их статус, формат пакета экспорта |
 | `Assets/` | **весь контент сайта** — см. ниже |
 | `site/` | общий код для всех страниц (см. ниже) |

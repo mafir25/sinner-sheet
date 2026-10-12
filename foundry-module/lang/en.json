@@ -1,0 +1,14 @@
+{
+  "PM5E.Import.Button": "Mephistopheles",
+  "PM5E.Import.Title": "Import from Mephistopheles Terminal",
+  "PM5E.Import.Hint": "Paste a macro or JSON from the site (the “Foundry” button in the Knowledge Base, “TO FOUNDRY” in the builder) or pick a file. Everything goes to the “Mephistopheles Terminal” folder; documents imported before are updated.",
+  "PM5E.Import.Text": "Macro or JSON",
+  "PM5E.Import.File": "Or a file",
+  "PM5E.Import.Run": "Import",
+  "PM5E.Import.Bad": "This doesn't look like Mephistopheles Terminal data: use a macro or JSON from the site.",
+  "PM5E.Import.Done": "Mephistopheles Terminal: created {created}, updated {updated}.",
+  "PM5E.Import.Fail": "Mephistopheles Terminal: import failed, see the console (F12).",
+  "PM5E.Import.GM": "Only the GM can import.",
+  "PM5E.Settings.SiteUrl": "Site address",
+  "PM5E.Settings.SiteUrlHint": "Where Knowledge Base records open from. Filled in automatically on the first import."
+}

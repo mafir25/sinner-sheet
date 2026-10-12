@@ -1,0 +1,14 @@
+{
+  "PM5E.Import.Button": "Mephistopheles",
+  "PM5E.Import.Title": "Импорт из Mephistopheles Terminal",
+  "PM5E.Import.Hint": "Вставьте макрос или JSON с сайта (кнопка «Foundry» в Базе знаний, «В FOUNDRY» в конструкторе) — или выберите файл. Всё ляжет в папку «Mephistopheles Terminal»; импортированное раньше обновится.",
+  "PM5E.Import.Text": "Макрос или JSON",
+  "PM5E.Import.File": "Или файл",
+  "PM5E.Import.Run": "Импортировать",
+  "PM5E.Import.Bad": "Не похоже на данные Mephistopheles Terminal: нужен макрос или JSON с сайта.",
+  "PM5E.Import.Done": "Mephistopheles Terminal: создано {created}, обновлено {updated}.",
+  "PM5E.Import.Fail": "Mephistopheles Terminal: ошибка импорта, подробности в консоли (F12).",
+  "PM5E.Import.GM": "Импортировать может только мастер.",
+  "PM5E.Settings.SiteUrl": "Адрес сайта",
+  "PM5E.Settings.SiteUrlHint": "Откуда открывать записи Базы знаний. Подставляется сам при первом импорте."
+}

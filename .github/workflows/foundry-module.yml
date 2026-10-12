@@ -1,0 +1,28 @@
+# Релиз модуля Foundry «pm5e» (docs/foundry.md, этап 3): git tag pm5e-v0.1.0 && git push origin pm5e-v0.1.0
+name: Foundry module
+
+on:
+  push:
+    tags: ['pm5e-v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: node scripts/build-foundry-module.mjs
+      - uses: softprops/action-gh-release@v2
+        with:
+          name: Модуль Foundry pm5e ${{ github.ref_name }}
+          files: |
+            dist-foundry/module.json
+            dist-foundry/pm5e.zip

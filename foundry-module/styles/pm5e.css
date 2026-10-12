@@ -1,0 +1,4 @@
+/* Модуль pm5e (Mephistopheles Terminal) */
+.pm5e-import textarea { width: 100%; min-height: 160px; font-family: monospace; font-size: 12px; }
+.pm5e-import .hint { margin: 0 0 8px; color: var(--color-text-secondary, #888); }
+.pm5e-dir-btn { flex: 0 0 auto; }

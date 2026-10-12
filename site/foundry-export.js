@@ -6,6 +6,8 @@
    (этап 3). Сейчас пакет переносится макросом-скриптом (foundryMacro) или файлом для «Import Data» (один документ).
    Каждый документ помечен flags.pm5e.key — повторный экспорт обновляет созданное раньше, а не плодит копии. */
 
+import { importPackage } from './foundry-import.js';
+
 export const FORMAT = 'pm5e-foundry';
 export const FLAG = 'pm5e';
 export const ROOT_FOLDER = 'Mephistopheles Terminal';
@@ -509,37 +511,9 @@ export function foundryMacro(pkg, lang = 'ru') {
 // ${en ? 'Re-running updates documents imported earlier.' : 'Повторный запуск обновит документы, импортированные раньше.'}
 const P = ${json};
 if (!game.user.isGM) return ui.notifications.warn(${JSON.stringify(T.gm)});
-const ROOT = ${JSON.stringify(ROOT_FOLDER)};
-const parentId = (f) => f.folder?.id ?? f.folder ?? null;
-async function folderFor(type, path) {
-  let parent = null;
-  for (const name of [ROOT, ...String(path || "").split("/").filter(Boolean)]) {
-    parent = game.folders.find((f) => f.type === type && f.name === name && parentId(f) === (parent?.id ?? null))
-      ?? await Folder.create({ name, type, folder: parent?.id ?? null });
-  }
-  return parent;
-}
-let created = 0, updated = 0;
-async function put(cls, coll, type, d) {
-  const { _folder, items, pages, ...data } = d;
-  const key = data.flags?.${FLAG}?.key;
-  const old = key && coll.find((x) => x.flags?.${FLAG}?.key === key);
-  if (old) {
-    delete data.type;
-    await old.update(data);
-    if (items) { await old.deleteEmbeddedDocuments("Item", old.items.map((i) => i.id)); await old.createEmbeddedDocuments("Item", items); }
-    if (pages) { await old.deleteEmbeddedDocuments("JournalEntryPage", old.pages.map((p) => p.id)); await old.createEmbeddedDocuments("JournalEntryPage", pages); }
-    updated++;
-  } else {
-    const folder = await folderFor(type, _folder);
-    await cls.create({ ...data, ...(items ? { items } : {}), ...(pages ? { pages } : {}), folder: folder.id });
-    created++;
-  }
-}
+${importPackage.toString()}
 try {
-  for (const d of P.items) await put(Item, game.items, "Item", d);
-  for (const d of P.actors) await put(Actor, game.actors, "Actor", d);
-  for (const d of P.journals) await put(JournalEntry, game.journal, "JournalEntry", d);
+  const { created, updated } = await importPackage(P, { game, Folder, Item, Actor, JournalEntry }, ${JSON.stringify(ROOT_FOLDER)});
   ui.notifications.info(${JSON.stringify(T.done)}.replace("{n}", created).replace("{u}", updated));
 } catch (e) {
   console.error(e);

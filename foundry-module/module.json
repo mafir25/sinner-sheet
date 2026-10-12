@@ -1,0 +1,21 @@
+{
+  "id": "pm5e",
+  "title": "Mephistopheles Terminal — Project Moon 5e",
+  "description": "Связь с сайтом Mephistopheles Terminal для dnd5e: импорт записей Базы знаний, персонажей конструктора и существ бестиария. Link to the Mephistopheles Terminal site for dnd5e.",
+  "version": "0.0.0",
+  "authors": [{ "name": "mafir25" }],
+  "compatibility": { "minimum": "13", "verified": "14" },
+  "relationships": {
+    "systems": [{ "id": "dnd5e", "type": "system", "compatibility": { "minimum": "5.0.0" } }]
+  },
+  "esmodules": ["scripts/pm5e.mjs"],
+  "styles": ["styles/pm5e.css"],
+  "languages": [
+    { "lang": "ru", "name": "Русский", "path": "lang/ru.json" },
+    { "lang": "en", "name": "English", "path": "lang/en.json" }
+  ],
+  "url": "https://github.com/mafir25/sinner-sheet",
+  "manifest": "https://github.com/mafir25/sinner-sheet/releases/latest/download/module.json",
+  "download": "https://github.com/mafir25/sinner-sheet/releases/latest/download/pm5e.zip",
+  "bugs": "https://github.com/mafir25/sinner-sheet/issues"
+}
