@@ -3,7 +3,7 @@
 import type { AssetStore } from '../assets/store';
 import type { Floor, Layer, MapDoc, MapObject, Portal, Poly, Pt, Roof } from '../model/types';
 import { drawGrid } from '../geom/grid';
-import { PORTAL_MIN_VISIBLE, faceItems, portalFaceVisibility, portalShape, portalThickness, portalWall, wallChains, wallLift, wallLineLift, type WallChain, type WallFace } from '../geom/walls';
+import { faceItems, portalAsLine, portalShape, portalThickness, portalWall, wallChains, wallLift, wallLineLift, type WallChain, type WallFace } from '../geom/walls';
 import { effectiveChance, pickTile, wallLine } from '../geom/variants';
 import { type BBox, pointInPoly, ptsBBox } from '../geom/poly';
 import { auxRes, drawLabel, drawLighting, drawPath, drawRoof, drawRoofHeight, drawTag, terrainCanvas } from './extras';
@@ -23,6 +23,8 @@ export type RenderOpts = {
   floorOverride?: Floor;
   /** Толщина линии сетки в пикселях. */
   gridPx?: number;
+  /** Угол стены, круче которого проёмы рисуются линией (MapDoc.portalAngle; ставит drawFloor). */
+  portalAngle?: number;
   /** Крыши: не рисовать / полупрозрачно (редактор) / целиком. */
   roofs: 'hide' | 'ghost' | 'show';
   /** Запекать освещение (если оно включено в карте). */
@@ -118,6 +120,7 @@ export function drawFloor(ctx: CanvasRenderingContext2D, doc: MapDoc, f: Floor, 
   const below = visible.filter((l) => !l.aboveWalls).map((l) => l.id);
   const above = visible.filter((l) => l.aboveWalls).map((l) => l.id);
   // грани объёмных стен — под объектами: шкаф у стены стоит «перед» её гранью
+  o = { ...o, portalAngle: doc.portalAngle };
   drawFaces(ctx, f, assets, o);
   drawLayers(ctx, f, below, assets, o);
   // верхняя линия стены не прерывается над дверями, окнами и арками — режут её только проёмы без стены
@@ -312,9 +315,9 @@ export function drawWalls(ctx: CanvasRenderingContext2D, all: WallChain[], asset
 export function drawPortal(ctx: CanvasRenderingContext2D, f: Floor, p: Portal, assets: AssetStore, o: RenderOpts) {
   // проём без стены и пустой проём — рисовать нечего; на объёмной стене проём вписан в грань (drawFaces)
   // вставка — вариант текстуры грани: на плоской стене её не видно
-  // дверь или окно на грани, которая почти ребром к зрителю (видно меньше PORTAL_MIN_VISIBLE), тоже рисуется здесь —
-  // участком линии стены, чтобы проём было видно при любом наклоне стены
-  if (p.kind === 'gap' || p.kind === 'insert' || !p.asset || portalFaceVisibility(f, p) >= PORTAL_MIN_VISIBLE) return;
+  // дверь или окно на грани, которая почти ребром к зрителю (круче угла карты), или с видом «линией» тоже рисуется
+  // здесь — участком линии стены, чтобы проём было видно при любом наклоне стены
+  if (!portalAsLine(f, p, o.portalAngle)) return;
   const dx = p.b.x - p.a.x, dy = p.b.y - p.a.y, L = Math.hypot(dx, dy);
   if (L < 1e-6) return;
   const th = portalThickness(f, p);
@@ -447,7 +450,7 @@ export function drawFaces(ctx: CanvasRenderingContext2D, f: Floor, assets: Asset
   };
   const hidden = new Map<string, boolean>();
   const edgeOn = (p: Portal) => {
-    if (!hidden.has(p.id)) hidden.set(p.id, p.kind !== 'insert' && !!p.asset && portalFaceVisibility(f, p) < PORTAL_MIN_VISIBLE);
+    if (!hidden.has(p.id)) hidden.set(p.id, portalAsLine(f, p, o.portalAngle));
     return hidden.get(p.id)!;
   };
   for (const { face, portal: pt } of items) {

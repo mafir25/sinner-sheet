@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import { rectPoly } from '../../map-app/src/geom/poly.ts';
 import { DEFAULT_VARY, effectiveChance, pickTile, tileHash, wallLine } from '../../map-app/src/geom/variants.ts';
-import { PORTAL_MIN_VISIBLE, faceItems, insertOnWall, nearestWall, portalFaceVisibility, slidePortal, wallAt, wallChains, wallFaces, wallLineLift } from '../../map-app/src/geom/walls.ts';
+import { DEFAULT_PORTAL_ANGLE, faceItems, portalAsLine, insertOnWall, nearestWall, portalFaceVisibility, slidePortal, wallAt, wallChains, wallFaces, wallLineLift } from '../../map-app/src/geom/walls.ts';
 import { blockingSegments } from '../../map-app/src/geom/light.ts';
 import { buildDd2vtt } from '../../map-app/src/export/export.ts';
 import { createDoc, parseDoc } from '../../map-app/src/model/doc.ts';
@@ -116,6 +116,14 @@ describe('видимость проёма на грани', () => {
     const t = (k) => ({ x: 4 + 0.5 * k, y: 6 * k });
     const p = door(t(0.4), t(0.55));
     const vis = portalFaceVisibility({ ...f, portals: [p] }, p);
-    expect(vis).toBeGreaterThan(0); expect(vis).toBeLessThan(PORTAL_MIN_VISIBLE);
+    expect(vis).toBeGreaterThan(0); expect(vis).toBeLessThan(Math.cos((DEFAULT_PORTAL_ANGLE * Math.PI) / 180));
+    const fp = { ...f, portals: [p] };
+    expect(portalAsLine(fp, p)).toBe(true);           // авто: стена круче 84°
+    expect(portalAsLine(fp, p, 90)).toBe(false);      // угол 90 — всегда в грани
+    expect(portalAsLine(fp, { ...p, view: 'face' })).toBe(false);
+    const flat = { ...r, portals: [door({ x: 1, y: 0 }, { x: 2, y: 0 })] };
+    expect(portalAsLine(flat, flat.portals[0])).toBe(false);
+    expect(portalAsLine(flat, { ...flat.portals[0], view: 'line' })).toBe(true);
+    expect(portalAsLine(flat, { ...flat.portals[0], view: 'line', kind: 'insert' })).toBe(false);
   });
 });

@@ -373,8 +373,21 @@ export function portalFaceVisibility(f: Floor, p: Portal): number {
   return best;
 }
 
-/** Меньше этой доли двери или окна видно на грани — проём рисуется участком линии стены (как на боковой стене). */
-export const PORTAL_MIN_VISIBLE = 0.1;
+/** Угол стены от горизонтали по умолчанию (°), круче которого проём рисуется линией: видно меньше ~10 % двери. */
+export const DEFAULT_PORTAL_ANGLE = 84;
+
+/**
+ * Рисовать ли дверь/окно участком линии стены вместо грани. Вручную — `view` проёма; авто — когда стена круче angle°
+ * (доля видимой ширины грани меньше cos angle). Стена без грани (плоская, боковая при «вниз») — всегда линией.
+ */
+export function portalAsLine(f: Floor, p: Portal, angle = DEFAULT_PORTAL_ANGLE): boolean {
+  if (p.kind === 'gap' || p.kind === 'insert' || !p.asset) return false;
+  const vis = portalFaceVisibility(f, p);
+  if (vis <= 0) return true;
+  if (p.view === 'line') return true;
+  if (p.view === 'face') return false;
+  return vis < Math.cos((Math.max(0, Math.min(90, angle)) * Math.PI) / 180) - 1e-9;
+}
 
 /** Стена, на которой стоит проём: её стиль и комната (если это стена комнаты). */
 export function portalWall(f: Floor, p: Portal): { style: WallStyle; room?: Room; seg: WallSeg } | null {
