@@ -2,7 +2,7 @@
   "id": "pm5e",
   "title": "Mephistopheles Terminal — Project Moon 5e",
   "description": "Связь с сайтом Mephistopheles Terminal для dnd5e: импорт записей Базы знаний, персонажей конструктора и существ бестиария. Link to the Mephistopheles Terminal site for dnd5e.",
-  "version": "0.0.0",
+  "version": "0.5.0",
   "authors": [
     {
       "name": "mafir25"

@@ -3,7 +3,8 @@
 //   scripts/config.js (проект Firestore из site/firebase-config.js), встроенная копия канона Assets/<язык>/… → data/
 //   pm5e.zip    — содержимое модуля (module.json в корне архива), ставится в Data/modules/pm5e/
 //   module.json — манифест для «Install Module» по ссылке
-// Версия: node scripts/build-foundry-module.mjs 0.1.0 (или из тега pm5e-v0.1.0 в GITHUB_REF_NAME). Релиз — .github/workflows/foundry-module.yml.
+// Версия: node scripts/build-foundry-module.mjs 0.1.0 (или из тега pm5e-v0.1.0 в GITHUB_REF_NAME; иначе <версия из module.json>-dev).
+// Релиз — .github/workflows/foundry-module.yml (тег или коммит с «[pm5e-release]»).
 import { readFile, writeFile, mkdir, readdir } from 'node:fs/promises';
 import { join, relative } from 'node:path';
 import JSZip from 'jszip';
@@ -16,7 +17,8 @@ const out = join(root, 'dist-foundry');
 const REPO = 'mafir25/sinner-sheet';
 
 const arg = process.argv[2] || String(process.env.GITHUB_REF_NAME || '').replace(/^pm5e-v/, '');
-const version = /^\d+\.\d+\.\d+(-[\w.]+)?$/.test(arg) ? arg : '0.0.0-dev';
+const SRC_VERSION = JSON.parse(await readFile(join(src, 'module.json'), 'utf8')).version;
+const version = /^\d+\.\d+\.\d+(-[\w.]+)?$/.test(arg) ? arg : `${SRC_VERSION}-dev`;
 
 async function files(dir) {
   const list = [];
