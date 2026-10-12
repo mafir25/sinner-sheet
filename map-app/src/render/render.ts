@@ -3,7 +3,7 @@
 import type { AssetStore } from '../assets/store';
 import type { Floor, Layer, MapDoc, MapObject, Portal, Poly, Pt, Roof } from '../model/types';
 import { drawGrid } from '../geom/grid';
-import { faceItems, portalFaces, portalShape, portalThickness, portalWall, wallChains, wallLift, wallLineLift, type WallChain, type WallFace } from '../geom/walls';
+import { PORTAL_MIN_VISIBLE, faceItems, portalFaceVisibility, portalShape, portalThickness, portalWall, wallChains, wallLift, wallLineLift, type WallChain, type WallFace } from '../geom/walls';
 import { effectiveChance, pickTile, wallLine } from '../geom/variants';
 import { type BBox, pointInPoly, ptsBBox } from '../geom/poly';
 import { auxRes, drawLabel, drawLighting, drawPath, drawRoof, drawRoofHeight, drawTag, terrainCanvas } from './extras';
@@ -312,7 +312,9 @@ export function drawWalls(ctx: CanvasRenderingContext2D, all: WallChain[], asset
 export function drawPortal(ctx: CanvasRenderingContext2D, f: Floor, p: Portal, assets: AssetStore, o: RenderOpts) {
   // проём без стены и пустой проём — рисовать нечего; на объёмной стене проём вписан в грань (drawFaces)
   // вставка — вариант текстуры грани: на плоской стене её не видно
-  if (p.kind === 'gap' || p.kind === 'insert' || !p.asset || portalFaces(f, p).length) return;
+  // дверь или окно на грани, которая почти ребром к зрителю (видно меньше PORTAL_MIN_VISIBLE), тоже рисуется здесь —
+  // участком линии стены, чтобы проём было видно при любом наклоне стены
+  if (p.kind === 'gap' || p.kind === 'insert' || !p.asset || portalFaceVisibility(f, p) >= PORTAL_MIN_VISIBLE) return;
   const dx = p.b.x - p.a.x, dy = p.b.y - p.a.y, L = Math.hypot(dx, dy);
   if (L < 1e-6) return;
   const th = portalThickness(f, p);
@@ -443,7 +445,14 @@ export function drawFaces(ctx: CanvasRenderingContext2D, f: Floor, assets: Asset
     if (t) fitTexture(t, face.pts[0], face.pts[1], face.v);
     return t;
   };
-  for (const { face, portal } of items) {
+  const hidden = new Map<string, boolean>();
+  const edgeOn = (p: Portal) => {
+    if (!hidden.has(p.id)) hidden.set(p.id, p.kind !== 'insert' && !!p.asset && portalFaceVisibility(f, p) < PORTAL_MIN_VISIBLE);
+    return hidden.get(p.id)!;
+  };
+  for (const { face, portal: pt } of items) {
+    // проём почти не виден на грани — грань рисуется сплошной стеной, сам проём — участком линии (drawPortal)
+    const portal = pt && edgeOn(pt) ? undefined : pt;
     ctx.save();
     clipFace(ctx, face);
     const [p0, p1, p2, p3] = face.pts;
@@ -454,7 +463,7 @@ export function drawFaces(ctx: CanvasRenderingContext2D, f: Floor, assets: Asset
       ctx.fillStyle = t?.pat ?? face.style.color; ctx.fill();
       ctx.save();
       ctx.clip();
-      if (!portal && t) drawFaceVariants(ctx, face, t, assets, o.scale);
+      if (!pt && t) drawFaceVariants(ctx, face, t, assets, o.scale);
       // вставка: картинка варианта на всю высоту грани в пределах проёма (стена остаётся стеной)
       const src = portal?.asset ? assets.source(portal.asset, o.scale * 4) : null;
       if (src) {
