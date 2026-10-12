@@ -129,6 +129,8 @@ export function drawFloor(ctx: CanvasRenderingContext2D, doc: MapDoc, f: Floor, 
   drawLayers(ctx, f, above, assets, o);
   drawRoofs(ctx, f, assets, o);
   if (o.lighting && doc.lighting.enabled) drawLighting(ctx, f, doc.lighting, res, W, H, !o.exporting);
+  // значки тайных дверей — поверх темноты, чтобы мастер видел их и ночью
+  if (o.gm) drawSecretMarks(ctx, f, o);
 }
 
 /** Видимые надстройки и чердаки над этажом: каждое здание поднято на высоту стен под ним, туда, где была крыша. */
@@ -317,6 +319,7 @@ export function drawPortal(ctx: CanvasRenderingContext2D, f: Floor, p: Portal, a
   // вставка — вариант текстуры грани: на плоской стене её не видно
   // дверь или окно на грани, которая почти ребром к зрителю (круче угла карты), или с видом «линией» тоже рисуется
   // здесь — участком линии стены, чтобы проём было видно при любом наклоне стены
+  if (p.secret && p.kind === 'door') return;
   if (!portalAsLine(f, p, o.portalAngle)) return;
   const dx = p.b.x - p.a.x, dy = p.b.y - p.a.y, L = Math.hypot(dx, dy);
   if (L < 1e-6) return;
@@ -345,6 +348,34 @@ export function drawPortal(ctx: CanvasRenderingContext2D, f: Floor, p: Portal, a
   } else {
     ctx.fillStyle = p.kind === 'door' ? '#6b4a2f' : '#9fdde9';
     ctx.fillRect(-L / 2, -th / 2, L, th);
+  }
+  ctx.restore();
+}
+
+/**
+ * Значок тайной двери (только у мастера: в редакторе и мастерском экспорте): пунктир вдоль проёма и «S» в кружке
+ * на верхней линии стены. Игроки видят на этом месте сплошную стену.
+ */
+function drawSecretMarks(ctx: CanvasRenderingContext2D, f: Floor, o: RenderOpts) {
+  const list = f.portals.filter((p) => p.secret && p.kind === 'door');
+  if (!list.length) return;
+  ctx.save();
+  for (const p of list) {
+    const w = portalWall(f, p), l = w ? wallLineLift(w.style) : { x: 0, y: 0 };
+    const a = { x: p.a.x + l.x, y: p.a.y + l.y }, b = { x: p.b.x + l.x, y: p.b.y + l.y };
+    ctx.setLineDash([0.12, 0.08]);
+    ctx.lineWidth = Math.max(0.05, 2 / o.scale);
+    ctx.strokeStyle = '#c58bff';
+    ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+    ctx.setLineDash([]);
+    const c = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 }, r = 0.2;
+    ctx.beginPath(); ctx.arc(c.x, c.y, r, 0, Math.PI * 2);
+    ctx.fillStyle = '#2a1640'; ctx.fill();
+    ctx.lineWidth = Math.max(0.025, 1.2 / o.scale); ctx.strokeStyle = '#c58bff'; ctx.stroke();
+    ctx.fillStyle = '#e9d4ff';
+    ctx.font = `bold ${r * 1.3}px Inter, sans-serif`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('S', c.x, c.y + r * 0.05);
   }
   ctx.restore();
 }

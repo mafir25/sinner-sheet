@@ -16,6 +16,8 @@ export type ToolSettings = {
   floor: AssetKey | null;
   wall: WallStyle;
   door: AssetKey | null;
+  /** Ставить двери тайными (Foundry: секретная дверь; на карте игроков — стена). */
+  doorSecret?: boolean;
   window: AssetKey | null;
   /** Вставка в стену: выбранный вариант текстуры; null — случайный вариант стены под курсором. */
   insert: AssetKey | null;

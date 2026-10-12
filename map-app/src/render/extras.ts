@@ -261,6 +261,15 @@ function paintLights(ctx: CanvasRenderingContext2D, shapes: Shape[], mode: 'dark
     ctx.save();
     shapePath(ctx, light, poly);
     ctx.clip();
+    if (light.angle && light.angle < 360) {
+      // конус: клин по направлению rot (0 — вниз, по часовой стрелке)
+      const dir = ((90 + (light.rot ?? 0)) * Math.PI) / 180, half = (light.angle * Math.PI) / 360;
+      ctx.beginPath();
+      ctx.moveTo(light.x, light.y);
+      ctx.arc(light.x, light.y, light.radius * 1.1, dir - half, dir + half);
+      ctx.closePath();
+      ctx.clip();
+    }
     const gr = ctx.createRadialGradient(light.x, light.y, 0, light.x, light.y, light.radius);
     if (mode === 'dark') {
       gr.addColorStop(0, `rgba(0,0,0,${light.intensity})`);

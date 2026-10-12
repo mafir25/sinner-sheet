@@ -594,7 +594,7 @@ class PortalTool implements Tool {
     this.env.ed.commitFloor((f) => {
       // проём на месте другого проёма заменяет его
       f.portals = f.portals.filter((q) => !(near(q.a, pl.a) && near(q.b, pl.b)) && !(near(q.a, pl.b) && near(q.b, pl.a)));
-      f.portals.push({ id, kind, a: pl.a, b: pl.b, asset });
+      f.portals.push({ id, kind, a: pl.a, b: pl.b, asset, ...(kind === 'door' && this.env.ed.state.settings.doorSecret ? { secret: true } : {}) });
     });
   }
   cancel() { this.place = null; }
@@ -892,7 +892,19 @@ function bulb(c: CanvasRenderingContext2D, p: Pt, color: string, scale: number) 
 
 /** Значки источников света и проёмов без стены — видны в редакторе, в экспорт не попадают. */
 export function drawGizmos(c: CanvasRenderingContext2D, f: Floor, scale: number) {
-  for (const l of f.lights) bulb(c, l, l.color, scale);
+  for (const l of f.lights) {
+    if (l.angle && l.angle < 360) {
+      // конус: края клина пунктиром — видно, куда светит прожектор
+      const dir = ((90 + (l.rot ?? 0)) * Math.PI) / 180, half = (l.angle * Math.PI) / 360, r = Math.min(l.radius, 2);
+      c.save();
+      c.strokeStyle = l.color; c.lineWidth = 1.5 / scale; c.setLineDash([4 / scale, 3 / scale]);
+      c.beginPath();
+      for (const a of [dir - half, dir + half]) { c.moveTo(l.x, l.y); c.lineTo(l.x + Math.cos(a) * r, l.y + Math.sin(a) * r); }
+      c.stroke();
+      c.restore();
+    }
+    bulb(c, l, l.color, scale);
+  }
   const gaps = f.portals.filter((p) => p.kind === 'gap');
   if (!gaps.length) return;
   c.save();

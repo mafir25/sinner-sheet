@@ -71,8 +71,10 @@ function portalSpan(seg: WallSeg, p: Portal): [number, number] | null {
  * Стены этажа, разрезанные проёмами указанных видов, — непрерывными ломаными. Проёмы без стены (gap) режут всегда,
  * пустые проёмы (без картинки — арка, вырез) — если openEmpty (для света и взгляда; верхнюю линию стены — нет).
  */
-export function wallChains(f: Floor, gapKinds: Set<Portal['kind']> = new Set(['door', 'window']), openEmpty = true): WallChain[] {
-  const portals = f.portals.filter((p) => p.kind === 'gap' || (openEmpty && !p.asset) || gapKinds.has(p.kind));
+export function wallChains(f: Floor, gapKinds: Set<Portal['kind']> = new Set(['door', 'window']), openEmpty = true, cut?: (p: Portal) => boolean): WallChain[] {
+  // тайная дверь на карте — сплошная стена (режет её только явный cut — экспорт в Foundry)
+  const portals = f.portals.filter((p) => (cut ? cut(p)
+    : p.kind === 'gap' || (!(p.secret && p.kind === 'door') && ((openEmpty && !p.asset) || gapKinds.has(p.kind)))));
   const out: WallChain[] = [];
   for (const path of floorPaths(f)) {
     // куски отрезков; joinA/joinB — конец лежит в вершине контура (а не на краю проёма)
@@ -342,7 +344,7 @@ export function faceItems(f: Floor): FaceItem[] {
   const depth = (face: WallFace) => Math.max(...face.pts.map((q) => q.y));
   const items: { it: FaceItem; d: number; k: number }[] = walls.map((face) => ({ it: { face }, d: depth(face), k: 0 }));
   for (const p of f.portals) {
-    if (p.kind === 'gap') continue;
+    if (p.kind === 'gap' || (p.secret && p.kind === 'door')) continue;
     for (const face of portalFaces(f, p)) {
       // вставка не режет стену и лежит на её грани: рисуется сразу после этой грани (у косой стены грань целиком
       // уходит ниже вставки и иначе закрыла бы её)

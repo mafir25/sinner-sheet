@@ -35,10 +35,19 @@ export type WallStyle = {
   asset: AssetKey | null; color: string; width: number; height?: number; inner?: FaceDir; outer?: FaceDir;
   /** Низкая стена (по пояс: ограждение, перила, парапет): не закрывает обзор и свет, в `.dd2vtt` не попадает. */
   low?: boolean;
+  /** Как стена ведёт себя в VTT (Foundry): нет — обычная. См. WallVtt. */
+  vtt?: WallVtt;
   /** Варианты текстуры грани (файлы её группы): шанс плитки 0…1 (нет — DEFAULT_VARY) и зерно раскладки. */
   vary?: number;
   varySeed?: number;
 };
+
+/**
+ * Стена в VTT (как типы стен Foundry): normal — закрывает всё; clear — прозрачная (стекло, силовое поле: не пройти,
+ * но видно и свет проходит); ethereal — эфирная (голограмма, завеса: пройти можно, видно — нет);
+ * terrain — ограничивает обзор (кусты, занавес из бус: сквозь одну такую видно, сквозь две — нет).
+ */
+export type WallVtt = 'normal' | 'clear' | 'ethereal' | 'terrain';
 
 export type Room = {
   id: string;
@@ -82,7 +91,17 @@ export type Portal = {
   arch?: boolean;
   /** Как рисовать дверь/окно на объёмной стене: auto — по углу стены (MapDoc.portalAngle), face — в грани, line — участком линии. */
   view?: 'auto' | 'face' | 'line';
+  /**
+   * Тайная дверь: на карте — сплошная стена (игроки её не видят), у мастера — значок «S»; в Foundry — секретная дверь,
+   * в `.dd2vtt` — стена.
+   */
+  secret?: boolean;
+  /** Состояние двери в VTT: нет — закрыта. Открытая пропускает свет и в редакторе. */
+  state?: DoorState;
+  /** Окно в VTT: нет — как выбрано при экспорте. gap — видно сквозь, wall — как стена, door — открывается. */
+  vtt?: 'gap' | 'wall' | 'door';
 };
+export type DoorState = 'closed' | 'open' | 'locked';
 
 export type MapObject = {
   id: string;
@@ -155,7 +174,16 @@ export type Light = {
   color: string;
   intensity: number; // 0..1
   shadows: boolean;  // стены отбрасывают тень
+  /** Конус (прожектор, фара): ширина, °; нет или 360 — во все стороны. */
+  angle?: number;
+  /** Куда светит конус, °: 0 — вниз (на юг), по часовой стрелке (как поворот в Foundry). */
+  rot?: number;
+  /** Яркий свет — доля радиуса (дальше — тусклый); нет — 0.5. */
+  bright?: number;
+  /** Анимация в Foundry (в редакторе свет неподвижен). */
+  anim?: LightAnim;
 };
+export type LightAnim = 'none' | 'torch' | 'flame' | 'pulse' | 'siren' | 'emanation' | 'fog' | 'wave' | 'energy';
 
 export type Label = {
   id: string;

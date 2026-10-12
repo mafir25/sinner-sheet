@@ -1,7 +1,7 @@
 // Настройки инструментов этапа 2 (кисть, путь, свет, подпись, крыша) и свойства выделенных путей, света, подписей, крыш.
 import { useEffect, useState } from 'react';
 import type { AssetStore } from '../assets/store';
-import type { Floor, Label, Level, Light, MapPath, PathStyle, Roof } from '../model/types';
+import type { Floor, Label, Level, Light, LightAnim, MapPath, PathStyle, Roof } from '../model/types';
 import type { Editor } from '../state/editor';
 import { tr } from '../i18n';
 import { siteLink } from '../../../site/site-links.js';
@@ -160,6 +160,11 @@ export function PathPanel({ ed, assets }: { ed: Editor; assets: AssetStore }) {
 }
 
 // ---------- свет
+const LIGHT_ANIMS: [LightAnim, string][] = [
+  ['none', 'Нет'], ['torch', 'Факел'], ['flame', 'Пламя'], ['pulse', 'Пульс'], ['siren', 'Сирена'],
+  ['emanation', 'Излучение'], ['fog', 'Туман'], ['wave', 'Волны'], ['energy', 'Энергия'],
+];
+
 export function LightEditor({ value, onChange }: { value: LightStyle; onChange(v: LightStyle): void }) {
   const set = (patch: Partial<LightStyle>) => onChange({ ...value, ...patch });
   return (
@@ -170,6 +175,20 @@ export function LightEditor({ value, onChange }: { value: LightStyle; onChange(v
       </div>
       <Field label={tr('Яркость')}><Slider value={value.intensity} min={0.05} onCommit={(intensity) => set({ intensity })} /></Field>
       <label className="check"><input type="checkbox" checked={value.shadows} onChange={(e) => set({ shadows: e.target.checked })} /> {tr('Тени от стен')}</label>
+      <Field label={tr('Конус, ° (360 — во все стороны)')}>
+        <Slider value={value.angle ?? 360} min={10} max={360} step={5} onCommit={(angle) => set({ angle: angle >= 360 ? undefined : angle })} />
+      </Field>
+      {(value.angle ?? 360) < 360 && (
+        <Field label={tr('Направление, ° (0 — вниз, по часовой)')} row>
+          <NumInput value={value.rot ?? 0} step={15} min={-360} max={360} onCommit={(rot) => set({ rot: ((rot % 360) + 360) % 360 })} />
+        </Field>
+      )}
+      <Field label={tr('Яркий свет — доля радиуса (Foundry)')}><Slider value={value.bright ?? 0.5} min={0} max={1} step={0.05} onCommit={(bright) => set({ bright })} /></Field>
+      <Field label={tr('Анимация в Foundry')}>
+        <select className="input" value={value.anim ?? 'none'} onChange={(e) => set({ anim: e.target.value === 'none' ? undefined : e.target.value as LightAnim })}>
+          {LIGHT_ANIMS.map(([id, label]) => <option key={id} value={id}>{tr(label)}</option>)}
+        </select>
+      </Field>
     </div>
   );
 }

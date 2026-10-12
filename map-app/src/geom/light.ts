@@ -1,14 +1,18 @@
 // Видимость от источника света: многоугольник, который не загораживают стены и закрытые двери.
-import type { Floor, Pt } from '../model/types';
+import type { Floor, Portal, Pt } from '../model/types';
 import { wallChains } from './walls';
 
 type Seg = [Pt, Pt];
 
-/** Отрезки, задерживающие свет: стены и двери (окна и низкие стены пропускают свет). */
+/** Проём пропускает свет: окно, открытая дверь, пустой проём и проём без стены (тайная дверь — всегда стена). */
+export const passesLight = (p: Portal) => p.kind === 'gap' || (p.kind === 'window')
+  || (p.kind === 'door' && !p.secret && (!p.asset || p.state === 'open'));
+
+/** Отрезки, задерживающие свет: стены и закрытые двери (окна, открытые двери, низкие и прозрачные стены пропускают свет). */
 export function blockingSegments(f: Floor): Seg[] {
   const segs: Seg[] = [];
-  for (const c of wallChains(f, new Set(['window']))) {
-    if (c.style.low) continue;
+  for (const c of wallChains(f, undefined, true, passesLight)) {
+    if (c.style.low || c.style.vtt === 'clear') continue;
     const pts = c.closed ? [...c.pts, c.pts[0]] : c.pts;
     for (let i = 0; i < pts.length - 1; i++) segs.push([pts[i], pts[i + 1]]);
   }

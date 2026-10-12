@@ -50,6 +50,7 @@ export function ExportDialog({ ed, assets, onClose }: { ed: Editor; assets: Asse
             <option value="png">{tr('Картинка PNG')}</option>
             {!only && <option value="jpg">{tr('Картинка JPG')}</option>}
             <option value="webp">{tr('Картинка WebP')}</option>
+            {!only && <option value="foundry">{tr('Сцена Foundry VTT (ZIP: картинка + .json)')}</option>}
             {!only && <option value="dd2vtt">{tr('Universal VTT (.dd2vtt) — стены и двери для Foundry и др.')}</option>}
           </select>
         </Field>
@@ -90,20 +91,23 @@ export function ExportDialog({ ed, assets, onClose }: { ed: Editor; assets: Asse
         {doc.lighting.enabled && !only && (
           <label className="check"><input type="checkbox" checked={o.bakeLight} onChange={(e) => set({ bakeLight: e.target.checked })} /> {tr('Запечь освещение в картинку')}</label>
         )}
-        {(o.format === 'jpg' || o.format === 'webp') && (
+        {(o.format === 'jpg' || o.format === 'webp' || o.format === 'foundry') && (
           <Field label={tr('Качество')} row><NumInput value={o.quality} step={0.05} min={0.3} max={1} onCommit={(quality) => set({ quality })} /></Field>
         )}
-        {o.format === 'dd2vtt' && !only && (
+        {(o.format === 'dd2vtt' || o.format === 'foundry') && !only && (
           <>
-            <Field label={tr('Окна в .dd2vtt')}>
+            <Field label={tr('Окна в VTT (если у окна не задано своё)')}>
               <select className="input" value={o.windows} onChange={(e) => set({ windows: e.target.value as ExportOpts['windows'] })}>
                 <option value="gap">{tr('Пропускают взгляд (разрыв в стене)')}</option>
                 <option value="wall">{tr('Как стена')}</option>
                 <option value="door">{tr('Как дверь')}</option>
               </select>
             </Field>
-            {doc.grid.type.startsWith('hex') && <p className="hint">{tr('Шестиугольная сетка в .dd2vtt не описывается — в VTT включи гексы вручную.')}</p>}
-            <p className="hint">{tr('Источники света уходят в .dd2vtt всегда. Если VTT сам считает свет — выключи запекание, чтобы не было двойной темноты.')}</p>
+            {o.format === 'dd2vtt' && doc.grid.type.startsWith('hex') && <p className="hint">{tr('Шестиугольная сетка в .dd2vtt не описывается — в VTT включи гексы вручную.')}</p>}
+            {o.format === 'foundry' && doc.grid.type.startsWith('hex') && <p className="hint">{tr('Гексы уходят в сцену, но сдвиг сетки в Foundry может отличаться — проверь и подгони в настройках сцены.')}</p>}
+            {o.format === 'dd2vtt' && <p className="hint">{tr('В .dd2vtt нет тайных дверей, типов стен, конусов и анимации света: тайная дверь уходит стеной. Для всего этого — «Сцена Foundry VTT».')}</p>}
+            {o.format === 'foundry' && <p className="hint">{tr('В Foundry: создай сцену → правой кнопкой по ней → «Import Data» → .json из архива. Картинку загрузи в Foundry и, если путь другой, выбери её фоном сцены. Стены, тайные и запертые двери, окна, свет и сетка уже на месте.')}</p>}
+            <p className="hint">{tr('Источники света уходят в VTT всегда. Если VTT сам считает свет — выключи запекание, чтобы не было двойной темноты.')}</p>
           </>
         )}
         <p className={ok ? 'hint' : 'err'}>
