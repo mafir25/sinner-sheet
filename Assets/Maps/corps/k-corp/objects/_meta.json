@@ -112,34 +112,6 @@
       },
       "group": "reception"
     },
-    "kiosk-s.png": {
-      "name": {
-        "ru": "Инфо-стойка (вниз)",
-        "en": "Info kiosk (down)"
-      },
-      "group": "kiosk"
-    },
-    "kiosk-n.png": {
-      "name": {
-        "ru": "Инфо-стойка (вверх)",
-        "en": "Info kiosk (up)"
-      },
-      "group": "kiosk"
-    },
-    "kiosk-e.png": {
-      "name": {
-        "ru": "Инфо-стойка (вправо)",
-        "en": "Info kiosk (right)"
-      },
-      "group": "kiosk"
-    },
-    "kiosk-w.png": {
-      "name": {
-        "ru": "Инфо-стойка (влево)",
-        "en": "Info kiosk (left)"
-      },
-      "group": "kiosk"
-    },
     "lockers-s.png": {
       "name": {
         "ru": "Шкаф с ячейками (вниз)",
@@ -251,62 +223,6 @@
         "en": "HP ampoule crate (left)"
       },
       "group": "hp-crate"
-    },
-    "regen-pod-s.png": {
-      "name": {
-        "ru": "Регенерационная капсула (вниз)",
-        "en": "Regeneration pod (down)"
-      },
-      "group": "regen-pod"
-    },
-    "regen-pod-n.png": {
-      "name": {
-        "ru": "Регенерационная капсула (вверх)",
-        "en": "Regeneration pod (up)"
-      },
-      "group": "regen-pod"
-    },
-    "regen-pod-e.png": {
-      "name": {
-        "ru": "Регенерационная капсула (вправо)",
-        "en": "Regeneration pod (right)"
-      },
-      "group": "regen-pod"
-    },
-    "regen-pod-w.png": {
-      "name": {
-        "ru": "Регенерационная капсула (влево)",
-        "en": "Regeneration pod (left)"
-      },
-      "group": "regen-pod"
-    },
-    "grill-table-s.png": {
-      "name": {
-        "ru": "Гриль-стол (вниз)",
-        "en": "Grill table (down)"
-      },
-      "group": "grill-table"
-    },
-    "grill-table-n.png": {
-      "name": {
-        "ru": "Гриль-стол (вверх)",
-        "en": "Grill table (up)"
-      },
-      "group": "grill-table"
-    },
-    "grill-table-e.png": {
-      "name": {
-        "ru": "Гриль-стол (вправо)",
-        "en": "Grill table (right)"
-      },
-      "group": "grill-table"
-    },
-    "grill-table-w.png": {
-      "name": {
-        "ru": "Гриль-стол (влево)",
-        "en": "Grill table (left)"
-      },
-      "group": "grill-table"
     }
   }
 }

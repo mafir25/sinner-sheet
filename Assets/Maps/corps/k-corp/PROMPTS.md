@@ -58,3 +58,20 @@
 ## Вывески (`signs/`, SVG — можно оставить как есть или заменить PNG тех же размеров)
 - `sign` 512×256, `emblem` 256×256, `floor-logo` 768×768 — логотип K: тёмная вертикальная стойка в белом
   контуре, верхняя диагональ лайм + белая полоса, нижняя диагональ тёмная в белом контуре.
+
+## Мебель (`objects/`, «три четверти», 4 ракурса)
+Проекция как у объёмных стен: вид сверху под углом — виден верх предмета и его передняя грань, без перспективы.
+Файлы `<имя>-s|-n|-e|-w.png` — лицом вниз / вверх / вправо / влево. **Отправлять все 4 ракурса одного предмета
+вместе** и просить сохранить размер холста, положение на нём и прозрачный фон.
+> Redraw these four views of the same object as clean painted game sprites in a 3/4 top-down (oblique) view: top
+> surface plus the front face, no perspective. Keep each canvas size, the object's position and footprint, and the
+> transparent background. All four views must show the same object consistently rotated (front facing down / up /
+> right / left). Brutalist K Corp style: massive simple slabs, matte dark slate-green and pale mint-grey, thin lime
+> neon accents only as lines.
+
+- `hp-crate` — open crate of HP ampoules: round glass vials with glowing green liquid and white caps, even 4×3 grid.
+- `lab-table` — lab bench: dark top, pale body, lime neon line, a rack of round test tubes, a small terminal.
+- `reception` — reception desk: black body, white top slab, lime neon line along the front, two monitors.
+- `lockers` — tall locker cabinet with five pale drawers and small lime indicator lights (stands against a wall).
+- `turnstile` — two security posts with lime card readers and glass gates between them.
+- `sofa`, `armchair`, `coffee-table` — lounge furniture: olive-yellow upholstery, low dark table with a glass top.
