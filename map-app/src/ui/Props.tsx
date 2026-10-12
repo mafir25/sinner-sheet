@@ -371,6 +371,17 @@ export function Props({ ed, assets }: { ed: Editor; assets: AssetStore }) {
                 });
               }} />
           </Field>
+          {portals.some((p) => portalFaces(f, p).length > 0) && (
+            <Field label={tr('Вид на объёмной стене')}>
+              <div className="seg">
+                {([['auto', 'Авто'], ['face', 'В грани'], ['line', 'Линией']] as const).map(([id, label]) => (
+                  <button key={id} className={(portals[0].view ?? 'auto') === id ? 'on' : ''}
+                    title={id === 'auto' ? tr('По углу стены из «Настроек карты»') : id === 'face' ? tr('Всегда вписывать в грань стены') : tr('Всегда участком линии стены (видно при любом наклоне)')}
+                    onClick={() => ed.commitFloor((fl) => { for (const p of fl.portals) if (ids.has(p.id)) { if (id === 'auto') delete p.view; else p.view = id; } })}>{tr(label)}</button>
+                ))}
+              </div>
+            </Field>
+          )}
           {portals.some((p) => portalFaces(f, p).length > 0) ? (
             <>
               <Field label={tr('Перемычка сверху')}><Slider value={shape.top} max={0.9} onCommit={(top) => updP({ top })} /></Field>

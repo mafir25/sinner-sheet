@@ -338,10 +338,55 @@ export type FaceItem = { face: WallFace; portal?: Portal };
 
 /** Все грани этажа с проёмами — по порядку отрисовки: ближние к зрителю (ниже на экране) поверх дальних. */
 export function faceItems(f: Floor): FaceItem[] {
-  const items: FaceItem[] = wallFaces(f).map((face) => ({ face }));
-  for (const p of f.portals) if (p.kind !== 'gap') for (const face of portalFaces(f, p)) items.push({ face, portal: p });
-  const depth = (it: FaceItem) => Math.max(...it.face.pts.map((q) => q.y));
-  return items.sort((a, b) => depth(a) - depth(b));
+  const walls = wallFaces(f);
+  const depth = (face: WallFace) => Math.max(...face.pts.map((q) => q.y));
+  const items: { it: FaceItem; d: number; k: number }[] = walls.map((face) => ({ it: { face }, d: depth(face), k: 0 }));
+  for (const p of f.portals) {
+    if (p.kind === 'gap') continue;
+    for (const face of portalFaces(f, p)) {
+      // вставка не режет стену и лежит на её грани: рисуется сразу после этой грани (у косой стены грань целиком
+      // уходит ниже вставки и иначе закрыла бы её)
+      let d = depth(face);
+      if (p.kind === 'insert') {
+        const m = { x: (face.pts[2].x + face.pts[3].x) / 2, y: (face.pts[2].y + face.pts[3].y) / 2 };
+        const host = walls.find((w) => w.side === face.side && w.room === face.room && segDist(m, w.pts[3], w.pts[2]).d < 1e-3);
+        if (host) d = depth(host);
+      }
+      items.push({ it: { face, portal: p }, d, k: 1 });
+    }
+  }
+  return items.sort((a, b) => a.d - b.d || a.k - b.k).map((x) => x.it);
+}
+
+/**
+ * Насколько проём виден на своей грани: доля ширины, которую грань показывает зрителю (1 — стена поперёк взгляда,
+ * 0 — стена ребром). Граней нет — 0.
+ */
+export function portalFaceVisibility(f: Floor, p: Portal): number {
+  let best = 0;
+  for (const face of portalFaces(f, p)) {
+    const ex = { x: face.pts[1].x - face.pts[0].x, y: face.pts[1].y - face.pts[0].y };
+    const le = Math.hypot(ex.x, ex.y), lv = Math.hypot(face.v.x, face.v.y);
+    if (le < 1e-9 || lv < 1e-9) continue;
+    best = Math.max(best, Math.abs(ex.x * face.v.y - ex.y * face.v.x) / (le * lv));
+  }
+  return best;
+}
+
+/** Угол стены от горизонтали по умолчанию (°), круче которого проём рисуется линией: видно меньше ~10 % двери. */
+export const DEFAULT_PORTAL_ANGLE = 84;
+
+/**
+ * Рисовать ли дверь/окно участком линии стены вместо грани. Вручную — `view` проёма; авто — когда стена круче angle°
+ * (доля видимой ширины грани меньше cos angle). Стена без грани (плоская, боковая при «вниз») — всегда линией.
+ */
+export function portalAsLine(f: Floor, p: Portal, angle = DEFAULT_PORTAL_ANGLE): boolean {
+  if (p.kind === 'gap' || p.kind === 'insert' || !p.asset) return false;
+  const vis = portalFaceVisibility(f, p);
+  if (vis <= 0) return true;
+  if (p.view === 'line') return true;
+  if (p.view === 'face') return false;
+  return vis < Math.cos((Math.max(0, Math.min(90, angle)) * Math.PI) / 180) - 1e-9;
 }
 
 /** Стена, на которой стоит проём: её стиль и комната (если это стена комнаты). */

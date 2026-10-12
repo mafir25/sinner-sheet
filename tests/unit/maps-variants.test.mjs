@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import { rectPoly } from '../../map-app/src/geom/poly.ts';
 import { DEFAULT_VARY, effectiveChance, pickTile, tileHash, wallLine } from '../../map-app/src/geom/variants.ts';
-import { faceItems, insertOnWall, nearestWall, slidePortal, wallAt, wallChains, wallFaces, wallLineLift } from '../../map-app/src/geom/walls.ts';
+import { DEFAULT_PORTAL_ANGLE, faceItems, portalAsLine, insertOnWall, nearestWall, portalFaceVisibility, slidePortal, wallAt, wallChains, wallFaces, wallLineLift } from '../../map-app/src/geom/walls.ts';
 import { blockingSegments } from '../../map-app/src/geom/light.ts';
 import { buildDd2vtt } from '../../map-app/src/export/export.ts';
 import { createDoc, parseDoc } from '../../map-app/src/model/doc.ts';
@@ -69,6 +69,15 @@ describe('вставка в стену', () => {
     expect(wallAt(f, { x: 2, y: 2.1 }, 0.5).q.y).toBeCloseTo(3);
     expect(wallAt(f, { x: 2, y: 1.5 }, 0.5)).toBeNull();
   });
+  it('на косой стене вставка рисуется после своей грани (грань не закрывает её)', () => {
+    const poly = [[{ x: 4, y: 2 }, { x: 10, y: 2 }, { x: 13, y: 6 }, { x: 10, y: 10 }, { x: 4, y: 10 }, { x: 1, y: 6 }]];
+    const f0 = floor([{ id: 'r', poly, floor: null, wall: wall3d('down', 'down') }]);
+    const pl = insertOnWall(wallAt(f0, { x: 1.71, y: 6.45 }, 0.75), 1, 1);
+    const f = { ...f0, portals: [{ id: 'i', kind: 'insert', ...pl, asset: 'x' }] };
+    const items = faceItems(f), i = items.findIndex((it) => it.portal);
+    const host = items.findIndex((it) => !it.portal && it.face.pts.some((q) => q.x === 4 && q.y === 10) && it.face.pts.some((q) => q.x === 1 && q.y === 6));
+    expect(i).toBeGreaterThan(host);
+  });
   it('перетаскивание вставки держит сетку плиток', () => {
     const f = floor([room('r', { x: 0, y: 0 }, { x: 6, y: 3 }, wall3d('down', 'down'))]);
     const p = { id: 'i', kind: 'insert', a: { x: 1, y: 0 }, b: { x: 2, y: 0 }, asset: 'x' };
@@ -93,5 +102,28 @@ describe('верхняя линия объёмной стены', () => {
     expect(wallLineLift(wall3d('up', 'none', 0.5))).toEqual({ x: 0, y: 0.6 });
     expect(wallLineLift(wall3d('normal', 'none', 0.5))).toEqual({ x: 0, y: 0 });
     expect(wallLineLift({ asset: null, color: '#000', width: 0.25 })).toEqual({ x: 0, y: 0 });
+  });
+});
+
+describe('видимость проёма на грани', () => {
+  const door = (a, b) => ({ id: 'd', kind: 'door', a, b, asset: 'x' });
+  it('стена поперёк взгляда — видно целиком, почти ребром — меньше порога', () => {
+    const r = floor([room('r', { x: 0, y: 0 }, { x: 6, y: 4 }, wall3d('down', 'down'))]);
+    expect(portalFaceVisibility({ ...r, portals: [door({ x: 1, y: 0 }, { x: 2, y: 0 })] }, door({ x: 1, y: 0 }, { x: 2, y: 0 }))).toBeCloseTo(1);
+    // крутая стена: почти вертикальная, грань узкая
+    const poly = [[{ x: 0, y: 0 }, { x: 4, y: 0 }, { x: 4.5, y: 6 }, { x: 0, y: 6 }]];
+    const f = floor([{ id: 'r', poly, floor: null, wall: wall3d('down', 'down') }]);
+    const t = (k) => ({ x: 4 + 0.5 * k, y: 6 * k });
+    const p = door(t(0.4), t(0.55));
+    const vis = portalFaceVisibility({ ...f, portals: [p] }, p);
+    expect(vis).toBeGreaterThan(0); expect(vis).toBeLessThan(Math.cos((DEFAULT_PORTAL_ANGLE * Math.PI) / 180));
+    const fp = { ...f, portals: [p] };
+    expect(portalAsLine(fp, p)).toBe(true);           // авто: стена круче 84°
+    expect(portalAsLine(fp, p, 90)).toBe(false);      // угол 90 — всегда в грани
+    expect(portalAsLine(fp, { ...p, view: 'face' })).toBe(false);
+    const flat = { ...r, portals: [door({ x: 1, y: 0 }, { x: 2, y: 0 })] };
+    expect(portalAsLine(flat, flat.portals[0])).toBe(false);
+    expect(portalAsLine(flat, { ...flat.portals[0], view: 'line' })).toBe(true);
+    expect(portalAsLine(flat, { ...flat.portals[0], view: 'line', kind: 'insert' })).toBe(false);
   });
 });

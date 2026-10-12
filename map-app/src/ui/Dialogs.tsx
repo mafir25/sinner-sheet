@@ -8,6 +8,7 @@ import { download, pickFile } from '../storage/file';
 import { tr } from '../i18n';
 import { Field, Modal, NumInput, toast, useStore } from './common';
 import { useEditor } from '../state/editor';
+import { DEFAULT_PORTAL_ANGLE } from '../geom/walls';
 import { type Anchor, resizeDoc } from '../geom/ops';
 
 const PPC = [50, 70, 100, 140, 200, 256];
@@ -136,12 +137,14 @@ export function MapSettings({ ed, assets, onClose, onVersions }: { ed: Editor; a
   const [h, setH] = useState(d.height);
   const [bg, setBg] = useState(d.background);
   const [grid, setGrid] = useState(d.grid);
+  const [portalAngle, setPortalAngle] = useState(d.portalAngle ?? DEFAULT_PORTAL_ANGLE);
   const [anchor, setAnchor] = useState<Anchor>({ col: 0, row: 0 });
   const resized = w !== d.width || h !== d.height;
   const apply = () => {
     ed.commit((x) => {
       x.name = name.trim() || x.name;
       x.background = bg; x.grid = { ...grid };
+      if (portalAngle === DEFAULT_PORTAL_ANGLE) delete x.portalAngle; else x.portalAngle = portalAngle;
       if (resized) Object.assign(x, resizeDoc(x, w, h, anchor));
     });
     onClose();
@@ -164,6 +167,10 @@ export function MapSettings({ ed, assets, onClose, onVersions }: { ed: Editor; a
           <Field label={tr('Цвет сетки')} row><input type="color" value={grid.color} onChange={(e) => setGrid({ ...grid, color: e.target.value })} /></Field>
           <Field label={tr('Непрозрачность сетки')} row><NumInput value={grid.opacity} step={0.05} min={0} max={1} onCommit={(opacity) => setGrid({ ...grid, opacity })} /></Field>
         </div>
+        <Field label={tr('Двери и окна линией на стенах круче, °')} row>
+          <NumInput value={portalAngle} step={1} min={0} max={90} digits={0} onCommit={(v) => setPortalAngle(Math.max(0, Math.min(90, Math.round(v))))} />
+        </Field>
+        <p className="hint">{tr('Угол стены от горизонтали: на более крутой объёмной стене грань почти ребром, и дверь или окно рисуется участком линии стены. 90 — всегда в грани. У отдельного проёма можно выбрать вручную в его свойствах.')}</p>
         <div className="row end">
           <button className="btn" onClick={onClose}>{tr('Отмена')}</button>
           <button className="btn btn-primary" onClick={apply}>{tr('Применить')}</button>

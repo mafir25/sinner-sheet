@@ -76,7 +76,8 @@ const floor = z.object({
     edgeStyles: z.array(z.object({ a: pt, b: pt, style: wallStyle.partial() })).optional() })).default([]),
   walls: z.array(z.object({ id: z.string(), points: z.array(pt).min(2), closed: z.boolean().default(false), wall: wallStyle })).default([]),
   portals: z.array(z.object({ id: z.string(), kind: z.enum(['door', 'window', 'gap', 'insert']), a: pt, b: pt, asset: z.string().nullable().default(null),
-    top: num.min(0).max(0.9).optional(), bottom: num.min(0).max(0.9).optional(), arch: z.boolean().optional() })).default([]),
+    top: num.min(0).max(0.9).optional(), bottom: num.min(0).max(0.9).optional(), arch: z.boolean().optional(),
+    view: z.enum(['auto', 'face', 'line']).optional() })).default([]),
   objects: z.array(z.object({
     id: z.string(), asset: z.string(), layer: z.string(), x: num, y: num, w: num.positive(), h: num.positive(),
     rot: num.default(0), flipX: z.boolean().default(false), flipY: z.boolean().default(false), opacity: num.min(0).max(1).default(1),
@@ -136,6 +137,7 @@ const docSchema = z.object({
     aliases: z.array(z.string()).default([]),
   }).optional(),
   links: z.array(z.object({ title: z.string().max(200), url: z.string().max(2000) })).optional(),
+  portalAngle: num.min(0).max(90).optional(),
 });
 
 /** Дополняет документ из браузера (карты и версии, сохранённые до новых полей): этажи без уровней местности. */

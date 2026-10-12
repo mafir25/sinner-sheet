@@ -80,6 +80,8 @@ export type Portal = {
   top?: number;
   bottom?: number;
   arch?: boolean;
+  /** Как рисовать дверь/окно на объёмной стене: auto — по углу стены (MapDoc.portalAngle), face — в грани, line — участком линии. */
+  view?: 'auto' | 'face' | 'line';
 };
 
 export type MapObject = {
@@ -263,6 +265,11 @@ export type MapDoc = {
   district?: District;
   /** Ссылки карты: записи Базы знаний и др. страницы сайта. */
   links?: SiteLink[];
+  /**
+   * Угол стены от горизонтали (°), круче которого двери и окна на объёмной стене рисуются участком линии стены,
+   * а не в грани (грань почти ребром — проём не видно). Нет — DEFAULT_PORTAL_ANGLE; 90 — никогда.
+   */
+  portalAngle?: number;
 };
 
 /** Район Города: id узла-группы в world.json, цвет, буква Крыла, все имена для правил `districts`. */
