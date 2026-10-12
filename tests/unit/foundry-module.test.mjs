@@ -41,7 +41,8 @@ describe('модуль pm5e (собранный архив) на имитаци�
     expect(manifest).toMatchObject({ id: 'pm5e', version: '1.2.3', compatibility: { verified: '14' } });
     expect(manifest.download).toBe('https://github.com/mafir25/sinner-sheet/releases/download/pm5e-v1.2.3/pm5e.zip');
     expect(manifest.relationships.systems[0].id).toBe('dnd5e');
-    for (const f of [...manifest.esmodules, ...manifest.styles, ...manifest.languages.map((l) => l.path)]) {
+    for (const f of [...manifest.esmodules, ...manifest.styles, ...manifest.languages.map((l) => l.path),
+      'scripts/kb.mjs', 'scripts/config.js', 'scripts/vendor/marked.esm.js', 'scripts/vendor/purify.es.mjs', 'data/Rus/world/bestiary.json', 'data/Eng/characters/classes.json']) {
       expect(() => readFileSync(join(dir, f))).not.toThrow();
     }
     const ru = JSON.parse(readFileSync(join(dir, 'lang/ru.json'), 'utf8'));
@@ -65,16 +66,17 @@ describe('модуль pm5e (собранный архив) на имитаци�
       },
       ui: { notifications: { info: (m) => notes.push(m), warn: (m) => notes.push(m), error: (m) => notes.push(m) } },
       Folder: Doc(folders), Item: Doc(items), Actor: Doc([]), JournalEntry: Doc([]),
+      foundry: { applications: { api: { ApplicationV2: class {} }, instances: new Map() } },
     });
     await import(/* @vite-ignore */ join(dir, 'scripts/pm5e.mjs'));
     once.init();
-    expect(settings).toEqual({ siteUrl: '' });
+    expect(settings).toEqual({ siteUrl: 'https://sinner-sheet.vercel.app', liveCanon: true, openLinksInFoundry: true });
+    expect(Object.keys(once)).toEqual(['init', 'ready']);
     expect(Object.keys(hooks).sort()).toEqual(['renderActorDirectory', 'renderItemDirectory', 'renderJournalDirectory']);
 
     const res = await mod.api.importData(foundryMacro(pkg));
     expect(res).toEqual({ created: 1, updated: 0 });
     expect(items[0].name).toBe('Ч');
-    expect(settings.siteUrl).toBe('https://site.test');
     expect(await mod.api.importData('ерунда')).toBeNull();
     expect(notes.at(-1)).toBe('PM5E.Import.Bad');
 
@@ -85,9 +87,10 @@ describe('модуль pm5e (собранный архив) на имитаци�
     globalThis.HTMLElement ??= class {};
     globalThis.document = { createElement: () => ({ addEventListener() {}, set innerHTML(v) { this.h = v; } }) };
     hooks.renderItemDirectory[0]({}, [html]);
-    expect(appended.length).toBe(1);
+    expect(appended.length).toBe(2);                 // «База знаний» и импорт
     game.user.isGM = false;
+    appended.length = 0;
     hooks.renderItemDirectory[0]({}, [html]);
-    expect(appended.length).toBe(1);
+    expect(appended.length).toBe(1);                 // игроку — только «База знаний»
   });
 });

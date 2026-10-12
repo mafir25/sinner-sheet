@@ -1,7 +1,12 @@
-/* Модуль Foundry VTT «pm5e» — Mephistopheles Terminal для dnd5e (docs/foundry.md, этап 3).
-   Сейчас: окно импорта (макрос или JSON с сайта, файл) в каталогах актёров, предметов и журналов; API для макросов.
-   foundry-import.js — копия site/foundry-import.js, кладётся сюда сборкой (scripts/build-foundry-module.mjs). */
+/* Модуль Foundry VTT «pm5e» — Mephistopheles Terminal для dnd5e (docs/foundry.md, этапы 3–4).
+   - окно «База знаний» (kb.mjs): канон сайта прямо в Foundry, «В мир» и «Выдать персонажу»;
+   - окно импорта (макрос или JSON с сайта, файл);
+   - ссылки «Открыть в Базе знаний» в описаниях документов открывают окно, а не сайт.
+   Кнопки — в шапке каталогов актёров, предметов и журналов. API: game.modules.get('pm5e').api.
+   foundry-*.js, canon-reader.js, config.js, vendor/, data/ кладёт сюда сборка (scripts/build-foundry-module.mjs). */
 import { importPackage, parsePackage } from './foundry-import.js';
+import { parseSiteLink } from './foundry-kb.js';
+import { KnowledgeBase } from './kb.mjs';
 
 const ID = 'pm5e';
 const ROOT = 'Mephistopheles Terminal';
@@ -14,7 +19,6 @@ async function importData(input) {
   if (!pkg) { ui.notifications.warn(t('PM5E.Import.Bad')); return null; }
   try {
     const res = await importPackage(pkg, { game, Folder, Item, Actor, JournalEntry }, ROOT);
-    if (pkg.source && !game.settings.get(ID, 'siteUrl')) await game.settings.set(ID, 'siteUrl', pkg.source);
     ui.notifications.info(t('PM5E.Import.Done', res));
     return res;
   } catch (e) {
@@ -46,26 +50,49 @@ async function openImporter() {
   if (text) await importData(text);
 }
 
-/** Кнопка «Mephistopheles» в шапке каталогов (только у мастера). */
-function addDirectoryButton(app, html) {
-  if (!game.user.isGM) return;
+/** Кнопки в шапке каталогов: «База знаний» (всем) и импорт (мастеру). */
+function addDirectoryButtons(app, html) {
   const root = html instanceof HTMLElement ? html : html?.[0];
   const bar = root?.querySelector('.header-actions');
   if (!bar || bar.querySelector('.pm5e-dir-btn')) return;
-  const b = document.createElement('button');
-  b.type = 'button';
-  b.className = 'pm5e-dir-btn';
-  b.innerHTML = `<i class="fa-solid fa-dice-d20"></i> ${t('PM5E.Import.Button')}`;
-  b.title = t('PM5E.Import.Title');
-  b.addEventListener('click', openImporter);
-  bar.append(b);
+  const button = (icon, label, title, onClick) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'pm5e-dir-btn';
+    b.innerHTML = `<i class="fa-solid ${icon}"></i> ${label}`;
+    b.title = title;
+    b.addEventListener('click', onClick);
+    bar.append(b);
+  };
+  button('fa-book-skull', t('PM5E.KB.Button'), t('PM5E.KB.Title'), () => KnowledgeBase.open());
+  if (game.user.isGM) button('fa-file-import', t('PM5E.Import.Button'), t('PM5E.Import.Title'), openImporter);
+}
+
+/** Ссылка на запись Базы знаний сайта (…/navigation.html#раздел/Имя) в Foundry открывает окно «База знаний». */
+function interceptSiteLinks(event) {
+  const a = event.target?.closest?.('a[href*="navigation.html#"]');
+  if (!a || !game.settings.get(ID, 'openLinksInFoundry')) return;
+  const target = parseSiteLink(a.getAttribute('href'));
+  if (!target) return;
+  event.preventDefault();
+  event.stopPropagation();
+  KnowledgeBase.open(target);
 }
 
 Hooks.once('init', () => {
   game.settings.register(ID, 'siteUrl', {
     name: 'PM5E.Settings.SiteUrl', hint: 'PM5E.Settings.SiteUrlHint',
-    scope: 'world', config: true, type: String, default: '',
+    scope: 'world', config: true, type: String, default: 'https://sinner-sheet.vercel.app',
   });
-  game.modules.get(ID).api = { importData, openImporter, parsePackage };
+  game.settings.register(ID, 'liveCanon', {
+    name: 'PM5E.Settings.LiveCanon', hint: 'PM5E.Settings.LiveCanonHint',
+    scope: 'client', config: true, type: Boolean, default: true,
+  });
+  game.settings.register(ID, 'openLinksInFoundry', {
+    name: 'PM5E.Settings.OpenLinks', hint: 'PM5E.Settings.OpenLinksHint',
+    scope: 'client', config: true, type: Boolean, default: true,
+  });
+  game.modules.get(ID).api = { importData, openImporter, parsePackage, openKB: (target) => KnowledgeBase.open(target) };
 });
-for (const hook of ['renderActorDirectory', 'renderItemDirectory', 'renderJournalDirectory']) Hooks.on(hook, addDirectoryButton);
+Hooks.once('ready', () => document.addEventListener('click', interceptSiteLinks, true));
+for (const hook of ['renderActorDirectory', 'renderItemDirectory', 'renderJournalDirectory']) Hooks.on(hook, addDirectoryButtons);
