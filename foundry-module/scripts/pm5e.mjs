@@ -1,12 +1,14 @@
 /* Модуль Foundry VTT «pm5e» — Mephistopheles Terminal для dnd5e (docs/foundry.md, этапы 3–4).
    - окно «База знаний» (kb.mjs): канон сайта прямо в Foundry, «В мир» и «Выдать персонажу»;
    - окно импорта (макрос или JSON с сайта, файл);
-   - ссылки «Открыть в Базе знаний» в описаниях документов открывают окно, а не сайт.
+   - ссылки «Открыть в Базе знаний» в описаниях документов открывают окно, а не сайт;
+   - статусы Project Moon (statuses.mjs): стаки, палитра меню токена, панель статусов, автоматика боя.
    Кнопки — в шапке каталогов актёров, предметов и журналов. API: game.modules.get('pm5e').api.
    foundry-*.js, canon-reader.js, config.js, vendor/, data/ кладёт сюда сборка (scripts/build-foundry-module.mjs). */
 import { importPackage, parsePackage } from './foundry-import.js';
 import { parseSiteLink } from './foundry-kb.js';
 import { KnowledgeBase } from './kb.mjs';
+import { initStatuses, registerStatusSettings, applyToSelected, setStacks, addStacks, getStacks, runTick } from './statuses.mjs';
 
 const ID = 'pm5e';
 const ROOT = 'Mephistopheles Terminal';
@@ -92,7 +94,12 @@ Hooks.once('init', () => {
     name: 'PM5E.Settings.OpenLinks', hint: 'PM5E.Settings.OpenLinksHint',
     scope: 'client', config: true, type: Boolean, default: true,
   });
-  game.modules.get(ID).api = { importData, openImporter, parsePackage, openKB: (target) => KnowledgeBase.open(target) };
+  registerStatusSettings();
+  game.modules.get(ID).api = {
+    importData, openImporter, parsePackage, openKB: (target) => KnowledgeBase.open(target),
+    statuses: { get: getStacks, set: setStacks, add: addStacks, applyToSelected, tick: runTick },
+  };
 });
+Hooks.once('setup', initStatuses);
 Hooks.once('ready', () => document.addEventListener('click', interceptSiteLinks, true));
 for (const hook of ['renderActorDirectory', 'renderItemDirectory', 'renderJournalDirectory']) Hooks.on(hook, addDirectoryButtons);

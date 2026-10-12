@@ -40,7 +40,7 @@ for (const f of await files(src)) {
   zip.file(rel, await readFile(f));
 }
 zip.file('module.json', manifestText);
-for (const f of ['foundry-import.js', 'foundry-export.js', 'foundry-kb.js', 'canon-reader.js']) {
+for (const f of ['foundry-import.js', 'foundry-export.js', 'foundry-kb.js', 'canon-reader.js', 'pm-statuses.js']) {
   zip.file(`scripts/${f}`, await readFile(join(root, 'site', f)));
 }
 zip.file('scripts/vendor/marked.esm.js', await readFile(join(root, 'node_modules/marked/lib/marked.esm.js')));
@@ -48,6 +48,7 @@ zip.file('scripts/vendor/purify.es.mjs', await readFile(join(root, 'node_modules
 zip.file('scripts/config.js', `// Создано scripts/build-foundry-module.mjs из site/firebase-config.js (публичные данные: доступ ограничивают правила Firestore)
 export const CANON = ${JSON.stringify({ projectId: firebaseConfig.projectId, apiKey: firebaseConfig.apiKey, db: FIRESTORE_DB })};
 `);
+for (const f of await readdir(join(root, 'Assets/Icons'))) zip.file(`icons/${f}`, await readFile(join(root, 'Assets/Icons', f)));   // значки статусов
 // встроенная копия канона: файлы Базы знаний + основы и архетипы классов из реестра
 let snapshot = 0;
 const regRels = [];

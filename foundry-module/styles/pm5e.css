@@ -36,3 +36,22 @@
 .pm5e-line { margin: 2px 0; }
 .pm5e-link { text-decoration: underline dotted; cursor: pointer; }
 .pm5e-empty { padding: 16px; opacity: .7; }
+
+/* Панель статусов выделенного токена */
+#pm5e-tray { position: fixed; left: 110px; bottom: 120px; z-index: 70; width: 260px; max-height: 50vh; overflow-y: auto;
+  background: rgba(15, 15, 20, .92); color: #eee; border: 1px solid #c9593f; border-radius: 4px; font-size: 12px; }
+#pm5e-tray header { padding: 4px 8px; font-weight: bold; border-bottom: 1px solid #444; }
+#pm5e-tray ul { list-style: none; margin: 0; padding: 4px; }
+#pm5e-tray li { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; padding: 2px 0; }
+#pm5e-tray li img { width: 20px; height: 20px; border: none; }
+#pm5e-tray li .n { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#pm5e-tray li b { min-width: 22px; text-align: right; }
+#pm5e-tray li .x { flex-basis: 100%; display: flex; gap: 4px; padding-left: 24px; }
+#pm5e-tray li.empty { opacity: .6; }
+#pm5e-tray button { width: auto; min-width: 20px; height: 20px; line-height: 18px; padding: 0 5px; font-size: 11px; color: #eee; background: #333; border: 1px solid #555; }
+#pm5e-tray footer { display: flex; gap: 4px; padding: 4px; border-top: 1px solid #444; }
+#pm5e-tray footer select { flex: 1; min-width: 0; }
+#pm5e-tray footer input { width: 44px; }
+.pm5e-chat h4 { margin: 0 0 4px; }
+.pm5e-chat ul { margin: 0; padding-left: 16px; }
+.pm5e-kb .pm5e-n { width: 56px; flex: 0 0 auto; }

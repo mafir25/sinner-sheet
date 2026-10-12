@@ -7,6 +7,8 @@ import { buildPackage, importDataJson } from './foundry-export.js';
 import { importPackage } from './foundry-import.js';
 import { canonReader } from './canon-reader.js';
 import { CANON } from './config.js';
+import { statusByName } from './pm-statuses.js';
+import { applyToSelected } from './statuses.mjs';
 import { marked } from './vendor/marked.esm.js';
 import DOMPurify from './vendor/purify.es.mjs';
 
@@ -71,6 +73,7 @@ export class KnowledgeBase extends ApplicationV2 {
       toWorld: KnowledgeBase.#onToWorld,
       toActor: KnowledgeBase.#onToActor,
       site: KnowledgeBase.#onSite,
+      toTokens: KnowledgeBase.#onToTokens,
       refresh: KnowledgeBase.#onRefresh,
     },
   };
@@ -158,7 +161,11 @@ export class KnowledgeBase extends ApplicationV2 {
       can.toActor ? `<button type="button" data-action="toActor" ${actor ? '' : 'disabled'} title="${esc(actor ? actor.name : t('PM5E.KB.NoActor'))}"><i class="fa-solid fa-user-plus"></i> ${esc(t('PM5E.KB.ToActor', { name: actor?.name ?? '…' }))}</button>` : '',
       siteUrl() ? `<button type="button" data-action="site"><i class="fa-solid fa-arrow-up-right-from-square"></i> ${esc(t('PM5E.KB.Site'))}</button>` : '',
     ].filter(Boolean).join('');
-    const note = e.cat === 'statuses' ? `<p class="pm5e-note">${esc(t('PM5E.KB.StatusNote'))}</p>` : '';
+    const status = e.cat === 'statuses' ? statusByName(e.name) : null;
+    const note = status
+      ? `<div class="pm5e-actions"><input type="number" class="pm5e-n" value="1" min="1" max="${status.max}">
+          <button type="button" data-action="toTokens" data-status="${status.id}"><i class="fa-solid fa-person-burst"></i> ${esc(t('PM5E.KB.ToTokens'))}</button></div>`
+      : e.cat === 'statuses' ? `<p class="pm5e-note">${esc(t('PM5E.KB.StatusNote'))}</p>` : '';
     return `<header><h2>${esc(v.title)}</h2>${v.meta ? `<div class="pm5e-meta">${esc(v.meta)}</div>` : ''}
         ${v.tags.length ? `<div class="pm5e-tags">${v.tags.map((x) => `<span>${esc(x)}</span>`).join('')}</div>` : ''}
         ${buttons ? `<div class="pm5e-actions">${buttons}</div>` : ''}${note}</header>
@@ -221,6 +228,12 @@ export class KnowledgeBase extends ApplicationV2 {
   static #onSite() {
     const e = this.#entry();
     if (e && siteUrl()) window.open(siteUrlOf(siteUrl(), e), '_blank', 'noopener');
+  }
+
+  static async #onToTokens(event, target) {
+    const n = Math.max(1, Number(this.element.querySelector('.pm5e-n')?.value) || 1);
+    const count = await applyToSelected(target.dataset.status, n);
+    if (count) ui.notifications.info(t('PM5E.KB.Applied', { n, count }));
   }
 
   static async #onRefresh() {

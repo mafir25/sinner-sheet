@@ -70,8 +70,10 @@ describe('модуль pm5e (собранный архив) на имитаци�
     });
     await import(/* @vite-ignore */ join(dir, 'scripts/pm5e.mjs'));
     once.init();
-    expect(settings).toEqual({ siteUrl: 'https://sinner-sheet.vercel.app', liveCanon: true, openLinksInFoundry: true });
-    expect(Object.keys(once)).toEqual(['init', 'ready']);
+    expect(settings).toEqual({ siteUrl: 'https://sinner-sheet.vercel.app', liveCanon: true, openLinksInFoundry: true,
+      statusAutomation: true, hudStatuses: true, statusTray: true });
+    expect(Object.keys(once)).toEqual(['init', 'setup', 'ready']);
+    expect(Object.keys(mod.api.statuses)).toEqual(['get', 'set', 'add', 'applyToSelected', 'tick']);
     expect(Object.keys(hooks).sort()).toEqual(['renderActorDirectory', 'renderItemDirectory', 'renderJournalDirectory']);
 
     const res = await mod.api.importData(foundryMacro(pkg));
