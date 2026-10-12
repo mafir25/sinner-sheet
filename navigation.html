@@ -579,6 +579,7 @@ textarea.ce-code{font-family:Consolas,'Courier New',monospace;font-size:.85rem;m
   <div class="b-row" style="margin-bottom:14px">
     <button class="action-btn" data-act="picks-copy"><i class="fa-regular fa-copy"></i> Копировать всё</button>
     <button class="action-btn ghost" data-act="picks-export"><i class="fa-solid fa-download"></i> JSON</button>
+    <button class="action-btn ghost" data-act="picks-foundry" title="Экспорт в Foundry VTT (dnd5e)"><i class="fa-solid fa-dice-d20"></i> Foundry</button>
     <button class="action-btn ghost" data-act="picks-clear"><i class="fa-solid fa-trash"></i> Очистить</button>
   </div>
   <div id="picks-body"></div>
@@ -673,6 +674,25 @@ textarea.ce-code{font-family:Consolas,'Courier New',monospace;font-size:.85rem;m
       <div class="b-row" style="margin-top:14px">
         <button class="action-btn" data-act="fp-apply"><i class="fa-solid fa-check"></i> <span id="fp-apply-label">Применить</span></button>
         <button class="action-btn ghost" data-act="close-modal">Отмена</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======== ЭКСПОРТ В FOUNDRY VTT (site/foundry-export.js) ======== -->
+<div class="modal-overlay" id="foundryModal">
+  <div class="panel-outer cut-tl modal-box">
+    <div class="hazard-tape"></div>
+    <div class="panel-inner cut-tl" style="padding-top:36px">
+      <button class="btn-close-modal" data-act="close-modal" aria-label="Закрыть"><i class="fa-solid fa-xmark"></i></button>
+      <div class="card-title" style="margin-bottom:10px;border-bottom:1px solid var(--accent-primary);padding-bottom:8px">
+        <i class="fa-solid fa-dice-d20"></i> Экспорт в Foundry VTT</div>
+      <div id="foundry-body"></div>
+      <div class="b-row" style="margin-top:14px">
+        <button class="action-btn" data-act="foundry-copy"><i class="fa-regular fa-copy"></i> Скопировать макрос</button>
+        <button class="action-btn ghost" data-act="foundry-macro"><i class="fa-solid fa-download"></i> Макрос файлом</button>
+        <button class="action-btn ghost" data-act="foundry-json" id="foundry-json"><i class="fa-solid fa-download"></i> JSON для Import Data</button>
+        <button class="action-btn ghost" data-act="close-modal">Закрыть</button>
       </div>
     </div>
   </div>

@@ -1023,6 +1023,13 @@
     'Меньше': 'Fewer', 'Больше': 'More',
     'опыт не указан': 'XP not set',
     'Очистить встречу': 'Clear encounter',
+    /* Экспорт в Foundry VTT (site/foundry-export.js) */
+    'Экспорт в Foundry VTT': 'Export to Foundry VTT',
+    'Экспорт в Foundry VTT (dnd5e)': 'Export to Foundry VTT (dnd5e)',
+    'В Foundry': 'To Foundry',
+    'Скопировать макрос': 'Copy macro',
+    'Макрос файлом': 'Macro as file',
+    'JSON для Import Data': 'JSON for Import Data',
     'Опыт существ:': 'Creature XP:',
     'Низкая сложность': 'Low difficulty', 'Умеренная сложность': 'Moderate difficulty',
     'Высокая сложность': 'High difficulty', 'Выше высокой сложность': 'Above high difficulty',
