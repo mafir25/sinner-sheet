@@ -89,7 +89,7 @@ Foundry получает данные **через экспорт** (макро�
 `site/foundry-import.js` (в модуль копируется при сборке). Сборка: `node scripts/build-foundry-module.mjs 0.1.0` →
 `dist-foundry/pm5e.zip` + `module.json`. Релиз: тег `pm5e-v0.1.0` → `.github/workflows/foundry-module.yml` выкладывает оба файла
 в релиз GitHub. Ссылка для «Install Module»: `https://github.com/mafir25/sinner-sheet/releases/latest/download/module.json`.
-Foundry v13–v14 (проверено на v14 — нет, см. §4), система dnd5e ≥ 5.0. Тесты — `tests/unit/foundry-module.test.mjs`
+Foundry v13–v14 (проверено на v14 — нет, см. §4), система dnd5e (без ограничения версии: модуль виден только в мирах на dnd5e). Тесты — `tests/unit/foundry-module.test.mjs`
 (собирает архив, распаковывает и гоняет модуль на имитации Foundry).
 - [x] `module.json` для релизов GitHub, сборка и выкладка по тегу
 - [x] Окно «Импорт из Mephistopheles Terminal» (кнопка «Mephistopheles» в каталогах актёров, предметов и журналов, только
