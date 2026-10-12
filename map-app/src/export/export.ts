@@ -4,7 +4,7 @@ import type { AssetStore } from '../assets/store';
 import type { Floor, MapDoc, Portal } from '../model/types';
 import { renderMap } from '../render/render';
 import { portalWall, wallChains } from '../geom/walls';
-import { safeName, usedAssetKeys } from '../storage/file';
+import { safeName, usedAssetKeysWithVariants } from '../storage/file';
 import { tr } from '../i18n';
 
 export type ExportFormat = 'png' | 'jpg' | 'webp' | 'dd2vtt';
@@ -31,7 +31,7 @@ export const fits = (doc: MapDoc, ppc: number) =>
 const MIME: Record<Exclude<ExportFormat, 'dd2vtt'>, string> = { png: 'image/png', jpg: 'image/jpeg', webp: 'image/webp' };
 
 export async function renderFloorCanvas(doc: MapDoc, floorId: string, assets: AssetStore, ppc: number, grid: boolean, flags: RenderFlags): Promise<HTMLCanvasElement> {
-  await assets.whenLoaded([...usedAssetKeys(doc)]);
+  await assets.whenLoaded([...usedAssetKeysWithVariants(doc, assets)]);
   const c = document.createElement('canvas');
   c.width = Math.round(doc.width * ppc);
   c.height = Math.round(doc.height * ppc);

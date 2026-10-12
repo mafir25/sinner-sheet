@@ -132,6 +132,26 @@ export function nearestWall(f: Floor, p: Pt, maxDist: number): WallHit | null {
   return best;
 }
 
+/**
+ * Стена под точкой: если точка на грани объёмной стены — её стена (точка сносится по грани к основанию),
+ * иначе ближайшая по основанию. Так дверь, окно и вставку ставят щелчком прямо по видимой грани.
+ */
+export function wallAt(f: Floor, p: Pt, maxDist: number): WallHit | null {
+  const items = faceItems(f);
+  for (let i = items.length - 1; i >= 0; i--) {
+    const { face } = items[i];
+    if (!face.lift.x && !face.lift.y) continue;
+    if (!pointInPoly(p, [face.pts])) continue;
+    const b0 = face.pts[3], b1 = face.pts[2], L = Math.hypot(b1.x - b0.x, b1.y - b0.y) || 1;
+    const m = { x: -(b1.y - b0.y) / L, y: (b1.x - b0.x) / L }, vm = face.v.x * m.x + face.v.y * m.y;
+    if (Math.abs(vm) < 1e-9) continue;
+    const lam = ((b0.x - p.x) * m.x + (b0.y - p.y) * m.y) / vm;
+    const hit = nearestWall(f, { x: p.x + face.v.x * lam, y: p.y + face.v.y * lam }, 0.05);
+    if (hit) return hit;
+  }
+  return nearestWall(f, p, maxDist);
+}
+
 /** Проём длиной len по центру около точки t на стене; помещается целиком в отрезок. */
 export function portalOnWall(hit: WallHit, len: number, snap: boolean): { a: Pt; b: Pt } | null {
   const L = hit.len;
@@ -186,6 +206,35 @@ export function wallLift(st: WallStyle): Pt {
   if (st.inner === 'down' || st.outer === 'down') return { x: 0, y: -h };
   if (st.inner === 'up' || st.outer === 'up') return { x: 0, y: h };
   return ZERO;
+}
+
+/**
+ * Где рисуется верхняя линия объёмной стены: поднята как верх стены и ещё на полтолщины наружу от грани —
+ * линия лежит над гранью и не закрывает верх её текстуры (карниз, неон). У плоских стен и «по периметру» — wallLift.
+ */
+export function wallLineLift(st: WallStyle): Pt {
+  const l = wallLift(st);
+  if (!l.y) return l;
+  return { x: 0, y: l.y + Math.sign(l.y) * (st.width / 2) };
+}
+
+/**
+ * Вставка (вариант текстуры) длиной len на стене у точки попадания: край — на границе плитки текстуры стены
+ * (tile клеток вдоль стены, отсчёт как у узора грани), чтобы картинка встала без шва. Не помещается целыми
+ * плитками — ближайшее место внутри отрезка.
+ */
+export function insertOnWall(hit: WallHit, len: number, tile: number): { a: Pt; b: Pt } | null {
+  const L = hit.len;
+  if (len > L + 1e-6 || tile <= 0) return null;
+  const u = { x: (hit.seg.b.x - hit.seg.a.x) / L, y: (hit.seg.b.y - hit.seg.a.y) / L };
+  const l = wallLift(hit.seg.style);
+  const s0 = (hit.seg.a.x + l.x) * u.x + (hit.seg.a.y + l.y) * u.y; // отсчёт плиток в начале отрезка
+  let c = Math.round((s0 + hit.t * L - len / 2) / tile) * tile - s0;
+  while (c < -1e-6) c += tile;
+  while (c + len > L + 1e-6) c -= tile;
+  if (c < -1e-6) c = Math.max(0, Math.min(L - len, hit.t * L - len / 2));
+  const at = (d: number): Pt => ({ x: hit.seg.a.x + u.x * d, y: hit.seg.a.y + u.y * d });
+  return { a: at(c), b: at(c + len) };
 }
 
 /** Смещение грани проекцией (вниз/вверх) для стороны с нормалью n; null — у этой стены граней нет. */
@@ -284,6 +333,17 @@ export function wallFaces(f: Floor): WallFace[] {
   return out;
 }
 
+/** Грань для отрисовки: стена или проём на ней (дверь, окно, вставка). */
+export type FaceItem = { face: WallFace; portal?: Portal };
+
+/** Все грани этажа с проёмами — по порядку отрисовки: ближние к зрителю (ниже на экране) поверх дальних. */
+export function faceItems(f: Floor): FaceItem[] {
+  const items: FaceItem[] = wallFaces(f).map((face) => ({ face }));
+  for (const p of f.portals) if (p.kind !== 'gap') for (const face of portalFaces(f, p)) items.push({ face, portal: p });
+  const depth = (it: FaceItem) => Math.max(...it.face.pts.map((q) => q.y));
+  return items.sort((a, b) => depth(a) - depth(b));
+}
+
 /** Стена, на которой стоит проём: её стиль и комната (если это стена комнаты). */
 export function portalWall(f: Floor, p: Portal): { style: WallStyle; room?: Room; seg: WallSeg } | null {
   for (const path of floorPaths(f)) {
@@ -316,10 +376,13 @@ export function portalShape(p: Portal): { top: number; bottom: number; arch: boo
  * Проём, перетащенный к точке target: встаёт на ближайшую стену в пределах maxDist клеток (своей длины,
  * с привязкой края к полклетки). null — рядом нет стены, куда он помещается.
  */
-export function slidePortal(f: Floor, p: Portal, target: Pt, snap: boolean, maxDist = 1): { a: Pt; b: Pt } | null {
+export function slidePortal(f: Floor, p: Portal, target: Pt, snap: boolean, maxDist = 1, tileOf?: (st: WallStyle) => number): { a: Pt; b: Pt } | null {
   const hit = nearestWall(f, target, maxDist);
   if (!hit) return null;
-  const r = portalOnWall(hit, Math.hypot(p.b.x - p.a.x, p.b.y - p.a.y), snap);
+  const len = Math.hypot(p.b.x - p.a.x, p.b.y - p.a.y);
+  // вставка (вариант текстуры) встаёт на границы плиток текстуры стены, как при установке
+  const tile = p.kind === 'insert' && snap && tileOf ? tileOf(hit.seg.style) : 0;
+  const r = tile > 0 ? insertOnWall(hit, len, tile) : portalOnWall(hit, len, snap);
   if (!r) return null;
   // направление проёма (куда открывается дверь) сохраняется, насколько позволяет стена
   const same = (r.b.x - r.a.x) * (p.b.x - p.a.x) + (r.b.y - r.a.y) * (p.b.y - p.a.y) >= 0;

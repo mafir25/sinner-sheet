@@ -25,6 +25,11 @@ export function applyAsset(ed: Editor, assets: AssetStore, key: AssetKey) {
       const ids = new Set(sel.map((s) => s.id));
       ed.commitFloor((f) => { for (const r of f.rooms) if (ids.has(r.id)) r.floor = key; });
     } else if (ed.state.tool !== 'room' && ed.state.tool !== 'poly') ed.setTool('room');
+  } else if (e.kind === 'wall' && (ed.state.tool === 'insert' || sel.some((s) => s.kind === 'portal' && ed.floor.portals.find((p) => p.id === s.id)?.kind === 'insert'))) {
+    // вставка в стену: выбранный вариант текстуры (и замена у выделенных вставок)
+    ed.setSettings({ insert: key });
+    const ids = new Set(sel.filter((s) => s.kind === 'portal').map((s) => s.id));
+    if (ids.size) ed.commitFloor((f) => { for (const p of f.portals) if (ids.has(p.id) && p.kind === 'insert') Object.assign(p, { asset: key }, resizePortal(p, e.footprint[0])); });
   } else if (e.kind === 'wall') {
     ed.setSettings({ wall: { ...ed.state.settings.wall, asset: key } });
     if (has('room') || has('wall')) {

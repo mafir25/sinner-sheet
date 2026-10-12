@@ -5,7 +5,7 @@ import { type BBox, pointInPoly, ptsBBox, segDist } from '../geom/poly';
 import { curvePoints, polylineDist } from '../geom/curve';
 import { labelBox } from '../render/extras';
 import { roofLift } from '../render/render';
-import { edgeStyle, portalWall, wallLift } from '../geom/walls';
+import { edgeStyle, portalWall, wallLift, wallLineLift } from '../geom/walls';
 
 let measureCtx: CanvasRenderingContext2D | null = null;
 /** Габариты подписи в клетках (без поворота). */
@@ -21,7 +21,7 @@ export const LIGHT_HIT = 0.35;
 
 /** Расстояние до стены: до её основания или до поднятой верхней линии объёмной стены — что ближе. */
 function wallDist(p: Pt, a: Pt, b: Pt, st: WallStyle): number {
-  const l = wallLift(st), d = segDist(p, a, b).d;
+  const l = wallLineLift(st), d = segDist(p, a, b).d;
   if (!l.x && !l.y) return d;
   return Math.min(d, segDist(p, { x: a.x + l.x, y: a.y + l.y }, { x: b.x + l.x, y: b.y + l.y }).d);
 }

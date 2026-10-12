@@ -6,7 +6,7 @@ import { orphanPortals } from '../geom/walls';
 import { share } from './share';
 import { type Clip, clipSize, copySelection, pasteClip } from '../geom/ops';
 
-export type ToolId = 'select' | 'room' | 'poly' | 'wall' | 'door' | 'window' | 'cut' | 'stamp' | 'brush' | 'path' | 'light' | 'label' | 'roof' | 'level' | 'ruler' | 'pan';
+export type ToolId = 'select' | 'room' | 'poly' | 'wall' | 'door' | 'window' | 'insert' | 'cut' | 'stamp' | 'brush' | 'path' | 'light' | 'label' | 'roof' | 'level' | 'ruler' | 'pan';
 /** edge — отдельная стена комнаты: id «<id комнаты>|<кольцо>|<ребро>». */
 export type SelKind = 'object' | 'portal' | 'wall' | 'room' | 'path' | 'light' | 'label' | 'roof' | 'level' | 'edge';
 export type SelItem = { kind: SelKind; id: string };
@@ -17,6 +17,8 @@ export type ToolSettings = {
   wall: WallStyle;
   door: AssetKey | null;
   window: AssetKey | null;
+  /** Вставка в стену: выбранный вариант текстуры; null — случайный вариант стены под курсором. */
+  insert: AssetKey | null;
   stamp: AssetKey | null;
   /** Комплект для инструмента «Объект» (ключ «<набор>|<id>», см. AssetStore.set); важнее stamp. */
   stampSet: string | null;
@@ -90,7 +92,7 @@ export class Editor {
       doc, floorId: floor.id, layerId: defaultLayer(floor),
       tool: 'select', sel: [], view: { scale: 48, ox: 40, oy: 40 },
       settings: {
-        floor: DEFAULT_FLOOR, wall: { ...DEFAULT_WALL }, door: 'canon:portals/doors/wood.svg', window: 'canon:portals/windows/glass.svg',
+        floor: DEFAULT_FLOOR, wall: { ...DEFAULT_WALL }, door: 'canon:portals/doors/wood.svg', window: 'canon:portals/windows/glass.svg', insert: null,
         stamp: null, stampSet: null, stampRot: 0, stampFlip: false, rules: true, vary: true, showIssues: true, subtract: false, snap: true,
         brush: { asset: 'canon:terrain/dirt.svg', size: 2, softness: 0.6, opacity: 0.9, erase: false },
         path: { style: { ...DEFAULT_PATH }, smooth: true },
