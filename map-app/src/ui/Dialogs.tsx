@@ -106,7 +106,7 @@ export function ExportDialog({ ed, assets, onClose }: { ed: Editor; assets: Asse
             {o.format === 'dd2vtt' && doc.grid.type.startsWith('hex') && <p className="hint">{tr('Шестиугольная сетка в .dd2vtt не описывается — в VTT включи гексы вручную.')}</p>}
             {o.format === 'foundry' && doc.grid.type.startsWith('hex') && <p className="hint">{tr('Гексы уходят в сцену, но сдвиг сетки в Foundry может отличаться — проверь и подгони в настройках сцены.')}</p>}
             {o.format === 'dd2vtt' && <p className="hint">{tr('В .dd2vtt нет тайных дверей, типов стен, конусов и анимации света: тайная дверь уходит стеной. Для всего этого — «Сцена Foundry VTT».')}</p>}
-            {o.format === 'foundry' && <p className="hint">{tr('В Foundry: создай сцену → правой кнопкой по ней → «Import Data» → .json из архива. Картинку загрузи в Foundry и, если путь другой, выбери её фоном сцены. Стены, тайные и запертые двери, окна, свет и сетка уже на месте.')}</p>}
+            {o.format === 'foundry' && <p className="hint">{tr('В Foundry: создай сцену → правой кнопкой по ней → «Import Data» → .json из архива. Картинку загрузи в Foundry и, если путь другой, выбери её фоном сцены. Стены (и односторонние), тайные и запертые двери, окна, свет, звуки, заметки и сетка уже на месте. Журнал заметок — отдельный .json: «Import Data» у новой записи журнала.')}</p>}
             <p className="hint">{tr('Источники света уходят в VTT всегда. Если VTT сам считает свет — выключи запекание, чтобы не было двойной темноты.')}</p>
           </>
         )}

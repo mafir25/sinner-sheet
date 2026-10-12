@@ -122,6 +122,23 @@ export function wallChains(f: Floor, gapKinds: Set<Portal['kind']> = new Set(['d
   return out;
 }
 
+/**
+ * Отрезки односторонних стен (WallStyle.oneWay) и нормаль n в сторону, откуда видно сквозь них (свет оттуда проходит).
+ * chains — цепочки стен (как для света или экспорта).
+ */
+export function oneWaySegs(chains: WallChain[]): { a: Pt; b: Pt; n: Pt }[] {
+  const out: { a: Pt; b: Pt; n: Pt }[] = [];
+  for (const c of chains) {
+    if (!c.style.oneWay) continue;
+    const pts = c.closed ? [...c.pts, c.pts[0]] : c.pts;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const n = innerNormal(pts[i], pts[i + 1], c.room);
+      out.push({ a: pts[i], b: pts[i + 1], n: c.style.oneWay === 'in' ? n : { x: -n.x, y: -n.y } });
+    }
+  }
+  return out;
+}
+
 export type WallHit = { seg: WallSeg; t: number; q: Pt; d: number; len: number };
 
 /** Ближайшая стена к точке (для установки проёма). */
@@ -247,7 +264,7 @@ function projVector(dir: FaceDir | undefined, n: Pt, h: number): Pt | null {
 }
 
 /** Нормаль «внутрь»: у стены комнаты — в комнату, у отдельной — влево по ходу рисования. */
-function innerNormal(a: Pt, b: Pt, room?: Room): Pt {
+export function innerNormal(a: Pt, b: Pt, room?: Room): Pt {
   const L = Math.hypot(b.x - a.x, b.y - a.y) || 1;
   const n = { x: -(b.y - a.y) / L, y: (b.x - a.x) / L };
   if (room) {

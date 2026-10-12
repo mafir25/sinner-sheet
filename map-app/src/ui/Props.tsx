@@ -10,7 +10,7 @@ import { type Editor, useEditor } from '../state/editor';
 import { nm, tr } from '../i18n';
 import { edgeStyle, portalFaces, portalShape, portalWall, resizePortal } from '../geom/walls';
 import { effectiveChance } from '../geom/variants';
-import { BrushPanel, LabelPanel, LevelPanel, LightPanel, PathPanel, RoofPanel, SelectionExtras } from './Props2';
+import { BrushPanel, LabelPanel, LevelPanel, LightPanel, PathPanel, RoofPanel, SelectionExtras, SoundPanel } from './Props2';
 import { AssetPicker, ColorInput, Field, NumInput, SetThumb, Slider, Thumb, assetName, toast, useStore } from './common';
 import { type AlignMode, alignObjects, distributeObjects, repeatObjects, sameObjects } from '../geom/ops';
 import { uid } from '../model/doc';
@@ -78,6 +78,17 @@ function WallStyleEditor({ assets, value, onChange, standalone }: { assets: Asse
         <input type="checkbox" checked={!!value.low} onChange={(e) => { const { low: _l, ...rest } = value; onChange(e.target.checked ? { ...rest, low: true } : rest); }} />
         {' '}{tr('Низкая стена (по пояс): не закрывает обзор и свет')}
       </label>
+      {!value.low && (
+        <Field label={tr('Односторонняя стена')}>
+          <select className="input" value={value.oneWay ?? ''}
+            title={tr('С одной стороны — обычная стена, с другой видно сквозь неё и свет проходит (зеркальное стекло, засада)')}
+            onChange={(e) => { const { oneWay: _o, ...rest } = value; const v = e.target.value as 'in' | 'out' | ''; onChange(v ? { ...rest, oneWay: v } : rest); }}>
+            <option value="">{tr('Нет — закрывает с обеих сторон')}</option>
+            <option value="in">{standalone ? tr('Видно сквозь слева (по ходу стены)') : tr('Видно сквозь изнутри помещения')}</option>
+            <option value="out">{standalone ? tr('Видно сквозь справа') : tr('Видно сквозь снаружи')}</option>
+          </select>
+        </Field>
+      )}
       {!value.low && (
         <Field label={tr('Стена в VTT (Foundry)')}>
           <select className="input" value={value.vtt ?? 'normal'}
@@ -212,6 +223,8 @@ export function Props({ ed, assets }: { ed: Editor; assets: AssetStore }) {
   if (tool === 'brush') return <BrushPanel ed={ed} assets={assets} />;
   if (tool === 'path') return <PathPanel ed={ed} assets={assets} />;
   if (tool === 'light') return <LightPanel ed={ed} />;
+  if (tool === 'sound') return <SoundPanel ed={ed} />;
+  if (tool === 'note') return <p className="hint">{tr('Щелчок — поставить заметку мастера; текст пишется в её свойствах.')}</p>;
   if (tool === 'label') return <LabelPanel ed={ed} />;
   if (tool === 'roof') return <RoofPanel ed={ed} assets={assets} />;
   if (tool === 'level') return <LevelPanel ed={ed} assets={assets} />;

@@ -3,7 +3,7 @@ import JSZip from 'jszip';
 import type { AssetStore } from '../assets/store';
 import type { Floor, MapDoc, Portal, WallStyle } from '../model/types';
 import { renderMap } from '../render/render';
-import { portalWall, wallChains } from '../geom/walls';
+import { innerNormal, portalWall, wallChains } from '../geom/walls';
 import { safeName, usedAssetKeysWithVariants } from '../storage/file';
 import { tr } from '../i18n';
 
@@ -116,6 +116,16 @@ const SENSES: Record<NonNullable<WallStyle['vtt']>, Senses> = {
 };
 const WINDOW_SENSES: Senses = { move: NORMAL, sight: NONE, light: NONE, sound: LIMITED };
 const DOOR_STATE = { closed: 0, open: 1, locked: 2 } as const;
+/**
+ * Направление односторонней стены (CONST.WALL_DIRECTIONS: 1 — LEFT, 2 — RIGHT). Foundry не учитывает стену для
+ * источника на стороне, равной dir (Wall#orientPoint, orient2dFast), — ставим сторону, откуда видно сквозь стену.
+ */
+function wallDir(a: { x: number; y: number }, b: { x: number; y: number }, see: { x: number; y: number }): number {
+  const c = { x: (a.x + b.x) / 2 + see.x, y: (a.y + b.y) / 2 + see.y };
+  const o = (a.y - c.y) * (b.x - c.x) - (a.x - c.x) * (b.y - c.y);
+  return o < 0 ? 1 : 2;
+}
+const escapeHtml = (t: string) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 /** Сетка Foundry (CONST.GRID_TYPES): без сетки, квадрат, гексы «строками» (острые) и «столбцами» (плоские). */
 const GRID_TYPE: Record<MapDoc['grid']['type'], number> = { none: 0, square: 1, 'hex-pointy': 2, 'hex-flat': 4 };
 const FEET_PER_CELL = 5;
@@ -127,8 +137,8 @@ const FEET_PER_CELL = 5;
  */
 export function buildFoundryScene(doc: MapDoc, f: Floor, ppc: number, image: string, windows: WindowMode, baked = false) {
   const px = (v: number) => Math.round(v * ppc * 10) / 10;
-  const wall = (a: { x: number; y: number }, b: { x: number; y: number }, s: Senses, door = 0, ds = 0) => ({
-    c: [px(a.x), px(a.y), px(b.x), px(b.y)], ...s, dir: 0, door, ds,
+  const wall = (a: { x: number; y: number }, b: { x: number; y: number }, s: Senses, door = 0, ds = 0, dir = 0) => ({
+    c: [px(a.x), px(a.y), px(b.x), px(b.y)], ...s, dir, door, ds,
     threshold: { light: null, sight: null, sound: null, attenuation: false }, flags: {},
   });
   const walls: ReturnType<typeof wall>[] = [];
@@ -138,7 +148,14 @@ export function buildFoundryScene(doc: MapDoc, f: Floor, ppc: number, image: str
     if (c.style.low) continue;
     const s = SENSES[c.style.vtt ?? 'normal'];
     const pts = c.closed ? [...c.pts, c.pts[0]] : c.pts;
-    for (let i = 0; i < pts.length - 1; i++) walls.push(wall(pts[i], pts[i + 1], s));
+    for (let i = 0; i < pts.length - 1; i++) {
+      let dir = 0;
+      if (c.style.oneWay) {
+        const n = innerNormal(pts[i], pts[i + 1], c.room);
+        dir = wallDir(pts[i], pts[i + 1], c.style.oneWay === 'in' ? n : { x: -n.x, y: -n.y });
+      }
+      walls.push(wall(pts[i], pts[i + 1], s, 0, 0, dir));
+    }
   }
   for (const p of f.portals) {
     if (p.kind === 'insert' || isOpening(p)) continue;
@@ -163,6 +180,18 @@ export function buildFoundryScene(doc: MapDoc, f: Floor, ppc: number, image: str
     },
     flags: {},
   }));
+  const marks = f.marks ?? [];
+  const sounds = marks.flatMap((m) => (m.kind !== 'sound' || !m.path ? [] : [{
+    x: px(m.x), y: px(m.y), radius: Math.round(m.radius * FEET_PER_CELL * 10) / 10, path: m.path, repeat: true,
+    volume: m.volume, walls: m.walls, easing: m.easing, hidden: false, darkness: { min: 0, max: 1 },
+    flags: { 'pm-maps': { name: m.name } },
+  }]));
+  const notes = marks.flatMap((m) => (m.kind !== 'note' ? [] : [{
+    x: px(m.x), y: px(m.y), entryId: null, pageId: null,
+    texture: { src: 'icons/svg/book.svg' }, icon: 'icons/svg/book.svg', iconSize: 40,
+    text: m.title, fontSize: 32, textAnchor: 1, textColor: '#FFFFFF', global: false,
+    flags: { 'pm-maps': { text: m.text } },
+  }]));
   // свет запечён в картинку — у Foundry своей темноты нет (иначе двойная)
   const dark = doc.lighting.enabled && !baked ? Math.round(doc.lighting.darkness * 100) / 100 : 0;
   const globalLight = !doc.lighting.enabled || baked;
@@ -179,7 +208,7 @@ export function buildFoundryScene(doc: MapDoc, f: Floor, ppc: number, image: str
     tokenVision: true, fogExploration: true,
     environment: { darknessLevel: dark, globalLight: { enabled: globalLight } },
     darkness: dark, globalLight,
-    walls, lights, notes: [], tokens: [], drawings: [], tiles: [], sounds: [], templates: [],
+    walls, lights, notes, tokens: [], drawings: [], tiles: [], sounds, templates: [],
     flags: { 'pm-maps': { map: doc.id, floor: f.id } },
   };
 }
@@ -222,6 +251,19 @@ async function exportFloor(doc: MapDoc, f: Floor, assets: AssetStore, o: ExportO
  * Foundry: ZIP с картинкой этажа (WebP) и сценой (.json) рядом — на каждый выбранный этаж. В сцене фон — имя файла
  * картинки: её загружают в Foundry и, если путь другой, выбирают фоном сцены после «Import Data».
  */
+/**
+ * Журнал заметок мастера для Foundry (JournalEntry для «Import Data»): страница на каждую заметку этажей. null — заметок нет.
+ */
+export function buildFoundryJournal(doc: MapDoc, floors: Floor[]) {
+  const pages = floors.flatMap((f) => (f.marks ?? []).flatMap((m) => (m.kind !== 'note' ? [] : [{
+    name: (floors.length > 1 && f.name ? `${f.name}: ` : '') + (m.title || tr('Заметка')),
+    type: 'text', title: { show: true, level: 1 },
+    text: { format: 1, content: m.text.split(/\n{2,}/).map((p) => `<p>${escapeHtml(p).replace(/\n/g, '<br>')}</p>`).join('') },
+  }])));
+  if (!pages.length) return null;
+  return { name: `${doc.name} — ${tr('заметки')}`, pages, flags: { 'pm-maps': { map: doc.id } } };
+}
+
 async function exportFoundry(doc: MapDoc, floorId: string, assets: AssetStore, o: ExportOpts): Promise<{ blob: Blob; filename: string }> {
   const base = safeName(doc.name);
   const list = o.floors === 'current' || doc.floors.length === 1 ? [doc.floors.find((x) => x.id === floorId) ?? doc.floors[0]] : doc.floors;
@@ -233,6 +275,8 @@ async function exportFoundry(doc: MapDoc, floorId: string, assets: AssetStore, o
     const scene = buildFoundryScene(doc, f, o.ppc, `${name}.webp`, o.windows, o.bakeLight && doc.lighting.enabled);
     zip.file(`${name}.json`, JSON.stringify(scene, null, 2));
   }
+  const journal = buildFoundryJournal(doc, list);
+  if (journal) zip.file(`${base} - ${safeName(tr('заметки'))}.json`, JSON.stringify(journal, null, 2));
   return { blob: await zip.generateAsync({ type: 'blob' }), filename: `${base} - Foundry.zip` };
 }
 

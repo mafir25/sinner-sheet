@@ -37,6 +37,11 @@ export type WallStyle = {
   low?: boolean;
   /** Как стена ведёт себя в VTT (Foundry): нет — обычная. См. WallVtt. */
   vtt?: WallVtt;
+  /**
+   * Односторонняя стена: с какой стороны видно сквозь неё и проходит свет (in — изнутри комнаты / слева по ходу отдельной
+   * стены, out — снаружи / справа). С другой стороны — обычная стена. Нет — обычная с обеих сторон. В Foundry — `dir`.
+   */
+  oneWay?: 'in' | 'out';
   /** Варианты текстуры грани (файлы её группы): шанс плитки 0…1 (нет — DEFAULT_VARY) и зерно раскладки. */
   vary?: number;
   varySeed?: number;
@@ -185,6 +190,20 @@ export type Light = {
 };
 export type LightAnim = 'none' | 'torch' | 'flame' | 'pulse' | 'siren' | 'emanation' | 'fog' | 'wave' | 'energy';
 
+/** Точка звука для VTT (Foundry AmbientSound): слышно в радиусе; файл — путь в Foundry. На картинку не попадает. */
+export type SoundMark = {
+  id: string; kind: 'sound'; x: number; y: number;
+  radius: number;   // клеток
+  path: string;     // путь к звуку в Foundry (sounds/rain.ogg)
+  name: string;     // подпись в редакторе
+  volume: number;   // 0..1
+  walls: boolean;   // стены глушат звук
+  easing: boolean;  // тише к краю
+};
+/** Заметка мастера (Foundry Note): значок на карте с названием и текстом. На картинку не попадает. */
+export type NoteMark = { id: string; kind: 'note'; x: number; y: number; title: string; text: string };
+export type Mark = SoundMark | NoteMark;
+
 export type Label = {
   id: string;
   x: number;
@@ -269,6 +288,8 @@ export type Floor = {
   terrain: TerrainStroke[];
   paths: MapPath[];
   lights: Light[];
+  /** Звуки и заметки для VTT (этап 10). Нет в старых картах — пусто. */
+  marks?: Mark[];
   labels: Label[];
   roofs: Roof[];
   /** Уровни местности (возвышения и ямы). Нет в старых картах — считается пустым. */

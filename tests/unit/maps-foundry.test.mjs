@@ -3,7 +3,8 @@ import { describe, it, expect } from 'vitest';
 import { rectPoly } from '../../map-app/src/geom/poly.ts';
 import { faceItems, wallChains } from '../../map-app/src/geom/walls.ts';
 import { blockingSegments } from '../../map-app/src/geom/light.ts';
-import { buildDd2vtt, buildFoundryScene } from '../../map-app/src/export/export.ts';
+import { buildDd2vtt, buildFoundryJournal, buildFoundryScene } from '../../map-app/src/export/export.ts';
+import { copySelection, pasteClip, shiftFloorAll } from '../../map-app/src/geom/ops.ts';
 import { createDoc, parseDoc } from '../../map-app/src/model/doc.ts';
 
 const WALL = { asset: null, color: '#000', width: 0.1, height: 1, inner: 'down', outer: 'down' };
@@ -116,5 +117,74 @@ describe('сцена Foundry', () => {
     const d = doc();
     d.floors[0] = floor([], WALL, [{ id: 'l', x: 1, y: 1, radius: 4, color: '#fff', intensity: 1, shadows: true, angle: 60, rot: 90, anim: 'pulse' }]);
     expect(parseDoc(JSON.parse(JSON.stringify(d))).floors[0].lights[0]).toMatchObject({ angle: 60, rot: 90, anim: 'pulse' });
+  });
+});
+
+// Foundry: сторона точки относительно стены (Wall#orientPoint) и учитывается ли стена для источника в этой точке
+const orient = (c, p) => { const o = (c[1] - p.y) * (c[2] - p.x) - (c[0] - p.x) * (c[3] - p.y); return o < 0 ? 1 : 2; };
+const foundryBlocks = (w, p) => !w.dir || orient(w.c, p) !== w.dir;
+
+describe('односторонние стены', () => {
+  const oneWay = (side) => floor([], { ...WALL, oneWay: side });
+  const lit = (f, l) => blockingSegments(f).filter(([a, b, see]) => !(see && (l.x - a.x) * see.x + (l.y - a.y) * see.y > 1e-9));
+  it('свет изнутри проходит сквозь «видно изнутри», снаружи — нет', () => {
+    const f = oneWay('in');
+    expect(lit(f, { x: 2, y: 1.5 })).toHaveLength(0);
+    expect(lit(f, { x: 2, y: -2 }).length).toBeGreaterThan(0);
+    const g = oneWay('out');
+    expect(lit(g, { x: 2, y: 1.5 }).length).toBe(4);
+    // снаружи сверху сквозь верхнюю стену видно; три остальные обращены к лампе внутренней стороной
+    expect(lit(g, { x: 2, y: -2 }).some(([a, b]) => a.y === 0 && b.y === 0)).toBe(false);
+    expect(lit(g, { x: 2, y: -2 })).toHaveLength(3);
+  });
+  it('в Foundry dir: для зрителя со «прозрачной» стороны стена не считается, с другой — считается', () => {
+    for (const side of ['in', 'out']) {
+      const s = buildFoundryScene(doc(), oneWay(side), 100, 'm', 'gap');
+      const inside = { x: 200, y: 150 };
+      for (const w of s.walls) {
+        expect(w.dir).not.toBe(0);
+        const mx = (w.c[0] + w.c[2]) / 2, my = (w.c[1] + w.c[3]) / 2;
+        const out = { x: mx + (mx - inside.x), y: my + (my - inside.y) };
+        expect(foundryBlocks(w, inside)).toBe(side === 'out');
+        expect(foundryBlocks(w, out)).toBe(side === 'in');
+      }
+    }
+    expect(buildFoundryScene(doc(), floor(), 100, 'm', 'gap').walls.every((w) => w.dir === 0)).toBe(true);
+  });
+});
+
+describe('звуки и заметки', () => {
+  const marks = [
+    { id: 's1', kind: 'sound', x: 1, y: 2, radius: 4, path: 'sounds/rain.ogg', name: 'Дождь', volume: 0.7, walls: true, easing: false },
+    { id: 's2', kind: 'sound', x: 1, y: 2, radius: 4, path: '', name: 'Без файла', volume: 0.5, walls: true, easing: true },
+    { id: 'n1', kind: 'note', x: 3, y: 1, title: 'Тайник', text: 'Под полом <ключ>.\n\nВторой абзац' },
+  ];
+  const f = () => ({ ...floor(), marks: structuredClone(marks) });
+  it('в сцене Foundry: звук (радиус в футах), заметка с заголовком; звук без файла пропускается', () => {
+    const s = buildFoundryScene(doc(), f(), 100, 'm', 'gap');
+    expect(s.sounds).toHaveLength(1);
+    expect(s.sounds[0]).toMatchObject({ x: 100, y: 200, radius: 20, path: 'sounds/rain.ogg', volume: 0.7, walls: true, easing: false });
+    expect(s.notes).toHaveLength(1);
+    expect(s.notes[0]).toMatchObject({ x: 300, y: 100, text: 'Тайник', entryId: null });
+  });
+  it('журнал заметок: страница на заметку, текст экранирован, абзацы', () => {
+    const j = buildFoundryJournal(doc(), [f()]);
+    expect(j.pages).toHaveLength(1);
+    expect(j.pages[0].name).toBe('Тайник');
+    expect(j.pages[0].text.content).toBe('<p>Под полом &lt;ключ&gt;.</p><p>Второй абзац</p>');
+    expect(buildFoundryJournal(doc(), [floor()])).toBe(null);
+  });
+  it('сохраняются в файле; старые карты — без меток', () => {
+    const d = doc();
+    d.floors[0] = f();
+    expect(parseDoc(JSON.parse(JSON.stringify(d))).floors[0].marks).toHaveLength(3);
+    expect(parseDoc(JSON.parse(JSON.stringify(doc()))).floors[0].marks).toBeUndefined();
+  });
+  it('копируются, вставляются и двигаются вместе с выделенным', () => {
+    const clip = copySelection(f(), new Set(['n1']), () => new Set());
+    expect(clip.marks.map((m) => m.id)).toEqual(['n1']);
+    const pasted = pasteClip(clip, { x: 1, y: 1 }, new Set(), 'l', (p) => `${p}x`);
+    expect(pasted.marks[0]).toMatchObject({ id: 'mkx', x: 4, y: 2, title: 'Тайник' });
+    expect(shiftFloorAll(f(), { x: 2, y: 0 }).marks[0].x).toBe(3);
   });
 });

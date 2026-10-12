@@ -1,16 +1,19 @@
 // Состояние редактора: документ карты, история (отмена/повтор), выделение, инструмент, вид.
 import { useSyncExternalStore } from 'react';
-import type { AssetKey, Floor, Label, Level, Light, MapDoc, MapObject, MapPath, PathStyle, Portal, Pt, Roof, Room, Wall, WallStyle } from '../model/types';
+import type { AssetKey, Floor, Label, Level, Light, MapDoc, Mark, MapObject, MapPath, PathStyle, Portal, Pt, Roof, Room, SoundMark, Wall, WallStyle } from '../model/types';
 import { DEFAULT_FLOOR, DEFAULT_LEVEL, DEFAULT_PATH, DEFAULT_WALL, normalizeDoc, uid } from '../model/doc';
 import { orphanPortals } from '../geom/walls';
 import { share } from './share';
 import { type Clip, clipSize, copySelection, pasteClip } from '../geom/ops';
 
-export type ToolId = 'select' | 'room' | 'poly' | 'wall' | 'door' | 'window' | 'insert' | 'cut' | 'stamp' | 'brush' | 'path' | 'light' | 'label' | 'roof' | 'level' | 'ruler' | 'pan';
+export type ToolId = 'select' | 'room' | 'poly' | 'wall' | 'door' | 'window' | 'insert' | 'cut' | 'stamp' | 'brush' | 'path' | 'light' | 'sound' | 'note' | 'label' | 'roof' | 'level' | 'ruler' | 'pan';
 /** edge — отдельная стена комнаты: id «<id комнаты>|<кольцо>|<ребро>». */
-export type SelKind = 'object' | 'portal' | 'wall' | 'room' | 'path' | 'light' | 'label' | 'roof' | 'level' | 'edge';
+export type SelKind = 'object' | 'portal' | 'wall' | 'room' | 'path' | 'light' | 'mark' | 'label' | 'roof' | 'level' | 'edge';
 export type SelItem = { kind: SelKind; id: string };
 export type View = { scale: number; ox: number; oy: number }; // px на клетку, сдвиг начала координат в px
+
+export type SoundStyle = Omit<SoundMark, 'id' | 'kind' | 'x' | 'y'>;
+export const DEFAULT_SOUND: SoundStyle = { radius: 6, path: '', name: '', volume: 0.5, walls: true, easing: true };
 
 export type ToolSettings = {
   floor: AssetKey | null;
@@ -37,6 +40,8 @@ export type ToolSettings = {
   brush: { asset: AssetKey | null; size: number; softness: number; opacity: number; erase: boolean };
   path: { style: PathStyle; smooth: boolean };
   light: { radius: number; color: string; intensity: number; shadows: boolean };
+  /** Звук для инструмента «Звук» (нет — DEFAULT_SOUND). */
+  sound?: SoundStyle;
   label: { size: number; color: string; font: 'head' | 'body'; box: boolean; gmOnly: boolean; numbering: boolean; next: number };
   roof: Omit<Roof, 'id' | 'poly'>;
   /** Уровень местности: высота (фт), покрытие, обрыв; mode — прямоугольник или многоугольник. */
@@ -200,6 +205,7 @@ export class Editor {
       f.rooms = f.rooms.filter((r) => !ids.has(r.id));
       f.paths = f.paths.filter((x) => !ids.has(x.id));
       f.lights = f.lights.filter((x) => !ids.has(x.id));
+      if (f.marks) f.marks = f.marks.filter((x) => !ids.has(x.id));
       f.labels = f.labels.filter((x) => !ids.has(x.id));
       f.roofs = f.roofs.filter((x) => !ids.has(x.id));
       f.levels = f.levels.filter((x) => !ids.has(x.id));
@@ -232,6 +238,7 @@ export class Editor {
       f.rooms.push(...fresh.rooms); f.walls.push(...fresh.walls); f.portals.push(...fresh.portals); f.objects.push(...fresh.objects);
       f.paths.push(...fresh.paths); f.lights.push(...fresh.lights); f.labels.push(...fresh.labels); f.roofs.push(...fresh.roofs);
       f.levels.push(...fresh.levels);
+      if (fresh.marks?.length) f.marks = [...(f.marks ?? []), ...fresh.marks];
     });
     setClip(fresh); // следующая вставка — ещё на шаг дальше
     const sel: SelItem[] = [
@@ -239,6 +246,7 @@ export class Editor {
       ...fresh.walls.map((x) => ({ kind: 'wall' as const, id: x.id })), ...fresh.paths.map((x) => ({ kind: 'path' as const, id: x.id })),
       ...fresh.lights.map((x) => ({ kind: 'light' as const, id: x.id })), ...fresh.labels.map((x) => ({ kind: 'label' as const, id: x.id })),
       ...fresh.roofs.map((x) => ({ kind: 'roof' as const, id: x.id })), ...fresh.levels.map((x) => ({ kind: 'level' as const, id: x.id })),
+      ...(fresh.marks ?? []).map((x) => ({ kind: 'mark' as const, id: x.id })),
       // проёмы на вставленных комнатах выделяются вместе с ними, отдельные — сами по себе
       ...(fresh.rooms.length || fresh.walls.length ? [] : fresh.portals.map((x) => ({ kind: 'portal' as const, id: x.id }))),
     ];
@@ -268,10 +276,10 @@ const samePts = (p: { a: Pt; b: Pt }, e: { a: Pt; b: Pt }) => {
   return (n(p.a, e.a) && n(p.b, e.b)) || (n(p.a, e.b) && n(p.b, e.a));
 };
 
-type SelType = { object: MapObject; portal: Portal; wall: Wall; room: Room; path: MapPath; light: Light; label: Label; roof: Roof; level: Level; edge: Edge };
+type SelType = { object: MapObject; portal: Portal; wall: Wall; room: Room; path: MapPath; light: Light; mark: Mark; label: Label; roof: Roof; level: Level; edge: Edge };
 export function listOf<K extends SelKind>(f: Floor, kind: K): SelType[K][] {
   const map: { [k in SelKind]: SelType[k][] } = {
-    object: f.objects, portal: f.portals, wall: f.walls, room: f.rooms, path: f.paths, light: f.lights, label: f.labels, roof: f.roofs, level: f.levels, edge: [],
+    object: f.objects, portal: f.portals, wall: f.walls, room: f.rooms, path: f.paths, light: f.lights, mark: f.marks ?? [], label: f.labels, roof: f.roofs, level: f.levels, edge: [],
   };
   return map[kind] as SelType[K][];
 }

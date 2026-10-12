@@ -1,12 +1,12 @@
 // Инструменты холста. Координаты — в клетках. Пока идёт перетаскивание, документ не меняется:
 // инструмент отдаёт предпросмотр (preview), а в историю попадает одно изменение при отпускании.
 import type { AssetStore } from '../assets/store';
-import type { AssetEntry, Floor, Label, Light, MapObject, MapPath, Poly, Portal, Pt, Roof, Rules, TerrainStroke, WallStyle } from '../model/types';
-import { type Editor, type SelItem, type ToolId, edgeOf } from '../state/editor';
+import type { AssetEntry, Floor, Label, Light, Mark, MapObject, MapPath, Poly, Portal, Pt, Roof, Rules, TerrainStroke, WallStyle } from '../model/types';
+import { type Editor, type SelItem, type ToolId, DEFAULT_SOUND, edgeOf } from '../state/editor';
 import { uid } from '../model/doc';
 import { snapCenter, snapHalf, snapVertex } from '../geom/grid';
 import { difference, intersects, pointInPoly, rectPoly, ringArea, samePt, segDist, touches, union } from '../geom/poly';
-import { type WallHit, type WallSeg, insertOnWall, nearestWall, orphanPortals, portalOnWall, slidePortal, wallAt } from '../geom/walls';
+import { type WallHit, type WallSeg, insertOnWall, nearestWall, oneWaySegs, orphanPortals, portalOnWall, slidePortal, wallAt, wallChains } from '../geom/walls';
 import { roofPolyOver, buildingRooms, roofsOver } from '../geom/roof';
 import { fmtHeight, heightAt } from '../geom/levels';
 import { LIGHT_HIT, boxSelect, fromLocal, hitTest, labelCorners, objectCorners, toLocal } from './hit';
@@ -125,6 +125,12 @@ export function drawSelection(c: CanvasRenderingContext2D, f: Floor, sel: SelIte
     c.arc(l.x, l.y, l.radius, 0, Math.PI * 2);
     c.stroke();
   }
+  for (const m of f.marks ?? []) {
+    if (!ids.has(m.id)) continue;
+    c.beginPath();
+    c.arc(m.x, m.y, m.kind === 'sound' ? m.radius : Math.max(LIGHT_HIT, 10 * px), 0, Math.PI * 2);
+    c.stroke();
+  }
   c.setLineDash([]);
   for (const l of f.labels) if (ids.has(l.id)) { outlinePts(c, labelCorners(l), true); c.stroke(); }
   for (const o of f.objects) if (ids.has(o.id)) { outlinePts(c, objectCorners(o), true); c.stroke(); }
@@ -169,6 +175,7 @@ export function moveFloor(f: Floor, ids: Set<string>, att: Set<string>, d: Pt): 
     paths: f.paths.map((w) => (ids.has(w.id) ? { ...w, points: w.points.map(mv) } : w)),
     portals: f.portals.map((pt) => (att.has(pt.id) || ids.has(pt.id) ? { ...pt, a: mv(pt.a), b: mv(pt.b) } : pt)),
     lights: f.lights.map((l) => (ids.has(l.id) ? { ...l, x: l.x + d.x, y: l.y + d.y } : l)),
+    ...(f.marks ? { marks: f.marks.map((m) => (ids.has(m.id) ? { ...m, x: m.x + d.x, y: m.y + d.y } : m)) } : {}),
     labels: f.labels.map((l) => (ids.has(l.id) ? { ...l, x: l.x + d.x, y: l.y + d.y } : l)),
   };
 }
@@ -297,7 +304,7 @@ class SelectTool implements Tool {
     const r = f.rooms.find((x) => ids.has(x.id)) ?? f.roofs.find((x) => ids.has(x.id)) ?? f.levels.find((x) => ids.has(x.id));
     const anchor = r ? r.poly[0][0] : (f.walls.find((x) => ids.has(x.id)) ?? f.paths.find((x) => ids.has(x.id)))?.points[0];
     if (anchor) return sub(snapVertex(type, add(anchor, raw)), anchor);
-    const point = f.lights.find((x) => ids.has(x.id)) ?? f.labels.find((x) => ids.has(x.id));
+    const point = f.lights.find((x) => ids.has(x.id)) ?? f.marks?.find((x) => ids.has(x.id)) ?? f.labels.find((x) => ids.has(x.id));
     if (point) return sub(snapHalf(type, add(point, raw)), point);
     return raw;
   }
@@ -849,6 +856,94 @@ class BrushTool implements Tool {
   }
 }
 
+// ---------- звуки и заметки (метки для VTT)
+class MarkTool implements Tool {
+  private hover: Pt | null = null;
+  constructor(private env: ToolEnv, private kind: Mark['kind']) {}
+  cursor() { return 'copy'; }
+  private at(p: Pt, e: { ctrlKey?: boolean; metaKey?: boolean }) { return this.env.snap(e) ? snapHalf(this.env.ed.doc.grid.type, p) : p; }
+  move(p: Pt, e: PointerEvent) { this.hover = this.at(p, e); this.env.redraw(); }
+  down(p: Pt, e: PointerEvent) {
+    const q = this.at(p, e), ed = this.env.ed;
+    const id = uid('mk');
+    const notes = (ed.floor.marks ?? []).filter((m) => m.kind === 'note').length;
+    const m: Mark = this.kind === 'sound'
+      ? { id, kind: 'sound', x: q.x, y: q.y, ...(ed.state.settings.sound ?? DEFAULT_SOUND) }
+      : { id, kind: 'note', x: q.x, y: q.y, title: tr('Заметка {0}', notes + 1), text: '' };
+    ed.commitFloor((f) => { f.marks = [...(f.marks ?? []), m]; });
+    // заметку сразу открываем в свойствах — написать текст
+    if (this.kind === 'note') { ed.setTool('select'); ed.setSel([{ kind: 'mark', id }]); }
+  }
+  cancel() { this.hover = null; }
+  overlay(c: CanvasRenderingContext2D, scale: number) {
+    if (!this.hover) return;
+    const s = this.env.ed.state.settings.sound ?? DEFAULT_SOUND;
+    if (this.kind === 'sound') {
+      c.save();
+      c.strokeStyle = SOUND_COLOR; c.lineWidth = 1.5 / scale; c.setLineDash([5 / scale, 4 / scale]);
+      c.beginPath(); c.arc(this.hover.x, this.hover.y, s.radius, 0, Math.PI * 2); c.stroke();
+      c.restore();
+    }
+    markIcon(c, { kind: this.kind, x: this.hover.x, y: this.hover.y }, scale);
+  }
+}
+
+const SOUND_COLOR = '#7fd4ff', NOTE_COLOR = '#ffd166';
+/** Значок метки: звук — нота в голубом кружке, заметка — книжка в жёлтом. */
+function markIcon(c: CanvasRenderingContext2D, m: { kind: Mark['kind']; x: number; y: number }, scale: number) {
+  const r = Math.max(LIGHT_HIT * 0.7, 8 / scale);
+  c.save();
+  c.beginPath(); c.arc(m.x, m.y, r, 0, Math.PI * 2);
+  c.fillStyle = '#111318'; c.fill();
+  c.lineWidth = 2 / scale; c.strokeStyle = m.kind === 'sound' ? SOUND_COLOR : NOTE_COLOR; c.stroke();
+  c.fillStyle = c.strokeStyle;
+  c.font = `${r * 1.2}px sans-serif`; c.textAlign = 'center'; c.textBaseline = 'middle';
+  c.fillText(m.kind === 'sound' ? '♪' : '✎', m.x, m.y + r * 0.05);
+  c.restore();
+}
+
+/** Метки этажа: радиус звука (пунктир), значки и подписи. */
+function drawMarks(c: CanvasRenderingContext2D, f: Floor, scale: number) {
+  for (const m of f.marks ?? []) {
+    if (m.kind === 'sound') {
+      c.save();
+      c.strokeStyle = 'rgba(127,212,255,.45)'; c.lineWidth = 1 / scale; c.setLineDash([3 / scale, 5 / scale]);
+      c.beginPath(); c.arc(m.x, m.y, m.radius, 0, Math.PI * 2); c.stroke();
+      c.restore();
+    }
+    markIcon(c, m, scale);
+    const label = m.kind === 'sound' ? m.name || m.path.split('/').pop() || '' : m.title;
+    if (!label) continue;
+    c.save();
+    c.font = `${12 / scale}px Inter, sans-serif`; c.textAlign = 'center'; c.textBaseline = 'top';
+    c.lineWidth = 3 / scale; c.strokeStyle = 'rgba(0,0,0,.8)'; c.fillStyle = m.kind === 'sound' ? SOUND_COLOR : NOTE_COLOR;
+    const y = m.y + Math.max(LIGHT_HIT * 0.7, 8 / scale) + 3 / scale;
+    c.strokeText(label, m.x, y); c.fillText(label, m.x, y);
+    c.restore();
+  }
+}
+
+/** Односторонние стены: стрелки поперёк стены — в сторону, куда видно (откуда смотрят сквозь неё). */
+function drawOneWay(c: CanvasRenderingContext2D, f: Floor, scale: number) {
+  const segs = oneWaySegs(wallChains(f, new Set(), false));
+  if (!segs.length) return;
+  c.save();
+  c.strokeStyle = '#ff9f43'; c.lineWidth = 2 / scale;
+  const len = 10 / scale, head = 4 / scale;
+  for (const { a, b, n } of segs) {
+    const L = Math.hypot(b.x - a.x, b.y - a.y), k = Math.max(1, Math.round(L / 1.5));
+    for (let i = 0; i < k; i++) {
+      const t = (i + 0.5) / k, m = { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t };
+      // стрелка от «прозрачной» стороны через стену: оттуда видно насквозь
+      const s = { x: m.x + n.x * len, y: m.y + n.y * len }, e = { x: m.x - n.x * len, y: m.y - n.y * len };
+      c.beginPath(); c.moveTo(s.x, s.y); c.lineTo(e.x, e.y);
+      c.moveTo(e.x + (n.x + n.y) * head, e.y + (n.y - n.x) * head); c.lineTo(e.x, e.y); c.lineTo(e.x + (n.x - n.y) * head, e.y + (n.y + n.x) * head);
+      c.stroke();
+    }
+  }
+  c.restore();
+}
+
 // ---------- свет
 class LightTool implements Tool {
   private hover: Pt | null = null;
@@ -905,6 +1000,8 @@ export function drawGizmos(c: CanvasRenderingContext2D, f: Floor, scale: number)
     }
     bulb(c, l, l.color, scale);
   }
+  drawMarks(c, f, scale);
+  drawOneWay(c, f, scale);
   const gaps = f.portals.filter((p) => p.kind === 'gap');
   if (!gaps.length) return;
   c.save();
@@ -1183,6 +1280,8 @@ export function makeTool(id: ToolId, env: ToolEnv): Tool {
     case 'brush': return new BrushTool(env);
     case 'path': return new PathTool(env, 'path');
     case 'light': return new LightTool(env);
+    case 'sound': return new MarkTool(env, 'sound');
+    case 'note': return new MarkTool(env, 'note');
     case 'label': return new LabelTool(env);
     case 'roof': return new RoofTool(env);
     case 'level': return new LevelTool(env);
