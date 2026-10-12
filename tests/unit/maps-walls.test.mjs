@@ -182,3 +182,18 @@ describe('стена растёт от периметра пола', () => {
     expect(faceDepth(w('normal', 'none'), { x: 1, y: 0 }, true)).toBe(0.5);
   });
 });
+
+describe('проём участком линии на поднятой стене', () => {
+  it('сдвигается на верхнюю линию только поперёк стены — у почти вертикальной не уезжает вдоль неё', async () => {
+    const { portalLineLift, wallLineLift } = await import('../../map-app/src/geom/walls.ts');
+    const w = wall3d('down', 'down');
+    // горизонтальная стена: сдвиг как у верхней линии
+    const fh = floor([room('r', { x: 0, y: 0 }, { x: 4, y: 3 }, w)]);
+    const ph = { id: 'd', kind: 'door', a: { x: 1, y: 0 }, b: { x: 2, y: 0 }, asset: 'x' };
+    expect(portalLineLift(fh, ph)).toEqual(wallLineLift(w));
+    // вертикальная стена: подъём целиком вдоль неё — проём остаётся на месте
+    const pv = { id: 'd', kind: 'door', a: { x: 4, y: 1 }, b: { x: 4, y: 2 }, asset: 'x' };
+    const l = portalLineLift(fh, pv);
+    expect(Math.abs(l.x) + Math.abs(l.y)).toBeLessThan(1e-9);
+  });
+});

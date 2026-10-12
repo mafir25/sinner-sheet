@@ -3,7 +3,7 @@
 import type { AssetStore } from '../assets/store';
 import type { Floor, Layer, MapDoc, MapObject, Portal, Poly, Pt, Roof } from '../model/types';
 import { drawGrid } from '../geom/grid';
-import { faceItems, portalAsLine, portalShape, portalThickness, portalWall, wallChains, wallLift, wallLineLift, type WallChain, type WallFace } from '../geom/walls';
+import { faceItems, portalAsLine, portalLineLift, portalShape, portalThickness, wallChains, wallLift, wallLineLift, type WallChain, type WallFace } from '../geom/walls';
 import { effectiveChance, pickTile, wallLine } from '../geom/variants';
 import { type BBox, pointInPoly, ptsBBox } from '../geom/poly';
 import { auxRes, drawLabel, drawLighting, drawPath, drawRoof, drawRoofHeight, drawTag, terrainCanvas } from './extras';
@@ -326,7 +326,7 @@ export function drawPortal(ctx: CanvasRenderingContext2D, f: Floor, p: Portal, a
   const th = portalThickness(f, p);
   const e = p.asset ? assets.entry(p.asset) : undefined;
   // на объёмной стене без грани здесь (боковая при «вниз») проём — на поднятой верхней линии
-  const w = portalWall(f, p), l = w ? wallLineLift(w.style) : { x: 0, y: 0 };
+  const l = portalLineLift(f, p);
   ctx.save();
   ctx.translate((p.a.x + p.b.x) / 2 + l.x, (p.a.y + p.b.y) / 2 + l.y);
   ctx.rotate(Math.atan2(dy, dx));
@@ -361,7 +361,7 @@ function drawSecretMarks(ctx: CanvasRenderingContext2D, f: Floor, o: RenderOpts)
   if (!list.length) return;
   ctx.save();
   for (const p of list) {
-    const w = portalWall(f, p), l = w ? wallLineLift(w.style) : { x: 0, y: 0 };
+    const l = portalLineLift(f, p);
     const a = { x: p.a.x + l.x, y: p.a.y + l.y }, b = { x: p.b.x + l.x, y: p.b.y + l.y };
     ctx.setLineDash([0.12, 0.08]);
     ctx.lineWidth = Math.max(0.05, 2 / o.scale);
