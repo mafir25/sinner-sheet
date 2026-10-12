@@ -7,6 +7,7 @@
    Каждый документ помечен flags.pm5e.key — повторный экспорт обновляет созданное раньше, а не плодит копии. */
 
 import { importPackage } from './foundry-import.js';
+import { parseAction, statusEffectsData, activityFor, npcWeaponSystem, weaponBase, srdWeaponSystem, weaponActivity, docId } from './pm-attacks.js';
 
 export const FORMAT = 'pm5e-foundry';
 export const FLAG = 'pm5e';
@@ -98,6 +99,13 @@ export function equipmentItem(it, ref, opts) {
   const system = { description: { value: desc }, source, quantity: 1 };
   if (RARITY[it.Rarity]) system.rarity = RARITY[it.Rarity];
   if (it.ItemType === 'Mod') system.type = { value: 'trinket' };
+  if (type === 'weapon') {
+    // базовое оружие SRD (урон, свойства) — если вид назван в описании; атака по характеристике и мастерству владельца
+    const w = weaponBase(it.Desc);
+    if (w) Object.assign(system, srdWeaponSystem(w));
+    const act = weaponActivity(`${ref.cat}/${ref.key}`, w ? w.type.endsWith('R') : false);
+    system.activities = { [act._id]: act };
+  }
   return { name: str(it.Name) || '—', type, system, flags: flags(c, ref, { ego: !!it.IsEGO, level: it.Level ?? null }) };
 }
 
@@ -299,7 +307,23 @@ export function bestiaryActor(it, ref, opts) {
     const intro = s.intro ? str(it[s.intro]) : '';
     arr(it[s.k]).forEach((a) => {
       if (!a || !(a.name || a.desc)) return;
-      const d = feat(c, a.name, c.html(a.desc), { type: 'monster', activation: s.act });
+      // атака или спасбросок из текста → действие dnd5e с броском; статусы «при попадании» — эффектами для цели
+      const parsed = s.act ? parseAction(a.desc) : null;
+      let d;
+      if (parsed) {
+        const seed = `${ref.cat}/${ref.key}/${s.k}/${a.name}`;
+        const effects = statusEffectsData(parsed.statuses, seed, c.lang);
+        const act = activityFor(parsed, seed, s.act, effects.map((e) => e._id));
+        if (parsed.kind === 'attack') {
+          d = { name: str(a.name) || '—', type: 'weapon',
+            system: { ...npcWeaponSystem(parsed), description: { value: c.html(a.desc) }, source, activities: { [act._id]: act } } };
+        } else {
+          d = feat(c, a.name, c.html(a.desc), { type: 'monster', activation: s.act });
+          d.system.activities = { [act._id]: act };
+        }
+        d._id = docId(seed);
+        if (effects.length) d.effects = effects;
+      } else d = feat(c, a.name, c.html(a.desc), { type: 'monster', activation: s.act });
       d.sort = items.length * 100;
       items.push(d);
     });

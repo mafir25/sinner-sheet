@@ -44,7 +44,7 @@ export async function setStacks(actor, id, n, extra) {
     const keep = extra ?? { turns: flagOf(eff).turns, turnEnds: flagOf(eff).turnEnds };
     await eff.update(effectData(st, s, Object.fromEntries(Object.entries(keep).filter(([, v]) => v !== undefined))));
   } else {
-    await actor.createEmbeddedDocuments('ActiveEffect', [effectData(st, s, extra || {})]);
+    await actor.createEmbeddedDocuments('ActiveEffect', [effectData(st, s, extra || {})], { pm5eOwn: true });
     for (const [other, k] of Object.entries(st.onApply || {})) await addStacks(actor, other, k);   // Оглушение → 2 Оков
   }
   await syncCondition(actor, st, s);
@@ -138,12 +138,27 @@ function registerStatusEffects() {
     CONFIG.statusEffects.push({ id: `${ID}-${st.id}`, name: statusName(st, lang()), img: iconPath(st.icon) });
   }
 }
-/** Значок из меню токена создаёт голый эффект — превращаем его в статус с 1 стаком. */
-function onPreCreateEffect(effect) {
-  if (flagOf(effect)) return;
-  const sid = [...(effect.statuses || [])].find((s) => String(s).startsWith(`${ID}-`));
-  const st = sid && statusById(sid.slice(ID.length + 1));
-  if (st) effect.updateSource(effectData(st, 1));
+/**
+ * Перед созданием эффекта статуса на актёре:
+ *  - значок из меню токена создаёт голый эффект → делаем статус с 1 стаком;
+ *  - эффект «при попадании» из карточки броска (атака существа) → если статус уже есть, складываем стаки и отменяем создание,
+ *    иначе пересчитываем изменения под число стаков. Эффекты на предметах (сами атаки) не трогаем.
+ */
+function onPreCreateEffect(effect, data, options) {
+  const actor = effect.parent;
+  if (actor && actor.documentName && actor.documentName !== 'Actor') return;
+  const f = flagOf(effect);
+  if (!f) {
+    const sid = [...(effect.statuses || [])].find((s) => String(s).startsWith(`${ID}-`));
+    const st = sid && statusById(sid.slice(ID.length + 1));
+    if (st) effect.updateSource(effectData(st, 1));
+    return;
+  }
+  if (options?.pm5eOwn) return;                       // создаёт сам модуль (setStacks)
+  const st = statusById(f.id);
+  if (!st || !actor) return;
+  if (effectOf(actor, st.id)) { addStacks(actor, st.id, Number(f.stacks) || 1); return false; }
+  effect.updateSource({ ...effectData(st, clampStacks(st, f.stacks)), transfer: false });
 }
 
 let TRAY = null;

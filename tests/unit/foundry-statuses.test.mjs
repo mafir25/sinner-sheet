@@ -79,6 +79,21 @@ describe('модуль: статусы на имитации Foundry', () => {
     expect(eff.name).toBe('Потопление 1');
   });
 
+  it('эффект «при попадании» из карточки атаки: складывается с имеющимся статусом, новый — пересчитывается', async () => {
+    const a = W.actor('Цель');
+    await S.setStacks(a, 'sinking', 4);
+    const pre = W.hooks.preCreateActiveEffect[0];
+    const hit = { parent: a, statuses: new Set(['pm5e-sinking']), flags: { pm5e: { status: { id: 'sinking', stacks: 5 } } }, updateSource(d) { Object.assign(this, d); } };
+    expect(pre(hit, {}, {})).toBe(false);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(S.getStacks(a, 'sinking')).toBe(9);
+    const fresh = { parent: a, statuses: new Set(['pm5e-fragile']), flags: { pm5e: { status: { id: 'fragile', stacks: 2 } } }, updateSource(d) { Object.assign(this, d); } };
+    expect(pre(fresh, {}, {})).toBeUndefined();
+    expect(fresh).toMatchObject({ name: 'Хрупкость 2', transfer: false, changes: [{ key: 'system.attributes.ac.bonus', value: '-2' }] });
+    const onItem = { parent: { documentName: 'Item' }, flags: { pm5e: { status: { id: 'bleed', stacks: 3 } } }, updateSource() { throw new Error('не трогать'); } };
+    expect(pre(onItem, {}, {})).toBeUndefined();
+  });
+
   it('бой: начало раунда, конец и начало хода — урон, убыль, отчёт в чат; Яд включает «отравленный»', async () => {
     const a = W.actor('А', 10), b = W.actor('Б');
     await S.setStacks(a, 'burn', 9); await S.setStacks(a, 'sinking', 11);

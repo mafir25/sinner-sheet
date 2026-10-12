@@ -96,7 +96,7 @@ describe('документы Foundry', () => {
         expect(a.type).toBe('npc');
         expect(a.name).toBe(it.Name);
         expect(Object.keys(a.system.abilities)).toEqual(['str', 'dex', 'con', 'int', 'wis', 'cha']);
-        expect(a.items.every((i) => i.type === 'feat' && i.system.type.value === 'monster')).toBe(true);
+        expect(a.items.every((i) => (i.type === 'feat' && i.system.type.value === 'monster') || (i.type === 'weapon' && i.system.type.value === 'natural'))).toBe(true);
       }
     }
   });
@@ -114,7 +114,7 @@ describe('документы Foundry', () => {
     expect(a.system.skills).toEqual({ prc: { value: 1 } });
     expect(a.prototypeToken).toMatchObject({ width: 3, height: 3, disposition: -1 });
     const slap = a.items.find((i) => i.name === 'Плачущая оплеуха');
-    expect(slap.system.activation).toEqual({ type: 'action', cost: 1 });
+    expect(Object.values(slap.system.activities)[0].activation).toEqual({ type: 'action', value: 1 });
     expect(slap.system.description.value).toContain('<strong>Потопления</strong>');
   });
 });

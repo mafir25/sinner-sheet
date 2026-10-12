@@ -27,12 +27,12 @@ export async function importPackage(P, env, root = 'Mephistopheles Terminal') {
     if (old) {
       delete data.type;
       await old.update(data);
-      if (items) { await old.deleteEmbeddedDocuments('Item', old.items.map((i) => i.id)); await old.createEmbeddedDocuments('Item', items); }
+      if (items) { await old.deleteEmbeddedDocuments('Item', old.items.map((i) => i.id)); await old.createEmbeddedDocuments('Item', items, { keepId: true }); }
       if (pages) { await old.deleteEmbeddedDocuments('JournalEntryPage', old.pages.map((p) => p.id)); await old.createEmbeddedDocuments('JournalEntryPage', pages); }
       updated++;
     } else {
       const folder = await folderFor(type, _folder);
-      await cls.create({ ...data, ...(items ? { items } : {}), ...(pages ? { pages } : {}), folder: folder.id });
+      await cls.create({ ...data, ...(items ? { items } : {}), ...(pages ? { pages } : {}), folder: folder.id }, { keepEmbeddedIds: true });
       created++;
     }
   }
