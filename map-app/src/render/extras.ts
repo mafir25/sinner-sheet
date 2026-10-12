@@ -234,7 +234,7 @@ const hexRgb = (hex: string): [number, number, number] => {
 };
 
 /** Многоугольники видимости источников (для теней). */
-function lightShapes(f: Floor): { light: Floor['lights'][number]; poly: Pt[] | null }[] {
+function lightShapes(f: Floor): Shape[] {
   const segs = f.lights.some((l) => l.shadows) ? blockingSegments(f) : [];
   return f.lights.map((light) => ({ light, poly: light.shadows ? visibility(light, light.radius, segs) : null }));
 }
@@ -248,17 +248,47 @@ function shapePath(ctx: CanvasRenderingContext2D, l: Floor['lights'][number], po
   } else ctx.arc(l.x, l.y, l.radius, 0, Math.PI * 2);
 }
 
+type Shape = { light: Floor['lights'][number]; poly: Pt[] | null };
+
+/**
+ * Рисует свет источников: «dark» — вырезает темноту (destination-out поверх уже залитой темноты), «glow» — цветное
+ * свечение (lighter). ctx — в координатах клеток.
+ */
+function paintLights(ctx: CanvasRenderingContext2D, shapes: Shape[], mode: 'dark' | 'glow') {
+  ctx.save();
+  ctx.globalCompositeOperation = mode === 'dark' ? 'destination-out' : 'lighter';
+  for (const { light, poly } of shapes) {
+    ctx.save();
+    shapePath(ctx, light, poly);
+    ctx.clip();
+    const gr = ctx.createRadialGradient(light.x, light.y, 0, light.x, light.y, light.radius);
+    if (mode === 'dark') {
+      gr.addColorStop(0, `rgba(0,0,0,${light.intensity})`);
+      gr.addColorStop(0.55, `rgba(0,0,0,${light.intensity * 0.75})`);
+      gr.addColorStop(1, 'rgba(0,0,0,0)');
+    } else {
+      const [lr, lg, lb] = hexRgb(light.color);
+      gr.addColorStop(0, `rgba(${lr},${lg},${lb},${0.32 * light.intensity})`);
+      gr.addColorStop(1, `rgba(${lr},${lg},${lb},0)`);
+    }
+    ctx.fillStyle = gr;
+    ctx.fillRect(light.x - light.radius, light.y - light.radius, light.radius * 2, light.radius * 2);
+    ctx.restore();
+  }
+  ctx.restore();
+}
+
 /**
  * Свет на гранях объёмных стен. Свет считается по плану, а грань «вниз/вверх» нарисована со сдвигом: внутренняя
  * грань северной стены лежит на экране за пределами комнаты, наружная грань южной — на её полу. Поэтому грань
  * перекрашивается светом у основания стены с той стороны, куда она смотрит (полоска вдоль основания растягивается
- * на всю высоту грани). Порядок и обрезка — как при отрисовке граней (ближние поверх дальних).
+ * на всю высоту грани). Полоска считается заново и только от источников перед гранью: лампа за стеной не светит
+ * на её обратную сторону — ни сквозь окно, ни без теней. Порядок и обрезка — как при отрисовке граней.
+ * dark — цвет темноты (rgba) для «dark»; для «glow» — null.
  */
-function lightFaces(c: HTMLCanvasElement, f: Floor, res: number) {
+function lightFaces(c: HTMLCanvasElement, f: Floor, res: number, shapes: Shape[], dark: string | null) {
   const items = faceItems(f).filter((it) => it.face.lift.x || it.face.lift.y);
   if (!items.length) return;
-  const snap = canvas(c.width, c.height);
-  snap.getContext('2d')!.drawImage(c, 0, 0);
   const l = c.getContext('2d')!;
   const EPS = 0.06;
   for (const { face } of items) {
@@ -268,11 +298,20 @@ function lightFaces(c: HTMLCanvasElement, f: Floor, res: number) {
     const u = { x: (base1.x - base0.x) / L, y: (base1.y - base0.y) / L };
     let n = { x: -u.y, y: u.x };
     if (n.x * v.x + n.y * v.y < 0) n = { x: -n.x, y: -n.y }; // сторона, куда смотрит грань
+    // источники перед гранью, чей круг достаёт до её основания
+    const front = shapes.filter(({ light }) => {
+      const dx = light.x - base0.x, dy = light.y - base0.y;
+      if (dx * n.x + dy * n.y <= 1e-6) return false;
+      const t = Math.max(0, Math.min(L, dx * u.x + dy * u.y));
+      return Math.hypot(light.x - base0.x - u.x * t, light.y - base0.y - u.y * t) < light.radius;
+    });
     const s0 = { x: base0.x + n.x * EPS, y: base0.y + n.y * EPS };
     const sw = Math.max(1, Math.ceil(L * res));
     const strip = canvas(sw, 1), sc = strip.getContext('2d')!;
-    sc.setTransform(u.x, n.x, u.y, n.y, -res * (u.x * s0.x + u.y * s0.y), -res * (n.x * s0.x + n.y * s0.y));
-    sc.drawImage(snap, 0, 0);
+    // план → полоска: x — вдоль основания, y — от основания в сторону грани
+    sc.setTransform(u.x * res, n.x * res, u.y * res, n.y * res, -res * (u.x * s0.x + u.y * s0.y), -res * (n.x * s0.x + n.y * s0.y));
+    if (dark) { sc.fillStyle = dark; sc.fillRect(-1e4, -1e4, 2e4, 2e4); }
+    paintLights(sc, front, dark ? 'dark' : 'glow');
     l.save();
     l.setTransform(res, 0, 0, res, 0, 0);
     clipFace(l, face);
@@ -280,6 +319,7 @@ function lightFaces(c: HTMLCanvasElement, f: Floor, res: number) {
     face.pts.forEach((q, i) => (i ? l.lineTo(q.x, q.y) : l.moveTo(q.x, q.y)));
     l.closePath();
     l.clip();
+    // на месте грани — свет её основания (свечение плана здесь — это пол перед стеной, а не сама стена)
     l.clearRect(0, 0, c.width / res, c.height / res);
     l.setTransform(u.x * (L * res / sw), u.y * (L * res / sw), -v.x * res, -v.y * res, base0.x * res, base0.y * res);
     l.drawImage(strip, 0, 0);
@@ -297,44 +337,19 @@ export function drawLighting(ctx: CanvasRenderingContext2D, f: Floor, lighting: 
     const l = c.getContext('2d')!;
     l.setTransform(res, 0, 0, res, 0, 0);
     const [r, g, b] = hexRgb(lighting.color);
-    l.fillStyle = `rgba(${r},${g},${b},${lighting.darkness})`;
+    const dark = `rgba(${r},${g},${b},${lighting.darkness})`;
+    l.fillStyle = dark;
     l.fillRect(0, 0, w, h);
-    l.globalCompositeOperation = 'destination-out';
-    for (const { light, poly } of shapes) {
-      l.save();
-      shapePath(l, light, poly);
-      l.clip();
-      const gr = l.createRadialGradient(light.x, light.y, 0, light.x, light.y, light.radius);
-      gr.addColorStop(0, `rgba(0,0,0,${light.intensity})`);
-      gr.addColorStop(0.55, `rgba(0,0,0,${light.intensity * 0.75})`);
-      gr.addColorStop(1, 'rgba(0,0,0,0)');
-      l.fillStyle = gr;
-      l.fillRect(light.x - light.radius, light.y - light.radius, light.radius * 2, light.radius * 2);
-      l.restore();
-    }
-    l.globalCompositeOperation = 'source-over';
-    lightFaces(c, f, res);
+    paintLights(l, shapes, 'dark');
+    lightFaces(c, f, res, shapes, dark);
     // цветное свечение — отдельным холстом, чтобы и его перенести на грани
     let glow: HTMLCanvasElement | null = null;
     if (shapes.length) {
       glow = canvas(w * res, h * res);
       const gl = glow.getContext('2d')!;
       gl.setTransform(res, 0, 0, res, 0, 0);
-      gl.globalCompositeOperation = 'lighter';
-      for (const { light, poly } of shapes) {
-        const [lr, lg, lb] = hexRgb(light.color);
-        gl.save();
-        shapePath(gl, light, poly);
-        gl.clip();
-        const gr = gl.createRadialGradient(light.x, light.y, 0, light.x, light.y, light.radius);
-        gr.addColorStop(0, `rgba(${lr},${lg},${lb},${0.32 * light.intensity})`);
-        gr.addColorStop(1, `rgba(${lr},${lg},${lb},0)`);
-        gl.fillStyle = gr;
-        gl.fillRect(light.x - light.radius, light.y - light.radius, light.radius * 2, light.radius * 2);
-        gl.restore();
-      }
-      gl.globalCompositeOperation = 'source-over';
-      lightFaces(glow, f, res);
+      paintLights(gl, shapes, 'glow');
+      lightFaces(glow, f, res, shapes, null);
     }
     lc = { key, canvas: c, glow };
     if (useCache) lightCache.set(f, lc);
