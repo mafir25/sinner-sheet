@@ -1,3 +1,96 @@
 {
-  "kind": "wall"
+  "kind": "wall",
+  "files": {
+    "exterior.png": {
+      "name": {
+        "ru": "Тёмная панель с неоном",
+        "en": "Dark neon panel"
+      },
+      "group": "exterior"
+    },
+    "interior.png": {
+      "name": {
+        "ru": "Светлая панель",
+        "en": "Light panel"
+      },
+      "group": "interior"
+    },
+    "glass.png": {
+      "name": {
+        "ru": "Стеклянная стена",
+        "en": "Curtain glass"
+      },
+      "group": "glass"
+    },
+    "exterior-k.png": {
+      "name": {
+        "ru": "Тёмная панель с неоном: знак K",
+        "en": "Dark neon panel: K mark"
+      },
+      "group": "exterior"
+    },
+    "exterior-led.png": {
+      "name": {
+        "ru": "Тёмная панель с неоном: светодиод",
+        "en": "Dark neon panel: LED strip"
+      },
+      "group": "exterior"
+    },
+    "exterior-panel.png": {
+      "name": {
+        "ru": "Тёмная панель с неоном: щиток",
+        "en": "Dark neon panel: panel"
+      },
+      "group": "exterior"
+    },
+    "exterior-vent.png": {
+      "name": {
+        "ru": "Тёмная панель с неоном: вентиляция",
+        "en": "Dark neon panel: vent"
+      },
+      "group": "exterior"
+    },
+    "glass-band.png": {
+      "name": {
+        "ru": "Стеклянная стена: полоса",
+        "en": "Curtain glass: band"
+      },
+      "group": "glass"
+    },
+    "glass-frosted.png": {
+      "name": {
+        "ru": "Стеклянная стена: матовая вставка",
+        "en": "Curtain glass: frosted"
+      },
+      "group": "glass"
+    },
+    "interior-led.png": {
+      "name": {
+        "ru": "Светлая панель: светодиод",
+        "en": "Light panel: LED strip"
+      },
+      "group": "interior"
+    },
+    "interior-panel.png": {
+      "name": {
+        "ru": "Светлая панель: щиток",
+        "en": "Light panel: panel"
+      },
+      "group": "interior"
+    },
+    "interior-plate.png": {
+      "name": {
+        "ru": "Светлая панель: табличка",
+        "en": "Light panel: plate"
+      },
+      "group": "interior"
+    },
+    "interior-vent.png": {
+      "name": {
+        "ru": "Светлая панель: вентиляция",
+        "en": "Light panel: vent"
+      },
+      "group": "interior"
+    }
+  }
 }

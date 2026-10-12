@@ -1,3 +1,23 @@
 {
-  "kind": "door"
+  "kind": "door",
+  "files": {
+    "door.png": {
+      "name": {
+        "ru": "Дверь (тёмная стена)",
+        "en": "Door (dark wall)"
+      }
+    },
+    "door-light.png": {
+      "name": {
+        "ru": "Дверь (светлая стена)",
+        "en": "Door (light wall)"
+      }
+    },
+    "gate.png": {
+      "name": {
+        "ru": "Лифт / шлюз",
+        "en": "Lift / airlock"
+      }
+    }
+  }
 }

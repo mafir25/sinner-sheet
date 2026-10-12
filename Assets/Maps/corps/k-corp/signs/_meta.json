@@ -1,4 +1,25 @@
 {
   "scalable": true,
-  "layer": "above"
+  "layer": "above",
+  "files": {
+    "sign.svg": {
+      "name": {
+        "ru": "Вывеска",
+        "en": "Sign"
+      }
+    },
+    "emblem.svg": {
+      "name": {
+        "ru": "Эмблема",
+        "en": "Emblem"
+      }
+    },
+    "floor-logo.svg": {
+      "name": {
+        "ru": "Логотип на полу",
+        "en": "Floor logo"
+      },
+      "layer": "below"
+    }
+  }
 }

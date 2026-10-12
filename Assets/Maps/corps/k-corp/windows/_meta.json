@@ -1,3 +1,17 @@
 {
-  "kind": "window"
+  "kind": "window",
+  "files": {
+    "window.png": {
+      "name": {
+        "ru": "Окно",
+        "en": "Window"
+      }
+    },
+    "window-wide.png": {
+      "name": {
+        "ru": "Панорамное окно",
+        "en": "Panoramic window"
+      }
+    }
+  }
 }
