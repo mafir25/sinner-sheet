@@ -8,7 +8,7 @@
 > Style: Limbus Company / Project Moon background art, K Corp headquarters. Painted anime background, clean
 > sci-fi corporate interior. Palette: near-black green (#070d0b, #13201b), dark slate-green panels (#1d2b26),
 > pale mint-grey polished stone (#cdd9d3, #eef4f0), glowing lime neon accents (#8dff3c) and teal neon (#2fe39a).
-> Matte, calm surfaces — no haze, no light streaks, no lens glare. Sharp clean edges, no text, no people.
+> Calm surfaces — no haze, no light streaks, no lens glare. Neon only as continuous lines. Sharp clean edges, no text, no people.
 > Keep the exact canvas size and composition of the attached placeholder.
 
 ## Полы (вид строго сверху, бесшовные 256×256)
@@ -16,38 +16,44 @@
   (2×2 per tile), thin dark seams, faint glossy reflections. Must tile seamlessly on all edges.*
 - `floors/work.png` — *Seamless top-down texture of dark glossy slate-green floor tiles, 4×4 grid, black seams,
   subtle sheen.*
-- `floors/service.png` — *Seamless top-down texture of dark perforated metal floor plates, 2×2 grid, with a lime
-  diagonal hazard stripe across the middle.*
+- `floors/service.png` — *Seamless top-down texture of dark perforated metal floor plates, 2×2 grid, with a thin lime
+  neon line along the outer tile edges (forms a continuous grid when tiled).*
 - `floors/runner.png` — *Seamless top-down texture of a deep emerald-green glossy floor runner, smooth with soft
   vertical reflections.*
 
+## Правило тайлинга (стены, полы, кровля)
+- **Можно:** сплошные линии во всю длину (неоновый карниз, кант, плинтус), панели и сетка с равным шагом.
+- **Нельзя:** одиночные элементы на тайле (полоска, лампа, решётка, логотип, пятно) — при повторе они встают
+  через равные промежутки, выглядят обрывами и сдвигают визуальный центр. Такое — отдельными объектами.
+
 ## Стены (лицевая сторона, 256×256; повтор ТОЛЬКО по горизонтали, картинка целиком = высота грани)
-Без ярких элементов: никакого неона и бликов на стенах — только панели, швы, плинтус.
-- `walls/exterior.png` — *Front view of a matte dark slate-green wall made of tall panels (seam every 128 px),
-  slightly lighter at the top, darker at the bottom, plain black plinth along the bottom edge. No neon, no glow,
-  no highlights. Left and right edges must tile seamlessly.*
-- `walls/interior.png` — *Front view of a matte light mint-grey corporate wall, tall panels (seam every 128 px),
-  dark slate plinth along the bottom edge. No neon, no glow. Tiles horizontally.*
-- `walls/glass.png` — *Front view of a glass curtain wall: thin dark frame top and sides, dark base strip, pale
-  blue-grey semi-transparent glass with very faint reflection. Keep transparency (PNG alpha).*
+Можно: сплошные горизонтальные линии (неон, карниз, плинтус), панели, сетка. Нельзя: одиночные элементы
+(вертикальная неоновая полоса, лампа, табличка) — при повторе они встанут через каждую клетку.
+- `walls/exterior.png` — *Front view of a dark slate-green wall made of tall panels (seam every 128 px), black
+  cornice band at the top with one continuous glowing lime neon line right under it, black plinth at the bottom.
+  No isolated details: everything must be continuous horizontally. Left and right edges must tile seamlessly.*
+- `walls/interior.png` — *Front view of a light mint-grey corporate wall, tall panels (seam every 128 px), one
+  continuous thin teal neon line above a dark slate plinth. No isolated details. Tiles horizontally.*
+- `walls/glass.png` — *Front view of a glass curtain wall: dark frame top and sides with a thin teal line on the
+  mullion, dark base strip with a continuous teal trim, pale blue-grey semi-transparent glass. Keep PNG alpha.*
 
 ## Двери и окна (вид спереди)
 Картинка целиком растягивается **в вырез** проёма; перемычку и подоконник вокруг рисует сама стена.
-Поэтому: никаких полос стены сверху/снизу, рамка — тонкая по краю, цвета створок — как у стены
+Поэтому никаких полос стены сверху/снизу: рамка — по краю картинки, цвета створок — как у стены
 (`door` — под `exterior`, `door-light` — под `interior`).
 - `doors/door.png` / `doors/door-light.png` 256×256 — *Front view of a closed sliding double door filling the
-  whole canvas: thin dark frame on the edges, two matte leaves in the same color as the wall (dark slate-green /
-  light mint-grey), small vertical handles at the center seam, tiny dim green card-reader light on the right.
-  No neon frame, no glow, nothing above the door.*
-- `doors/gate.png` 512×256 — *Front view of a wide closed elevator door filling the canvas: thin dark frame,
-  two frosted-glass leaves with soft pale-green light from inside. No glow, nothing above the door.*
+  whole canvas: thin dark frame with a glowing lime neon line along the top and both sides, two leaves in the same
+  color as the wall (dark slate-green / light mint-grey), small handles at the center seam, small lime card-reader
+  light on the right. Nothing above the door.*
+- `doors/gate.png` 512×256 — *Front view of a wide closed elevator door filling the canvas: lime neon frame on the
+  top and sides, two frosted-glass leaves with soft pale-green light from inside. Nothing above the door.*
 - `windows/window.png` 256×256, `windows/window-wide.png` 512×256 — *Front view of a window filling the whole
-  canvas: thin dark frame on all edges, mullion every 128 px, pale hazy sky-blue glass, very faint reflection.
-  Keep glass semi-transparent.*
+  canvas: thin dark frame, mullion every 128 px, continuous teal neon line along the sill, pale hazy sky-blue
+  glass with a very faint reflection. Keep glass semi-transparent.*
 
 ## Кровля (вид сверху, бесшовная 256×256)
-- `roofs/roof.png` — *Seamless top-down texture of a dark corporate rooftop: slate-green panels, vent grilles,
-  small lime status lights.*
+- `roofs/roof.png` — *Seamless top-down texture of a dark corporate rooftop: slate-green panels in a 2×2 grid, subtle wear. No vents,
+  lights or other isolated details (those are separate objects).*
 
 ## Вывески (`signs/`, SVG — можно оставить как есть или заменить PNG тех же размеров)
 - `sign` 512×256, `emblem` 256×256, `floor-logo` 768×768 — логотип K: тёмная вертикальная стойка в белом
