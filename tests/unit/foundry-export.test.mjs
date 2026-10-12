@@ -214,6 +214,7 @@ describe('персонаж конструктора ↔ актёр', () => {
     egos: [{ name: 'Гарпун', meta: 'Атака Э.Г.О. | ZAYIN', text: 'урон' }],
     texts: [{ name: 'Своё', desc: 'с' }],
     choices: [{ label: 'Аномальная способность', value: 'Сила +1' }, { label: 'Пусто', value: '' }],
+    prof: { saves: ['str', 'con'], skills: { ath: 1, prc: 2, bogus: 1 } },
     warnings: ['Нерешённые выборы: 1'],
     preset,
   };
@@ -221,7 +222,9 @@ describe('персонаж конструктора ↔ актёр', () => {
 
   it('актёр character: характеристики, хиты, скорость, ресурсы Свет и Рассудок', () => {
     expect(a.type).toBe('character');
-    expect(a.system.abilities).toMatchObject({ str: { value: 16 }, cha: { value: 8 } });
+    expect(a.system.abilities).toMatchObject({ str: { value: 16, proficient: 1 }, con: { proficient: 1 }, cha: { value: 8 } });
+    expect(a.system.abilities.dex.proficient).toBeUndefined();
+    expect(a.system.skills).toEqual({ ath: { value: 1 }, prc: { value: 2 } });
     expect(a.system.attributes.hp).toEqual({ value: 44, max: 44 });
     expect(a.system.attributes.movement.walk).toBe(30);
     expect(a.system.resources.primary).toMatchObject({ label: 'Свет', value: 9, max: 9 });
@@ -264,13 +267,14 @@ describe('персонаж конструктора ↔ актёр', () => {
   it('обратно: чужой актёр — имя, уровень, характеристики, черты', () => {
     const back = presetFromActor({
       name: 'Чужой', type: 'character',
-      system: { abilities: { str: { value: 18 }, dex: { value: 12 } }, details: { biography: { value: '<p>Био &amp; всё</p>' } } },
+      system: { abilities: { str: { value: 18, proficient: 1 }, dex: { value: 12 } }, skills: { ath: { value: 1 }, ste: { value: 2 }, arc: { value: 0 } }, details: { biography: { value: '<p>Био &amp; всё</p>' } } },
       items: [{ type: 'class', name: 'Воин', system: { levels: 3 } }, { type: 'class', name: 'Плут', system: { levels: 2 } },
         { type: 'subclass', name: 'Мастер боевых искусств' }, { type: 'feat', name: 'Атлет', system: { type: { value: 'feat' } } },
         { type: 'feat', name: 'Второе дыхание', system: { type: { value: 'class' } } }, { type: 'weapon', name: 'Меч' }],
     });
     expect(back).toMatchObject({ characterName: 'Чужой', level: 5, className: 'Мастер боевых искусств', desc: 'Био & всё', feats: ['Атлет'], fromFoundry: true });
     expect(back.stats).toEqual({ Str: 18, Dex: 12, Con: 10, Int: 10, Wis: 10, Cha: 10 });
+    expect(back.prof).toEqual({ saves: ['str'], skills: { ath: 1, ste: 2 } });
   });
   it('не персонаж — null', () => {
     expect(presetFromActor({ type: 'npc', name: 'x' })).toBeNull();

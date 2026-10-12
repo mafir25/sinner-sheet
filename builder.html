@@ -238,6 +238,11 @@
         .cp-opt:hover { border-color: var(--color-yellow); }
         .cp-opt.on { background: var(--color-yellow); border-color: var(--color-yellow); color: #000; }
         .cp-opt.dis { opacity: 0.4; cursor: not-allowed; }
+        .prof-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+        .prof-grid .cp-opt.cls { border-color: #27AE60; }
+        .prof-grid .cp-opt.exp { background: #D94285; border-color: #D94285; color: #fff; }
+        .prof-grid .cp-opt b { font-weight: 600; margin-left: 4px; }
+        .prof-hint { color: var(--text-dim); font-size: 0.8rem; margin-bottom: 6px; }
         .cp-hint { font-size: 0.72rem; color: var(--text-dim); }
         .tip { position: fixed; z-index: 4000; background: #111; border: 1px solid #444; color: var(--text-main); font-size: 0.75rem; padding: 6px 8px; white-space: pre-line; pointer-events: none; line-height: 1.4; }
 
@@ -389,6 +394,15 @@
                 <div class="panel-inner cut-tl">
                     <div class="panel-title"><i class="fa-solid fa-dice-d20"></i> ХАРАКТЕРИСТИКИ И БРОСКИ <small>наведите на итог, чтобы увидеть источники прибавок</small></div>
                     <div id="stats-panel"></div>
+                </div>
+            </div>
+
+            <!-- ВЛАДЕНИЯ (site/proficiencies.js) -->
+            <div class="panel-outer cut-tl" style="--pc: #27AE60; --pc-muted: #14532d;">
+                <div class="hazard-tape"></div>
+                <div class="panel-inner cut-tl">
+                    <div class="panel-title"><i class="fa-solid fa-user-check"></i> ВЛАДЕНИЯ <small>спасброски и навыки; щелчок по навыку: владение → компетентность → нет</small></div>
+                    <div id="prof-panel"></div>
                 </div>
             </div>
 

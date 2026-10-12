@@ -11,6 +11,7 @@
    3. Интерфейс рисуется из результата compute(). Все данные выводятся через esc() или DOMPurify. */
 
 import { characterPackage, foundryMacro, importDataJson, presetFromActor } from './foundry-export.js';
+import { ABILITIES, SKILL_LIST, parseClassProfs, profTalent, checkProfs, skillBonus } from './proficiencies.js';
 
 const T = (s) => (window.I18N ? window.I18N.t(s) : s);
 const STATS = ['Str', 'Dex', 'Con', 'Int', 'Wis', 'Cha'];
@@ -327,6 +328,7 @@ function blankState() {
     hp: { mode: 'avg', rolls: {} }, sp: { mode: 'avg', rolls: {} },
     opts: { durability: false, sanity: true },
     slots: {}, choices: {}, extras: [], log: [], levels: [],
+    prof: { saves: [], skills: {} },
   };
 }
 let S = blankState();
@@ -911,6 +913,7 @@ function renderAll() {
   R = compute();
   renderBasics();
   renderStats();
+  renderProfs();
   renderSlots();
   renderExtras();
   renderDossier();
@@ -1012,6 +1015,46 @@ function renderStats() {
     `<div class="res-grid">${resBlock('hp', T('Хиты (HP)'), R.hp, R.hpFormula, S.hp.mode === 'roll' ? R.hpMissing : null)}` +
     (S.opts.sanity ? resBlock('sp', T('Рассудок (SP)'), R.sp, `1d${R.spDie} · ${T('МУД')} ${sign(R.mods.Wis)}`, S.sp.mode === 'roll' ? R.spMissing : null) : '') + '</div>' +
     (S.log.length ? `<details class="roll-log"><summary>${T('Журнал бросков')} (${S.log.length})</summary>${S.log.map((l) => `<div>${esc(l)}</div>`).join('')}</details>` : '');
+}
+
+/* ---------- владения спасбросками и навыками (site/proficiencies.js) ---------- */
+const profName = (x) => (window.I18N?.lang === 'en' ? x.en : x.ru);
+function profRules() {
+  const t = profTalent(R.baseData.Talents);
+  return t ? parseClassProfs(t.desc) : { saveGroups: [], skillCount: 0, skillOptions: [] };
+}
+function profIssues() {
+  const rules = profRules();
+  return checkProfs(S.prof, rules).map((p) => {
+    if (p.kind === 'saves') return `${T('Спасброски')}: ${T('выберите один из')} ${rules.saveGroups[p.group].map((k) => profName(ABILITIES.find((a) => a.key === k))).join(' / ')}`;
+    if (p.kind === 'saves-extra') return `${T('Спасброски не по классу')}: ${p.keys.map((k) => profName(ABILITIES.find((a) => a.key === k))).join(', ')}`;
+    return `${T('Навыки класса')}: ${p.n}/${p.need}`;
+  });
+}
+function renderProfs() {
+  if (!S.prof) S.prof = { saves: [], skills: {} };
+  const rules = profRules();
+  const inGroup = (k) => rules.saveGroups.some((g) => g.includes(k));
+  const saves = ABILITIES.map((a) => {
+    const on = S.prof.saves.includes(a.key);
+    return `<button class="cp-opt ${on ? 'on' : ''} ${inGroup(a.key) ? 'cls' : ''}" data-save="${a.key}">${esc(profName(a))}<b>${sign(skillBonus(R.mods[a.stat], R.pb, on ? 1 : 0))}</b></button>`;
+  }).join('');
+  const skills = SKILL_LIST.map((x) => {
+    const lv = S.prof.skills[x.key] || 0;
+    return `<button class="cp-opt ${lv === 1 ? 'on' : lv === 2 ? 'exp' : ''} ${rules.skillOptions.includes(x.key) ? 'cls' : ''}" data-skill="${x.key}"
+      data-tip="${esc(T(lv === 2 ? 'Компетентность' : lv === 1 ? 'Владение' : 'Нет владения'))}">${esc(profName(x))}<b>${sign(skillBonus(R.mods[x.stat], R.pb, lv))}</b></button>`;
+  }).join('');
+  const groups = rules.saveGroups.map((g) => g.map((k) => profName(ABILITIES.find((a) => a.key === k))).join(' / ')).join('; ');
+  const fromClass = Object.keys(S.prof.skills).filter((k) => rules.skillOptions.includes(k)).length;
+  const issues = profIssues();
+  $('prof-panel').innerHTML = `
+    <div class="mini-label">${esc(T('Спасброски'))}</div>
+    ${groups ? `<div class="prof-hint">${esc(T('По классу — по одному из групп:'))} ${esc(groups)}</div>` : ''}
+    <div class="prof-grid">${saves}</div>
+    <div class="mini-label">${esc(T('Навыки'))}</div>
+    ${rules.skillCount ? `<div class="prof-hint">${esc(T('От класса'))}: ${fromClass}/${rules.skillCount} ${esc(T('из отмеченных зелёной рамкой; остальные — от черт и предыстории'))}</div>` : ''}
+    <div class="prof-grid">${skills}</div>
+    ${issues.length ? `<div class="prof-hint" style="color:var(--color-yellow)">⚠ ${issues.map(esc).join(' · ')}</div>` : ''}`;
 }
 
 function pointsLeft() {
@@ -1202,6 +1245,7 @@ function dossierWarnings() {
   S.extras.forEach((x) => warns.push(`${T('Вне слотов')} — ${entryName(xe(x).entry)}: ${(xe(x).why || []).join('; ')}`));
   [R.arch, ...R.slots.map((s) => s.entry)].filter(isCustom).forEach((e) => warns.push(`${entryName(e)}: ${T('пользовательский объект — на усмотрение ДМ-а')}`));
   if (S.stats.method === 'pointbuy' && pointsLeft() < 0) warns.push(T('Покупка очков: превышен бюджет'));
+  profIssues().forEach((w) => warns.push(w));
   return warns;
 }
 
@@ -1229,6 +1273,9 @@ function renderDossier() {
     R.L >= 2 ? `${T('Свет')}: <b>${R.lightPool}</b>` : '', `${T('Кость хитов')}: <b>${S.opts.durability ? 2 : 1}d${R.die}</b>`,
   ].filter(Boolean).join(' · ')}</div>`;
 
+  const sv = ABILITIES.filter((a) => S.prof.saves.includes(a.key)).map((a) => `${profName(a)} ${sign(skillBonus(R.mods[a.stat], R.pb, 1))}`);
+  const sk = SKILL_LIST.filter((x) => S.prof.skills[x.key]).map((x) => `${profName(x)}${S.prof.skills[x.key] === 2 ? ' ★' : ''} ${sign(skillBonus(R.mods[x.stat], R.pb, S.prof.skills[x.key]))}`);
+  if (sv.length || sk.length) h += `<div class="sheet-line">${[sv.length ? `${T('Спасброски')}: <b>${esc(sv.join(', '))}</b>` : '', sk.length ? `${T('Навыки')}: <b>${esc(sk.join(', '))}</b>` : ''].filter(Boolean).join(' · ')}</div>`;
   const warns = dossierWarnings();
   if (warns.length) h += `<div class="dm-warn"><div class="dm-warn-t"><i class="fa-solid fa-triangle-exclamation"></i> ${esc(T('Требует внимания / на усмотрение ДМ-а'))}</div>${warns.map((w) => `<div>• ${esc(w)}</div>`).join('')}</div>`;
 
@@ -1734,6 +1781,7 @@ function importPreset(p) {
       if (f) S.extras.push({ id: uid(), ref: makeRef(f) });
     });
     if (p.level) S.level = Math.max(1, Math.min(20, parseInt(p.level, 10) || 1));
+    if (p.prof) S.prof = { saves: [...(p.prof.saves || [])], skills: { ...(p.prof.skills || {}) } };
     if (p.stats && STATS.every((k) => Number.isFinite(Number(p.stats[k])))) {
       S.stats = { method: 'manual', base: Object.fromEntries(STATS.map((k) => [k, Number(p.stats[k])])), pool: [], assign: {} };
     }
@@ -1778,6 +1826,7 @@ function foundryCharacter() {
       name: entryName(e), meta: window.EgoCore.metaLine(e.ego), text: window.EgoCore.summaryText(e.ego) })),
     texts: byT('text').map((e) => ({ name: e.data.Name, desc: e.data.desc })),
     choices: R.choices.map((c) => ({ label: c.label || '', value: choiceValueLabel(c) })),
+    prof: { saves: [...S.prof.saves], skills: { ...S.prof.skills } },
     warnings: dossierWarnings(),
     preset: buildPreset(),
   };
@@ -1790,16 +1839,16 @@ function openFoundry() {
     origin: location.origin, lang, toHtml: (v) => window.DOMPurify.sanitize(window.marked.parse(String(v ?? ''))) });
   FOUNDRY = { pkg, macro: foundryMacro(pkg, lang), actor: pkg.actors[0] };
   const t = en ? {
-    lead: `The character goes to Foundry (<b>dnd5e</b>) as a “Character” actor: abilities, HP, speed, level, class, race and archetype features, feats, gear, gifts and E.G.O.; Light and Sanity as resources.`,
+    lead: `The character goes to Foundry (<b>dnd5e</b>) as a “Character” actor: abilities, proficiencies, HP, speed, level, class, race and archetype features, feats, gear, gifts and E.G.O.; Light and Sanity as resources.`,
     macro: `<b>Macro</b>: Foundry → new macro, type “Script” → paste → “Execute” (as GM). The actor lands in “Mephistopheles Terminal / Characters”; exporting again updates it.`,
     json: `<b>JSON</b>: create a “Character” actor, right-click it → “Import Data”.`,
-    back: `Proficiencies (saves, skills) are not tracked here — mark them on the sheet. To bring the character back: Foundry → right-click the actor → “Export Data” → “From Foundry” here.`,
+    back: `Saving throw and skill proficiencies go along. To bring the character back: Foundry → right-click the actor → “Export Data” → “From Foundry” here.`,
     copy: 'Copy macro', file: 'Macro as file', dl: 'JSON for Import Data',
   } : {
-    lead: `Персонаж уйдёт в Foundry (<b>dnd5e</b>) актёром «Персонаж»: характеристики, хиты, скорость, уровень, умения класса, расы и архетипа, черты, снаряжение, дары и Э.Г.О.; Свет и Рассудок — ресурсами.`,
+    lead: `Персонаж уйдёт в Foundry (<b>dnd5e</b>) актёром «Персонаж»: характеристики, владения, хиты, скорость, уровень, умения класса, расы и архетипа, черты, снаряжение, дары и Э.Г.О.; Свет и Рассудок — ресурсами.`,
     macro: `<b>Макрос</b>: Foundry → новый макрос типа «Скрипт» → вставить → «Выполнить» (мастер). Актёр ляжет в «Mephistopheles Terminal / Персонажи»; повторный экспорт обновит его.`,
     json: `<b>JSON</b>: создайте актёра типа «Персонаж», правый щелчок → «Import Data».`,
-    back: `Владения (спасброски, навыки) конструктор не хранит — отметьте их на листе. Вернуть персонажа: Foundry → правый щелчок по актёру → «Export Data» → здесь «Из Foundry».`,
+    back: `Владения спасбросками и навыками переносятся тоже. Вернуть персонажа: Foundry → правый щелчок по актёру → «Export Data» → здесь «Из Foundry».`,
     copy: 'Скопировать макрос', file: 'Макрос файлом', dl: 'JSON для Import Data',
   };
   const warns = dossierWarnings().length;
@@ -1911,6 +1960,19 @@ function bind() {
       S.stats.base[t.dataset.base] = Number(t.value);
       renderAll();
     }
+  });
+  $('prof-panel').addEventListener('click', (e) => {
+    const t = e.target.closest('button');
+    if (!t) return;
+    if (t.dataset.save) {
+      const k = t.dataset.save;
+      S.prof.saves = S.prof.saves.includes(k) ? S.prof.saves.filter((x) => x !== k) : [...S.prof.saves, k];
+    } else if (t.dataset.skill) {
+      const k = t.dataset.skill;
+      const next = ((S.prof.skills[k] || 0) + 1) % 3;
+      if (next) S.prof.skills[k] = next; else delete S.prof.skills[k];
+    } else return;
+    renderProfs(); renderDossier(); saveState();
   });
   $('stats-panel').addEventListener('click', (e) => {
     const t = e.target.closest('button');

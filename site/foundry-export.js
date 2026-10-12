@@ -337,6 +337,9 @@ export function characterActor(ch, opts) {
   const en = c.lang === 'en';
   const L = Math.max(1, Math.min(20, Number(ch.level) || 1));
   const abilities = Object.fromEntries(Object.entries(STAT_KEYS).map(([k, v]) => [v, { value: Number(ch.stats?.[k]) || 10 }]));
+  arr(ch.prof?.saves).forEach((k) => { if (abilities[k]) abilities[k].proficient = 1; });
+  const skills = Object.fromEntries(Object.entries(ch.prof?.skills || {})
+    .filter(([k, v]) => SKILL_ABILITY[k] && [1, 2].includes(Number(v))).map(([k, v]) => [k, { value: Number(v) }]));
   const items = [];
   const push = (d) => { d.sort = items.length * 100; items.push(d); return d; };
   const lvl = (n) => (n ? `, ${en ? 'level' : 'ур.'} ${n}` : '');
@@ -382,8 +385,6 @@ export function characterActor(ch, opts) {
     c.html(sum.map((x) => `**${x}**`).join('\n\n')),
     choices ? c.html(`**${en ? 'Choices' : 'Выборы'}**\n\n${choices}`) : '',
     warns ? c.html(`**${en ? 'For the GM to review' : 'На усмотрение ДМ-а'}**\n\n${warns}`) : '',
-    c.html(`*${en ? 'Saving throw and skill proficiencies are not tracked by the builder — mark them on the sheet.'
-      : 'Владения спасбросками и навыками конструктор не хранит — отметьте их на листе.'}*`),
   ].join('');
 
   const resources = {};
@@ -397,6 +398,7 @@ export function characterActor(ch, opts) {
       abilities,
       attributes: { hp: { value: ch.hp, max: ch.hp }, movement: { walk: Number(ch.speed) || 30, units: 'ft' } },
       details: { biography: { value: bio }, race: str(ch.race?.name) },
+      skills,
       resources,
     },
     items,
@@ -433,11 +435,16 @@ export function presetFromActor(a) {
   const level = cls.reduce((s, i) => s + (Number(i.system?.levels) || 0), 0) || Number(a.system?.details?.level) || 1;
   const stats = Object.fromEntries(Object.entries(STAT_KEYS).map(([k, v]) => [k, Number(a.system?.abilities?.[v]?.value) || 10]));
   const sub = items.find((i) => i.type === 'subclass');
+  const prof = {
+    saves: Object.values(STAT_KEYS).filter((k) => Number(a.system?.abilities?.[k]?.proficient) >= 1),
+    skills: Object.fromEntries(Object.entries(a.system?.skills || {})
+      .filter(([k, v]) => SKILL_ABILITY[k] && Number(v?.value) >= 1).map(([k, v]) => [k, Number(v.value) >= 2 ? 2 : 1])),
+  };
   return {
     format: 'sinner-sheet.character', version: 2, fromFoundry: true,
     characterName: str(a.name), desc: htmlText(a.system?.details?.biography?.value),
     className: str(sub?.name || cls[0]?.name), race: str(typeof a.system?.details?.race === 'string' ? a.system.details.race : ''),
-    level: Math.max(1, Math.min(20, level)), stats,
+    level: Math.max(1, Math.min(20, level)), stats, prof,
     feats: items.filter((i) => i.type === 'feat' && i.system?.type?.value !== 'class' && i.system?.type?.value !== 'race').map((i) => i.name),
   };
 }
