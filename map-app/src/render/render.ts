@@ -407,16 +407,8 @@ function fitTexture(t: FaceTex, p0: Pt, p1: Pt, v: Pt) {
   t.pat.setTransform(new DOMMatrix([u.x * k, u.y * k, v.x / t.h, v.y / t.h, o.x, o.y]));
 }
 
-/**
- * Затенение грани: светлее у верха, темнее у основания. Градиент идёт поперёк стены (часть v, перпендикулярная
- * ребру p0–p1), поэтому одинаковые полосы вдоль всей стены: у косой стены куски между дверями и окнами
- * не получают каждый свою яркость, а на углах соседние грани не расходятся пятнами.
- */
-function shadeFace(ctx: CanvasRenderingContext2D, p0: Pt, p1: Pt, v: Pt) {
-  const ex = p1.x - p0.x, ey = p1.y - p0.y, L2 = ex * ex + ey * ey;
-  const k = L2 > 1e-12 ? (v.x * ex + v.y * ey) / L2 : 0;
-  const w = { x: v.x - ex * k, y: v.y - ey * k };
-  const g = ctx.createLinearGradient(p0.x, p0.y, p0.x + w.x, p0.y + w.y);
+function shadeFace(ctx: CanvasRenderingContext2D, p0: Pt, v: Pt) {
+  const g = ctx.createLinearGradient(p0.x, p0.y, p0.x + v.x, p0.y + v.y);
   g.addColorStop(0, 'rgba(255,255,255,0.06)');
   g.addColorStop(1, 'rgba(0,0,0,0.45)');
   return g;
@@ -515,7 +507,7 @@ export function drawFaces(ctx: CanvasRenderingContext2D, f: Floor, assets: Asset
       }
       ctx.restore();
       ctx.beginPath(); quad(face.pts);
-      ctx.fillStyle = shadeFace(ctx, p0, p1, face.v); ctx.fill();
+      ctx.fillStyle = shadeFace(ctx, p0, face.v); ctx.fill();
       if (!portal) {
         ctx.beginPath(); ctx.moveTo(p3.x, p3.y); ctx.lineTo(p2.x, p2.y);
         ctx.lineWidth = edge; ctx.strokeStyle = 'rgba(0,0,0,0.7)'; ctx.stroke();
@@ -528,7 +520,7 @@ export function drawFaces(ctx: CanvasRenderingContext2D, f: Floor, assets: Asset
       const hole = openingShape(shape.top, shape.bottom, shape.arch).map(M);
       ctx.beginPath(); quad(face.pts); quad(hole);
       ctx.fillStyle = texture(face)?.pat ?? face.style.color; ctx.fill('evenodd');
-      ctx.fillStyle = shadeFace(ctx, p0, p1, face.v); ctx.fill('evenodd');
+      ctx.fillStyle = shadeFace(ctx, p0, face.v); ctx.fill('evenodd');
       if (src) {
         ctx.save();
         ctx.beginPath(); quad(hole); ctx.clip();
@@ -583,7 +575,7 @@ export function drawLevels(ctx: CanvasRenderingContext2D, f: Floor, assets: Asse
     ctx.fillStyle = t?.pat ?? face.level.color;
     ctx.fill();
     ctx.shadowColor = 'transparent';
-    ctx.fillStyle = shadeFace(ctx, p0, p1, face.v);
+    ctx.fillStyle = shadeFace(ctx, p0, face.v);
     ctx.fill();
     ctx.beginPath(); ctx.moveTo(p3.x, p3.y); ctx.lineTo(p2.x, p2.y);
     ctx.lineWidth = edge; ctx.strokeStyle = 'rgba(0,0,0,0.7)'; ctx.stroke();
