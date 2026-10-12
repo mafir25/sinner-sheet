@@ -3,8 +3,14 @@
   "files": {
     "door.png": {
       "name": {
-        "ru": "Раздвижная дверь",
-        "en": "Sliding door"
+        "ru": "Дверь (тёмная стена)",
+        "en": "Door (dark wall)"
+      }
+    },
+    "door-light.png": {
+      "name": {
+        "ru": "Дверь (светлая стена)",
+        "en": "Door (light wall)"
       }
     },
     "gate.png": {
