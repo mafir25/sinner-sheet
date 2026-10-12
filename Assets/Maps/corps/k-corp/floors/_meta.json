@@ -5,25 +5,106 @@
       "name": {
         "ru": "Холл, светлый глянец",
         "en": "Lobby, polished"
-      }
+      },
+      "group": "hall"
     },
     "work.png": {
       "name": {
         "ru": "Рабочая плитка",
         "en": "Office tiles"
-      }
+      },
+      "group": "work"
     },
     "service.png": {
       "name": {
         "ru": "Служебный металл",
         "en": "Service plates"
-      }
+      },
+      "group": "service"
     },
     "runner.png": {
       "name": {
         "ru": "Зелёная дорожка",
         "en": "Green runner"
-      }
+      },
+      "group": "runner"
+    },
+    "hall-grate.png": {
+      "name": {
+        "ru": "Холл, светлый глянец: решётка",
+        "en": "Lobby, polished: grate"
+      },
+      "group": "hall"
+    },
+    "hall-inlay.png": {
+      "name": {
+        "ru": "Холл, светлый глянец: инкрустация",
+        "en": "Lobby, polished: inlay"
+      },
+      "group": "hall"
+    },
+    "hall-light.png": {
+      "name": {
+        "ru": "Холл, светлый глянец: подсветка",
+        "en": "Lobby, polished: light"
+      },
+      "group": "hall"
+    },
+    "hall-worn.png": {
+      "name": {
+        "ru": "Холл, светлый глянец: потёртости",
+        "en": "Lobby, polished: worn"
+      },
+      "group": "hall"
+    },
+    "runner-k.png": {
+      "name": {
+        "ru": "Зелёная дорожка: знак K",
+        "en": "Green runner: K mark"
+      },
+      "group": "runner"
+    },
+    "runner-line.png": {
+      "name": {
+        "ru": "Зелёная дорожка: неоновая линия",
+        "en": "Green runner: neon line"
+      },
+      "group": "runner"
+    },
+    "service-drain.png": {
+      "name": {
+        "ru": "Служебный металл: сток",
+        "en": "Service plates: drain"
+      },
+      "group": "service"
+    },
+    "service-hatch.png": {
+      "name": {
+        "ru": "Служебный металл: люк",
+        "en": "Service plates: hatch"
+      },
+      "group": "service"
+    },
+    "work-grate.png": {
+      "name": {
+        "ru": "Рабочая плитка: решётка",
+        "en": "Office tiles: grate"
+      },
+      "group": "work"
+    },
+    "work-hatch.png": {
+      "name": {
+        "ru": "Рабочая плитка: люк",
+        "en": "Office tiles: hatch"
+      },
+      "group": "work"
+    },
+    "work-light.png": {
+      "name": {
+        "ru": "Рабочая плитка: подсветка",
+        "en": "Office tiles: light"
+      },
+      "group": "work"
     }
   }
 }

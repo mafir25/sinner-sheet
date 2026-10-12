@@ -5,7 +5,29 @@
       "name": {
         "ru": "Кровля K Corp",
         "en": "K Corp roof"
-      }
+      },
+      "group": "roof"
+    },
+    "roof-beacon.png": {
+      "name": {
+        "ru": "Кровля K Corp: сигнальный огонь",
+        "en": "K Corp roof: beacon"
+      },
+      "group": "roof"
+    },
+    "roof-hatch.png": {
+      "name": {
+        "ru": "Кровля K Corp: люк",
+        "en": "K Corp roof: hatch"
+      },
+      "group": "roof"
+    },
+    "roof-vent.png": {
+      "name": {
+        "ru": "Кровля K Corp: вентиляция",
+        "en": "K Corp roof: vent"
+      },
+      "group": "roof"
     }
   }
 }
