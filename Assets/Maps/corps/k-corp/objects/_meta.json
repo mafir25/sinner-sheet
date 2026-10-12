@@ -1,37 +1,9 @@
 {
   "files": {
-    "sofa-s.png": {
+    "armchair-e.png": {
       "name": {
-        "ru": "Диван (вниз)",
-        "en": "Sofa (down)"
-      },
-      "group": "sofa"
-    },
-    "sofa-n.png": {
-      "name": {
-        "ru": "Диван (вверх)",
-        "en": "Sofa (up)"
-      },
-      "group": "sofa"
-    },
-    "sofa-e.png": {
-      "name": {
-        "ru": "Диван (вправо)",
-        "en": "Sofa (right)"
-      },
-      "group": "sofa"
-    },
-    "sofa-w.png": {
-      "name": {
-        "ru": "Диван (влево)",
-        "en": "Sofa (left)"
-      },
-      "group": "sofa"
-    },
-    "armchair-s.png": {
-      "name": {
-        "ru": "Кресло (вниз)",
-        "en": "Armchair (down)"
+        "ru": "Кресло (вправо)",
+        "en": "Armchair (right)"
       },
       "group": "armchair"
     },
@@ -42,10 +14,66 @@
       },
       "group": "armchair"
     },
-    "armchair-e.png": {
+    "armchair-pillow-e.png": {
       "name": {
-        "ru": "Кресло (вправо)",
-        "en": "Armchair (right)"
+        "ru": "Кресло, с подушкой (вправо)",
+        "en": "Armchair, with pillow (right)"
+      },
+      "group": "armchair"
+    },
+    "armchair-pillow-n.png": {
+      "name": {
+        "ru": "Кресло, с подушкой (вверх)",
+        "en": "Armchair, with pillow (up)"
+      },
+      "group": "armchair"
+    },
+    "armchair-pillow-s.png": {
+      "name": {
+        "ru": "Кресло, с подушкой (вниз)",
+        "en": "Armchair, with pillow (down)"
+      },
+      "group": "armchair"
+    },
+    "armchair-pillow-w.png": {
+      "name": {
+        "ru": "Кресло, с подушкой (влево)",
+        "en": "Armchair, with pillow (left)"
+      },
+      "group": "armchair"
+    },
+    "armchair-s.png": {
+      "name": {
+        "ru": "Кресло (вниз)",
+        "en": "Armchair (down)"
+      },
+      "group": "armchair"
+    },
+    "armchair-slate-e.png": {
+      "name": {
+        "ru": "Кресло, серая обивка (вправо)",
+        "en": "Armchair, slate (right)"
+      },
+      "group": "armchair"
+    },
+    "armchair-slate-n.png": {
+      "name": {
+        "ru": "Кресло, серая обивка (вверх)",
+        "en": "Armchair, slate (up)"
+      },
+      "group": "armchair"
+    },
+    "armchair-slate-s.png": {
+      "name": {
+        "ru": "Кресло, серая обивка (вниз)",
+        "en": "Armchair, slate (down)"
+      },
+      "group": "armchair"
+    },
+    "armchair-slate-w.png": {
+      "name": {
+        "ru": "Кресло, серая обивка (влево)",
+        "en": "Armchair, slate (left)"
       },
       "group": "armchair"
     },
@@ -56,17 +84,31 @@
       },
       "group": "armchair"
     },
-    "coffee-table-s.png": {
+    "coffee-table-ampoules-e.png": {
       "name": {
-        "ru": "Журнальный столик (вниз)",
-        "en": "Coffee table (down)"
+        "ru": "Журнальный столик, с ампулами (вправо)",
+        "en": "Coffee table, with ampoules (right)"
       },
       "group": "coffee-table"
     },
-    "coffee-table-n.png": {
+    "coffee-table-ampoules-n.png": {
       "name": {
-        "ru": "Журнальный столик (вверх)",
-        "en": "Coffee table (up)"
+        "ru": "Журнальный столик, с ампулами (вверх)",
+        "en": "Coffee table, with ampoules (up)"
+      },
+      "group": "coffee-table"
+    },
+    "coffee-table-ampoules-s.png": {
+      "name": {
+        "ru": "Журнальный столик, с ампулами (вниз)",
+        "en": "Coffee table, with ampoules (down)"
+      },
+      "group": "coffee-table"
+    },
+    "coffee-table-ampoules-w.png": {
+      "name": {
+        "ru": "Журнальный столик, с ампулами (влево)",
+        "en": "Coffee table, with ampoules (left)"
       },
       "group": "coffee-table"
     },
@@ -77,6 +119,48 @@
       },
       "group": "coffee-table"
     },
+    "coffee-table-n.png": {
+      "name": {
+        "ru": "Журнальный столик (вверх)",
+        "en": "Coffee table (up)"
+      },
+      "group": "coffee-table"
+    },
+    "coffee-table-s.png": {
+      "name": {
+        "ru": "Журнальный столик (вниз)",
+        "en": "Coffee table (down)"
+      },
+      "group": "coffee-table"
+    },
+    "coffee-table-tablet-e.png": {
+      "name": {
+        "ru": "Журнальный столик, планшет и бумаги (вправо)",
+        "en": "Coffee table, tablet and papers (right)"
+      },
+      "group": "coffee-table"
+    },
+    "coffee-table-tablet-n.png": {
+      "name": {
+        "ru": "Журнальный столик, планшет и бумаги (вверх)",
+        "en": "Coffee table, tablet and papers (up)"
+      },
+      "group": "coffee-table"
+    },
+    "coffee-table-tablet-s.png": {
+      "name": {
+        "ru": "Журнальный столик, планшет и бумаги (вниз)",
+        "en": "Coffee table, tablet and papers (down)"
+      },
+      "group": "coffee-table"
+    },
+    "coffee-table-tablet-w.png": {
+      "name": {
+        "ru": "Журнальный столик, планшет и бумаги (влево)",
+        "en": "Coffee table, tablet and papers (left)"
+      },
+      "group": "coffee-table"
+    },
     "coffee-table-w.png": {
       "name": {
         "ru": "Журнальный столик (влево)",
@@ -84,129 +168,31 @@
       },
       "group": "coffee-table"
     },
-    "reception-s.png": {
+    "hp-crate-closed-e.png": {
       "name": {
-        "ru": "Стойка ресепшена (вниз)",
-        "en": "Reception desk (down)"
-      },
-      "group": "reception"
-    },
-    "reception-n.png": {
-      "name": {
-        "ru": "Стойка ресепшена (вверх)",
-        "en": "Reception desk (up)"
-      },
-      "group": "reception"
-    },
-    "reception-e.png": {
-      "name": {
-        "ru": "Стойка ресепшена (вправо)",
-        "en": "Reception desk (right)"
-      },
-      "group": "reception"
-    },
-    "reception-w.png": {
-      "name": {
-        "ru": "Стойка ресепшена (влево)",
-        "en": "Reception desk (left)"
-      },
-      "group": "reception"
-    },
-    "lockers-s.png": {
-      "name": {
-        "ru": "Шкаф с ячейками (вниз)",
-        "en": "Lockers (down)"
-      },
-      "group": "lockers"
-    },
-    "lockers-n.png": {
-      "name": {
-        "ru": "Шкаф с ячейками (вверх)",
-        "en": "Lockers (up)"
-      },
-      "group": "lockers"
-    },
-    "lockers-e.png": {
-      "name": {
-        "ru": "Шкаф с ячейками (вправо)",
-        "en": "Lockers (right)"
-      },
-      "group": "lockers"
-    },
-    "lockers-w.png": {
-      "name": {
-        "ru": "Шкаф с ячейками (влево)",
-        "en": "Lockers (left)"
-      },
-      "group": "lockers"
-    },
-    "turnstile-s.png": {
-      "name": {
-        "ru": "Турникет (вниз)",
-        "en": "Turnstile (down)"
-      },
-      "group": "turnstile"
-    },
-    "turnstile-n.png": {
-      "name": {
-        "ru": "Турникет (вверх)",
-        "en": "Turnstile (up)"
-      },
-      "group": "turnstile"
-    },
-    "turnstile-e.png": {
-      "name": {
-        "ru": "Турникет (вправо)",
-        "en": "Turnstile (right)"
-      },
-      "group": "turnstile"
-    },
-    "turnstile-w.png": {
-      "name": {
-        "ru": "Турникет (влево)",
-        "en": "Turnstile (left)"
-      },
-      "group": "turnstile"
-    },
-    "lab-table-s.png": {
-      "name": {
-        "ru": "Лабораторный стол (вниз)",
-        "en": "Lab table (down)"
-      },
-      "group": "lab-table"
-    },
-    "lab-table-n.png": {
-      "name": {
-        "ru": "Лабораторный стол (вверх)",
-        "en": "Lab table (up)"
-      },
-      "group": "lab-table"
-    },
-    "lab-table-e.png": {
-      "name": {
-        "ru": "Лабораторный стол (вправо)",
-        "en": "Lab table (right)"
-      },
-      "group": "lab-table"
-    },
-    "lab-table-w.png": {
-      "name": {
-        "ru": "Лабораторный стол (влево)",
-        "en": "Lab table (left)"
-      },
-      "group": "lab-table"
-    },
-    "hp-crate-s.png": {
-      "name": {
-        "ru": "Ящик с ампулами HP (вниз)",
-        "en": "HP ampoule crate (down)"
+        "ru": "Ящик с ампулами HP, закрыт (вправо)",
+        "en": "HP ampoule crate, closed (right)"
       },
       "group": "hp-crate"
     },
-    "hp-crate-n.png": {
+    "hp-crate-closed-n.png": {
       "name": {
-        "ru": "Ящик с ампулами HP (вверх)",
-        "en": "HP ampoule crate (up)"
+        "ru": "Ящик с ампулами HP, закрыт (вверх)",
+        "en": "HP ampoule crate, closed (up)"
+      },
+      "group": "hp-crate"
+    },
+    "hp-crate-closed-s.png": {
+      "name": {
+        "ru": "Ящик с ампулами HP, закрыт (вниз)",
+        "en": "HP ampoule crate, closed (down)"
+      },
+      "group": "hp-crate"
+    },
+    "hp-crate-closed-w.png": {
+      "name": {
+        "ru": "Ящик с ампулами HP, закрыт (влево)",
+        "en": "HP ampoule crate, closed (left)"
       },
       "group": "hp-crate"
     },
@@ -217,12 +203,502 @@
       },
       "group": "hp-crate"
     },
+    "hp-crate-n.png": {
+      "name": {
+        "ru": "Ящик с ампулами HP (вверх)",
+        "en": "HP ampoule crate (up)"
+      },
+      "group": "hp-crate"
+    },
+    "hp-crate-partial-e.png": {
+      "name": {
+        "ru": "Ящик с ампулами HP, неполный (вправо)",
+        "en": "HP ampoule crate, partial (right)"
+      },
+      "group": "hp-crate"
+    },
+    "hp-crate-partial-n.png": {
+      "name": {
+        "ru": "Ящик с ампулами HP, неполный (вверх)",
+        "en": "HP ampoule crate, partial (up)"
+      },
+      "group": "hp-crate"
+    },
+    "hp-crate-partial-s.png": {
+      "name": {
+        "ru": "Ящик с ампулами HP, неполный (вниз)",
+        "en": "HP ampoule crate, partial (down)"
+      },
+      "group": "hp-crate"
+    },
+    "hp-crate-partial-w.png": {
+      "name": {
+        "ru": "Ящик с ампулами HP, неполный (влево)",
+        "en": "HP ampoule crate, partial (left)"
+      },
+      "group": "hp-crate"
+    },
+    "hp-crate-s.png": {
+      "name": {
+        "ru": "Ящик с ампулами HP (вниз)",
+        "en": "HP ampoule crate (down)"
+      },
+      "group": "hp-crate"
+    },
     "hp-crate-w.png": {
       "name": {
         "ru": "Ящик с ампулами HP (влево)",
         "en": "HP ampoule crate (left)"
       },
       "group": "hp-crate"
+    },
+    "lab-table-e.png": {
+      "name": {
+        "ru": "Лабораторный стол (вправо)",
+        "en": "Lab table (right)"
+      },
+      "group": "lab-table"
+    },
+    "lab-table-microscope-e.png": {
+      "name": {
+        "ru": "Лабораторный стол, микроскоп (вправо)",
+        "en": "Lab table, microscope (right)"
+      },
+      "group": "lab-table"
+    },
+    "lab-table-microscope-n.png": {
+      "name": {
+        "ru": "Лабораторный стол, микроскоп (вверх)",
+        "en": "Lab table, microscope (up)"
+      },
+      "group": "lab-table"
+    },
+    "lab-table-microscope-s.png": {
+      "name": {
+        "ru": "Лабораторный стол, микроскоп (вниз)",
+        "en": "Lab table, microscope (down)"
+      },
+      "group": "lab-table"
+    },
+    "lab-table-microscope-w.png": {
+      "name": {
+        "ru": "Лабораторный стол, микроскоп (влево)",
+        "en": "Lab table, microscope (left)"
+      },
+      "group": "lab-table"
+    },
+    "lab-table-n.png": {
+      "name": {
+        "ru": "Лабораторный стол (вверх)",
+        "en": "Lab table (up)"
+      },
+      "group": "lab-table"
+    },
+    "lab-table-s.png": {
+      "name": {
+        "ru": "Лабораторный стол (вниз)",
+        "en": "Lab table (down)"
+      },
+      "group": "lab-table"
+    },
+    "lab-table-sparse-e.png": {
+      "name": {
+        "ru": "Лабораторный стол, полупустой штатив (вправо)",
+        "en": "Lab table, half-empty rack (right)"
+      },
+      "group": "lab-table"
+    },
+    "lab-table-sparse-n.png": {
+      "name": {
+        "ru": "Лабораторный стол, полупустой штатив (вверх)",
+        "en": "Lab table, half-empty rack (up)"
+      },
+      "group": "lab-table"
+    },
+    "lab-table-sparse-s.png": {
+      "name": {
+        "ru": "Лабораторный стол, полупустой штатив (вниз)",
+        "en": "Lab table, half-empty rack (down)"
+      },
+      "group": "lab-table"
+    },
+    "lab-table-sparse-w.png": {
+      "name": {
+        "ru": "Лабораторный стол, полупустой штатив (влево)",
+        "en": "Lab table, half-empty rack (left)"
+      },
+      "group": "lab-table"
+    },
+    "lab-table-w.png": {
+      "name": {
+        "ru": "Лабораторный стол (влево)",
+        "en": "Lab table (left)"
+      },
+      "group": "lab-table"
+    },
+    "lockers-alert-e.png": {
+      "name": {
+        "ru": "Шкаф с ячейками, тревога (вправо)",
+        "en": "Lockers, alert (right)"
+      },
+      "group": "lockers"
+    },
+    "lockers-alert-n.png": {
+      "name": {
+        "ru": "Шкаф с ячейками, тревога (вверх)",
+        "en": "Lockers, alert (up)"
+      },
+      "group": "lockers"
+    },
+    "lockers-alert-s.png": {
+      "name": {
+        "ru": "Шкаф с ячейками, тревога (вниз)",
+        "en": "Lockers, alert (down)"
+      },
+      "group": "lockers"
+    },
+    "lockers-alert-w.png": {
+      "name": {
+        "ru": "Шкаф с ячейками, тревога (влево)",
+        "en": "Lockers, alert (left)"
+      },
+      "group": "lockers"
+    },
+    "lockers-e.png": {
+      "name": {
+        "ru": "Шкаф с ячейками (вправо)",
+        "en": "Lockers (right)"
+      },
+      "group": "lockers"
+    },
+    "lockers-n.png": {
+      "name": {
+        "ru": "Шкаф с ячейками (вверх)",
+        "en": "Lockers (up)"
+      },
+      "group": "lockers"
+    },
+    "lockers-open-e.png": {
+      "name": {
+        "ru": "Шкаф с ячейками, открыт (вправо)",
+        "en": "Lockers, open (right)"
+      },
+      "group": "lockers"
+    },
+    "lockers-open-n.png": {
+      "name": {
+        "ru": "Шкаф с ячейками, открыт (вверх)",
+        "en": "Lockers, open (up)"
+      },
+      "group": "lockers"
+    },
+    "lockers-open-s.png": {
+      "name": {
+        "ru": "Шкаф с ячейками, открыт (вниз)",
+        "en": "Lockers, open (down)"
+      },
+      "group": "lockers"
+    },
+    "lockers-open-w.png": {
+      "name": {
+        "ru": "Шкаф с ячейками, открыт (влево)",
+        "en": "Lockers, open (left)"
+      },
+      "group": "lockers"
+    },
+    "lockers-s.png": {
+      "name": {
+        "ru": "Шкаф с ячейками (вниз)",
+        "en": "Lockers (down)"
+      },
+      "group": "lockers"
+    },
+    "lockers-w.png": {
+      "name": {
+        "ru": "Шкаф с ячейками (влево)",
+        "en": "Lockers (left)"
+      },
+      "group": "lockers"
+    },
+    "reception-e.png": {
+      "name": {
+        "ru": "Стойка ресепшена (вправо)",
+        "en": "Reception desk (right)"
+      },
+      "group": "reception"
+    },
+    "reception-k-e.png": {
+      "name": {
+        "ru": "Стойка ресепшена, табличка K (вправо)",
+        "en": "Reception desk, K plate (right)"
+      },
+      "group": "reception"
+    },
+    "reception-k-n.png": {
+      "name": {
+        "ru": "Стойка ресепшена, табличка K (вверх)",
+        "en": "Reception desk, K plate (up)"
+      },
+      "group": "reception"
+    },
+    "reception-k-s.png": {
+      "name": {
+        "ru": "Стойка ресепшена, табличка K (вниз)",
+        "en": "Reception desk, K plate (down)"
+      },
+      "group": "reception"
+    },
+    "reception-k-w.png": {
+      "name": {
+        "ru": "Стойка ресепшена, табличка K (влево)",
+        "en": "Reception desk, K plate (left)"
+      },
+      "group": "reception"
+    },
+    "reception-n.png": {
+      "name": {
+        "ru": "Стойка ресепшена (вверх)",
+        "en": "Reception desk (up)"
+      },
+      "group": "reception"
+    },
+    "reception-one-e.png": {
+      "name": {
+        "ru": "Стойка ресепшена, один монитор (вправо)",
+        "en": "Reception desk, one monitor (right)"
+      },
+      "group": "reception"
+    },
+    "reception-one-n.png": {
+      "name": {
+        "ru": "Стойка ресепшена, один монитор (вверх)",
+        "en": "Reception desk, one monitor (up)"
+      },
+      "group": "reception"
+    },
+    "reception-one-s.png": {
+      "name": {
+        "ru": "Стойка ресепшена, один монитор (вниз)",
+        "en": "Reception desk, one monitor (down)"
+      },
+      "group": "reception"
+    },
+    "reception-one-w.png": {
+      "name": {
+        "ru": "Стойка ресепшена, один монитор (влево)",
+        "en": "Reception desk, one monitor (left)"
+      },
+      "group": "reception"
+    },
+    "reception-s.png": {
+      "name": {
+        "ru": "Стойка ресепшена (вниз)",
+        "en": "Reception desk (down)"
+      },
+      "group": "reception"
+    },
+    "reception-w.png": {
+      "name": {
+        "ru": "Стойка ресепшена (влево)",
+        "en": "Reception desk (left)"
+      },
+      "group": "reception"
+    },
+    "sofa-e.png": {
+      "name": {
+        "ru": "Диван (вправо)",
+        "en": "Sofa (right)"
+      },
+      "group": "sofa"
+    },
+    "sofa-n.png": {
+      "name": {
+        "ru": "Диван (вверх)",
+        "en": "Sofa (up)"
+      },
+      "group": "sofa"
+    },
+    "sofa-pillow-e.png": {
+      "name": {
+        "ru": "Диван, с подушкой (вправо)",
+        "en": "Sofa, with pillow (right)"
+      },
+      "group": "sofa"
+    },
+    "sofa-pillow-n.png": {
+      "name": {
+        "ru": "Диван, с подушкой (вверх)",
+        "en": "Sofa, with pillow (up)"
+      },
+      "group": "sofa"
+    },
+    "sofa-pillow-s.png": {
+      "name": {
+        "ru": "Диван, с подушкой (вниз)",
+        "en": "Sofa, with pillow (down)"
+      },
+      "group": "sofa"
+    },
+    "sofa-pillow-w.png": {
+      "name": {
+        "ru": "Диван, с подушкой (влево)",
+        "en": "Sofa, with pillow (left)"
+      },
+      "group": "sofa"
+    },
+    "sofa-s.png": {
+      "name": {
+        "ru": "Диван (вниз)",
+        "en": "Sofa (down)"
+      },
+      "group": "sofa"
+    },
+    "sofa-seats-e.png": {
+      "name": {
+        "ru": "Диван, три подушки (вправо)",
+        "en": "Sofa, three cushions (right)"
+      },
+      "group": "sofa"
+    },
+    "sofa-seats-n.png": {
+      "name": {
+        "ru": "Диван, три подушки (вверх)",
+        "en": "Sofa, three cushions (up)"
+      },
+      "group": "sofa"
+    },
+    "sofa-seats-s.png": {
+      "name": {
+        "ru": "Диван, три подушки (вниз)",
+        "en": "Sofa, three cushions (down)"
+      },
+      "group": "sofa"
+    },
+    "sofa-seats-w.png": {
+      "name": {
+        "ru": "Диван, три подушки (влево)",
+        "en": "Sofa, three cushions (left)"
+      },
+      "group": "sofa"
+    },
+    "sofa-slate-e.png": {
+      "name": {
+        "ru": "Диван, серая обивка (вправо)",
+        "en": "Sofa, slate (right)"
+      },
+      "group": "sofa"
+    },
+    "sofa-slate-n.png": {
+      "name": {
+        "ru": "Диван, серая обивка (вверх)",
+        "en": "Sofa, slate (up)"
+      },
+      "group": "sofa"
+    },
+    "sofa-slate-s.png": {
+      "name": {
+        "ru": "Диван, серая обивка (вниз)",
+        "en": "Sofa, slate (down)"
+      },
+      "group": "sofa"
+    },
+    "sofa-slate-w.png": {
+      "name": {
+        "ru": "Диван, серая обивка (влево)",
+        "en": "Sofa, slate (left)"
+      },
+      "group": "sofa"
+    },
+    "sofa-w.png": {
+      "name": {
+        "ru": "Диван (влево)",
+        "en": "Sofa (left)"
+      },
+      "group": "sofa"
+    },
+    "turnstile-alert-e.png": {
+      "name": {
+        "ru": "Турникет, тревога (вправо)",
+        "en": "Turnstile, alert (right)"
+      },
+      "group": "turnstile"
+    },
+    "turnstile-alert-n.png": {
+      "name": {
+        "ru": "Турникет, тревога (вверх)",
+        "en": "Turnstile, alert (up)"
+      },
+      "group": "turnstile"
+    },
+    "turnstile-alert-s.png": {
+      "name": {
+        "ru": "Турникет, тревога (вниз)",
+        "en": "Turnstile, alert (down)"
+      },
+      "group": "turnstile"
+    },
+    "turnstile-alert-w.png": {
+      "name": {
+        "ru": "Турникет, тревога (влево)",
+        "en": "Turnstile, alert (left)"
+      },
+      "group": "turnstile"
+    },
+    "turnstile-e.png": {
+      "name": {
+        "ru": "Турникет (вправо)",
+        "en": "Turnstile (right)"
+      },
+      "group": "turnstile"
+    },
+    "turnstile-n.png": {
+      "name": {
+        "ru": "Турникет (вверх)",
+        "en": "Turnstile (up)"
+      },
+      "group": "turnstile"
+    },
+    "turnstile-open-e.png": {
+      "name": {
+        "ru": "Турникет, открыт (вправо)",
+        "en": "Turnstile, open (right)"
+      },
+      "group": "turnstile"
+    },
+    "turnstile-open-n.png": {
+      "name": {
+        "ru": "Турникет, открыт (вверх)",
+        "en": "Turnstile, open (up)"
+      },
+      "group": "turnstile"
+    },
+    "turnstile-open-s.png": {
+      "name": {
+        "ru": "Турникет, открыт (вниз)",
+        "en": "Turnstile, open (down)"
+      },
+      "group": "turnstile"
+    },
+    "turnstile-open-w.png": {
+      "name": {
+        "ru": "Турникет, открыт (влево)",
+        "en": "Turnstile, open (left)"
+      },
+      "group": "turnstile"
+    },
+    "turnstile-s.png": {
+      "name": {
+        "ru": "Турникет (вниз)",
+        "en": "Turnstile (down)"
+      },
+      "group": "turnstile"
+    },
+    "turnstile-w.png": {
+      "name": {
+        "ru": "Турникет (влево)",
+        "en": "Turnstile (left)"
+      },
+      "group": "turnstile"
     }
   }
 }
