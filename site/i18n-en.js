@@ -152,6 +152,13 @@
     'БАЗА ЗНАНИЙ (НАВИГАЦИЯ)': 'KNOWLEDGE BASE (NAVIGATION)',
     'Глобальный архив Project Moon 5e. Правила, лор, классы, черты и механики сеттинга.': 'The global Project Moon 5e archive. Rules, lore, classes, feats and setting mechanics.',
     'ПОДКЛЮЧЕНИЕ К СЕТИ': 'CONNECT TO NETWORK',
+    /* Главная в оформлении Limbus Company (index-limbus.html) */
+    'Классическое оформление': 'Classic theme',
+    'Гнев': 'Wrath', 'Похоть': 'Lust', 'Лень': 'Sloth', 'Чревоугодие': 'Gluttony', 'Уныние': 'Gloom', 'Гордыня': 'Pride', 'Зависть': 'Envy',
+    'Разделы Базы знаний': 'Knowledge Base sections',
+    'Экипаж «Мефистофеля»': 'Crew of the Mephistopheles',
+    'Данте': 'Dante', 'И Сан': 'Yi Sang', 'Фауст': 'Faust', 'Дон Кихот': 'Don Quixote', 'Рёсю': 'Ryōshū', 'Мерсо': 'Meursault',
+    'Хон Лу': 'Hong Lu', 'Хитклиф': 'Heathcliff', 'Измаил': 'Ishmael', 'Родион': 'Rodion', 'Синклер': 'Sinclair', 'Аутис': 'Outis', 'Грегор': 'Gregor',
 
     /* ===================== Переадресации ===================== */
     'База пользователей переехала в «Базу знаний»:': 'The user database has moved to the Knowledge Base:',

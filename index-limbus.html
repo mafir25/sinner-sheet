@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="ru" data-site-ui="no-fab">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="manifest" href="/manifest.webmanifest">
+    <meta name="theme-color" content="#0b0705">
+    <link rel="apple-touch-icon" href="/Assets/App/icon-192.png">
+    <title>Mephistopheles Terminal / Main Hub</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Merriweather:ital,wght@0,300;1,300;1,700&family=Oswald:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <!--
+      Главная в оформлении Limbus Company: тот же хаб, что index.html, но всё оформление — спрайты из Assets/Timed_Assets/.
+      Рамки растягиваются через border-image (9-slice), поэтому карточки любого размера не искажают углы.
+      Семь карточек = семь грехов: у каждой своё кольцо, иконка греха и неоновая полоса (переменные .sin-*).
+      Кнопка ⚙ в шапке открывает общее окно настроек (site/ui.js), своя круглая кнопка ui.js скрыта через data-site-ui="no-fab".
+    -->
+    <style>
+        :root {
+            --bg: #0b0705;
+            --beige: #EBCFA4; --beige-dim: #9C8468; --gold: #F5C15A; --orange: #FF9A1F; --rust: #8B5A2B;
+            --red: #C7243A; --green-lamp: #8FCC2A;
+            --text: #E0D2B8; --text-dim: #8A7660;
+
+            /* спрайты */
+            --spr-grid: url('Assets/Timed_Assets/03_MainUI/MainUI_BattleSelection_1/MainUI_BattleSelection_1_001.png');
+            --spr-emblem: url('Assets/Timed_Assets/03_MainUI/MainUI_common_Popup_01/MainUI_common_Popup_01_025.png');
+            --spr-gold: url('Assets/Timed_Assets/03_MainUI/MainUI_common_Popup_01/MainUI_common_Popup_01_036.png');
+            --spr-card: url('Assets/Timed_Assets/01_BattleUI/BattleUI_Choice_3/BattleUI_Choice_3_023.png');
+            --spr-neon: url('Assets/Timed_Assets/03_MainUI/MainUI_UserInfo_6/MainUI_UserInfo_6_011.png');
+            --spr-btn: url('Assets/Timed_Assets/03_MainUI/MainUI_common_1/MainUI_common_1_020.png');
+            --spr-btn-on: url('Assets/Timed_Assets/03_MainUI/MainUI_common_1/MainUI_common_1_026.png');
+            --spr-tag: url('Assets/Timed_Assets/03_MainUI/MainUI_Formation_9/MainUI_Formation_9_046.png');
+            --spr-plate: url('Assets/Timed_Assets/01_BattleUI/BattleUI_Choice_5/BattleUI_Choice_5_043.png');
+        }
+
+        /* Семь грехов: цвет, кольцо (PersonalityList_4/7) и неоновая полоса (Formation_9) */
+        .sin-wrath    { --sin: #E0402E; --ring: url('Assets/Timed_Assets/03_MainUI/MainUI_PersonalityList_4/MainUI_PersonalityList_4_078.png'); --bar: url('Assets/Timed_Assets/03_MainUI/MainUI_Formation_9/MainUI_Formation_9_016.png'); }
+        .sin-lust     { --sin: #F07A2A; --ring: url('Assets/Timed_Assets/03_MainUI/MainUI_PersonalityList_4/MainUI_PersonalityList_4_079.png'); --bar: url('Assets/Timed_Assets/03_MainUI/MainUI_Formation_9/MainUI_Formation_9_017.png'); }
+        .sin-sloth    { --sin: #E8B51E; --ring: url('Assets/Timed_Assets/03_MainUI/MainUI_PersonalityList_4/MainUI_PersonalityList_4_080.png'); --bar: url('Assets/Timed_Assets/03_MainUI/MainUI_Formation_9/MainUI_Formation_9_018.png'); }
+        .sin-gluttony { --sin: #8FCC2A; --ring: url('Assets/Timed_Assets/03_MainUI/MainUI_PersonalityList_4/MainUI_PersonalityList_4_081.png'); --bar: url('Assets/Timed_Assets/03_MainUI/MainUI_Formation_9/MainUI_Formation_9_019.png'); }
+        .sin-gloom    { --sin: #45B3CB; --ring: url('Assets/Timed_Assets/03_MainUI/MainUI_PersonalityList_4/MainUI_PersonalityList_4_072.png'); --bar: url('Assets/Timed_Assets/03_MainUI/MainUI_Formation_9/MainUI_Formation_9_020.png'); }
+        .sin-pride    { --sin: #3A78E0; --ring: url('Assets/Timed_Assets/03_MainUI/MainUI_PersonalityList_4/MainUI_PersonalityList_4_066.png'); --bar: url('Assets/Timed_Assets/03_MainUI/MainUI_Formation_9/MainUI_Formation_9_021.png'); }
+        .sin-envy     { --sin: #B24FE0; --ring: url('Assets/Timed_Assets/03_MainUI/MainUI_PersonalityList_7/MainUI_PersonalityList_7_001.png'); --bar: url('Assets/Timed_Assets/03_MainUI/MainUI_Formation_9/MainUI_Formation_9_022.png'); }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif;
+            min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+            overflow-x: hidden;
+        }
+        /* Фон — сетка-терминал из меню выбора боя, сверху тёплый свет и виньетка */
+        body::before {
+            content: ''; position: fixed; inset: 0; z-index: -2; pointer-events: none;
+            background:
+                radial-gradient(ellipse 70% 45% at 50% 0%, rgba(255, 140, 40, .16), transparent 70%),
+                radial-gradient(ellipse at 50% 50%, transparent 40%, rgba(0, 0, 0, .85) 100%),
+                linear-gradient(rgba(11, 7, 5, .35), rgba(11, 7, 5, .6)),
+                var(--spr-grid) center / cover no-repeat,
+                var(--bg);
+        }
+        /* лёгкие строки развёртки */
+        body::after {
+            content: ''; position: fixed; inset: 0; z-index: 50; pointer-events: none;
+            background: repeating-linear-gradient(0deg, transparent 0 2px, rgba(0, 0, 0, .18) 2px 3px);
+            mix-blend-mode: multiply;
+        }
+
+        .oswald { font-family: 'Oswald', sans-serif; text-transform: uppercase; }
+
+        /* ============ Верхняя панель ============ */
+        .lc-top {
+            position: sticky; top: 0; z-index: 40; width: 100%;
+            display: flex; align-items: center; justify-content: space-between; gap: 12px;
+            padding: 8px 20px;
+            background: linear-gradient(180deg, #17100b 0%, #0c0806 100%);
+            border-bottom: 2px solid #6b4422;
+            box-shadow: 0 1px 0 #2a1a0e, 0 8px 24px rgba(0, 0, 0, .6);
+        }
+        .lc-brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+        .lc-brand img { width: 34px; height: 34px; flex: none; filter: drop-shadow(0 0 6px rgba(245, 193, 90, .35)); }
+        .lc-brand b { font: 700 1rem/1 'Oswald', sans-serif; letter-spacing: 3px; color: var(--beige); white-space: nowrap; }
+        .lc-brand small { display: block; margin-top: 3px; font: 500 .62rem/1 'Oswald', sans-serif; letter-spacing: 4px; color: var(--orange); }
+
+        /* восьмиугольные кнопки как в лобби игры: тусклая → жёлтая при наведении */
+        .lc-oct {
+            position: relative; width: 48px; height: 48px; flex: none; display: grid; place-items: center;
+            background: none; border: 0; padding: 0; cursor: pointer; transition: transform .15s;
+        }
+        .lc-oct img { width: 100%; height: 100%; grid-area: 1 / 1; transition: opacity .15s, filter .15s; }
+        .lc-oct .on { opacity: 0; }
+        .lc-oct:hover, .lc-oct:focus-visible { transform: scale(1.06); }
+        .lc-oct:hover .on, .lc-oct:focus-visible .on { opacity: 1; }
+        .lc-oct:hover .off, .lc-oct:focus-visible .off { opacity: 0; }
+        .lc-oct.solo:hover img, .lc-oct.solo:focus-visible img { filter: brightness(1.35) saturate(1.3) drop-shadow(0 0 6px rgba(255, 154, 31, .6)); }
+        .lc-oct:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
+        .lc-oct .dot { position: absolute; top: 3px; right: 3px; width: 10px; height: 10px; border-radius: 50%; background: var(--green-lamp);
+            box-shadow: 0 0 8px var(--green-lamp); display: none; }
+        .lc-oct.is-in .dot { display: block; }
+        .lc-actions { display: flex; gap: 8px; }
+
+        /* бегущая строка с «осторожно» по краям */
+        .lc-ticker {
+            width: 100%; overflow: hidden; position: relative; height: 26px;
+            background: #0d0907; border-bottom: 1px solid #3a2414;
+        }
+        .lc-ticker::before, .lc-ticker::after {
+            content: ''; position: absolute; top: 0; bottom: 0; width: 70px; z-index: 1;
+            background: repeating-linear-gradient(45deg, #000 0 8px, #d8a21c 8px 16px);
+        }
+        .lc-ticker::before { left: 0; } .lc-ticker::after { right: 0; }
+        .lc-ticker-track {
+            display: flex; gap: 48px; width: max-content; height: 100%; align-items: center;
+            font: 500 .72rem/1 'Oswald', sans-serif; letter-spacing: 4px; color: #b9875a; white-space: nowrap;
+            animation: lc-ticker 40s linear infinite;
+        }
+        .lc-ticker-track i { color: var(--orange); font-style: normal; }
+        @keyframes lc-ticker { to { transform: translateX(-50%); } }
+
+        /* ============ Заставка ============ */
+        .lc-hero {
+            position: relative; width: 100%; max-width: 1400px; padding: 34px 20px 10px;
+            display: flex; flex-direction: column; align-items: center; text-align: center;
+        }
+        /* эмблема Limbus Company водяным знаком */
+        .lc-hero::before {
+            content: ''; position: absolute; z-index: -1; left: 50%; top: 4px; width: min(560px, 100%); aspect-ratio: 456 / 431;
+            transform: translateX(-50%); background: var(--spr-emblem) center / contain no-repeat; opacity: .32;
+        }
+        .lc-sigil { position: relative; width: 168px; height: 168px; display: grid; place-items: center; margin-bottom: 8px; }
+        .lc-sigil img { grid-area: 1 / 1; }
+        .lc-sigil .ring { width: 100%; animation: lc-spin 60s linear infinite; opacity: .9; }
+        .lc-sigil .star { width: 80%; animation: lc-spin 40s linear infinite reverse; filter: drop-shadow(0 0 10px rgba(255, 170, 40, .55)); }
+        .lc-sigil .clock { width: 50%; filter: drop-shadow(0 0 14px rgba(255, 120, 30, .8)); animation: lc-flicker 4s ease-in-out infinite; }
+        @keyframes lc-spin { to { transform: rotate(360deg); } }
+        @keyframes lc-flicker { 0%, 100% { opacity: 1; } 47% { opacity: 1; } 50% { opacity: .78; } 53% { opacity: 1; } }
+
+        .lc-h1 {
+            font: 700 3.1rem/1.05 'Oswald', sans-serif; text-transform: uppercase; letter-spacing: 6px;
+            background: linear-gradient(180deg, rgba(255, 246, 214, .9) 0%, rgba(255, 246, 214, 0) 45%), var(--spr-gold) center / 100% 100%;
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+            filter: drop-shadow(0 2px 0 #3b2108) drop-shadow(0 0 14px rgba(255, 150, 40, .35));
+            max-width: 100%;
+        }
+        .lc-sub { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 12px; max-width: 100%; }
+        .lc-sub p { font: 500 1rem/1.2 'Oswald', sans-serif; letter-spacing: 3px; color: var(--orange); text-transform: uppercase;
+            text-shadow: 0 0 10px rgba(255, 154, 31, .45); }
+        .lc-sub img { height: 26px; width: auto; opacity: .55; }
+        .lc-status {
+            margin-top: 14px; display: inline-flex; align-items: center; gap: 10px;
+            font: 500 .78rem/1.2 'Oswald', sans-serif; letter-spacing: 2px; color: var(--beige-dim); text-transform: uppercase;
+            border: 12px solid transparent; border-image: var(--spr-plate) 36 fill / 12px stretch; padding: 2px 8px;
+        }
+        .lc-status img { width: 16px; height: 16px; flex: none; animation: lc-blink 2.4s ease-in-out infinite; }
+        @keyframes lc-blink { 50% { opacity: .35; } }
+
+        /* ============ Хаб ============ */
+        .hub { display: grid; grid-template-columns: 1fr 1.5fr; gap: 34px; width: 100%; max-width: 1400px; padding: 26px 20px 10px; align-items: stretch; }
+        .col { display: flex; flex-direction: column; min-width: 0; }
+
+        .col-head { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
+        .col-head .tag {
+            flex: none; min-width: 64px; height: 34px; padding: 0 14px 4px; display: grid; place-items: center;
+            background: var(--spr-tag) center / 100% 100% no-repeat;
+            font: 700 1.05rem/1 'Oswald', sans-serif; color: #2a1606; letter-spacing: 2px;
+        }
+        .col-head h2 { font: 500 1.25rem/1.2 'Oswald', sans-serif; letter-spacing: 2px; color: var(--beige); text-transform: uppercase; white-space: nowrap; }
+        .col-head::after { content: ''; flex: 1; height: 2px; min-width: 20px; background: linear-gradient(90deg, #8b5a2b, rgba(139, 90, 43, 0)); }
+
+        .grid-uni { display: grid; grid-template-columns: 1fr; gap: 22px; flex: 1; }
+        .grid-pmd { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; flex: 1; }
+        .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+        .wide { grid-column: 1 / -1; }
+
+        /* ---- Карточка: латунная рамка (9-slice) + кольцо греха + неоновая полоса ---- */
+        .card {
+            position: relative; display: grid; grid-template-columns: auto 1fr; gap: 18px; align-items: center;
+            height: 100%; min-height: 150px; padding: 6px 8px 6px 12px;
+            border: 30px solid transparent; border-image: var(--spr-card) 64 fill / 30px stretch;
+            color: inherit; text-decoration: none; isolation: isolate;
+            transition: transform .2s ease, filter .25s ease;
+        }
+        .card::after {   /* оранжевая неоновая обводка при наведении */
+            content: ''; position: absolute; inset: -32px; z-index: 2; pointer-events: none;
+            border: 22px solid transparent; border-image: var(--spr-neon) 44 / 22px stretch;
+            opacity: 0; transition: opacity .2s;
+        }
+        .card:hover, .card:focus-visible { transform: translateY(-4px); filter: drop-shadow(0 0 14px color-mix(in srgb, var(--sin) 45%, transparent)); outline: none; }
+        .card:hover::after, .card:focus-visible::after { opacity: 1; }
+
+        .bar { position: absolute; left: -14px; top: 6%; bottom: 6%; width: 9px; background: var(--bar) center / 100% 100% no-repeat; opacity: .85; }
+
+        .emb { position: relative; width: 96px; height: 96px; display: grid; place-items: center; flex: none; }
+        .emb::before { content: ''; position: absolute; inset: 0; background: var(--ring) center / contain no-repeat; transition: transform .6s cubic-bezier(.2, .8, .2, 1); }
+        .emb img { position: relative; width: 60%; height: auto; transition: transform .25s, filter .25s; }
+        .card:hover .emb::before, .card:focus-visible .emb::before { transform: rotate(90deg); }
+        .card:hover .emb img, .card:focus-visible .emb img { transform: scale(1.1); filter: drop-shadow(0 0 8px var(--sin)); }
+
+        .body { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; min-width: 0; }
+        .sin { font: 500 .68rem/1 'Oswald', sans-serif; letter-spacing: 4px; text-transform: uppercase; color: var(--sin);
+            display: flex; align-items: center; gap: 8px; }
+        .sin::before { content: ''; width: 18px; height: 2px; background: var(--sin); box-shadow: 0 0 6px var(--sin); }
+        .title { font: 700 1.3rem/1.15 'Oswald', sans-serif; letter-spacing: 1px; text-transform: uppercase; color: #F0DDBC; overflow-wrap: anywhere; }
+        .lore { font: italic 300 .82rem/1.45 'Merriweather', serif; color: var(--text-dim); }
+        .btn {
+            margin-top: 6px; display: inline-block;
+            border: 11px solid transparent; border-image: var(--spr-btn) 26 fill / 11px stretch; padding: 1px 10px;
+            font: 500 .74rem/1.2 'Oswald', sans-serif; letter-spacing: 2px; text-transform: uppercase; color: var(--beige);
+            transition: color .2s, text-shadow .2s;
+        }
+        .card:hover .btn, .card:focus-visible .btn { border-image-source: var(--spr-btn-on); color: #FFD27A; text-shadow: 0 0 8px rgba(255, 154, 31, .8); }
+
+        /* большая карточка (База знаний) — эмблема крупнее, текст по центру */
+        .card.big { grid-template-columns: 1fr; justify-items: center; text-align: center; padding: 14px 20px; }
+        .card.big .emb { width: 116px; height: 116px; }
+        .card.big .body { align-items: center; }
+        .card.big .title { font-size: 1.55rem; }
+        /* вертикальные карточки в парах — эмблема над текстом */
+        .card.tall { grid-template-columns: 1fr; justify-items: center; text-align: center; align-content: start; padding-top: 14px; }
+        .card.tall .body { align-items: center; }
+        .card.tall .emb { width: 88px; height: 88px; }
+
+        /* Карточка-блок со ссылкой на всю площадь (растянутая ссылка заголовка) и своими ссылками внутри */
+        .card .stretch { color: inherit; text-decoration: none; }
+        .card .stretch::before { content: ''; position: absolute; inset: -30px; z-index: 1; }
+        .card:focus-within::after { opacity: 1; }
+        .card:has(.stretch:focus-visible) { transform: translateY(-4px); filter: drop-shadow(0 0 14px color-mix(in srgb, var(--sin) 45%, transparent)); }
+        .card .stretch:focus-visible { outline: none; }
+
+        /* разделы Базы знаний */
+        .sections { position: relative; z-index: 3; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin: 6px 0 2px; max-width: 640px; }
+        .sections a {
+            display: inline-flex; align-items: center; gap: 6px; padding: 0 6px; min-height: 22px;
+            border: 8px solid transparent; border-image: url('Assets/Timed_Assets/03_MainUI/MainUI_PersonalityList_1/MainUI_PersonalityList_1_004.png') 24 / 8px stretch;
+            background: rgba(10, 8, 6, .75) padding-box;
+            font: 500 .74rem/1 'Oswald', sans-serif; letter-spacing: 1px; text-transform: uppercase; color: var(--beige); text-decoration: none;
+            transition: color .15s;
+        }
+        .sections a img { width: 20px; height: 20px; object-fit: contain; filter: sepia(.3) brightness(.9); transition: filter .15s; }
+        .sections a:hover, .sections a:focus-visible {
+            border-image-source: url('Assets/Timed_Assets/03_MainUI/New_MainUI_Formation_1/New_MainUI_Formation_1_044.png'); border-image-slice: 22;
+            color: #FFD27A; outline: none;
+        }
+        .sections a:hover img, .sections a:focus-visible img { filter: drop-shadow(0 0 4px rgba(255, 154, 31, .8)); }
+
+        /* уровни Э.Г.О. на карточке конструктора */
+        .grades { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; margin-top: 2px; }
+        .grades img { height: 18px; width: auto; }
+
+        /* ============ Экипаж ============ */
+        .crew { width: 100%; max-width: 1400px; padding: 40px 20px 0; display: flex; flex-direction: column; align-items: center; }
+        .crew-head { font: 500 .85rem/1 'Oswald', sans-serif; letter-spacing: 5px; color: var(--beige-dim); text-transform: uppercase; margin-bottom: 16px;
+            display: flex; align-items: center; gap: 12px; }
+        .crew-head::before, .crew-head::after { content: ''; width: 60px; height: 1px; background: linear-gradient(90deg, transparent, #8b5a2b); }
+        .crew-head::after { transform: scaleX(-1); }
+        .crew ul { list-style: none; display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 14px; }
+        .crew li { width: 54px; height: 62px; display: grid; place-items: center; }
+        .crew li img { max-width: 100%; max-height: 100%; filter: grayscale(1) brightness(.55) sepia(.4); transition: filter .25s, transform .25s; }
+        .crew li:hover img { filter: none; transform: translateY(-4px) scale(1.12); }
+        .crew li.dante { width: 62px; }
+        .crew li.dante img { filter: grayscale(.4) brightness(.8); }
+
+        .footer-text { margin: 34px 0 30px; text-align: center; width: 100%; padding: 0 20px; color: #4a3a2c; font: .7rem/1.6 'Inter', sans-serif; letter-spacing: 2px; }
+        .footer-text img { width: 18px; height: 18px; vertical-align: -4px; margin-right: 6px; opacity: .7; }
+
+        /* ============ Адаптивность ============ */
+        @media (max-width: 1000px) {
+            .hub { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 600px) {
+            .lc-top { padding: 6px 12px; }
+            /* название в две строки, чтобы не заезжало под кнопки */
+            .lc-brand > div { min-width: 0; }
+            .lc-brand b { font-size: .8rem; line-height: 1.1; letter-spacing: 2px; white-space: normal; }
+            .lc-brand small { display: none; }
+            .lc-brand img { width: 28px; height: 28px; }
+            .lc-oct { width: 40px; height: 40px; }
+            .lc-ticker::before, .lc-ticker::after { width: 28px; }
+            .lc-hero { padding: 22px 16px 4px; }
+            .lc-sigil { width: 128px; height: 128px; }
+            /* «МЕФИСТОФЕЛЬ» одним словом не помещается в узкий экран */
+            .lc-h1 { font-size: clamp(1.6rem, 9.4vw, 3.1rem); letter-spacing: 2px; overflow-wrap: anywhere; }
+            .lc-sub { gap: 8px; }
+            .lc-sub p { font-size: .82rem; letter-spacing: 1px; }
+            .lc-sub img { display: none; }
+            .lc-status { font-size: .66rem; letter-spacing: 1px; }
+            .hub { padding: 20px 16px 6px; gap: 28px; }
+            .grid-pmd, .pair { grid-template-columns: 1fr; }
+            .col-head h2 { font-size: 1.05rem; white-space: normal; }
+            .card { border-width: 24px; border-image-width: 24px; gap: 14px; min-height: 0; padding: 4px 4px 4px 8px; }
+            .card::after { inset: -24px; border-width: 18px; border-image-width: 18px; }   /* без вылета за край экрана */
+            .card .stretch::before { inset: -24px; }
+            .bar { left: -10px; width: 7px; }
+            .emb, .card.tall .emb { width: 72px; height: 72px; }
+            .card.big .emb { width: 92px; height: 92px; }
+            /* в одну колонку «высокие» карточки снова идут строкой: эмблема слева */
+            .card.tall { grid-template-columns: auto 1fr; justify-items: stretch; text-align: left; padding-top: 4px; align-content: center; }
+            .card.tall .body { align-items: flex-start; }
+            .title { font-size: 1.12rem; }
+            .card.big .title { font-size: 1.25rem; }
+            .sections { gap: 4px; }
+            .sections a { font-size: .66rem; padding: 0 3px; gap: 4px; }
+            .sections a img { width: 16px; height: 16px; }
+            .crew { padding: 30px 16px 0; }
+            .crew-head { letter-spacing: 3px; gap: 8px; }
+            .crew-head::before, .crew-head::after { width: 24px; }
+            /* 13 эмблем — ровно два ряда по 7 и 6 */
+            .crew ul { gap: 8px 6px; width: 100%; max-width: 380px; }
+            .crew li, .crew li.dante { flex: 0 0 calc((100% - 36px) / 7); width: auto; height: auto; aspect-ratio: 54 / 62; }
+        }
+        @media (max-width: 380px) {
+            .card, .card.tall { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+            .card .body, .card.tall .body { align-items: center; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .lc-ticker-track, .lc-sigil img, .lc-status img { animation: none; }
+            .card, .emb::before, .emb img, .crew li img { transition: none; }
+        }
+    </style>
+    <script src="site/i18n.js"></script>
+    <script type="module" src="site/ui.js"></script>
+</head>
+<body>
+
+    <nav class="lc-top">
+        <div class="lc-brand">
+            <img src="Assets/Timed_Assets/01_BattleUI/BattleUI_Choice_7/BattleUI_Choice_7_040.png" alt="">
+            <div class="notranslate"><b>MEPHISTOPHELES TERMINAL</b><small>LIMBUS COMPANY</small></div>
+        </div>
+        <div class="lc-actions">
+            <a class="lc-oct solo" href="index.html" title="Классическое оформление" aria-label="Классическое оформление">
+                <img src="Assets/Timed_Assets/03_MainUI/MainUI_common_1/MainUI_common_1_001.png" alt="">
+            </a>
+            <button class="lc-oct" id="lc-settings" type="button" title="Настройки" aria-label="Настройки">
+                <img class="off" src="Assets/Timed_Assets/05_Story_Tutorial_Misc/StoryUI_Frame_1/StoryUI_Frame_1_011.png" alt="">
+                <img class="on" src="Assets/Timed_Assets/05_Story_Tutorial_Misc/StoryUI_Frame_1/StoryUI_Frame_1_021.png" alt="">
+                <span class="dot"></span>
+            </button>
+        </div>
+    </nav>
+
+    <div class="lc-ticker notranslate" aria-hidden="true">
+        <div class="lc-ticker-track">
+            <span>LIMBUS COMPANY <i>✦</i> MEPHISTOPHELES TERMINAL <i>✦</i> PROJECT MOON 5E <i>✦</i> ZAYIN · TETH · HE · WAW · ALEPH <i>✦</i> FIND THE GOLDEN BOUGH <i>✦</i></span>
+            <span>LIMBUS COMPANY <i>✦</i> MEPHISTOPHELES TERMINAL <i>✦</i> PROJECT MOON 5E <i>✦</i> ZAYIN · TETH · HE · WAW · ALEPH <i>✦</i> FIND THE GOLDEN BOUGH <i>✦</i></span>
+        </div>
+    </div>
+
+    <header class="lc-hero">
+        <div class="lc-sigil" aria-hidden="true">
+            <img class="ring" src="Assets/Timed_Assets/01_BattleUI/BattleUI_GoldenBough/BattleUI_GoldenBough_028.png" alt="">
+            <img class="star" src="Assets/Timed_Assets/01_BattleUI/BattleUI_GoldenBough/BattleUI_GoldenBough_029.png" alt="">
+            <img class="clock" src="Assets/Timed_Assets/03_MainUI/New_MainUI_PersonalityList_2/New_MainUI_PersonalityList_2_009.png" alt="">
+        </div>
+        <h1 class="lc-h1">СИСТЕМА МЕФИСТОФЕЛЬ</h1>
+        <div class="lc-sub">
+            <img src="Assets/Timed_Assets/05_Story_Tutorial_Misc/warning_img_glow/warning_img_glow_007.png" alt="">
+            <p>ВЫБЕРИТЕ ПРОТОКОЛ СИНХРОНИЗАЦИИ</p>
+            <img src="Assets/Timed_Assets/05_Story_Tutorial_Misc/warning_img_glow/warning_img_glow_007.png" alt="">
+        </div>
+        <div class="lc-status">
+            <img src="Assets/Timed_Assets/03_MainUI/MainUI_MainStage_1/MainUI_MainStage_1_019.png" alt="">
+            <span>СТАТУС СЕРВЕРА: АКТИВЕН // ОЖИДАНИЕ ВВОДА</span>
+        </div>
+    </header>
+
+    <main class="hub">
+
+        <!-- ЛЕВАЯ КОЛОНКА: УНИВЕРСАЛЬНЫЕ СИСТЕМЫ -->
+        <section class="col">
+            <div class="col-head"><span class="tag notranslate">I</span><h2>УНИВЕРСАЛЬНЫЕ СИСТЕМЫ</h2></div>
+            <div class="grid-uni">
+                <a href="office.html" class="card sin-gluttony">
+                    <span class="bar" aria-hidden="true"></span>
+                    <span class="emb" aria-hidden="true"><img src="Assets/Timed_Assets/01_BattleUI/BattleUI_Choice_3/BattleUI_Choice_3_006.png" alt=""></span>
+                    <div class="body">
+                        <div class="sin">Чревоугодие</div>
+                        <div class="title">УПРАВЛЕНИЕ ОФИСОМ</div>
+                        <div class="lore">Глобальная корпоративная база. Менеджмент агентов, контрактов, репутации и новостей.</div>
+                        <div class="btn">СИНХРОНИЗАЦИЯ ДОСТУПНА</div>
+                    </div>
+                </a>
+
+                <a href="shirm.html" class="card sin-lust">
+                    <span class="bar" aria-hidden="true"></span>
+                    <span class="emb" aria-hidden="true"><img src="Assets/Timed_Assets/01_BattleUI/BattleUI_Choice_3/BattleUI_Choice_3_004.png" alt=""></span>
+                    <div class="body">
+                        <div class="sin">Похоть</div>
+                        <div class="title">ШИРМА</div>
+                        <div class="lore">Доски лора и связей. Карта Города, фракции и свои кампании с туманом войны.</div>
+                        <div class="btn">РАЗВЕРНУТЬ ДОСКУ</div>
+                    </div>
+                </a>
+
+                <div class="pair">
+                    <a href="maps.html" class="card tall sin-wrath">
+                        <span class="bar" aria-hidden="true"></span>
+                        <span class="emb" aria-hidden="true"><img src="Assets/Timed_Assets/01_BattleUI/BattleUI_Choice_3/BattleUI_Choice_3_003.png" alt=""></span>
+                        <div class="body">
+                            <div class="sin">Гнев</div>
+                            <div class="title">РЕДАКТОР КАРТ</div>
+                            <div class="lore">Боевые карты, районы и здания Города. Экспорт в Foundry, Roll20 и другие VTT.</div>
+                            <div class="btn">РАЗВЕРНУТЬ ХОЛСТ</div>
+                        </div>
+                    </a>
+
+                    <a href="foundry.html" class="card tall sin-sloth">
+                        <span class="bar" aria-hidden="true"></span>
+                        <span class="emb" aria-hidden="true"><img src="Assets/Timed_Assets/01_BattleUI/BattleUI_Choice_3/BattleUI_Choice_3_005.png" alt=""></span>
+                        <div class="body">
+                            <div class="sin">Лень</div>
+                            <div class="title">FOUNDRY VTT</div>
+                            <div class="lore">Модуль Mephistopheles: База знаний, статусы, Свет и Э.Г.О. прямо в Foundry.</div>
+                            <div class="btn">СВЯЗЬ С VTT</div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- ПРАВАЯ КОЛОНКА: PMD (D&D 5E) -->
+        <section class="col">
+            <div class="col-head"><span class="tag notranslate">II</span><h2>СИСТЕМА (D&amp;D 5E)</h2></div>
+            <div class="grid-pmd">
+                <a href="builder.html" class="card tall sin-pride">
+                    <span class="bar" aria-hidden="true"></span>
+                    <span class="emb" aria-hidden="true"><img src="Assets/Timed_Assets/01_BattleUI/BattleUI_Choice_3/BattleUI_Choice_3_008.png" alt=""></span>
+                    <div class="body">
+                        <div class="sin">Гордыня</div>
+                        <div class="title">КОНСТРУКТОР ПЕРСОНАЖА</div>
+                        <div class="lore">Система сборки агента. Выбор расы, архетипа и черт.</div>
+                        <div class="btn">СОЗДАТЬ АГЕНТА</div>
+                    </div>
+                </a>
+
+                <a href="egobuilder.html" class="card tall sin-envy">
+                    <span class="bar" aria-hidden="true"></span>
+                    <span class="emb" aria-hidden="true"><img src="Assets/Timed_Assets/01_BattleUI/BattleUI_Choice_3/BattleUI_Choice_3_009.png" alt=""></span>
+                    <div class="body">
+                        <div class="sin">Зависть</div>
+                        <div class="title">КОНСТРУКТОР Э.Г.О.</div>
+                        <div class="lore">Генерация Э.Г.О. атак и оборудования с подсчетом очков.</div>
+                        <div class="grades" aria-hidden="true">
+                            <img src="Assets/Timed_Assets/03_MainUI/MainUI_PersonalityList_3/MainUI_PersonalityList_3_052.png" alt="">
+                            <img src="Assets/Timed_Assets/03_MainUI/MainUI_PersonalityList_3/MainUI_PersonalityList_3_054.png" alt="">
+                            <img src="Assets/Timed_Assets/03_MainUI/MainUI_PersonalityList_3/MainUI_PersonalityList_3_056.png" alt="">
+                            <img src="Assets/Timed_Assets/03_MainUI/MainUI_PersonalityList_3/MainUI_PersonalityList_3_062.png" alt="">
+                            <img src="Assets/Timed_Assets/03_MainUI/MainUI_PersonalityList_3/MainUI_PersonalityList_3_063.png" alt="">
+                        </div>
+                        <div class="btn">МАНИФЕСТАЦИЯ</div>
+                    </div>
+                </a>
+
+                <!-- вся карточка ведёт в Базу знаний (растянутая ссылка заголовка), значки — сразу в нужный раздел -->
+                <div class="card big wide sin-gloom">
+                    <span class="bar" aria-hidden="true"></span>
+                    <span class="emb" aria-hidden="true"><img src="Assets/Timed_Assets/01_BattleUI/BattleUI_Choice_3/BattleUI_Choice_3_007.png" alt=""></span>
+                    <div class="body">
+                        <div class="sin">Уныние</div>
+                        <a class="title stretch" href="navigation.html">БАЗА ЗНАНИЙ (НАВИГАЦИЯ)</a>
+                        <div class="lore">Глобальный архив Project Moon 5e. Правила, лор, классы, черты и механики сеттинга.</div>
+                        <nav class="sections" aria-label="Разделы Базы знаний">
+                            <a href="navigation.html#classes"><img src="Assets/Timed_Assets/03_MainUI/MainUI_MainStage_1/MainUI_MainStage_1_020.png" alt="">Архетипы</a>
+                            <a href="navigation.html#bases"><img src="Assets/Timed_Assets/01_BattleUI/BattleUI_Popup_4/BattleUI_Popup_4_003.png" alt="">Классы</a>
+                            <a href="navigation.html#feats"><img src="Assets/Timed_Assets/01_BattleUI/BattleUI_Popup_4/BattleUI_Popup_4_009.png" alt="">Черты</a>
+                            <a href="navigation.html#equipment"><img src="Assets/Timed_Assets/03_MainUI/MainUI_MainStage_1/MainUI_MainStage_1_004.png" alt="">Снаряжение</a>
+                            <a href="navigation.html#rules"><img src="Assets/Timed_Assets/03_MainUI/MainUI_MainStage_1/MainUI_MainStage_1_005.png" alt="">Правила</a>
+                            <a href="navigation.html#bestiary"><img src="Assets/Timed_Assets/01_BattleUI/BattleUI_CreatureBattle_3/BattleUI_CreatureBattle_3_007.png" alt="">Бестиарий</a>
+                            <a href="navigation.html#gifts"><img src="Assets/Timed_Assets/03_MainUI/MainUI_BattleSelection_9/MainUI_BattleSelection_9_015.png" alt="">Э.Г.О. Гифты</a>
+                            <a href="navigation.html#statuses"><img src="Assets/Timed_Assets/01_BattleUI/BattleUI_Popup_4/BattleUI_Popup_4_021.png" alt="">Статус-эффекты</a>
+                            <a href="navigation.html#lore"><img src="Assets/Timed_Assets/03_MainUI/MainUI_Inventory_1/MainUI_Inventory_1_021.png" alt="">Время и история</a>
+                        </nav>
+                        <div class="btn" aria-hidden="true">ПОДКЛЮЧЕНИЕ К СЕТИ</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Экипаж автобуса: Данте и двенадцать грешников (эмблемы из меню выбора боя) -->
+    <section class="crew" aria-label="Экипаж «Мефистофеля»">
+        <div class="crew-head">Экипаж «Мефистофеля»</div>
+        <ul>
+            <li class="dante" title="Данте"><img src="Assets/Timed_Assets/01_BattleUI/BattleUI_UpperLeft_1/BattleUI_UpperLeft_1_007.png" alt="Данте"></li>
+            <li title="И Сан"><img src="Assets/Timed_Assets/03_MainUI/MainUI_BattleSelection_2/MainUI_BattleSelection_2_002.png" alt="И Сан"></li>
+            <li title="Фауст"><img src="Assets/Timed_Assets/03_MainUI/MainUI_BattleSelection_2/MainUI_BattleSelection_2_003.png" alt="Фауст"></li>
+            <li title="Дон Кихот"><img src="Assets/Timed_Assets/03_MainUI/MainUI_BattleSelection_2/MainUI_BattleSelection_2_004.png" alt="Дон Кихот"></li>
+            <li title="Рёсю"><img src="Assets/Timed_Assets/03_MainUI/MainUI_BattleSelection_2/MainUI_BattleSelection_2_005.png" alt="Рёсю"></li>
+            <li title="Мерсо"><img src="Assets/Timed_Assets/03_MainUI/MainUI_BattleSelection_2/MainUI_BattleSelection_2_006.png" alt="Мерсо"></li>
+            <li title="Хон Лу"><img src="Assets/Timed_Assets/03_MainUI/MainUI_BattleSelection_2/MainUI_BattleSelection_2_007.png" alt="Хон Лу"></li>
+            <li title="Хитклиф"><img src="Assets/Timed_Assets/03_MainUI/MainUI_BattleSelection_2/MainUI_BattleSelection_2_008.png" alt="Хитклиф"></li>
+            <li title="Измаил"><img src="Assets/Timed_Assets/03_MainUI/MainUI_BattleSelection_2/MainUI_BattleSelection_2_009.png" alt="Измаил"></li>
+            <li title="Родион"><img src="Assets/Timed_Assets/03_MainUI/MainUI_BattleSelection_2/MainUI_BattleSelection_2_010.png" alt="Родион"></li>
+            <li title="Синклер"><img src="Assets/Timed_Assets/03_MainUI/MainUI_BattleSelection_2/MainUI_BattleSelection_2_011.png" alt="Синклер"></li>
+            <li title="Аутис"><img src="Assets/Timed_Assets/03_MainUI/MainUI_BattleSelection_2/MainUI_BattleSelection_2_012.png" alt="Аутис"></li>
+            <li title="Грегор"><img src="Assets/Timed_Assets/03_MainUI/MainUI_BattleSelection_2/MainUI_BattleSelection_2_013.png" alt="Грегор"></li>
+        </ul>
+    </section>
+
+    <div class="footer-text notranslate">
+        <img src="Assets/Timed_Assets/03_MainUI/New_MainUI_PersonalityList_2/New_MainUI_PersonalityList_2_012.png" alt="">PROJECT MOON TTRPG FRAMEWORK // BUILD 1.5 // LIMBUS UI
+    </div>
+
+    <script type="module">
+        // ⚙ в шапке — общее окно настроек; зелёная точка — вход выполнен (как у круглой кнопки ui.js)
+        import { onAuth } from './site/auth.js';
+        const gear = document.getElementById('lc-settings');
+        gear.addEventListener('click', () => window.SiteUI && window.SiteUI.open());
+        onAuth((s) => gear.classList.toggle('is-in', !!s.user));
+    </script>
+</body>
+</html>
