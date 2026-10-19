@@ -209,9 +209,11 @@ async function ensureRegistered(user) {
    Гл-Админ — roles/<uid> { role: 'headadmin' }: все права, видит скрытое (приватные записи, все Ширмы и Офисы),
      назначает Админов и выбирает их права. Кодера и других Гл-Админов трогать не может.
    Админ — roles/<uid> { role: 'admin', perms }: только выданные права (PERMS).
+   Тестер — testers/<uid>: не роль сотрудника, а отметка; видит переключатель оформлений (site/theme.js).
+     Выдаёт только Кодер, сам Кодер — тестер всегда.
    Реальные права проверяет сервер (firestore.rules); здесь — только интерфейс. */
 export { CODER_EMAILS, CANON_GROUPS };
-export const ROLES = { coder: 'Кодер', headadmin: 'Гл-Админ', admin: 'Админ' };
+export const ROLES = { coder: 'Кодер', headadmin: 'Гл-Админ', admin: 'Админ', tester: 'Тестер' };
 export const PERMS = {
   canon: 'Редактирование канона',
   moderate: 'Модерация пользовательской базы',
@@ -228,7 +230,8 @@ export function normalizePerms(p) {
     moderate: p.moderate === true, monitor: p.monitor === true, ban: p.ban === true,
   };
 }
-const NO_ACCESS = () => ({ role: null, perms: normalizePerms(null), banned: null });
+// tester: true | false | null (null — отметку прочитать не удалось)
+const NO_ACCESS = () => ({ role: null, perms: normalizePerms(null), banned: null, tester: false });
 
 /** Действует ли блокировка (без until — навсегда). */
 export function banActive(ban) {
@@ -237,12 +240,13 @@ export function banActive(ban) {
   return until == null || until > Date.now();
 }
 
-/** Роль, права и блокировка аккаунта: { role, perms, banned }. */
+/** Роль, права, блокировка и отметка тестера аккаунта: { role, perms, banned, tester }. */
 export async function loadAccess(user = auth.currentUser) {
   if (!user?.email) return NO_ACCESS();
   const out = NO_ACCESS();
-  if (isCoderUser(user)) { out.role = 'coder'; out.perms = fullPerms(); }
+  if (isCoderUser(user)) { out.role = 'coder'; out.perms = fullPerms(); out.tester = true; }
   else {
+    const tester = getDoc(doc(db, 'testers', user.uid)).then((s) => s.exists(), (e) => { console.warn('Не удалось прочитать отметку тестера', e); return null; });
     try {
       const snap = await getDoc(doc(db, 'roles', user.uid));
       const r = snap.exists() ? snap.data() : null;
@@ -253,6 +257,7 @@ export async function loadAccess(user = auth.currentUser) {
       const b = await getDoc(doc(db, 'bans', user.uid));
       if (b.exists() && banActive(b.data())) out.banned = b.data();
     } catch { /* ignore */ }
+    out.tester = await tester;
   }
   return out;
 }
@@ -261,6 +266,7 @@ export async function loadAccess(user = auth.currentUser) {
 export const can = (s, perm) => !!s?.perms?.[perm] && (perm === 'canon' ? s.perms.canon.length > 0 : true);
 export const canCanon = (s, group) => !!s?.perms?.canon?.includes(group);
 export const isHead = (s) => s?.role === 'coder' || s?.role === 'headadmin';
+export const isTester = (s) => s?.role === 'coder' || s?.tester === true;
 
 /* ---------------- Активность (для мониторинга) ----------------
    presence/<uid> = { nick, email, page, lastSeen, firstSeen } — не чаще раза в 10 минут с браузера.
@@ -314,7 +320,7 @@ export async function refreshAccess() {
   return state;
 }
 
-/** Подписка на вход/выход. cb({ ready, user, nick, nickStatus, role, perms, banned, isStaff, isAdmin }).
+/** Подписка на вход/выход. cb({ ready, user, nick, nickStatus, role, perms, banned, tester, isStaff, isAdmin }).
     Возвращает функцию отписки. */
 export function onAuth(cb) {
   listeners.add(cb);

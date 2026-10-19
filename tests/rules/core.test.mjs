@@ -37,6 +37,25 @@ describe('роли', () => {
   });
 });
 
+describe('тестеры', () => {
+  const tester = (by) => ({ nick: 'T', grantedBy: by, grantedByNick: 'x', at: serverTimestamp() });
+  it('выдаёт и снимает только Кодер', async () => {
+    await assertSucceeds(setDoc(doc(as(env, 'coder', CODER), 'testers/u1'), tester('coder')));
+    await assertSucceeds(deleteDoc(doc(as(env, 'coder', CODER), 'testers/u1')));
+  });
+  it('Гл-Админ и сам пользователь выдать не могут', async () => {
+    await seed(env, (db) => setDoc(doc(db, 'roles/head'), role({}, 'headadmin')));
+    await assertFails(setDoc(doc(as(env, 'head'), 'testers/u1'), tester('head')));
+    await assertFails(setDoc(doc(as(env, 'u1'), 'testers/u1'), tester('u1')));
+  });
+  it('тестер видит свою отметку, но не снимает её; чужие не видит', async () => {
+    await seed(env, (db) => setDoc(doc(db, 'testers/u1'), { nick: 'T', grantedBy: 'coder', at: new Date() }));
+    await assertSucceeds(getDoc(doc(as(env, 'u1'), 'testers/u1')));
+    await assertFails(deleteDoc(doc(as(env, 'u1'), 'testers/u1')));
+    await assertFails(getDoc(doc(as(env, 'u2'), 'testers/u1')));
+  });
+});
+
 describe('баны', () => {
   it('заблокированный не создаёт записи в базе', async () => {
     await seed(env, (db) => setDoc(doc(db, 'bans/bad'), { by: 'coder', at: new Date() }));

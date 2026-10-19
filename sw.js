@@ -9,7 +9,7 @@ const VERSION = 'v4';
 const LOCAL = `mt-local-${VERSION}`;
 const CDN = `mt-cdn-${VERSION}`;
 const PRECACHE = ['/', '/index.html', '/navigation.html', '/builder.html', '/egobuilder.html', '/office.html', '/shirm.html', '/maps.html', '/foundry.html', '/Assets/Maps/manifest.json',
-  '/site/i18n.js', '/site/ui.js', '/manifest.webmanifest', '/Assets/App/icon-192.png'];
+  '/site/i18n.js', '/site/theme.js', '/site/ui.js', '/manifest.webmanifest', '/Assets/App/icon-192.png', '/index-limbus.html'];
 // CDN, которые можно хранить: версия зашита в адрес, поэтому файл не меняется; хост обязан быть в connect-src
 const CDN_OK = /^https:\/\/www\.gstatic\.com\/firebasejs\//;
 

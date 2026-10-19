@@ -15,6 +15,7 @@
       Рамки растягиваются через border-image (9-slice), поэтому карточки любого размера не искажают углы.
       Семь карточек = семь цветов грехов: неоновая полоса, подпись и подсветка карточки (переменные .sin-*).
       Кнопка ⚙ в шапке открывает общее окно настроек (site/ui.js), своя круглая кнопка ui.js скрыта через data-site-ui="no-fab".
+      Кодер и Тестеры попадают сюда с index.html, выбрав оформление «Limbus Company» в ⚙ Настройках (site/theme.js).
     -->
     <style>
         :root {
@@ -297,6 +298,7 @@
         }
     </style>
     <script src="site/i18n.js"></script>
+    <script src="site/theme.js"></script>
     <script type="module" src="site/ui.js"></script>
 </head>
 <body>
@@ -307,7 +309,7 @@
             <div class="notranslate"><b>MEPHISTOPHELES TERMINAL</b><small>LIMBUS COMPANY</small></div>
         </div>
         <div class="lc-actions">
-            <a class="lc-oct solo" href="index.html" title="Классическое оформление" aria-label="Классическое оформление">
+            <a class="lc-oct solo" id="lc-classic" href="index.html" title="Классическое оформление" aria-label="Классическое оформление">
                 <img src="Assets/Timed_Assets/03_MainUI/MainUI_common_1/MainUI_common_1_001.png" alt="">
             </a>
             <button class="lc-oct" id="lc-settings" type="button" title="Настройки" aria-label="Настройки">
@@ -460,6 +462,10 @@
         const gear = document.getElementById('lc-settings');
         gear.addEventListener('click', () => window.SiteUI && window.SiteUI.open());
         onAuth((s) => gear.classList.toggle('is-in', !!s.user));
+        // ← у тестера с выбранным оформлением переключает на обычное (иначе index.html вернёт сюда же)
+        document.getElementById('lc-classic').addEventListener('click', (e) => {
+            if (window.SiteTheme && window.SiteTheme.get() !== 'classic') { e.preventDefault(); window.SiteTheme.set('classic'); }
+        });
     </script>
 </body>
 </html>

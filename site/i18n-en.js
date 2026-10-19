@@ -89,6 +89,9 @@
     /* ===================== Настройки и аккаунт (site/ui.js, site/auth.js) ===================== */
     'Настройки': 'Settings',
     'Язык / Language': 'Language',
+    // оформления (site/theme.js) — видны Кодеру и Тестерам
+    'Оформление': 'Theme', 'тест': 'test', 'Классика': 'Classic',
+    'Видно только Кодеру и Тестерам. Страницы без своей версии остаются в обычном оформлении.': 'Visible only to the Coder and Testers. Pages without their own version keep the regular look.',
     'Аккаунт': 'Account',
     'Никнейм': 'Nickname',
     'Сохранить никнейм': 'Save nickname',
@@ -1967,6 +1970,17 @@
     'Скрытое': 'Hidden', 'Журнал': 'Log',
     // роли и права (site/auth.js)
     'Кодер': 'Coder', 'Гл-Админ': 'Head Admin', 'Админ': 'Admin', 'админ': 'admin',
+    // тестеры (testers/<uid>, вкладка «Доступы»)
+    'Тестер': 'Tester', 'Тестеры': 'Testers', 'Тестеров': 'Testers',
+    'Тестеры видят переключатель оформлений в ⚙ Настройках и пробуют новые версии страниц. Это не роль сотрудника: прав в базе и доступа к панели она не даёт. Выдаёт и снимает только Кодер (сам Кодер — тестер всегда).':
+      'Testers see the theme switch in ⚙ Settings and try new versions of pages. It is not a staff role: it grants no database permissions and no panel access. Only the Coder grants and revokes it (the Coder is always a tester).',
+    'Сделать тестером': 'Make tester', 'Уже тестер': 'Already a tester',
+    'Снять роль Тестера': 'Revoke the Tester role', 'Снять роль Тестера с': 'Revoke the Tester role from', 'Вернуть роль Тестера': 'Restore the Tester role',
+    'Тестер добавлен': 'Tester added', 'Тестер снят': 'Tester removed',
+    'Не удалось выдать роль Тестера': 'Could not grant the Tester role', 'Не удалось снять роль Тестера': 'Could not revoke the Tester role',
+    'Каждое действие в панели записывается сюда вместе с прежними значениями. Доступы, тестеры, блокировки, видимость и удаление записей базы откатываются кнопкой':
+      'Every panel action is logged here together with the previous values. Access, testers, bans, visibility and deletion of database entries are reverted with the button',
+    '; правки канона — через «Сравнить» и «Из Assets» в разделе «Канон».': '; canon edits — via “Compare” and “From Assets” in the Canon section.',
     'Редактирование канона': 'Canon editing', 'Модерация пользовательской базы': 'User database moderation',
     'Мониторинг и журнал': 'Monitoring and log', 'Блокировка пользователей': 'User bans',
     'Скрытое содержимое': 'Hidden content', 'Админ-панель': 'Admin panel',

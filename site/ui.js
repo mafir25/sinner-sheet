@@ -1,9 +1,10 @@
-// Общее окно «Настройки» для всех страниц: язык интерфейса + аккаунт (вход / регистрация / профиль).
+// Общее окно «Настройки» для всех страниц: язык интерфейса, оформление (только Кодер и Тестеры, site/theme.js)
+// и аккаунт (вход / регистрация / профиль).
 // Подключение: <script type="module" src="site/ui.js"></script> (после site/i18n.js).
 // Страницы открывают его так: window.SiteUI.open('account') — или слушают вход через onAuth из site/auth.js.
 import {
   onAuth, login, register, logout, setNickname, lockRemainingMs, attemptsLeft,
-  MAX_ATTEMPTS, WINDOW_MS, MIN_PASSWORD, NICK_MAX, ROLES,
+  MAX_ATTEMPTS, WINDOW_MS, MIN_PASSWORD, NICK_MAX, ROLES, isTester,
 } from './auth.js';
 
 const I18N = window.I18N || { lang: 'ru', langs: { ru: { label: 'Русский' } }, setLang() {}, t: (s) => s };
@@ -44,6 +45,7 @@ const CSS = `
 .su-msg.su-err{color:#C7243A}.su-msg.su-ok{color:#8FCC2A}
 .su-mail{color:#45B3CB;word-break:break-all;margin-bottom:10px}
 .su-hint{color:#696969;font-size:12px;line-height:1.4;margin-top:4px}
+.su-tag{display:inline-block;margin-left:6px;padding:1px 5px;border:1px solid #D9772F;color:#D9772F;font-size:10px;vertical-align:1px}
 `;
 
 const html = String.raw;
@@ -73,6 +75,11 @@ function mount() {
         <div class="su-t">Язык / Language</div>
         <div class="su-row" id="su-langs"></div>
       </div>
+      <div class="su-sec" id="su-theme" hidden>
+        <div class="su-t">Оформление<span class="su-tag">тест</span></div>
+        <div class="su-row" id="su-themes"></div>
+        <div class="su-hint">Видно только Кодеру и Тестерам. Страницы без своей версии остаются в обычном оформлении.</div>
+      </div>
       <div class="su-sec" id="su-account"></div>
     </div>`;
   document.body.appendChild(root);
@@ -84,11 +91,31 @@ function mount() {
     langs.appendChild(b);
   }
 
+  const Theme = window.SiteTheme;
+  if (Theme) {
+    const themes = root.querySelector('#su-themes');
+    for (const [code, label] of Object.entries(Theme.THEMES)) {
+      const b = el('button', { class: 'su-seg', type: 'button', 'data-su-theme': code }, label);
+      b.addEventListener('click', () => { Theme.set(code); renderTheme(); });
+      themes.appendChild(b);
+    }
+  }
+
   root.addEventListener('click', (e) => {
     if (e.target === root || e.target.closest('[data-su="close"]')) close();
   });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && root.classList.contains('su-open')) close(); });
+  renderTheme();
   renderAccount();
+}
+
+// Переключатель оформления — только Кодеру и Тестерам (и только если страница подключила site/theme.js)
+function renderTheme() {
+  const sec = root?.querySelector('#su-theme');
+  if (!sec) return;
+  sec.hidden = !(window.SiteTheme && isTester(state));
+  const cur = window.SiteTheme?.get();
+  for (const b of sec.querySelectorAll('[data-su-theme]')) b.setAttribute('aria-pressed', String(b.dataset.suTheme === cur));
 }
 
 function setMsg(text, kind = '') {
@@ -137,7 +164,8 @@ function renderAccount() {
       <button class="su-btn" type="button" data-su="nick">Сохранить никнейм</button>
       ${state.isStaff ? '<a class="su-btn" href="admin.html" style="display:block;text-align:center;text-decoration:none;box-sizing:border-box">Админ-панель</a>' : ''}
       <button class="su-btn su-red" type="button" data-su="logout">Выйти</button>`;
-    box.querySelector('.su-mail').textContent = state.user.email + (state.role ? ` · ${t(ROLES[state.role])}` : '');
+    box.querySelector('.su-mail').textContent = state.user.email + (state.role ? ` · ${t(ROLES[state.role])}` : '')
+      + (state.tester && state.role !== 'coder' ? ` · ${t(ROLES.tester)}` : '');
     if (state.banned) setMsg('Аккаунт заблокирован: создавать и менять что-либо на сайте нельзя', 'err');
     box.querySelector('#su-nick').value = state.nick;
     if (state.nickStatus === 'taken') setMsg('Этот никнейм уже занят другим аккаунтом — выберите другой, иначе вас не найдут по нику', 'err');
@@ -210,7 +238,11 @@ export function close() {
 onAuth((s) => {
   state = s;
   if (fab) fab.classList.toggle('su-in', !!s.user);
-  if (root) renderAccount();
+  // оформление не для всех: без отметки тестера (вышел, сняли роль) — обратно к обычному.
+  // tester === null — отметку не удалось прочитать, выбор не трогаем.
+  const Theme = window.SiteTheme;
+  if (s.ready && Theme && Theme.get() !== 'classic' && !isTester(s) && s.tester !== null) Theme.set('classic', { stay: true });
+  if (root) { renderTheme(); renderAccount(); }
 });
 
 window.SiteUI = { open, close, openAccount: () => open('account') };
