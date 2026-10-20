@@ -48,32 +48,52 @@ html[data-theme="limbus"] body::after {
   background: repeating-linear-gradient(0deg, transparent 0 2px, rgba(0, 0, 0, .16) 2px 3px);
   mix-blend-mode: multiply;
 }
+/* эмблема Limbus Company — водяной знак в неподвижном фоне: при прокрутке остаётся на месте, под содержимым.
+   Свой слой (html::before), потому что прозрачность у фона body::before общая на все его картинки */
+html[data-theme="limbus"]::before {
+  content: ''; position: fixed; z-index: -1; pointer-events: none;
+  left: 50%; top: 50%; width: min(600px, 80vw); aspect-ratio: 456 / 431; transform: translate(-50%, -50%);
+  background: var(--lb-emblem) center / contain no-repeat; opacity: .26;
+}
 html[data-theme="limbus"] ::selection { background: rgba(255, 154, 31, .35); color: #fff; }
 
 /* ---------- Общие детали страниц сайта ----------
    Панели .panel-outer > .hazard-tape + .panel-inner (База знаний, конструкторы, Офис, Foundry) — латунная рамка
-   с тёмным полем. --fw — толщина рамки; тёмное поле спрайта начинается в 42/38/41/36 px из 64 от левого/верхнего/
-   правого/нижнего края, углы поля срезаны на 14 px — по ним вдоль левого края поля идёт неоновая полоса цвета панели:
-   --pc (цвет панели на конструкторе), иначе --accent-primary (цвет раздела), иначе оранжевый. */
+   с тёмным полем. --fw — толщина рамки. Тёмное поле спрайта (срез 64) начинается в 42/38/41/36 px от левого/верхнего/
+   правого/нижнего края, углы поля срезаны на 14 px: --in-* — края поля относительно содержимого панели. По ним идут
+   неоновая полоса вдоль левого края (::before) и свет от неё на всё поле (::after). Цвет — --pc (панель конструктора),
+   иначе --accent-primary (цвет раздела), иначе оранжевый. */
 html[data-theme="limbus"] .cut-tl { clip-path: none; }
 html[data-theme="limbus"] .panel-outer {
   --fw: 22px; --lb-accent: var(--pc, var(--accent-primary, #FF9A1F));
-  position: relative;   /* неоновая полоса (::before) считается от панели — не у всех страниц панель уже relative */
+  --in-l: calc(var(--fw) * -22 / 64); --in-t: calc(var(--fw) * -26 / 64);
+  --in-r: calc(var(--fw) * -23 / 64); --in-b: calc(var(--fw) * -28 / 64); --in-c: calc(var(--fw) * 14 / 64);
+  isolation: isolate;   /* свет (z-index: -1) — над рамкой, но под содержимым */
   background: none; padding: 0; clip-path: none;
   border: var(--fw) solid transparent; border-image: var(--lb-frame) 64 fill / var(--fw) stretch;
 }
+/* полоса и свет считаются от панели: где страница её не позиционировала (Foundry), делаем relative. Без веса
+   селектора (:where) — своё позиционирование страницы (sticky у вывода в конструкторах) остаётся в силе */
+:where(html[data-theme="limbus"] .panel-outer) { position: relative; }
 html[data-theme="limbus"] .panel-outer::before {
   content: ''; position: absolute; z-index: 1; pointer-events: none; width: 4px; border-radius: 2px;
-  left: calc(var(--fw) * -22 / 64 + 3px);
-  top: calc(var(--fw) * (14 - 26) / 64); bottom: calc(var(--fw) * (14 - 28) / 64);
+  left: calc(var(--in-l) + 3px); top: calc(var(--in-t) + var(--in-c)); bottom: calc(var(--in-b) + var(--in-c));
   background: linear-gradient(180deg, color-mix(in srgb, var(--lb-accent) 70%, #fff), var(--lb-accent) 20%, var(--lb-accent) 80%, color-mix(in srgb, var(--lb-accent) 70%, #fff));
   box-shadow: 0 0 6px var(--lb-accent), 0 0 14px color-mix(in srgb, var(--lb-accent) 60%, transparent);
 }
-html[data-theme="limbus"] .panel-outer > .hazard-tape { display: none; }
-html[data-theme="limbus"] .panel-inner {
-  background: linear-gradient(90deg, color-mix(in srgb, var(--lb-accent) 10%, transparent), transparent 40%);
-  clip-path: none; padding: 10px 14px 10px 18px;
+html[data-theme="limbus"] .panel-outer::after {
+  content: ''; position: absolute; z-index: -1; pointer-events: none;
+  inset: var(--in-t) var(--in-r) var(--in-b) var(--in-l);
+  clip-path: polygon(var(--in-c) 0, calc(100% - var(--in-c)) 0, 100% var(--in-c), 100% calc(100% - var(--in-c)),
+    calc(100% - var(--in-c)) 100%, var(--in-c) 100%, 0 calc(100% - var(--in-c)), 0 var(--in-c));
+  background: linear-gradient(90deg, color-mix(in srgb, var(--lb-accent) 16%, transparent) 0, color-mix(in srgb, var(--lb-accent) 6%, transparent) 30%, transparent 60%);
 }
+html[data-theme="limbus"] .panel-outer > .hazard-tape { display: none; }
+html[data-theme="limbus"] .panel-inner { background: none; clip-path: none; padding: 10px 14px 10px 18px; }
+/* панель с прокруткой (вывод в конструкторах): прокручивается содержимое, а не рамка — иначе прокрутка
+   обрезает полосу и свет по краю содержимого и они уезжают вместе с текстом */
+html[data-theme="limbus"] .output-panel { overflow: visible; }
+html[data-theme="limbus"] .output-panel > .panel-inner { overflow-y: auto; min-height: 0; flex: 1 1 auto; }
 
 /* заголовок страницы — золото, под ним неон цвета раздела */
 html[data-theme="limbus"] .header-bar {

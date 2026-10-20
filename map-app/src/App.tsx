@@ -28,6 +28,7 @@ import { boxSelect } from './tools/hit';
 
 const ALL = { x0: -Infinity, y0: -Infinity, x1: Infinity, y1: Infinity };
 
+// кнопки, открывающие окно настроек сайта, помечены data-su-account — пока они видны, site/ui.js прячет свою ⚙
 const openSiteUi = (section: string) => (window as unknown as { SiteUI?: { open(s: string): void } }).SiteUI?.open(section);
 
 export function App() {
@@ -45,7 +46,7 @@ export function App() {
         <h1>{tr('Редактор карт')}</h1>
         <p>{tr('Чтобы рисовать карты, войди в аккаунт.')}</p>
         <p className="hint">{tr('Карты хранятся у тебя: в браузере и в файлах. На сервер ничего не загружается.')}</p>
-        <button className="btn btn-primary" onClick={() => openSiteUi('login')}>{tr('Войти')}</button>
+        <button className="btn btn-primary" data-su-account="" onClick={() => openSiteUi('login')}>{tr('Войти')}</button>
       </div>
     );
   }
@@ -413,7 +414,7 @@ function Workspace({ ed, assets, user, onExit, onOpen }: { ed: Editor; assets: A
           <button className="icon-btn" title={tr('Район и ссылки: палитра Района, ссылка для Ширмы, ссылки на Базу знаний')} onClick={() => setDialog('links')}>🔗</button>
           <button className="icon-btn" title={tr('Настройки карты')} onClick={() => setDialog('settings')}>⚙</button>
           <button className="icon-btn" title={tr('Управление')} onClick={() => setDialog('help')}>?</button>
-          <button className="btn user" title={tr('Аккаунт и настройки')} onClick={() => openSiteUi('account')}>{nick}</button>
+          <button className="btn user" data-su-account="" title={tr('Аккаунт и настройки')} onClick={() => openSiteUi('account')}>{nick}</button>
         </div>
       </header>
       <main className={`work${panels.left ? '' : ' no-left'}${panels.right ? '' : ' no-right'}`}>

@@ -11,6 +11,7 @@ import { DialogHost, Modal, confirmDialog } from './ui/dialogs';
 import { Toasts, toast } from './ui/toast';
 
 const LS = (k: string) => { try { return localStorage.getItem(k) ?? ''; } catch { return ''; } };
+// кнопки, открывающие окно настроек сайта, помечены data-su-account — пока они видны, site/ui.js прячет свою ⚙
 const openSiteUi = (section: string) =>
   (window as unknown as { SiteUI?: { open(s: string): void } }).SiteUI?.open(section);
 const LSset = (k: string, v: string) => { try { localStorage.setItem(k, v); } catch { /* приватный режим */ } };
@@ -25,7 +26,7 @@ export function App() {
       <div className="splash">
         <h1>Лор-Ширма</h1>
         <p>Чтобы открыть ширмы, войди в аккаунт.</p>
-        <button className="btn btn-primary" onClick={() => openSiteUi('login')}>Войти</button>
+        <button className="btn btn-primary" data-su-account="" onClick={() => openSiteUi('login')}>Войти</button>
       </div>
     );
   }
@@ -112,7 +113,7 @@ function Workspace({ user }: { user: User }) {
           <NotesPanel uid={user.uid} />
           <button className="btn" title="Режим показа: только доска на весь экран — для экрана игроков (Esc — выход)" onClick={() => setPresenting(true)}>▣ Показ</button>
           <button className="btn" onClick={() => setHelp(true)}>? Управление</button>
-          <button className="btn user notranslate" title="Аккаунт и настройки" onClick={() => openSiteUi('account')}>{nick}</button>
+          <button className="btn user notranslate" data-su-account="" title="Аккаунт и настройки" onClick={() => openSiteUi('account')}>{nick}</button>
           <button className="btn btn-primary" onClick={() => setNewOpen(true)}>＋ Новая ширма</button>
         </div>
       </header>

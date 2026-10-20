@@ -38,6 +38,27 @@ html[data-theme="limbus"] .cat-btn.active {
   color: #FFE2B0; text-shadow: 0 0 8px var(--accent-primary); font-weight: 500;
 }
 
+/* ---------- Значки разделов — спрайты, как на главной (вместо значков Font Awesome) ----------
+   Везде, где у раздела стоит значок: вкладки, метка раздела на карточке, сборка, всплывающая ссылка, поиск по базе,
+   полный парсинг, кабинет. site/navigation.js ставит значок раздела как <i class="fa-solid …"> — по этому классу и меняем. */
+html[data-theme="limbus"] :is(.cat-btn, .badge-cat, .sidebar-h2, .xp-cat, .xp-choice, .gs-cat, .fp-ghead, [data-act="cab-cat"]) > .fa-book-journal-whills { --lb-ico: url('/Assets/Timed_Assets/03_MainUI/MainUI_MainStage_1/MainUI_MainStage_1_020.png'); }   /* Архетипы */
+html[data-theme="limbus"] :is(.cat-btn, .badge-cat, .sidebar-h2, .xp-cat, .xp-choice, .gs-cat, .fp-ghead, [data-act="cab-cat"]) > .fa-sitemap             { --lb-ico: url('/Assets/Timed_Assets/01_BattleUI/BattleUI_Popup_4/BattleUI_Popup_4_003.png'); }   /* Классы */
+html[data-theme="limbus"] :is(.cat-btn, .badge-cat, .sidebar-h2, .xp-cat, .xp-choice, .gs-cat, .fp-ghead, [data-act="cab-cat"]) > .fa-dumbbell            { --lb-ico: url('/Assets/Timed_Assets/01_BattleUI/BattleUI_Popup_4/BattleUI_Popup_4_009.png'); }   /* Черты */
+html[data-theme="limbus"] :is(.cat-btn, .badge-cat, .sidebar-h2, .xp-cat, .xp-choice, .gs-cat, .fp-ghead, [data-act="cab-cat"]) > .fa-shield-halved       { --lb-ico: url('/Assets/Timed_Assets/03_MainUI/MainUI_MainStage_1/MainUI_MainStage_1_004.png'); }   /* Снаряжение */
+html[data-theme="limbus"] :is(.cat-btn, .badge-cat, .sidebar-h2, .xp-cat, .xp-choice, .gs-cat, .fp-ghead, [data-act="cab-cat"]) > .fa-scale-balanced      { --lb-ico: url('/Assets/Timed_Assets/03_MainUI/MainUI_MainStage_1/MainUI_MainStage_1_005.png'); }   /* Правила */
+html[data-theme="limbus"] :is(.cat-btn, .badge-cat, .sidebar-h2, .xp-cat, .xp-choice, .gs-cat, .fp-ghead, [data-act="cab-cat"]) > .fa-skull               { --lb-ico: url('/Assets/Timed_Assets/01_BattleUI/BattleUI_CreatureBattle_3/BattleUI_CreatureBattle_3_007.png'); }   /* Бестиарий */
+html[data-theme="limbus"] :is(.cat-btn, .badge-cat, .sidebar-h2, .xp-cat, .xp-choice, .gs-cat, .fp-ghead, [data-act="cab-cat"]) > .fa-gem                 { --lb-ico: url('/Assets/Timed_Assets/03_MainUI/MainUI_BattleSelection_9/MainUI_BattleSelection_9_015.png'); }   /* Э.Г.О. Гифты */
+html[data-theme="limbus"] :is(.cat-btn, .badge-cat, .sidebar-h2, .xp-cat, .xp-choice, .gs-cat, .fp-ghead, [data-act="cab-cat"]) > .fa-biohazard           { --lb-ico: url('/Assets/Timed_Assets/01_BattleUI/BattleUI_Popup_4/BattleUI_Popup_4_021.png'); }   /* Статус-эффекты */
+html[data-theme="limbus"] :is(.cat-btn, .badge-cat, .sidebar-h2, .xp-cat, .xp-choice, .gs-cat, .fp-ghead, [data-act="cab-cat"]) > .fa-hourglass-half      { --lb-ico: url('/Assets/Timed_Assets/03_MainUI/MainUI_Inventory_1/MainUI_Inventory_1_021.png'); }   /* Время и история */
+html[data-theme="limbus"] :is(.cat-btn, .badge-cat, .sidebar-h2, .xp-cat, .xp-choice, .gs-cat, .fp-ghead, [data-act="cab-cat"]) > .fa-id-card             { --lb-ico: url('/Assets/Timed_Assets/01_BattleUI/BattleUI_Popup_4/BattleUI_Popup_4_011.png'); }   /* Кабинет */
+html[data-theme="limbus"] :is(.cat-btn, .badge-cat, .sidebar-h2, .xp-cat, .xp-choice, .gs-cat, .fp-ghead, [data-act="cab-cat"]) > :is(.fa-book-journal-whills, .fa-sitemap, .fa-dumbbell, .fa-shield-halved, .fa-scale-balanced, .fa-skull, .fa-gem, .fa-biohazard, .fa-hourglass-half, .fa-id-card) {
+  display: inline-block; width: 1.35em; height: 1.35em; vertical-align: -.3em; flex: none;
+  background: var(--lb-ico) center / contain no-repeat; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .8));
+}
+html[data-theme="limbus"] :is(.cat-btn, .badge-cat, .sidebar-h2, .xp-cat, .xp-choice, .gs-cat, .fp-ghead, [data-act="cab-cat"]) > :is(.fa-book-journal-whills, .fa-sitemap, .fa-dumbbell, .fa-shield-halved, .fa-scale-balanced, .fa-skull, .fa-gem, .fa-biohazard, .fa-hourglass-half, .fa-id-card)::before { content: none; }
+html[data-theme="limbus"] .cat-btn > i.fa-solid { width: 1.6em; height: 1.6em; vertical-align: -.45em; }
+html[data-theme="limbus"] .cat-btn.active > i.fa-solid { filter: drop-shadow(0 0 5px var(--accent-primary)) drop-shadow(0 1px 1px rgba(0, 0, 0, .8)); }
+
 /* ---------- Заголовок раздела: золото (base.css), под ним — неон цвета раздела ---------- */
 html[data-theme="limbus"] .header-subtitle { color: var(--lb-beige-dim); }
 

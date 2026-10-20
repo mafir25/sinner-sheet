@@ -2,8 +2,8 @@
    Подключается из shirm-app/src/main.tsx (мимо сборщика). Доска и цвета узлов, рамок и связей — как у пользователя. */
 @import url('apps.css');
 
-/* у Ширмы фон — сама доска: сетку и строки развёртки base.css не накладываем, чтобы не мешать работе */
-html[data-theme="limbus"] body::before, html[data-theme="limbus"] body::after { display: none; }
+/* у Ширмы фон — сама доска: сетку, эмблему и строки развёртки base.css не накладываем, чтобы не мешать работе */
+html[data-theme="limbus"]::before, html[data-theme="limbus"] body::before, html[data-theme="limbus"] body::after { display: none; }
 
 html[data-theme="limbus"] .workspace { background: #1a120c; }
 html[data-theme="limbus"] .panel { border-color: #3a2717; background: #0d0907; }

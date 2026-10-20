@@ -244,7 +244,7 @@ onAuth((a) => {
   if (!a.user) {
     $('#tabs').hidden = true;
     view().innerHTML = `<div class="notice">Админ-панель доступна только сотрудникам. Войдите в аккаунт.
-      <div style="margin-top:10px"><button class="btn" id="login-btn">Войти</button></div></div>`;
+      <div style="margin-top:10px"><button class="btn" id="login-btn" data-su-account>Войти</button></div></div>`;
     $('#login-btn').onclick = () => window.SiteUI?.open('login');
     return;
   }
