@@ -2,8 +2,8 @@
    Подключается из map-app/src/main.tsx (мимо сборщика). Холст карты и её цвета не меняются. */
 @import url('apps.css');
 
-/* фон — сама карта: сетку, эмблему и строки развёртки base.css не накладываем */
-html[data-theme="limbus"]::before, html[data-theme="limbus"] body::before, html[data-theme="limbus"] body::after { display: none; }
+/* фон — сама карта: сетку и строки развёртки base.css не накладываем */
+html[data-theme="limbus"] body::before, html[data-theme="limbus"] body::after { display: none; }
 
 /* боковые панели — тёмная бронза с латунной кромкой */
 html[data-theme="limbus"] .left, html[data-theme="limbus"] .right { background: linear-gradient(180deg, #120c08, #0b0705); }

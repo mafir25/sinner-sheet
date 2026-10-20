@@ -27,7 +27,6 @@ html[data-theme="limbus"] {
   --lb-tag: url('/Assets/Timed_Assets/03_MainUI/MainUI_Formation_9/MainUI_Formation_9_046.png');         /* бурая плашка с полутоном */
   --lb-gear: url('/Assets/Timed_Assets/05_Story_Tutorial_Misc/StoryUI_Frame_1/StoryUI_Frame_1_011.png');
   --lb-gear-on: url('/Assets/Timed_Assets/05_Story_Tutorial_Misc/StoryUI_Frame_1/StoryUI_Frame_1_021.png');
-  --lb-emblem: url('/Assets/Timed_Assets/03_MainUI/MainUI_common_Popup_01/MainUI_common_Popup_01_025.png');
   color-scheme: dark;
   scrollbar-color: #6b4422 #0d0907;
 }
@@ -47,13 +46,6 @@ html[data-theme="limbus"] body::after {
   content: ''; position: fixed; inset: 0; z-index: 50; pointer-events: none;
   background: repeating-linear-gradient(0deg, transparent 0 2px, rgba(0, 0, 0, .16) 2px 3px);
   mix-blend-mode: multiply;
-}
-/* эмблема Limbus Company — водяной знак в неподвижном фоне: при прокрутке остаётся на месте, под содержимым.
-   Свой слой (html::before), потому что прозрачность у фона body::before общая на все его картинки */
-html[data-theme="limbus"]::before {
-  content: ''; position: fixed; z-index: -1; pointer-events: none;
-  left: 50%; top: 50%; width: min(600px, 80vw); aspect-ratio: 456 / 431; transform: translate(-50%, -50%);
-  background: var(--lb-emblem) center / contain no-repeat; opacity: .26;
 }
 html[data-theme="limbus"] ::selection { background: rgba(255, 154, 31, .35); color: #fff; }
 
