@@ -1,0 +1,73 @@
+/* Оформление Limbus Company — Офис (office.html). Общие детали (панели, поля, заголовок, уведомления) — base.css.
+   Цвет панели в Офисе — --tape (t-green, t-yellow, t-red, t-cyan): он светится в неоновой полосе и заголовке панели. */
+html[data-theme="limbus"] .panel-outer { --lb-accent: var(--tape, var(--accent-primary)); }
+
+/* ---------- Верхняя панель ---------- */
+html[data-theme="limbus"] .topbar { border-bottom: 2px solid #6b4422; box-shadow: 0 8px 14px -12px rgba(255, 154, 31, .5); }
+html[data-theme="limbus"] .nav-btn.cyan { --c: var(--color-cyan); }
+html[data-theme="limbus"] .nav-btn { --c: var(--accent-primary); }
+html[data-theme="limbus"] .dropdown-content { background: #0d0907; border-color: #8b5a2b; box-shadow: 0 6px 20px rgba(0, 0, 0, .85), inset 0 2px 0 rgba(139, 90, 43, .55); }
+html[data-theme="limbus"] .dropdown-item { border-bottom-color: #2a1a0e; }
+html[data-theme="limbus"] .dropdown-item:hover, html[data-theme="limbus"] .dropdown-item:focus-visible { background-color: rgba(255, 154, 31, .1); color: #FFD27A; }
+html[data-theme="limbus"] .dropdown-item.current { color: var(--lb-orange); }
+
+/* ---------- Кнопки: таблички с латунной обводкой, цвет действия — в тексте; при наведении — неон ---------- */
+html[data-theme="limbus"] .btn {
+  border: 8px solid transparent; border-image: var(--lb-chip) 24 / 8px stretch;
+  background: rgba(10, 8, 6, .85) padding-box; padding: 1px 6px; color: var(--lb-beige-dim);
+}
+html[data-theme="limbus"] .btn:hover:not(:disabled) {
+  border-image-source: var(--lb-chip-on); border-image-slice: 22; background: rgba(40, 20, 6, .85) padding-box; color: #FFD27A;
+}
+html[data-theme="limbus"] .btn.yellow, html[data-theme="limbus"] .btn.yellow:hover:not(:disabled) { color: var(--color-yellow); }
+html[data-theme="limbus"] .btn.red, html[data-theme="limbus"] .btn.red:hover:not(:disabled) { color: #ff6b5c; }
+html[data-theme="limbus"] .btn.cyan, html[data-theme="limbus"] .btn.cyan:hover:not(:disabled) { color: var(--color-cyan); }
+html[data-theme="limbus"] .btn.green, html[data-theme="limbus"] .btn.green:hover:not(:disabled) { color: var(--accent-primary); }
+/* крупные кнопки — латунные плашки, при наведении горят */
+html[data-theme="limbus"] .btn.big {
+  border: 11px solid transparent; border-image: var(--lb-btn) 26 fill / 11px stretch; background: none; padding: 0 8px; color: var(--lb-beige);
+}
+html[data-theme="limbus"] .btn.big:hover:not(:disabled) { border-image-source: var(--lb-btn-on); background: none; color: #FFD27A; text-shadow: 0 0 8px rgba(255, 154, 31, .8); }
+html[data-theme="limbus"] .icon-btn:hover { color: var(--lb-orange); }
+
+/* ---------- Поля ---------- */
+html[data-theme="limbus"] .field { background: #0d0907; border-color: #4a3220; color: var(--lb-text); }
+html[data-theme="limbus"] .field:focus { border-color: var(--lb-orange); }
+html[data-theme="limbus"] .check input { accent-color: var(--lb-orange); }
+html[data-theme="limbus"] .section { border-bottom-color: #2a1a0e; }
+
+/* ---------- Левая колонка ---------- */
+html[data-theme="limbus"] .logo-area { background-color: #0d0907; border-color: #6b4422; }
+html[data-theme="limbus"] .logo-area:not(:disabled):hover, html[data-theme="limbus"] .logo-area:not(:disabled):focus-visible { border-color: var(--lb-orange); }
+html[data-theme="limbus"] .office-name-input { color: var(--lb-gold); }
+html[data-theme="limbus"] .member-item { border-bottom-color: #2a1a0e; }
+html[data-theme="limbus"] .builder-card { border-color: #5c3c1e; background: rgba(255, 220, 170, .03); }
+html[data-theme="limbus"] .preset-card { border-color: #3a2717; background: rgba(255, 220, 170, .02); }
+html[data-theme="limbus"] .preset-desc { border-top-color: #2a1a0e; }
+
+/* ---------- Доска контрактов ---------- */
+html[data-theme="limbus"] .grade-block { border-color: #3a2717; }
+html[data-theme="limbus"] .grade-header { background: linear-gradient(90deg, rgba(139, 90, 43, .22), rgba(0, 0, 0, .6) 60%); }
+html[data-theme="limbus"] .grade-header:hover { background: linear-gradient(90deg, rgba(241, 196, 15, .18), rgba(0, 0, 0, .6) 60%); }
+html[data-theme="limbus"] .grade-content { background: #0d0907; }
+html[data-theme="limbus"] .quest-item { border-bottom-color: #2a1a0e; }
+html[data-theme="limbus"] .quest-toggle:hover { background: rgba(255, 154, 31, .05); }
+html[data-theme="limbus"] .quest-admin { border-top-color: #2a1a0e; }
+
+/* ---------- Правая колонка ---------- */
+html[data-theme="limbus"] .tab-btn { color: var(--lb-beige-dim); }
+html[data-theme="limbus"] .tab-btn:hover { color: var(--lb-beige); }
+html[data-theme="limbus"] .tab-btn[aria-selected="true"] { color: var(--lb-orange); border-bottom-color: var(--lb-orange); text-shadow: 0 0 8px rgba(255, 154, 31, .6); }
+html[data-theme="limbus"] .ledger-item, html[data-theme="limbus"] .stock-item { border-bottom-color: #2a1a0e; }
+html[data-theme="limbus"] .converter { border-color: #3a2717; background: rgba(10, 8, 6, .55); }
+html[data-theme="limbus"] .rep-bar { border-color: #4a3220; background: #0d0907; }
+html[data-theme="limbus"] .bank-chart svg { border-bottom-color: #2a1a0e; }
+
+/* ---------- Окна и уведомления (цвета итога — цвета грехов) ---------- */
+html[data-theme="limbus"] .modal-box { --fw: 26px; }
+html[data-theme="limbus"] .dialog-preview, html[data-theme="limbus"] .q-icon-option { background-color: #0d0907; border-color: #4a3220; }
+html[data-theme="limbus"] .qm-row { border-bottom-color: #2a1a0e; }
+html[data-theme="limbus"] .toast { box-shadow: none; filter: drop-shadow(0 4px 12px rgba(0, 0, 0, .8)); }
+html[data-theme="limbus"] .toast.success { color: var(--sin-gluttony); text-shadow: 0 0 8px rgba(143, 204, 42, .6); }
+html[data-theme="limbus"] .toast.error { color: #ff6b5c; text-shadow: 0 0 8px rgba(224, 64, 46, .6); }
+html[data-theme="limbus"] .toast.loading { color: var(--sin-sloth); text-shadow: 0 0 8px rgba(232, 181, 30, .6); }
