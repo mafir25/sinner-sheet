@@ -2,6 +2,8 @@
 // и аккаунт (вход / регистрация / профиль).
 // Подключение: <script type="module" src="site/ui.js"></script> (после site/i18n.js).
 // Страницы открывают его так: window.SiteUI.open('account') — или слушают вход через onAuth из site/auth.js.
+// Своя кнопка страницы, открывающая это окно (вход, аккаунт), помечается атрибутом data-su-account: пока такая кнопка
+// видна, круглую ⚙ в углу не показываем — одно окно не открывается двумя кнопками, и ⚙ не перекрывает панели.
 import {
   onAuth, login, register, logout, setNickname, lockRemainingMs, attemptsLeft,
   MAX_ATTEMPTS, WINDOW_MS, MIN_PASSWORD, NICK_MAX, ROLES, isTester,
@@ -14,6 +16,7 @@ const CSS = `
 .su-fab{position:fixed;left:14px;bottom:14px;z-index:9000;width:40px;height:40px;border:1px solid #45B3CB;background:#000;color:#45B3CB;
   cursor:pointer;font:600 18px/1 'Oswald',sans-serif;display:flex;align-items:center;justify-content:center;opacity:.75;transition:.2s}
 .su-fab:hover,.su-fab:focus-visible{opacity:1;box-shadow:0 0 12px rgba(69,179,203,.45)}
+.su-fab[hidden]{display:none}
 .su-fab .su-dot{position:absolute;top:-4px;right:-4px;width:9px;height:9px;border-radius:50%;background:#8FCC2A;display:none}
 .su-fab.su-in .su-dot{display:block}
 @media(max-width:600px){.su-fab{left:8px;bottom:calc(8px + env(safe-area-inset-bottom));width:34px;height:34px;font-size:16px;opacity:.55}}
@@ -65,7 +68,10 @@ function mount() {
   fab = el('button', { class: 'su-fab', type: 'button', title: t('Настройки'), 'aria-label': t('Настройки') });
   fab.innerHTML = '⚙<span class="su-dot"></span>';
   fab.addEventListener('click', () => open());
-  if (document.documentElement.dataset.siteUi !== 'no-fab') document.body.appendChild(fab);
+  if (document.documentElement.dataset.siteUi !== 'no-fab') {
+    document.body.appendChild(fab);
+    watchOwnButtons();
+  }
 
   root = el('div', { class: 'su-ov', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'su-title' });
   root.innerHTML = html`
@@ -116,6 +122,19 @@ function renderTheme() {
   sec.hidden = !(window.SiteTheme && isTester(state));
   const cur = window.SiteTheme?.get();
   for (const b of sec.querySelectorAll('[data-su-theme]')) b.setAttribute('aria-pressed', String(b.dataset.suTheme === cur));
+}
+
+// ⚙ прячется, пока на странице видна своя кнопка входа или аккаунта ([data-su-account]). Кнопки появляются и исчезают
+// (экраны приложений, вход и выход), поэтому следим за разметкой; проверка — не чаще раза за кадр.
+function watchOwnButtons() {
+  let queued = false;
+  const sync = () => {
+    queued = false;
+    fab.hidden = [...document.querySelectorAll('[data-su-account]')].some((e) => e.getClientRects().length > 0);
+  };
+  const queue = () => { if (!queued) { queued = true; requestAnimationFrame(sync); } };
+  new MutationObserver(queue).observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['hidden', 'class'] });
+  sync();
 }
 
 function setMsg(text, kind = '') {

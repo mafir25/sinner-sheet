@@ -28,7 +28,6 @@
             --text: #E0D2B8; --text-dim: #8A7660;
 
             /* спрайты */
-            --spr-emblem: url('Assets/Timed_Assets/03_MainUI/MainUI_common_Popup_01/MainUI_common_Popup_01_025.png');
             --spr-gold: url('Assets/Timed_Assets/03_MainUI/MainUI_common_Popup_01/MainUI_common_Popup_01_036.png');
             --spr-card: url('Assets/Timed_Assets/01_BattleUI/BattleUI_Choice_3/BattleUI_Choice_3_023.png');
             --spr-neon: url('Assets/Timed_Assets/03_MainUI/MainUI_UserInfo_6/MainUI_UserInfo_6_011.png');
@@ -112,10 +111,13 @@
             position: relative; width: 100%; max-width: 1400px; padding: 34px 20px 10px;
             display: flex; flex-direction: column; align-items: center; text-align: center;
         }
-        /* эмблема Limbus Company водяным знаком */
-        .lc-hero::before {
-            content: ''; position: absolute; z-index: -1; left: 50%; top: 4px; width: min(560px, 100%); aspect-ratio: 456 / 431;
-            transform: translateX(-50%); background: var(--spr-emblem) center / contain no-repeat; opacity: .32;
+        /* эмблема Limbus Company — водяной знак в неподвижном фоне (только на главной): при прокрутке остаётся
+           на месте, под содержимым. Свой слой html::before — у фона body::before (base.css) прозрачность общая */
+        html::before {
+            content: ''; position: fixed; z-index: -1; pointer-events: none;
+            left: 50%; top: 50%; width: min(600px, 80vw); aspect-ratio: 456 / 431; transform: translate(-50%, -50%);
+            background: url('Assets/Timed_Assets/03_MainUI/MainUI_common_Popup_01/MainUI_common_Popup_01_025.png') center / contain no-repeat;
+            opacity: .26;
         }
         .lc-sigil { position: relative; width: 168px; height: 168px; display: grid; place-items: center; margin-bottom: 8px; }
         .lc-sigil img { grid-area: 1 / 1; }
