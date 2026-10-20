@@ -1,0 +1,88 @@
+/* Оформление Limbus Company — общий слой (фон, окно ⚙ Настроек, поля ввода). Работает только при
+   <html data-theme="limbus"> (его ставит site/theme.js), поэтому у обычного оформления ничего не меняется,
+   а спрайты грузятся только в этом оформлении.
+   Только спрайты интерфейса из Assets/Timed_Assets/: без героев Limbus и без иконок грехов — только их цвета.
+   Подключение — в <head> после собственных стилей страницы:
+     <link rel="stylesheet" href="site/themes/limbus/base.css">
+     <link rel="stylesheet" href="site/themes/limbus/<страница>.css">   (если у страницы есть свой слой)
+   Рамки растягиваются через border-image (9-slice): число после url — срез спрайта в пикселях. */
+
+html[data-theme="limbus"] {
+  --lb-bg: #0b0705; --lb-text: #E0D2B8; --lb-text-dim: #8A7660;
+  --lb-beige: #EBCFA4; --lb-beige-dim: #9C8468; --lb-gold: #F5C15A; --lb-orange: #FF9A1F; --lb-brass: #8B5A2B;
+  /* семь грехов — только цвета */
+  --sin-wrath: #E0402E; --sin-lust: #F07A2A; --sin-sloth: #E8B51E; --sin-gluttony: #8FCC2A;
+  --sin-gloom: #45B3CB; --sin-pride: #3A78E0; --sin-envy: #B24FE0;
+
+  /* спрайты (пути от корня сайта) */
+  --lb-grid: url('/Assets/Timed_Assets/03_MainUI/MainUI_BattleSelection_1/MainUI_BattleSelection_1_001.png');
+  --lb-gold-tex: url('/Assets/Timed_Assets/03_MainUI/MainUI_common_Popup_01/MainUI_common_Popup_01_036.png');
+  --lb-frame: url('/Assets/Timed_Assets/01_BattleUI/BattleUI_Choice_3/BattleUI_Choice_3_023.png');        /* латунь + тёмное поле, срез 64 */
+  --lb-plate: url('/Assets/Timed_Assets/01_BattleUI/BattleUI_Choice_5/BattleUI_Choice_5_043.png');        /* латунь с полутоном, срез 36 */
+  --lb-btn: url('/Assets/Timed_Assets/03_MainUI/MainUI_common_1/MainUI_common_1_020.png');               /* кнопка, срез 26 */
+  --lb-btn-on: url('/Assets/Timed_Assets/03_MainUI/MainUI_common_1/MainUI_common_1_026.png');            /* кнопка горит, срез 26 */
+  --lb-chip: url('/Assets/Timed_Assets/03_MainUI/MainUI_PersonalityList_1/MainUI_PersonalityList_1_004.png'); /* тонкая латунная обводка, срез 24 */
+  --lb-chip-on: url('/Assets/Timed_Assets/03_MainUI/New_MainUI_Formation_1/New_MainUI_Formation_1_044.png');  /* оранжевый неон, срез 22 */
+  --lb-neon: url('/Assets/Timed_Assets/03_MainUI/MainUI_UserInfo_6/MainUI_UserInfo_6_011.png');          /* неон со срезанными углами, срез 44 */
+  --lb-tag: url('/Assets/Timed_Assets/03_MainUI/MainUI_Formation_9/MainUI_Formation_9_046.png');         /* бурая плашка с полутоном */
+  --lb-gear: url('/Assets/Timed_Assets/05_Story_Tutorial_Misc/StoryUI_Frame_1/StoryUI_Frame_1_011.png');
+  --lb-gear-on: url('/Assets/Timed_Assets/05_Story_Tutorial_Misc/StoryUI_Frame_1/StoryUI_Frame_1_021.png');
+  --lb-emblem: url('/Assets/Timed_Assets/03_MainUI/MainUI_common_Popup_01/MainUI_common_Popup_01_025.png');
+  color-scheme: dark;
+  scrollbar-color: #6b4422 #0d0907;
+}
+
+/* ---------- Фон: сетка-терминал, тёплый свет сверху, виньетка и строки развёртки ---------- */
+html[data-theme="limbus"] body { background: var(--lb-bg); color: var(--lb-text); }
+html[data-theme="limbus"] body::before {
+  content: ''; position: fixed; inset: 0; z-index: -2; pointer-events: none;
+  background:
+    radial-gradient(ellipse 70% 45% at 50% 0%, rgba(255, 140, 40, .14), transparent 70%),
+    radial-gradient(ellipse at 50% 50%, transparent 40%, rgba(0, 0, 0, .85) 100%),
+    linear-gradient(rgba(11, 7, 5, .4), rgba(11, 7, 5, .65)),
+    var(--lb-grid) center / cover no-repeat,
+    var(--lb-bg);
+}
+html[data-theme="limbus"] body::after {
+  content: ''; position: fixed; inset: 0; z-index: 50; pointer-events: none;
+  background: repeating-linear-gradient(0deg, transparent 0 2px, rgba(0, 0, 0, .16) 2px 3px);
+  mix-blend-mode: multiply;
+}
+html[data-theme="limbus"] ::selection { background: rgba(255, 154, 31, .35); color: #fff; }
+
+/* ---------- Окно ⚙ Настроек (site/ui.js) ---------- */
+/* круглая кнопка — восьмиугольная шестерня как в лобби игры */
+html[data-theme="limbus"] .su-fab {
+  width: 46px; height: 46px; border: 0; opacity: 1; color: transparent; overflow: visible;
+  background: var(--lb-gear) center / contain no-repeat; filter: drop-shadow(0 2px 6px rgba(0, 0, 0, .8));
+}
+html[data-theme="limbus"] .su-fab:hover, html[data-theme="limbus"] .su-fab:focus-visible {
+  background-image: var(--lb-gear-on); box-shadow: none; outline: none;
+}
+html[data-theme="limbus"] .su-fab .su-dot { top: 2px; right: 2px; box-shadow: 0 0 8px #8FCC2A; }
+html[data-theme="limbus"] .su-box {
+  border: 14px solid transparent; border-image: var(--lb-plate) 36 fill / 14px stretch; background: none;
+  color: var(--lb-text); box-shadow: none; filter: drop-shadow(0 10px 30px rgba(0, 0, 0, .8));
+}
+html[data-theme="limbus"] .su-head { color: var(--lb-orange); border-bottom-color: #3a2414; text-shadow: 0 0 10px rgba(255, 154, 31, .4); }
+html[data-theme="limbus"] .su-sec { border-bottom-color: #2a1a0e; }
+html[data-theme="limbus"] .su-t { color: var(--lb-beige-dim); }
+html[data-theme="limbus"] .su-x { border-color: #5c3c1e; color: var(--lb-beige-dim); background: rgba(0, 0, 0, .4); }
+html[data-theme="limbus"] .su-x:hover { border-color: var(--sin-wrath); color: var(--sin-wrath); }
+html[data-theme="limbus"] .su-seg, html[data-theme="limbus"] .su-btn {
+  border: 9px solid transparent; border-image: var(--lb-btn) 26 fill / 9px stretch; background: none;
+  color: var(--lb-beige); padding: 1px 6px; transition: color .15s, text-shadow .15s;
+}
+html[data-theme="limbus"] .su-seg[aria-pressed=true], html[data-theme="limbus"] .su-btn:hover:not(:disabled) {
+  border-image-source: var(--lb-btn-on); color: #FFD27A; background: none; text-shadow: 0 0 8px rgba(255, 154, 31, .8);
+}
+html[data-theme="limbus"] .su-btn.su-red { color: #F08A7A; }
+html[data-theme="limbus"] .su-in-f { background: #0d0907; border-color: #4a3220; color: var(--lb-text); }
+html[data-theme="limbus"] .su-in-f:focus { border-color: var(--lb-orange); }
+html[data-theme="limbus"] .su-mail { color: var(--lb-gold); }
+html[data-theme="limbus"] .su-link { color: var(--lb-beige-dim); }
+html[data-theme="limbus"] .su-tag { border-color: var(--lb-orange); color: var(--lb-orange); }
+
+@media (max-width: 600px) {
+  html[data-theme="limbus"] .su-fab { width: 40px; height: 40px; opacity: .9; }
+}

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru" data-site-ui="no-fab">
+<html lang="ru" data-site-ui="no-fab" data-page-theme="limbus">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,6 +9,8 @@
     <title>Mephistopheles Terminal / Main Hub</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Merriweather:ital,wght@0,300;1,300;1,700&family=Oswald:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- общий слой оформления: фон и окно ⚙ Настроек (страница всегда в нём — data-page-theme) -->
+    <link rel="stylesheet" href="site/themes/limbus/base.css">
 
     <!--
       Главная в оформлении Limbus Company: тот же хаб, что index.html, но всё оформление — спрайты из Assets/Timed_Assets/.
@@ -16,6 +18,7 @@
       Семь карточек = семь цветов грехов: неоновая полоса, подпись и подсветка карточки (переменные .sin-*).
       Кнопка ⚙ в шапке открывает общее окно настроек (site/ui.js), своя круглая кнопка ui.js скрыта через data-site-ui="no-fab".
       Кодер и Тестеры попадают сюда с index.html, выбрав оформление «Limbus Company» в ⚙ Настройках (site/theme.js).
+      Общие части оформления (фон, окно ⚙ Настроек) — site/themes/limbus/base.css; страница всегда в нём (data-page-theme).
     -->
     <style>
         :root {
@@ -25,7 +28,6 @@
             --text: #E0D2B8; --text-dim: #8A7660;
 
             /* спрайты */
-            --spr-grid: url('Assets/Timed_Assets/03_MainUI/MainUI_BattleSelection_1/MainUI_BattleSelection_1_001.png');
             --spr-emblem: url('Assets/Timed_Assets/03_MainUI/MainUI_common_Popup_01/MainUI_common_Popup_01_025.png');
             --spr-gold: url('Assets/Timed_Assets/03_MainUI/MainUI_common_Popup_01/MainUI_common_Popup_01_036.png');
             --spr-card: url('Assets/Timed_Assets/01_BattleUI/BattleUI_Choice_3/BattleUI_Choice_3_023.png');
@@ -52,22 +54,7 @@
             min-height: 100vh; display: flex; flex-direction: column; align-items: center;
             overflow-x: hidden;
         }
-        /* Фон — сетка-терминал из меню выбора боя, сверху тёплый свет и виньетка */
-        body::before {
-            content: ''; position: fixed; inset: 0; z-index: -2; pointer-events: none;
-            background:
-                radial-gradient(ellipse 70% 45% at 50% 0%, rgba(255, 140, 40, .16), transparent 70%),
-                radial-gradient(ellipse at 50% 50%, transparent 40%, rgba(0, 0, 0, .85) 100%),
-                linear-gradient(rgba(11, 7, 5, .35), rgba(11, 7, 5, .6)),
-                var(--spr-grid) center / cover no-repeat,
-                var(--bg);
-        }
-        /* лёгкие строки развёртки */
-        body::after {
-            content: ''; position: fixed; inset: 0; z-index: 50; pointer-events: none;
-            background: repeating-linear-gradient(0deg, transparent 0 2px, rgba(0, 0, 0, .18) 2px 3px);
-            mix-blend-mode: multiply;
-        }
+        /* фон-сетка, свет, виньетка и строки развёртки — общие, в site/themes/limbus/base.css */
 
         .oswald { font-family: 'Oswald', sans-serif; text-transform: uppercase; }
 
@@ -143,7 +130,7 @@
 
         .lc-h1 {
             font: 700 3.1rem/1.05 'Oswald', sans-serif; text-transform: uppercase; letter-spacing: 6px;
-            background: linear-gradient(180deg, rgba(255, 246, 214, .9) 0%, rgba(255, 246, 214, 0) 45%), var(--spr-gold) center / 100% 100%;
+            background: linear-gradient(180deg, rgba(255, 246, 214, .9) 0%, rgba(255, 246, 214, 0) 45%), var(--spr-gold) center / 170% 170%;   /* только середина текстуры: края у неё тёмные */
             -webkit-background-clip: text; background-clip: text; color: transparent;
             filter: drop-shadow(0 2px 0 #3b2108) drop-shadow(0 0 14px rgba(255, 150, 40, .35));
             max-width: 100%;

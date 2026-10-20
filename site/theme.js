@@ -1,6 +1,7 @@
 /* Оформления сайта (пока тестируются): classic — обычное, limbus — Limbus Company (спрайты Assets/Timed_Assets/).
    1. Хранит выбор в браузере (localStorage 'site.theme'; нет записи — classic).
-   2. Ставит <html data-theme="…"> до отрисовки — по нему темы стилизуют страницы.
+   2. Ставит <html data-theme="…"> до отрисовки — по нему слои site/themes/<оформление>/ стилизуют страницы.
+      Версия страницы под оформление (index-limbus.html) объявляет его сама: <html data-page-theme="limbus">.
    3. Уводит на версию страницы под оформление, если она есть (PAGES), — до отрисовки, без мигания.
    Переключатель — в ⚙ Настройках (site/ui.js), виден только Кодеру и Тестерам; у остальных выбор сбрасывается.
    Подключение: <script src="site/theme.js"></script> в <head> сразу после site/i18n.js.
@@ -17,7 +18,8 @@
     try { var t = localStorage.getItem(KEY); return THEMES[t] ? t : 'classic'; } catch (e) { return 'classic'; }
   }
   var theme = read();
-  document.documentElement.dataset.theme = theme;
+  var root = document.documentElement, fixed = root.getAttribute('data-page-theme');
+  root.dataset.theme = fixed || theme;
 
   function pageName() { return location.pathname.split('/').pop() || 'index.html'; }
   // обычная страница, версией которой является name (или сама name)
@@ -45,7 +47,7 @@
     if (!THEMES[t]) t = 'classic';
     try { if (t === 'classic') localStorage.removeItem(KEY); else localStorage.setItem(KEY, t); } catch (e) { /* приватный режим */ }
     theme = t;
-    document.documentElement.dataset.theme = t;
+    if (!fixed) root.dataset.theme = t;
     if (opts && opts.stay) return;
     var page = pageFor(t, pageName());
     if (page !== pageName()) location.assign(urlOf(page));
