@@ -38,14 +38,7 @@ html[data-theme="limbus"] .cat-btn.active {
   color: #FFE2B0; text-shadow: 0 0 8px var(--accent-primary); font-weight: 500;
 }
 
-/* ---------- Заголовок раздела: золото, под ним — неон цвета раздела ---------- */
-html[data-theme="limbus"] .header-bar { border-bottom: 2px solid var(--accent-primary); box-shadow: 0 8px 14px -12px var(--accent-primary); }
-html[data-theme="limbus"] .header-title {
-  font-weight: 700; letter-spacing: 3px; color: transparent;
-  background: linear-gradient(180deg, rgba(255, 246, 214, .9) 0%, rgba(255, 246, 214, 0) 45%), var(--lb-gold-tex) center / 170% 170%;   /* только середина текстуры: края у неё тёмные */
-  -webkit-background-clip: text; background-clip: text;
-  filter: drop-shadow(0 2px 0 #3b2108) drop-shadow(0 0 12px rgba(255, 150, 40, .3));
-}
+/* ---------- Заголовок раздела: золото (base.css), под ним — неон цвета раздела ---------- */
 html[data-theme="limbus"] .header-subtitle { color: var(--lb-beige-dim); }
 
 /* ---------- Кнопки действий, вкладки внутри раздела ---------- */
@@ -82,26 +75,7 @@ html[data-theme="limbus"] .filter-btn { background: rgba(12, 8, 6, .85); border-
 html[data-theme="limbus"] .filter-btn:hover { border-color: #b07a3e; color: var(--lb-beige); }
 html[data-theme="limbus"] .filter-btn.active { background: rgba(255, 154, 31, .08); box-shadow: inset 0 0 10px rgba(255, 154, 31, .12); }
 
-/* ---------- Панели: карточки, статьи, окна — латунная рамка с тёмным полем ----------
-   --fw — толщина рамки; тёмное поле спрайта начинается в 42/38/41/36 px из 64 от левого/верхнего/правого/нижнего края,
-   углы поля срезаны на 14 px — по ним ставим неоновую полосу цвета раздела вдоль левого края поля. */
-html[data-theme="limbus"] .panel-outer {
-  --fw: 22px;
-  background: none; padding: 0; clip-path: none;
-  border: var(--fw) solid transparent; border-image: var(--lb-frame) 64 fill / var(--fw) stretch;
-}
-html[data-theme="limbus"] .panel-outer::before {
-  content: ''; position: absolute; z-index: 1; pointer-events: none; width: 4px; border-radius: 2px;
-  left: calc(var(--fw) * -22 / 64 + 3px);
-  top: calc(var(--fw) * (14 - 26) / 64); bottom: calc(var(--fw) * (14 - 28) / 64);
-  background: linear-gradient(180deg, color-mix(in srgb, var(--accent-primary) 70%, #fff), var(--accent-primary) 20%, var(--accent-primary) 80%, color-mix(in srgb, var(--accent-primary) 70%, #fff));
-  box-shadow: 0 0 6px var(--accent-primary), 0 0 14px color-mix(in srgb, var(--accent-primary) 60%, transparent);
-}
-html[data-theme="limbus"] .panel-outer > .hazard-tape { display: none; }
-html[data-theme="limbus"] .panel-inner {
-  background: linear-gradient(90deg, color-mix(in srgb, var(--accent-primary) 10%, transparent), transparent 40%);
-  clip-path: none; padding: 8px 12px 8px 16px;
-}
+/* ---------- Панели: рамка и неоновая полоса — общие, в base.css (цвет полосы — цвет раздела) ---------- */
 html[data-theme="limbus"] .article-host .panel-inner { padding: 18px 20px 18px 24px; }
 
 html[data-theme="limbus"] .card { transition: transform .18s ease, filter .2s ease; }
@@ -162,9 +136,7 @@ html[data-theme="limbus"] .enc-bar { border-color: #4a3220; background: #0d0907;
 
 /* ---------- Окна, поля, всплывающие подсказки, поиск по базе, уведомления ---------- */
 html[data-theme="limbus"] .modal-box { --fw: 26px; }
-html[data-theme="limbus"] .cloud-input, html[data-theme="limbus"] .cloud-select,
 html[data-theme="limbus"] .tbl-grid input { background: #0d0907; border-color: #4a3220; color: var(--lb-text); }
-html[data-theme="limbus"] .cloud-input:focus, html[data-theme="limbus"] .cloud-select:focus,
 html[data-theme="limbus"] .tbl-grid input:focus { border-color: var(--lb-orange); }
 html[data-theme="limbus"] .md-toolbar button { background: #0d0907; border-color: #3a2717; }
 html[data-theme="limbus"] .xref-pop, html[data-theme="limbus"] .gs-box, html[data-theme="limbus"] .ce-menu {
@@ -172,15 +144,9 @@ html[data-theme="limbus"] .xref-pop, html[data-theme="limbus"] .gs-box, html[dat
 }
 html[data-theme="limbus"] .xref-pop .xp-head, html[data-theme="limbus"] .xref-pop .xp-foot { border-color: #2a1a0e; }
 html[data-theme="limbus"] .gs-item.sel, html[data-theme="limbus"] .gs-item:hover { border-color: var(--lb-orange); background: rgba(255, 154, 31, .06); }
-html[data-theme="limbus"] .toast {
-  border: 10px solid transparent; border-image: var(--lb-btn) 26 fill / 10px stretch; background: none;
-  color: #FFD27A; padding: 2px 12px; text-shadow: 0 0 8px rgba(255, 154, 31, .7);
-}
 html[data-theme="limbus"] .cab-head, html[data-theme="limbus"] .cab-stat { border-color: #3a2717; background: rgba(10, 8, 6, .7); }
 
 @media (max-width: 600px) {
-  html[data-theme="limbus"] .panel-outer { --fw: 18px; }
   html[data-theme="limbus"] .cat-btn { padding: 0 4px; font-size: .82rem; }
   html[data-theme="limbus"] .tb-btn { min-height: 28px; }
-  html[data-theme="limbus"] .header-title { letter-spacing: 1px; }
 }

@@ -1,0 +1,91 @@
+/* Оформление Limbus Company — Конструктор персонажа (builder.html). Общие детали (панели, навигация, поля,
+   заголовок, уведомления) — base.css. Цвета панелей (--pc), кнопок (--c) и слотов задаёт страница — они остаются
+   в тексте, неоновых полосах и кубах; рамки и кнопки — латунные спрайты. */
+
+/* ---------- Панель инструментов ---------- */
+html[data-theme="limbus"] .tool-btn {
+  border: 9px solid transparent; border-image: var(--lb-btn) 26 fill / 9px stretch; background: none;
+  padding: 1px 6px; color: var(--c, var(--lb-beige)); letter-spacing: 1px; transition: color .15s, text-shadow .15s;
+}
+html[data-theme="limbus"] .tool-btn:hover { border-image-source: var(--lb-btn-on); background: none; color: #FFD27A; text-shadow: 0 0 8px rgba(255, 154, 31, .8); }
+html[data-theme="limbus"] .view-toggle { border: 6px solid transparent; border-image: var(--lb-chip) 24 / 6px stretch; background: rgba(10, 8, 6, .85) padding-box; }
+html[data-theme="limbus"] .view-toggle button { background: transparent; color: var(--lb-beige-dim); padding: 3px 10px; }
+html[data-theme="limbus"] .view-toggle button[aria-pressed=true] { background: linear-gradient(180deg, #ffb43a, #d9772f); color: #1a0e05; }
+html[data-theme="limbus"] .custom-status { color: var(--lb-text-dim); }
+
+/* ---------- Формы, мелкие кнопки, переключатели ---------- */
+html[data-theme="limbus"] .form-group label, html[data-theme="limbus"] .mini-label { color: var(--lb-beige); letter-spacing: .5px; }
+html[data-theme="limbus"] .panel-title small, html[data-theme="limbus"] .hint, html[data-theme="limbus"] .opts { color: var(--lb-text-dim); }
+html[data-theme="limbus"] .opts input, html[data-theme="limbus"] .chk input { accent-color: var(--lb-orange); }
+html[data-theme="limbus"] .lvl-row button, html[data-theme="limbus"] .stat-step button {
+  background: linear-gradient(180deg, #2a1c10, #120c07); border-color: #6b4422; color: var(--lb-beige);
+}
+html[data-theme="limbus"] .lvl-row button:hover, html[data-theme="limbus"] .stat-step button:hover {
+  background: linear-gradient(180deg, #ffb43a, #d9772f); border-color: #ffb43a; color: #1a0e05;
+}
+html[data-theme="limbus"] .btn-mini, html[data-theme="limbus"] .seg {
+  border: 7px solid transparent; border-image: var(--lb-chip) 24 / 7px stretch;
+  background: rgba(10, 8, 6, .85) padding-box; padding: 1px 4px; color: var(--lb-beige);
+}
+html[data-theme="limbus"] .btn-mini:hover, html[data-theme="limbus"] .btn-mini.accent:hover, html[data-theme="limbus"] .btn-mini.red:hover,
+html[data-theme="limbus"] .seg.on {
+  border-image-source: var(--lb-chip-on); border-image-slice: 22; background: rgba(40, 20, 6, .85) padding-box;
+}
+html[data-theme="limbus"] .btn-mini:hover, html[data-theme="limbus"] .seg.on { color: #FFD27A; }
+html[data-theme="limbus"] .btn-mini.accent, html[data-theme="limbus"] .btn-mini.accent:hover { color: var(--lb-orange); }
+html[data-theme="limbus"] .btn-mini.red, html[data-theme="limbus"] .btn-mini.red:hover { color: var(--color-red); }
+html[data-theme="limbus"] .chip { background: rgba(10, 8, 6, .85); border-color: #5c3c1e; }
+html[data-theme="limbus"] .chip:hover { border-color: var(--lb-orange); }
+
+/* ---------- Характеристики, ресурсы, лист ---------- */
+html[data-theme="limbus"] .stat-card, html[data-theme="limbus"] .res-card, html[data-theme="limbus"] .asi-card {
+  background: linear-gradient(180deg, rgba(255, 220, 170, .045), rgba(0, 0, 0, .35)); border-color: #5c3c1e;
+}
+html[data-theme="limbus"] .derived > div, html[data-theme="limbus"] .ss { border-color: #3a2717; background: rgba(10, 8, 6, .55); }
+html[data-theme="limbus"] .stat-in { background: #0d0907; border-color: #4a3220; color: var(--lb-text); }
+html[data-theme="limbus"] .stat-k, html[data-theme="limbus"] .ss-k { color: var(--lb-beige); }
+html[data-theme="limbus"] .stat-max, html[data-theme="limbus"] .derived span, html[data-theme="limbus"] .res-formula,
+html[data-theme="limbus"] .sheet-line, html[data-theme="limbus"] .note { color: var(--lb-text-dim); }
+html[data-theme="limbus"] .res-card.hp { border-color: color-mix(in srgb, var(--sin-wrath) 55%, #5c3c1e); }
+html[data-theme="limbus"] .res-card.sp { border-color: color-mix(in srgb, var(--sin-gloom) 55%, #5c3c1e); }
+html[data-theme="limbus"] .roll-log div { border-bottom-color: #2a1a0e; }
+
+/* ---------- Слоты: группы, строки (кубы остаются в цвете слота) ---------- */
+html[data-theme="limbus"] .group-title { border-bottom-color: #4a3220; color: var(--lb-beige); }
+html[data-theme="limbus"] .row { border-color: #3a2717; background: rgba(255, 220, 170, .025); }
+html[data-theme="limbus"] .row-desc::after { background: linear-gradient(transparent, #161210); }
+html[data-theme="limbus"] .cube .cube-face { box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .5); }
+
+/* ---------- Досье ---------- */
+html[data-theme="limbus"] .output-panel::-webkit-scrollbar-thumb, html[data-theme="limbus"] .modal-box::-webkit-scrollbar-thumb { background: #6b4422; }
+html[data-theme="limbus"] .output-header { border-bottom-color: var(--lb-orange); }
+html[data-theme="limbus"] .char-name-display { color: #F0DDBC; }
+html[data-theme="limbus"] .char-meta-display { color: var(--lb-gold); }
+html[data-theme="limbus"] .block-title { border-bottom-color: #4a3220; }
+html[data-theme="limbus"] .trait-entry { border-left-color: #6b4422; }
+html[data-theme="limbus"] .trait-entry:hover { background-color: rgba(255, 154, 31, .05); }
+html[data-theme="limbus"] .md td, html[data-theme="limbus"] .md th,
+html[data-theme="limbus"] .trait-desc td, html[data-theme="limbus"] .trait-desc th { border-color: #3a2717; }
+html[data-theme="limbus"] .dm-warn { background: rgba(241, 196, 15, .04); }
+
+/* ---------- Поповер выбора, подсказка, окна ---------- */
+html[data-theme="limbus"] .choice-pop {
+  background: #0d0907; box-shadow: 0 8px 30px rgba(0, 0, 0, .9), 0 0 18px rgba(241, 196, 15, .2), inset 0 2px 0 rgba(139, 90, 43, .55);
+}
+html[data-theme="limbus"] .cp { border-top-color: #2a1a0e; }
+html[data-theme="limbus"] .cp-opt { background: rgba(10, 8, 6, .85); border-color: #5c3c1e; }
+html[data-theme="limbus"] .tip { background: #0d0907; border-color: #6b4422; }
+/* окно конструктора: рамка без заливки, под ней — фон окна (липкая шапка того же цвета) */
+html[data-theme="limbus"] .modal-box {
+  background: #0d0907; border: 14px solid transparent; border-image: var(--lb-plate) 36 / 14px stretch;
+  box-shadow: none; filter: drop-shadow(0 10px 30px rgba(0, 0, 0, .8));
+}
+html[data-theme="limbus"] .modal-head, html[data-theme="limbus"] .picker-tools { background: #0d0907; }
+html[data-theme="limbus"] .modal-head { border-bottom-color: #3a2414; }
+html[data-theme="limbus"] .modal-head h3 { color: var(--lb-orange); text-shadow: 0 0 10px rgba(255, 154, 31, .4); }
+html[data-theme="limbus"] .modal-x { border-color: #5c3c1e; color: var(--lb-beige-dim); background: rgba(0, 0, 0, .4); }
+html[data-theme="limbus"] .modal-x:hover { border-color: var(--sin-wrath); color: var(--sin-wrath); }
+html[data-theme="limbus"] .pick { border-color: #3a2717; background: rgba(255, 220, 170, .02); }
+html[data-theme="limbus"] .pick:hover { border-color: var(--lb-orange); background: rgba(255, 154, 31, .06); }
+html[data-theme="limbus"] .ego-prev { border-left-color: #3a2717; }
+html[data-theme="limbus"] .lvl-table td { border-bottom-color: rgba(139, 90, 43, .35); }
