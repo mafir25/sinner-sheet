@@ -1,0 +1,48 @@
+/* Оформление Limbus Company — Конструктор Э.Г.О. (egobuilder.html). Общие детали и форма Э.Г.О. (site/ego-core.js) —
+   base.css. Цвет Э.Г.О. в этом оформлении — Зависть (вместо розового). */
+html[data-theme="limbus"] { --accent-primary: var(--sin-envy); --accent-muted: color-mix(in srgb, var(--sin-envy) 35%, #000); }
+
+html[data-theme="limbus"] .form-group label { color: var(--lb-beige); }
+html[data-theme="limbus"] .points-display {
+  border: 12px solid transparent; border-image: var(--lb-plate) 36 fill / 12px stretch; background: none; color: #F0DDBC;
+}
+html[data-theme="limbus"] .points-display.error { color: var(--sin-wrath); background: none; }
+html[data-theme="limbus"] .upgrade-row { border-bottom-color: #2a1a0e; }
+html[data-theme="limbus"] .btn-qty { background: linear-gradient(180deg, #2a1c10, #120c07); border-color: #6b4422; color: var(--lb-beige); }
+html[data-theme="limbus"] .btn-qty:hover { background: linear-gradient(180deg, #ffb43a, #d9772f); border-color: #ffb43a; color: #1a0e05; }
+
+/* кнопки: таблички с латунной обводкой, цвет действия — в тексте; при наведении — неон */
+html[data-theme="limbus"] .copy-btn, html[data-theme="limbus"] .btn-small-bld {
+  border: 8px solid transparent; border-image: var(--lb-chip) 24 / 8px stretch;
+  background: rgba(10, 8, 6, .85) padding-box; padding: 1px 6px; color: var(--lb-beige);
+}
+html[data-theme="limbus"] .copy-btn:hover, html[data-theme="limbus"] .btn-small-bld:hover {
+  border-image-source: var(--lb-chip-on); border-image-slice: 22; background: rgba(40, 20, 6, .85) padding-box; color: #FFD27A;
+}
+html[data-theme="limbus"] .save-btn, html[data-theme="limbus"] .save-btn:hover { color: var(--color-yellow); }
+html[data-theme="limbus"] .tab-btn {
+  border: 11px solid transparent; border-image: var(--lb-btn) 26 fill / 11px stretch; background: none; color: var(--lb-beige-dim); padding: 0 6px;
+}
+html[data-theme="limbus"] .tab-btn.active { border-image-source: var(--lb-btn-on); background: none; color: #FFD27A; text-shadow: 0 0 8px rgba(255, 154, 31, .8); }
+
+/* вывод и библиотека */
+html[data-theme="limbus"] .output-panel::-webkit-scrollbar-thumb, html[data-theme="limbus"] .status-sidebar::-webkit-scrollbar-thumb { background: #6b4422; }
+html[data-theme="limbus"] .output-header { border-bottom-color: var(--accent-primary); }
+html[data-theme="limbus"] .ego-name-display { color: #F0DDBC; }
+html[data-theme="limbus"] .ego-meta, html[data-theme="limbus"] .lib-item-meta { color: var(--lb-gold); }
+html[data-theme="limbus"] .ego-quote, html[data-theme="limbus"] .lib-sub, html[data-theme="limbus"] .lib-empty { color: var(--lb-text-dim); }
+html[data-theme="limbus"] .lib-block { border-top-color: #4a3220; }
+html[data-theme="limbus"] .lib-item { border-color: #3a2717; background: rgba(255, 220, 170, .02); }
+html[data-theme="limbus"] .lib-item:hover { border-color: var(--lb-orange); }
+html[data-theme="limbus"] .corrosion-block { background: rgba(224, 64, 46, .05); }
+html[data-theme="limbus"] .rule-section h3 { border-bottom-color: #4a3220; }
+
+/* сайдбар Базы статусов */
+html[data-theme="limbus"] .status-sidebar {
+  background: linear-gradient(90deg, rgba(0, 0, 0, .5), transparent 30px), #0d0907;
+  border-left: 3px solid #8b5a2b; box-shadow: -10px 0 30px rgba(0, 0, 0, .8), inset 1px 0 0 #2a1a0e;
+}
+html[data-theme="limbus"] .sidebar-header { border-bottom-color: var(--lb-orange); }
+html[data-theme="limbus"] .sidebar-title { color: var(--lb-gold); }
+html[data-theme="limbus"] .status-card { border-color: #3a2717; background: rgba(255, 220, 170, .025); }
+html[data-theme="limbus"] .status-card-name { color: var(--lb-beige); }

@@ -1,0 +1,175 @@
+/* Оформление Limbus Company — общий слой (фон, общие детали страниц, окно ⚙ Настроек). Работает только при
+   <html data-theme="limbus"> (его ставит site/theme.js), поэтому у обычного оформления ничего не меняется,
+   а спрайты грузятся только в этом оформлении.
+   Только спрайты интерфейса из Assets/Timed_Assets/: без героев Limbus и без иконок грехов — только их цвета.
+   Подключение — в <head> после собственных стилей страницы:
+     <link rel="stylesheet" href="site/themes/limbus/base.css">
+     <link rel="stylesheet" href="site/themes/limbus/<страница>.css">   (если у страницы есть свой слой)
+   Рамки растягиваются через border-image (9-slice): число после url — срез спрайта в пикселях. */
+
+html[data-theme="limbus"] {
+  --lb-bg: #0b0705; --lb-text: #E0D2B8; --lb-text-dim: #8A7660;
+  --lb-beige: #EBCFA4; --lb-beige-dim: #9C8468; --lb-gold: #F5C15A; --lb-orange: #FF9A1F; --lb-brass: #8B5A2B;
+  /* семь грехов — только цвета */
+  --sin-wrath: #E0402E; --sin-lust: #F07A2A; --sin-sloth: #E8B51E; --sin-gluttony: #8FCC2A;
+  --sin-gloom: #45B3CB; --sin-pride: #3A78E0; --sin-envy: #B24FE0;
+
+  /* спрайты (пути от корня сайта) */
+  --lb-grid: url('/Assets/Timed_Assets/03_MainUI/MainUI_BattleSelection_1/MainUI_BattleSelection_1_001.png');
+  --lb-gold-tex: url('/Assets/Timed_Assets/03_MainUI/MainUI_common_Popup_01/MainUI_common_Popup_01_036.png');
+  --lb-frame: url('/Assets/Timed_Assets/01_BattleUI/BattleUI_Choice_3/BattleUI_Choice_3_023.png');        /* латунь + тёмное поле, срез 64 */
+  --lb-plate: url('/Assets/Timed_Assets/01_BattleUI/BattleUI_Choice_5/BattleUI_Choice_5_043.png');        /* латунь с полутоном, срез 36 */
+  --lb-btn: url('/Assets/Timed_Assets/03_MainUI/MainUI_common_1/MainUI_common_1_020.png');               /* кнопка, срез 26 */
+  --lb-btn-on: url('/Assets/Timed_Assets/03_MainUI/MainUI_common_1/MainUI_common_1_026.png');            /* кнопка горит, срез 26 */
+  --lb-chip: url('/Assets/Timed_Assets/03_MainUI/MainUI_PersonalityList_1/MainUI_PersonalityList_1_004.png'); /* тонкая латунная обводка, срез 24 */
+  --lb-chip-on: url('/Assets/Timed_Assets/03_MainUI/New_MainUI_Formation_1/New_MainUI_Formation_1_044.png');  /* оранжевый неон, срез 22 */
+  --lb-neon: url('/Assets/Timed_Assets/03_MainUI/MainUI_UserInfo_6/MainUI_UserInfo_6_011.png');          /* неон со срезанными углами, срез 44 */
+  --lb-tag: url('/Assets/Timed_Assets/03_MainUI/MainUI_Formation_9/MainUI_Formation_9_046.png');         /* бурая плашка с полутоном */
+  --lb-gear: url('/Assets/Timed_Assets/05_Story_Tutorial_Misc/StoryUI_Frame_1/StoryUI_Frame_1_011.png');
+  --lb-gear-on: url('/Assets/Timed_Assets/05_Story_Tutorial_Misc/StoryUI_Frame_1/StoryUI_Frame_1_021.png');
+  --lb-emblem: url('/Assets/Timed_Assets/03_MainUI/MainUI_common_Popup_01/MainUI_common_Popup_01_025.png');
+  color-scheme: dark;
+  scrollbar-color: #6b4422 #0d0907;
+}
+
+/* ---------- Фон: сетка-терминал, тёплый свет сверху, виньетка и строки развёртки ---------- */
+html[data-theme="limbus"] body { background: var(--lb-bg); color: var(--lb-text); }
+html[data-theme="limbus"] body::before {
+  content: ''; position: fixed; inset: 0; z-index: -2; pointer-events: none;
+  background:
+    radial-gradient(ellipse 70% 45% at 50% 0%, rgba(255, 140, 40, .14), transparent 70%),
+    radial-gradient(ellipse at 50% 50%, transparent 40%, rgba(0, 0, 0, .85) 100%),
+    linear-gradient(rgba(11, 7, 5, .4), rgba(11, 7, 5, .65)),
+    var(--lb-grid) center / cover no-repeat,
+    var(--lb-bg);
+}
+html[data-theme="limbus"] body::after {
+  content: ''; position: fixed; inset: 0; z-index: 50; pointer-events: none;
+  background: repeating-linear-gradient(0deg, transparent 0 2px, rgba(0, 0, 0, .16) 2px 3px);
+  mix-blend-mode: multiply;
+}
+html[data-theme="limbus"] ::selection { background: rgba(255, 154, 31, .35); color: #fff; }
+
+/* ---------- Общие детали страниц сайта ----------
+   Панели .panel-outer > .hazard-tape + .panel-inner (База знаний, конструкторы, Офис, Foundry) — латунная рамка
+   с тёмным полем. --fw — толщина рамки; тёмное поле спрайта начинается в 42/38/41/36 px из 64 от левого/верхнего/
+   правого/нижнего края, углы поля срезаны на 14 px — по ним вдоль левого края поля идёт неоновая полоса цвета панели:
+   --pc (цвет панели на конструкторе), иначе --accent-primary (цвет раздела), иначе оранжевый. */
+html[data-theme="limbus"] .cut-tl { clip-path: none; }
+html[data-theme="limbus"] .panel-outer {
+  --fw: 22px; --lb-accent: var(--pc, var(--accent-primary, #FF9A1F));
+  position: relative;   /* неоновая полоса (::before) считается от панели — не у всех страниц панель уже relative */
+  background: none; padding: 0; clip-path: none;
+  border: var(--fw) solid transparent; border-image: var(--lb-frame) 64 fill / var(--fw) stretch;
+}
+html[data-theme="limbus"] .panel-outer::before {
+  content: ''; position: absolute; z-index: 1; pointer-events: none; width: 4px; border-radius: 2px;
+  left: calc(var(--fw) * -22 / 64 + 3px);
+  top: calc(var(--fw) * (14 - 26) / 64); bottom: calc(var(--fw) * (14 - 28) / 64);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--lb-accent) 70%, #fff), var(--lb-accent) 20%, var(--lb-accent) 80%, color-mix(in srgb, var(--lb-accent) 70%, #fff));
+  box-shadow: 0 0 6px var(--lb-accent), 0 0 14px color-mix(in srgb, var(--lb-accent) 60%, transparent);
+}
+html[data-theme="limbus"] .panel-outer > .hazard-tape { display: none; }
+html[data-theme="limbus"] .panel-inner {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--lb-accent) 10%, transparent), transparent 40%);
+  clip-path: none; padding: 10px 14px 10px 18px;
+}
+
+/* заголовок страницы — золото, под ним неон цвета раздела */
+html[data-theme="limbus"] .header-bar {
+  border-bottom: 2px solid var(--accent-primary, var(--lb-orange));
+  box-shadow: 0 8px 14px -12px var(--accent-primary, var(--lb-orange));
+}
+html[data-theme="limbus"] .header-title {
+  font-weight: 700; letter-spacing: 3px; color: transparent;
+  background: linear-gradient(180deg, rgba(255, 246, 214, .9) 0%, rgba(255, 246, 214, 0) 45%), var(--lb-gold-tex) center / 170% 170%;   /* только середина текстуры: края у неё тёмные */
+  -webkit-background-clip: text; background-clip: text;
+  filter: drop-shadow(0 2px 0 #3b2108) drop-shadow(0 0 12px rgba(255, 150, 40, .3));
+}
+
+/* кнопки навигации между страницами (Хаб, соседние страницы) — латунные таблички, цвет ссылки — в тексте (--c) */
+html[data-theme="limbus"] .top-nav-btn, html[data-theme="limbus"] .nav-btn {
+  border: 8px solid transparent; border-image: var(--lb-btn) 26 fill / 8px stretch; background: none;
+  padding: 1px 6px; color: var(--c, var(--lb-beige)); letter-spacing: 1px; transition: color .15s, text-shadow .15s;
+}
+html[data-theme="limbus"] .top-nav-btn:hover, html[data-theme="limbus"] .nav-btn:hover {
+  border-image-source: var(--lb-btn-on); background: none; color: #FFD27A; text-shadow: 0 0 8px rgba(255, 154, 31, .8);
+}
+
+/* поля ввода и списки */
+html[data-theme="limbus"] .cloud-input, html[data-theme="limbus"] .cloud-select { background: #0d0907; border-color: #4a3220; color: var(--lb-text); }
+html[data-theme="limbus"] .cloud-input:focus, html[data-theme="limbus"] .cloud-select:focus { border-color: var(--lb-orange); }
+
+/* всплывающее уведомление */
+html[data-theme="limbus"] .toast {
+  border: 10px solid transparent; border-image: var(--lb-btn) 26 fill / 10px stretch; background: none;
+  color: #FFD27A; padding: 2px 12px; text-shadow: 0 0 8px rgba(255, 154, 31, .7);
+}
+
+/* форма и карточка Э.Г.О. (site/ego-core.js — Конструктор Э.Г.О. и окно Э.Г.О. в Конструкторе персонажа): цвет — Зависть */
+html[data-theme="limbus"] .egc, html[data-theme="limbus"] .egc-sum { --egc: var(--sin-envy); --egc-dim: var(--lb-text-dim); color: var(--lb-text); }
+html[data-theme="limbus"] .egc-tab {
+  border: 10px solid transparent; border-image: var(--lb-btn) 26 fill / 10px stretch; background: none;
+  color: var(--lb-beige-dim); padding: 0 6px; min-height: 36px;
+}
+html[data-theme="limbus"] .egc-tab[aria-pressed=true] {
+  border-image-source: var(--lb-btn-on); background: none; color: #FFD27A; text-shadow: 0 0 8px rgba(255, 154, 31, .8);
+}
+html[data-theme="limbus"] .egc-pts {
+  border: 12px solid transparent; border-image: var(--lb-plate) 36 fill / 12px stretch; background: none; padding: 0 8px;
+  color: #F0DDBC; text-shadow: 0 0 10px color-mix(in srgb, var(--sin-envy) 70%, transparent);
+}
+html[data-theme="limbus"] .egc-pts.egc-bad { color: var(--sin-wrath); text-shadow: 0 0 10px rgba(224, 64, 46, .6); background: none; }
+html[data-theme="limbus"] .egc label { color: var(--lb-beige); }
+html[data-theme="limbus"] .egc input, html[data-theme="limbus"] .egc select, html[data-theme="limbus"] .egc textarea {
+  background: #0d0907; border-color: #4a3220; color: var(--lb-text);
+}
+html[data-theme="limbus"] .egc input:focus, html[data-theme="limbus"] .egc select:focus, html[data-theme="limbus"] .egc textarea:focus { border-color: var(--lb-orange); }
+html[data-theme="limbus"] .egc-sec { border-bottom-color: #4a3220; }
+html[data-theme="limbus"] .egc-up { border-bottom-color: #2a1a0e; }
+html[data-theme="limbus"] .egc-qty button { background: linear-gradient(180deg, #2a1c10, #120c07); border-color: #6b4422; color: var(--lb-beige); }
+html[data-theme="limbus"] .egc-qty button:hover { background: linear-gradient(180deg, #ffb43a, #d9772f); border-color: #ffb43a; color: #1a0e05; }
+html[data-theme="limbus"] .egc-corr { background: rgba(224, 64, 46, .05); }
+
+@media (max-width: 600px) {
+  html[data-theme="limbus"] .panel-outer { --fw: 18px; }
+  html[data-theme="limbus"] .header-title { letter-spacing: 1px; }
+  html[data-theme="limbus"] .egc-pts { font-size: 1.25rem; }
+}
+
+/* ---------- Окно ⚙ Настроек (site/ui.js) ---------- */
+/* круглая кнопка — восьмиугольная шестерня как в лобби игры */
+html[data-theme="limbus"] .su-fab {
+  width: 46px; height: 46px; border: 0; opacity: 1; color: transparent; overflow: visible;
+  background: var(--lb-gear) center / contain no-repeat; filter: drop-shadow(0 2px 6px rgba(0, 0, 0, .8));
+}
+html[data-theme="limbus"] .su-fab:hover, html[data-theme="limbus"] .su-fab:focus-visible {
+  background-image: var(--lb-gear-on); box-shadow: none; outline: none;
+}
+html[data-theme="limbus"] .su-fab .su-dot { top: 2px; right: 2px; box-shadow: 0 0 8px #8FCC2A; }
+html[data-theme="limbus"] .su-box {
+  border: 14px solid transparent; border-image: var(--lb-plate) 36 fill / 14px stretch; background: none;
+  color: var(--lb-text); box-shadow: none; filter: drop-shadow(0 10px 30px rgba(0, 0, 0, .8));
+}
+html[data-theme="limbus"] .su-head { color: var(--lb-orange); border-bottom-color: #3a2414; text-shadow: 0 0 10px rgba(255, 154, 31, .4); }
+html[data-theme="limbus"] .su-sec { border-bottom-color: #2a1a0e; }
+html[data-theme="limbus"] .su-t { color: var(--lb-beige-dim); }
+html[data-theme="limbus"] .su-x { border-color: #5c3c1e; color: var(--lb-beige-dim); background: rgba(0, 0, 0, .4); }
+html[data-theme="limbus"] .su-x:hover { border-color: var(--sin-wrath); color: var(--sin-wrath); }
+html[data-theme="limbus"] .su-seg, html[data-theme="limbus"] .su-btn {
+  border: 9px solid transparent; border-image: var(--lb-btn) 26 fill / 9px stretch; background: none;
+  color: var(--lb-beige); padding: 1px 6px; transition: color .15s, text-shadow .15s;
+}
+html[data-theme="limbus"] .su-seg[aria-pressed=true], html[data-theme="limbus"] .su-btn:hover:not(:disabled) {
+  border-image-source: var(--lb-btn-on); color: #FFD27A; background: none; text-shadow: 0 0 8px rgba(255, 154, 31, .8);
+}
+html[data-theme="limbus"] .su-btn.su-red { color: #F08A7A; }
+html[data-theme="limbus"] .su-in-f { background: #0d0907; border-color: #4a3220; color: var(--lb-text); }
+html[data-theme="limbus"] .su-in-f:focus { border-color: var(--lb-orange); }
+html[data-theme="limbus"] .su-mail { color: var(--lb-gold); }
+html[data-theme="limbus"] .su-link { color: var(--lb-beige-dim); }
+html[data-theme="limbus"] .su-tag { border-color: var(--lb-orange); color: var(--lb-orange); }
+
+@media (max-width: 600px) {
+  html[data-theme="limbus"] .su-fab { width: 40px; height: 40px; opacity: .9; }
+}

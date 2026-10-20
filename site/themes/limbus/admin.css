@@ -1,0 +1,83 @@
+/* Оформление Limbus Company — Админ-панель (admin.html). Общие переменные и окно ⚙ Настроек — base.css.
+   Панель плотная (таблицы, редактор канона), поэтому латунь — только по краям: рамки панелей и окон, вкладки,
+   кнопки, шапки таблиц; поля и данные остаются тёмными и читаемыми. Цвета ролей и меток не меняются. */
+
+/* ---------- Шапка и вкладки ---------- */
+html[data-theme="limbus"] .topbar { border-bottom: 2px solid #6b4422; box-shadow: 0 8px 14px -12px rgba(255, 154, 31, .5); }
+html[data-theme="limbus"] .title {
+  font-weight: 700; color: transparent; text-shadow: none;
+  background: linear-gradient(180deg, rgba(255, 246, 214, .9) 0%, rgba(255, 246, 214, 0) 45%), var(--lb-gold-tex) center / 170% 170%;
+  -webkit-background-clip: text; background-clip: text;
+  filter: drop-shadow(0 2px 0 #3b2108) drop-shadow(0 0 12px rgba(255, 150, 40, .3));
+}
+html[data-theme="limbus"] h2 { color: var(--lb-orange); }
+html[data-theme="limbus"] .tabs { border-bottom-color: #4a3220; gap: 6px; padding-bottom: 6px; }
+html[data-theme="limbus"] .tab {
+  border: 9px solid transparent; border-image: var(--lb-btn) 26 fill / 9px stretch; background: none;
+  color: var(--lb-beige-dim); padding: 0 8px; margin: 0;
+}
+html[data-theme="limbus"] .tab:hover { color: var(--lb-beige); }
+html[data-theme="limbus"] .tab[aria-selected=true] {
+  border-image-source: var(--lb-btn-on); background: none; color: #FFD27A; margin: 0; text-shadow: 0 0 8px rgba(255, 154, 31, .8);
+}
+
+/* ---------- Кнопки: таблички с латунной обводкой, цвет действия — в тексте; при наведении — неон ---------- */
+html[data-theme="limbus"] .btn {
+  border: 8px solid transparent; border-image: var(--lb-chip) 24 / 8px stretch;
+  background: rgba(10, 8, 6, .85) padding-box; padding: 1px 6px; color: var(--cyan);
+}
+html[data-theme="limbus"] .btn.sm { border-width: 6px; border-image-width: 6px; padding: 0 4px; }
+html[data-theme="limbus"] .btn:hover:not(:disabled), html[data-theme="limbus"] .btn.ghost:hover:not(:disabled) {
+  border-image-source: var(--lb-chip-on); border-image-slice: 22; background: rgba(40, 20, 6, .85) padding-box; color: #FFD27A;
+}
+html[data-theme="limbus"] .btn.red, html[data-theme="limbus"] .btn.red:hover:not(:disabled) { color: #ff6b5c; }
+html[data-theme="limbus"] .btn.green, html[data-theme="limbus"] .btn.green:hover:not(:disabled) { color: var(--green); }
+html[data-theme="limbus"] .btn.yellow, html[data-theme="limbus"] .btn.yellow:hover:not(:disabled) { color: var(--yellow); }
+html[data-theme="limbus"] .btn.ghost { color: var(--lb-beige-dim); }
+html[data-theme="limbus"] .seg { background: rgba(10, 8, 6, .85); border-color: #5c3c1e; color: var(--lb-beige-dim); }
+html[data-theme="limbus"] .seg.on { border-color: var(--lb-orange); color: #FFD27A; background: rgba(255, 154, 31, .1); }
+
+/* ---------- Панели, обзор, поля ---------- */
+html[data-theme="limbus"] .panel { background: none; border: 14px solid transparent; border-image: var(--lb-plate) 36 fill / 14px stretch; padding: 4px 6px; }
+html[data-theme="limbus"] .stat { background: linear-gradient(180deg, rgba(255, 220, 170, .045), rgba(0, 0, 0, .4)); border-color: #5c3c1e; }
+html[data-theme="limbus"] .stat b { color: #F0DDBC; }
+html[data-theme="limbus"] .chip { background: rgba(10, 8, 6, .7); }
+html[data-theme="limbus"] .notice { border-color: #5c3c1e; color: var(--lb-beige-dim); background: rgba(10, 8, 6, .55); }
+html[data-theme="limbus"] .in, html[data-theme="limbus"] select.in, html[data-theme="limbus"] textarea.in,
+html[data-theme="limbus"] pre.json { background: #0d0907; border-color: #4a3220; color: var(--lb-text); }
+html[data-theme="limbus"] .in:focus { border-color: var(--lb-orange); }
+html[data-theme="limbus"] .field > span { color: var(--lb-beige); }
+html[data-theme="limbus"] .check input { accent-color: var(--lb-orange); }
+
+/* ---------- Таблицы ---------- */
+html[data-theme="limbus"] .table-wrap { border-color: #3a2717; background: rgba(0, 0, 0, .45); }
+html[data-theme="limbus"] th, html[data-theme="limbus"] td { border-bottom-color: #2a1a0e; }
+html[data-theme="limbus"] th { background: linear-gradient(180deg, #2a1c10, #15100b); color: var(--lb-beige); }
+html[data-theme="limbus"] tr:hover td { background: rgba(255, 154, 31, .05); }
+
+/* ---------- Канон: файлы, записи, поля записи ---------- */
+html[data-theme="limbus"] .files, html[data-theme="limbus"] .entries { border-color: #3a2717; background: rgba(0, 0, 0, .45); }
+html[data-theme="limbus"] .file-group { background: linear-gradient(180deg, #2a1c10, #15100b); border-bottom-color: #3a2717; color: var(--lb-beige); }
+html[data-theme="limbus"] .file, html[data-theme="limbus"] .entry { border-bottom-color: #2a1a0e; }
+html[data-theme="limbus"] .file:hover, html[data-theme="limbus"] .entry:hover { background: rgba(255, 154, 31, .06); }
+html[data-theme="limbus"] .file[aria-current=true], html[data-theme="limbus"] .entry[aria-current=true] {
+  background: rgba(255, 154, 31, .14); color: #FFD27A; box-shadow: inset 3px 0 0 var(--lb-orange);
+}
+html[data-theme="limbus"] .nav-form { --accent-primary: var(--lb-orange); }
+html[data-theme="limbus"] .nav-form .cloud-input, html[data-theme="limbus"] .nav-form .cloud-select { background: #0d0907; border-color: #4a3220; }
+html[data-theme="limbus"] .nav-form .b-entry { border-color: #3a2717; background: rgba(255, 220, 170, .025); }
+html[data-theme="limbus"] .nav-form .md-toolbar button { background: #0d0907; border-color: #3a2717; }
+html[data-theme="limbus"] .dirty-bar { background: #0d0907; }
+html[data-theme="limbus"] .diff-wrap { border-color: #3a2717; }
+
+/* ---------- Окна и уведомления (цвета итога — цвета грехов) ---------- */
+html[data-theme="limbus"] .modal {
+  background: #0d0907; border: 14px solid transparent; border-image: var(--lb-plate) 36 / 14px stretch; padding: 4px 8px;
+  filter: drop-shadow(0 10px 30px rgba(0, 0, 0, .8));
+}
+html[data-theme="limbus"] .toast {
+  border: 10px solid transparent; border-image: var(--lb-btn) 26 fill / 10px stretch; background: none; box-shadow: none;
+  color: #FFD27A; padding: 2px 10px; filter: drop-shadow(0 4px 12px rgba(0, 0, 0, .8));
+}
+html[data-theme="limbus"] .toast.ok { color: var(--sin-gluttony); }
+html[data-theme="limbus"] .toast.err { color: #ff6b5c; }

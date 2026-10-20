@@ -3,7 +3,7 @@ rules_version = '2';
 // Как применить: Firebase Console → Firestore Database → база «default» → Rules →
 // заменить ВЕСЬ текст содержимым этого файла → Publish.
 // Всё, что здесь не описано, запрещено (в том числе коллекция sinners от удалённой системы «Тёмный мир»).
-// Роли: Кодер (email ниже) → Гл-Админ → Админ. Подробности — README, раздел «Администрирование».
+// Роли: Кодер (email ниже) → Гл-Админ → Админ; отдельно — Тестеры (выдаёт Кодер). Подробности — README, раздел «Администрирование».
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -62,6 +62,22 @@ service cloud.firestore {
       allow update: if validRole(request.resource.data)
         && (isCoder() || (headManages(resource.data) && headManages(request.resource.data)));
       allow delete: if isCoder() || headManages(resource.data);
+    }
+
+    // ================= Тестеры =================
+    // testers/<uid> = { nick, grantedBy, grantedByNick, at } — видят переключатель оформлений в ⚙ Настройках
+    // (site/theme.js, site/ui.js). Это не роль сотрудника: прав в базе не даёт. Выдаёт и снимает только Кодер.
+    match /testers/{uid} {
+      function validTester(d) {
+        return d.keys().hasOnly(['nick', 'grantedBy', 'grantedByNick', 'at'])
+          && isShortString(d.get('nick', ''), 40)
+          && d.grantedBy == request.auth.uid
+          && isShortString(d.get('grantedByNick', ''), 40)
+          && d.at == request.time;
+      }
+      allow read: if signedIn() && (request.auth.uid == uid || isHead() || can('monitor'));
+      allow create, update: if isCoder() && validTester(request.resource.data);
+      allow delete: if isCoder();
     }
 
     // Старая схема админов (admins/<email>) больше не действует — права только через roles/.

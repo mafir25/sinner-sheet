@@ -183,8 +183,12 @@
         table.diff tr.del { background: rgba(231, 76, 60, .16); }
         table.diff tbody.hunk + tbody.hunk tr:first-child td { border-top: 1px dashed var(--line, #444); }
     </style>
+    <!-- оформление Limbus Company: действует только при html[data-theme="limbus"] (site/theme.js) -->
+    <link rel="stylesheet" href="site/themes/limbus/base.css">
+    <link rel="stylesheet" href="site/themes/limbus/admin.css">
 
     <script src="site/i18n.js"></script>
+    <script src="site/theme.js"></script>
     <script src="site/vendor/marked.umd.js"></script>
     <script src="site/vendor/purify.min.js"></script>
     <script type="module" src="site/ui.js"></script>

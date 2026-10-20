@@ -1,6 +1,6 @@
 // Админ-панель (admin.html).
 // Роли и права — site/auth.js (Кодер → Гл-Админ → Админ), проверка на сервере — firestore.rules.
-// Разделы: Обзор, Доступы, Канон, Пользователи, Модерация, Скрытое, Журнал. Каждое действие пишется
+// Разделы: Обзор, Доступы (и Тестеры), Канон, Пользователи, Модерация, Скрытое, Журнал. Каждое действие пишется
 // в журнал audit/ одной пачкой с самим изменением.
 import {
   collection, doc, getDoc, getDocs, query, where, orderBy, limit, startAfter, writeBatch,
@@ -303,6 +303,7 @@ async function renderOverview(v) {
     ['Офисов', isHead(S), () => collection(db, 'offices')],
     ['Ширм', isHead(S), () => collection(db, 'custom_screens')],
     ['Сотрудников (кроме Кодера)', isHead(S) || can(S, 'monitor'), () => collection(db, 'roles')],
+    ['Тестеров', isHead(S) || can(S, 'monitor'), () => collection(db, 'testers')],
     ['Заблокировано', can(S, 'ban') || can(S, 'monitor'), () => collection(db, 'bans')],
     ['Файлов канона в Firestore', true, () => collection(db, 'canon')],
   ].filter((s) => s[1]);
@@ -362,7 +363,9 @@ async function renderAccess(v) {
               <button class="btn sm red" data-del="${esc(r.uid)}" ${canEdit(r) ? '' : 'disabled title="Нет прав"'}><i class="fa-solid fa-user-minus"></i></button>
             </div></td></tr>`).join('') || '<tr><td colspan="6" class="muted">Пока никого</td></tr>'}
         </tbody></table></div>
-    </div>`;
+    </div>
+    <div class="panel" id="testers" style="margin-top:14px"><div class="notice">Загрузка…</div></div>`;
+  renderTesters($('#testers', v));
 
   const find = async () => {
     const q = $('#acc-nick', v).value.trim();
@@ -387,6 +390,57 @@ async function renderAccess(v) {
       if (await logged('role.remove', `${r.nick || ''} (${r.uid})`, { before: { role: r.role, perms: r.perms } },
         (b) => b.delete(doc(db, 'roles', r.uid)), { ok: 'Доступ снят', failMsg: 'Не удалось снять доступ' })) openTab('access');
     }
+  };
+}
+
+/* Тестеры: testers/<uid> — видят переключатель оформлений в ⚙ Настройках (site/theme.js).
+   Не роль сотрудника, прав в базе не даёт. Выдаёт и снимает только Кодер (firestore.rules). */
+const testerDoc = (nick) => ({
+  nick: String(nick || '').slice(0, 40), grantedBy: S.user.uid, grantedByNick: myNick().slice(0, 40), at: serverTimestamp(),
+});
+async function renderTesters(box) {
+  let rows;
+  try {
+    rows = (await getDocs(collection(db, 'testers'))).docs.map((d) => ({ uid: d.id, ...d.data() }))
+      .sort((a, b) => String(a.nick).localeCompare(String(b.nick)));
+  } catch (e) { box.innerHTML = `<h2>Тестеры</h2><div class="notice err">${esc(T(errText(e)))}</div>`; return; }
+  const coder = S.role === 'coder';
+  box.innerHTML = `
+    <h2>Тестеры</h2>
+    <p class="muted small" style="margin-bottom:10px">Тестеры видят переключатель оформлений в ⚙ Настройках и пробуют новые версии страниц. Это не роль сотрудника: прав в базе и доступа к панели она не даёт. Выдаёт и снимает только Кодер (сам Кодер — тестер всегда).</p>
+    ${coder ? `<div class="row" style="margin-bottom:10px">
+        <input class="in notranslate" id="ts-nick" placeholder="${esc(T('Ник, email или ID аккаунта'))}" style="max-width:320px" maxlength="128">
+        <button class="btn green" id="ts-add"><i class="fa-solid fa-flask"></i> Сделать тестером</button></div>` : ''}
+    <div class="table-wrap"><table>
+      <thead><tr><th>Ник</th><th>Выдал</th><th>Когда</th><th></th></tr></thead>
+      <tbody>${rows.map((r) => `<tr>
+        <td><span class="notranslate">${esc(r.nick || '—')}</span><div class="muted mono">${esc(r.uid)}</div></td>
+        <td class="notranslate">${esc(r.grantedByNick || '—')}</td>
+        <td class="small">${esc(fmt(r.at))}</td>
+        <td>${coder ? `<button class="btn sm red" data-untest="${esc(r.uid)}" title="${esc(T('Снять роль Тестера'))}"><i class="fa-solid fa-user-minus"></i></button>` : ''}</td>
+      </tr>`).join('') || '<tr><td colspan="4" class="muted">Пока никого</td></tr>'}</tbody></table></div>`;
+  if (!coder) return;
+
+  const add = async () => {
+    const q = $('#ts-nick', box).value.trim();
+    if (!q) return;
+    try {
+      const u = await findAccount(q);
+      if (!u) return toast('Не найден ни по нику, ни по email, ни по ID — см. подсказку под полем', 'err');
+      if (rows.some((r) => r.uid === u.uid)) return toast('Уже тестер', 'err');
+      if (await logged('tester.grant', `${u.nick || ''} (${u.uid})`, '', (b) => b.set(doc(db, 'testers', u.uid), testerDoc(u.nick)),
+        { ok: 'Тестер добавлен', failMsg: 'Не удалось выдать роль Тестера' })) openTab('access');
+    } catch (e) { fail(e, 'Поиск не удался'); }
+  };
+  $('#ts-add', box).onclick = add;
+  $('#ts-nick', box).onkeydown = (e) => { if (e.key === 'Enter') add(); };
+  box.onclick = async (e) => {
+    const del = e.target.closest('[data-untest]');
+    if (!del) return;
+    const r = rows.find((x) => x.uid === del.dataset.untest);
+    if (!confirm(`${T('Снять роль Тестера с')} ${r.nick || r.uid}?`)) return;
+    if (await logged('tester.remove', `${r.nick || ''} (${r.uid})`, '', (b) => b.delete(doc(db, 'testers', r.uid)),
+      { ok: 'Тестер снят', failMsg: 'Не удалось снять роль Тестера' })) openTab('access');
   };
 }
 
@@ -1363,6 +1417,7 @@ async function viewScreen(s) {
 const ACTIONS = {
   'canon.save': 'Канон: правка', 'canon.import': 'Канон: перенос', 'canon.reset': 'Канон: убран из Firestore',
   'role.grant': 'Доступ выдан', 'role.update': 'Доступ изменён', 'role.remove': 'Доступ снят',
+  'tester.grant': 'Тестер добавлен', 'tester.remove': 'Тестер снят',
   'ban.set': 'Блокировка', 'ban.remove': 'Снятие блокировки',
   'content.delete': 'Запись базы удалена', 'content.private': 'Видимость записи', 'content.fixflags': 'Флаги приватности',
   'office.delete': 'Офис удалён', 'screen.delete': 'Ширма удалена', 'audit.revert': 'Откат действия',
@@ -1372,6 +1427,7 @@ const AS = { docs: [], last: null, end: false, filter: '' };
 /* Откат действия из журнала: по сохранённым прежним значениям. Сам откат тоже пишется в журнал (audit.revert).
    Права проверяют правила Firestore — откатить можно только то, что вам разрешено делать. */
 const idFromTarget = (t) => /\(([^()]+)\)\s*$/.exec(String(t || ''))?.[1] || '';
+const nickFromTarget = (t) => String(/^(.*)\s\([^()]+\)\s*$/.exec(String(t || ''))?.[1] || '').trim();
 const parseDetails = (a) => { try { return JSON.parse(a.details); } catch { return null; } };
 /** Значение даты из журнала (JSON Timestamp: {seconds,…} или ISO-строка) → Timestamp. */
 function tsFromJson(v) {
@@ -1392,6 +1448,8 @@ const REVERT = {
     if (!d?.before?.role) return null;
     return { text: `Вернуть доступ: ${d.before.role}`, fill: (b) => b.set(doc(db, 'roles', idFromTarget(a.target)), roleDoc(a, d.before)) };
   },
+  'tester.grant': (a) => ({ text: 'Снять роль Тестера', fill: (b) => b.delete(doc(db, 'testers', idFromTarget(a.target))) }),
+  'tester.remove': (a) => ({ text: 'Вернуть роль Тестера', fill: (b) => b.set(doc(db, 'testers', idFromTarget(a.target)), testerDoc(nickFromTarget(a.target))) }),
   'ban.set': (a) => ({ text: 'Снять эту блокировку', fill: (b) => b.delete(doc(db, 'bans', idFromTarget(a.target))) }),
   'ban.remove': (a) => {
     const d = parseDetails(a);
@@ -1425,7 +1483,7 @@ const REVERT = {
 };
 function roleDoc(a, before) {
   return {
-    role: before.role, perms: normalizePerms(before.perms || {}), nick: String(/^(.*)\s\([^()]+\)\s*$/.exec(a.target)?.[1] || '').trim().slice(0, 40),
+    role: before.role, perms: normalizePerms(before.perms || {}), nick: nickFromTarget(a.target).slice(0, 40),
     grantedBy: S.user.uid, grantedByNick: myNick().slice(0, 40), updatedAt: serverTimestamp(),
   };
 }
@@ -1468,9 +1526,9 @@ async function renderAudit(v) {
   v.innerHTML = `<div class="panel">
     <div class="row between" style="margin-bottom:10px"><h2 style="margin:0">Журнал действий</h2>
       <select class="in" id="au-filter" style="width:auto"><option value="">${esc(T('Все действия'))}</option>
-        ${[['canon', 'Канон'], ['role', 'Доступы'], ['ban', 'Блокировки'], ['content', 'Модерация'], ['office', 'Офисы'], ['screen', 'Ширмы'], ['audit', 'Откаты']]
+        ${[['canon', 'Канон'], ['role', 'Доступы'], ['tester', 'Тестеры'], ['ban', 'Блокировки'], ['content', 'Модерация'], ['office', 'Офисы'], ['screen', 'Ширмы'], ['audit', 'Откаты']]
           .map(([k, l]) => `<option value="${k}" ${AS.filter === k ? 'selected' : ''}>${esc(T(l))}</option>`).join('')}</select></div>
-    <p class="muted small" style="margin-bottom:10px">Каждое действие в панели записывается сюда вместе с прежними значениями. Доступы, блокировки, видимость и удаление записей базы откатываются кнопкой <i class="fa-solid fa-rotate-left"></i>; правки канона — через «Сравнить» и «Из Assets» в разделе «Канон».</p>
+    <p class="muted small" style="margin-bottom:10px">Каждое действие в панели записывается сюда вместе с прежними значениями. Доступы, тестеры, блокировки, видимость и удаление записей базы откатываются кнопкой <i class="fa-solid fa-rotate-left"></i>; правки канона — через «Сравнить» и «Из Assets» в разделе «Канон».</p>
     <div id="au-list"></div>
     <div class="row" style="margin-top:10px"><button class="btn sm ghost" id="au-more">Показать ещё</button></div></div>`;
   const more = async () => {

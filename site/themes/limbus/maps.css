@@ -1,0 +1,36 @@
+/* Оформление Limbus Company — Редактор карт (map-app). Общее для приложений — apps.css, общие переменные — base.css.
+   Подключается из map-app/src/main.tsx (мимо сборщика). Холст карты и её цвета не меняются. */
+@import url('apps.css');
+
+/* фон — сама карта: сетку и строки развёртки base.css не накладываем */
+html[data-theme="limbus"] body::before, html[data-theme="limbus"] body::after { display: none; }
+
+/* боковые панели — тёмная бронза с латунной кромкой */
+html[data-theme="limbus"] .left, html[data-theme="limbus"] .right { background: linear-gradient(180deg, #120c08, #0b0705); }
+html[data-theme="limbus"] .left { border-right: 2px solid #6b4422; }
+html[data-theme="limbus"] .right { border-left: 2px solid #6b4422; }
+html[data-theme="limbus"] .tools { background: rgba(0, 0, 0, .35); }
+html[data-theme="limbus"] .tool:hover:not(:disabled) { border-color: #6b4422; }
+html[data-theme="limbus"] .tool.on {
+  border-color: var(--lb-orange); color: #FFD27A; background: rgba(255, 154, 31, .1);
+  box-shadow: inset 0 0 10px rgba(255, 154, 31, .25);
+}
+html[data-theme="limbus"] .props > h3, html[data-theme="limbus"] .subsec > h3, html[data-theme="limbus"] .meta-form > h3 { color: var(--lb-orange); }
+html[data-theme="limbus"] .side-sec { border-bottom-color: #3a2717; }
+html[data-theme="limbus"] .bottombar { background: linear-gradient(180deg, #120c08, #0b0705); border-top: 2px solid #6b4422; }
+html[data-theme="limbus"] .coords { background: rgba(13, 9, 7, .8); }
+
+/* библиотека, слои, списки */
+html[data-theme="limbus"] .lib-item, html[data-theme="limbus"] .meta-file, html[data-theme="limbus"] .list li,
+html[data-theme="limbus"] .lib-mini, html[data-theme="limbus"] .chip, html[data-theme="limbus"] .version { background: #160f0a; }
+html[data-theme="limbus"] .thumb { background: repeating-conic-gradient(#1a120c 0 25%, #22180f 0 50%) 0 0 / 12px 12px; }
+html[data-theme="limbus"] .meta-dir.on { background: rgba(255, 154, 31, .1); }
+html[data-theme="limbus"] .gen-bar { background: rgba(13, 9, 7, .92); border-color: #8b5a2b; }
+html[data-theme="limbus"] .slider input[type=range] { accent-color: var(--lb-orange); }
+html[data-theme="limbus"] .anchor button.on { background: linear-gradient(180deg, #ffb43a, #d9772f); color: #1a0e05; }
+
+/* стартовый экран: карты — латунные карточки */
+html[data-theme="limbus"] .start-body h2 { color: var(--lb-orange); }
+html[data-theme="limbus"] .card { border: 12px solid transparent; border-image: var(--lb-plate) 36 fill / 12px stretch; background: none; }
+html[data-theme="limbus"] .card:hover { filter: drop-shadow(0 0 8px rgba(255, 154, 31, .45)); }
+html[data-theme="limbus"] .card-thumb { background: #0d0907; }

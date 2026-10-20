@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="ru" data-site-ui="no-fab" data-page-theme="limbus">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="manifest" href="/manifest.webmanifest">
+    <meta name="theme-color" content="#0b0705">
+    <link rel="apple-touch-icon" href="/Assets/App/icon-192.png">
+    <title>Mephistopheles Terminal / Main Hub</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Merriweather:ital,wght@0,300;1,300;1,700&family=Oswald:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- общий слой оформления: фон и окно ⚙ Настроек (страница всегда в нём — data-page-theme) -->
+    <link rel="stylesheet" href="site/themes/limbus/base.css">
+
+    <!--
+      Главная в оформлении Limbus Company: тот же хаб, что index.html, но всё оформление — спрайты из Assets/Timed_Assets/.
+      Рамки растягиваются через border-image (9-slice), поэтому карточки любого размера не искажают углы.
+      Семь карточек = семь цветов грехов: неоновая полоса, подпись и подсветка карточки (переменные .sin-*).
+      Кнопка ⚙ в шапке открывает общее окно настроек (site/ui.js), своя круглая кнопка ui.js скрыта через data-site-ui="no-fab".
+      Кодер и Тестеры попадают сюда с index.html, выбрав оформление «Limbus Company» в ⚙ Настройках (site/theme.js).
+      Общие части оформления (фон, окно ⚙ Настроек) — site/themes/limbus/base.css; страница всегда в нём (data-page-theme).
+    -->
+    <style>
+        :root {
+            --bg: #0b0705;
+            --beige: #EBCFA4; --beige-dim: #9C8468; --gold: #F5C15A; --orange: #FF9A1F; --rust: #8B5A2B;
+            --red: #C7243A; --green-lamp: #8FCC2A;
+            --text: #E0D2B8; --text-dim: #8A7660;
+
+            /* спрайты */
+            --spr-emblem: url('Assets/Timed_Assets/03_MainUI/MainUI_common_Popup_01/MainUI_common_Popup_01_025.png');
+            --spr-gold: url('Assets/Timed_Assets/03_MainUI/MainUI_common_Popup_01/MainUI_common_Popup_01_036.png');
+            --spr-card: url('Assets/Timed_Assets/01_BattleUI/BattleUI_Choice_3/BattleUI_Choice_3_023.png');
+            --spr-neon: url('Assets/Timed_Assets/03_MainUI/MainUI_UserInfo_6/MainUI_UserInfo_6_011.png');
+            --spr-btn: url('Assets/Timed_Assets/03_MainUI/MainUI_common_1/MainUI_common_1_020.png');
+            --spr-btn-on: url('Assets/Timed_Assets/03_MainUI/MainUI_common_1/MainUI_common_1_026.png');
+            --spr-tag: url('Assets/Timed_Assets/03_MainUI/MainUI_Formation_9/MainUI_Formation_9_046.png');
+            --spr-plate: url('Assets/Timed_Assets/01_BattleUI/BattleUI_Choice_5/BattleUI_Choice_5_043.png');
+        }
+
+        /* Семь грехов: цвет и неоновая полоса (Formation_9) */
+        .sin-wrath    { --sin: #E0402E; --bar: url('Assets/Timed_Assets/03_MainUI/MainUI_Formation_9/MainUI_Formation_9_016.png'); }
+        .sin-lust     { --sin: #F07A2A; --bar: url('Assets/Timed_Assets/03_MainUI/MainUI_Formation_9/MainUI_Formation_9_017.png'); }
+        .sin-sloth    { --sin: #E8B51E; --bar: url('Assets/Timed_Assets/03_MainUI/MainUI_Formation_9/MainUI_Formation_9_018.png'); }
+        .sin-gluttony { --sin: #8FCC2A; --bar: url('Assets/Timed_Assets/03_MainUI/MainUI_Formation_9/MainUI_Formation_9_019.png'); }
+        .sin-gloom    { --sin: #45B3CB; --bar: url('Assets/Timed_Assets/03_MainUI/MainUI_Formation_9/MainUI_Formation_9_020.png'); }
+        .sin-pride    { --sin: #3A78E0; --bar: url('Assets/Timed_Assets/03_MainUI/MainUI_Formation_9/MainUI_Formation_9_021.png'); }
+        .sin-envy     { --sin: #B24FE0; --bar: url('Assets/Timed_Assets/03_MainUI/MainUI_Formation_9/MainUI_Formation_9_022.png'); }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif;
+            min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+            overflow-x: hidden;
+        }
+        /* фон-сетка, свет, виньетка и строки развёртки — общие, в site/themes/limbus/base.css */
+
+        .oswald { font-family: 'Oswald', sans-serif; text-transform: uppercase; }
+
+        /* ============ Верхняя панель ============ */
+        .lc-top {
+            position: sticky; top: 0; z-index: 40; width: 100%;
+            display: flex; align-items: center; justify-content: space-between; gap: 12px;
+            padding: 8px 20px;
+            background: linear-gradient(180deg, #17100b 0%, #0c0806 100%);
+            border-bottom: 2px solid #6b4422;
+            box-shadow: 0 1px 0 #2a1a0e, 0 8px 24px rgba(0, 0, 0, .6);
+        }
+        .lc-brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+        .lc-brand img { width: 34px; height: 34px; flex: none; filter: drop-shadow(0 0 6px rgba(245, 193, 90, .35)); }
+        .lc-brand b { font: 700 1rem/1 'Oswald', sans-serif; letter-spacing: 3px; color: var(--beige); white-space: nowrap; }
+        .lc-brand small { display: block; margin-top: 3px; font: 500 .62rem/1 'Oswald', sans-serif; letter-spacing: 4px; color: var(--orange); }
+
+        /* восьмиугольные кнопки как в лобби игры: тусклая → жёлтая при наведении */
+        .lc-oct {
+            position: relative; width: 48px; height: 48px; flex: none; display: grid; place-items: center;
+            background: none; border: 0; padding: 0; cursor: pointer; transition: transform .15s;
+        }
+        .lc-oct img { width: 100%; height: 100%; grid-area: 1 / 1; transition: opacity .15s, filter .15s; }
+        .lc-oct .on { opacity: 0; }
+        .lc-oct:hover, .lc-oct:focus-visible { transform: scale(1.06); }
+        .lc-oct:hover .on, .lc-oct:focus-visible .on { opacity: 1; }
+        .lc-oct:hover .off, .lc-oct:focus-visible .off { opacity: 0; }
+        .lc-oct.solo:hover img, .lc-oct.solo:focus-visible img { filter: brightness(1.35) saturate(1.3) drop-shadow(0 0 6px rgba(255, 154, 31, .6)); }
+        .lc-oct:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
+        .lc-oct .dot { position: absolute; top: 3px; right: 3px; width: 10px; height: 10px; border-radius: 50%; background: var(--green-lamp);
+            box-shadow: 0 0 8px var(--green-lamp); display: none; }
+        .lc-oct.is-in .dot { display: block; }
+        .lc-actions { display: flex; gap: 8px; }
+
+        /* бегущая строка с «осторожно» по краям */
+        .lc-ticker {
+            width: 100%; overflow: hidden; position: relative; height: 26px;
+            background: #0d0907; border-bottom: 1px solid #3a2414;
+        }
+        .lc-ticker::before, .lc-ticker::after {
+            content: ''; position: absolute; top: 0; bottom: 0; width: 70px; z-index: 1;
+            background: repeating-linear-gradient(45deg, #000 0 8px, #d8a21c 8px 16px);
+        }
+        .lc-ticker::before { left: 0; } .lc-ticker::after { right: 0; }
+        .lc-ticker-track {
+            display: flex; gap: 48px; width: max-content; height: 100%; align-items: center;
+            font: 500 .72rem/1 'Oswald', sans-serif; letter-spacing: 4px; color: #b9875a; white-space: nowrap;
+            animation: lc-ticker 40s linear infinite;
+        }
+        .lc-ticker-track i { color: var(--orange); font-style: normal; }
+        @keyframes lc-ticker { to { transform: translateX(-50%); } }
+
+        /* ============ Заставка ============ */
+        .lc-hero {
+            position: relative; width: 100%; max-width: 1400px; padding: 34px 20px 10px;
+            display: flex; flex-direction: column; align-items: center; text-align: center;
+        }
+        /* эмблема Limbus Company водяным знаком */
+        .lc-hero::before {
+            content: ''; position: absolute; z-index: -1; left: 50%; top: 4px; width: min(560px, 100%); aspect-ratio: 456 / 431;
+            transform: translateX(-50%); background: var(--spr-emblem) center / contain no-repeat; opacity: .32;
+        }
+        .lc-sigil { position: relative; width: 168px; height: 168px; display: grid; place-items: center; margin-bottom: 8px; }
+        .lc-sigil img { grid-area: 1 / 1; }
+        .lc-sigil .ring { width: 100%; animation: lc-spin 60s linear infinite; opacity: .9; }
+        .lc-sigil .star { width: 80%; animation: lc-spin 40s linear infinite reverse; filter: drop-shadow(0 0 10px rgba(255, 170, 40, .55)); }
+        /* тёплое свечение в центре гептаграммы */
+        .lc-sigil::after { content: ''; grid-area: 1 / 1; width: 46%; height: 46%; border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 196, 90, .55) 0%, rgba(255, 140, 40, .18) 45%, transparent 70%);
+            animation: lc-pulse 4s ease-in-out infinite; }
+        @keyframes lc-spin { to { transform: rotate(360deg); } }
+        @keyframes lc-pulse { 50% { opacity: .55; transform: scale(.9); } }
+
+        .lc-h1 {
+            font: 700 3.1rem/1.05 'Oswald', sans-serif; text-transform: uppercase; letter-spacing: 6px;
+            background: linear-gradient(180deg, rgba(255, 246, 214, .9) 0%, rgba(255, 246, 214, 0) 45%), var(--spr-gold) center / 170% 170%;   /* только середина текстуры: края у неё тёмные */
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+            filter: drop-shadow(0 2px 0 #3b2108) drop-shadow(0 0 14px rgba(255, 150, 40, .35));
+            max-width: 100%;
+        }
+        .lc-sub { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 12px; max-width: 100%; }
+        .lc-sub p { font: 500 1rem/1.2 'Oswald', sans-serif; letter-spacing: 3px; color: var(--orange); text-transform: uppercase;
+            text-shadow: 0 0 10px rgba(255, 154, 31, .45); }
+        .lc-sub img { height: 26px; width: auto; opacity: .55; }
+        .lc-status {
+            margin-top: 14px; display: inline-flex; align-items: center; gap: 10px;
+            font: 500 .78rem/1.2 'Oswald', sans-serif; letter-spacing: 2px; color: var(--beige-dim); text-transform: uppercase;
+            border: 12px solid transparent; border-image: var(--spr-plate) 36 fill / 12px stretch; padding: 2px 8px;
+        }
+        .lc-status img { width: 16px; height: 16px; flex: none; animation: lc-blink 2.4s ease-in-out infinite; }
+        @keyframes lc-blink { 50% { opacity: .35; } }
+
+        /* ============ Хаб ============ */
+        .hub { display: grid; grid-template-columns: 1fr 1.5fr; gap: 34px; width: 100%; max-width: 1400px; padding: 26px 20px 10px; align-items: stretch; }
+        .col { display: flex; flex-direction: column; min-width: 0; }
+
+        .col-head { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
+        .col-head .tag {
+            flex: none; min-width: 64px; height: 34px; padding: 0 14px 4px; display: grid; place-items: center;
+            background: var(--spr-tag) center / 100% 100% no-repeat;
+            font: 700 1.05rem/1 'Oswald', sans-serif; color: #2a1606; letter-spacing: 2px;
+        }
+        .col-head h2 { font: 500 1.25rem/1.2 'Oswald', sans-serif; letter-spacing: 2px; color: var(--beige); text-transform: uppercase; white-space: nowrap; }
+        .col-head::after { content: ''; flex: 1; height: 2px; min-width: 20px; background: linear-gradient(90deg, #8b5a2b, rgba(139, 90, 43, 0)); }
+
+        .grid-uni { display: grid; grid-template-columns: 1fr; gap: 22px; flex: 1; }
+        .grid-pmd { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; flex: 1; }
+        .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+        .wide { grid-column: 1 / -1; }
+
+        /* ---- Карточка: латунная рамка (9-slice) + неоновая полоса и подсветка цвета греха ----
+           --fw — толщина рамки. Тёмное поле спрайта (Choice_3_023, срез 64 px) начинается в 42/38/41/36 px
+           от левого/верхнего/правого/нижнего края, углы поля срезаны на 14 px: полоса и подсветка
+           считаются от этих размеров, чтобы занимать поле целиком, а не только внутреннюю область. */
+        .card {
+            --fw: 30px;
+            --in-l: calc(var(--fw) * -22 / 64); --in-t: calc(var(--fw) * -26 / 64);
+            --in-r: calc(var(--fw) * -23 / 64); --in-b: calc(var(--fw) * -28 / 64); --in-c: calc(var(--fw) * 14 / 64);
+            position: relative; display: flex; flex-direction: column; justify-content: center;
+            height: 100%; min-height: 150px; padding: 6px 8px 6px 14px;
+            border: var(--fw) solid transparent; border-image: var(--spr-card) 64 fill / var(--fw) stretch;
+            color: inherit; text-decoration: none; isolation: isolate;
+            transition: transform .2s ease, filter .25s ease;
+        }
+        .card::after {   /* оранжевая неоновая обводка при наведении */
+            content: ''; position: absolute; inset: -32px; z-index: 2; pointer-events: none;
+            border: 22px solid transparent; border-image: var(--spr-neon) 44 / 22px stretch;
+            opacity: 0; transition: opacity .2s;
+        }
+        .card:hover, .card:focus-visible { transform: translateY(-4px); filter: drop-shadow(0 0 14px color-mix(in srgb, var(--sin) 45%, transparent)); outline: none; }
+        .card:hover::after, .card:focus-visible::after { opacity: 1; }
+
+        .card::before {   /* свет неоновой полосы на тёмном поле — по всей высоте; ярче при наведении */
+            content: ''; position: absolute; z-index: -1; pointer-events: none;
+            inset: var(--in-t) var(--in-r) var(--in-b) var(--in-l);
+            clip-path: polygon(var(--in-c) 0, calc(100% - var(--in-c)) 0, 100% var(--in-c), 100% calc(100% - var(--in-c)),
+                calc(100% - var(--in-c)) 100%, var(--in-c) 100%, 0 calc(100% - var(--in-c)), 0 var(--in-c));
+            background: linear-gradient(90deg, color-mix(in srgb, var(--sin) 22%, transparent) 0, color-mix(in srgb, var(--sin) 8%, transparent) 28%, transparent 62%);
+            opacity: .75; transition: opacity .25s;
+        }
+        .card:hover::before, .card:focus-within::before { opacity: 1; }
+
+        /* неоновая трубка вдоль левого края поля — от среза до среза */
+        .bar { position: absolute; left: calc(var(--in-l) + 3px); top: calc(var(--in-t) + var(--in-c)); bottom: calc(var(--in-b) + var(--in-c));
+            width: 8px; background: var(--bar) center / 100% 100% no-repeat; opacity: .9; }
+
+        .body { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; width: 100%; min-width: 0; }
+        .sin { font: 500 .68rem/1 'Oswald', sans-serif; letter-spacing: 4px; text-transform: uppercase; color: var(--sin);
+            display: flex; align-items: center; gap: 8px; }
+        .sin::before { content: ''; width: 18px; height: 2px; background: var(--sin); box-shadow: 0 0 6px var(--sin); }
+        .title { font: 700 1.3rem/1.15 'Oswald', sans-serif; letter-spacing: 1px; text-transform: uppercase; color: #F0DDBC; overflow-wrap: anywhere; }
+        .lore { font: italic 300 .82rem/1.45 'Merriweather', serif; color: var(--text-dim); }
+        .btn {
+            margin-top: 6px; display: inline-block;
+            border: 11px solid transparent; border-image: var(--spr-btn) 26 fill / 11px stretch; padding: 1px 10px;
+            font: 500 .74rem/1.2 'Oswald', sans-serif; letter-spacing: 2px; text-transform: uppercase; color: var(--beige);
+            transition: color .2s, text-shadow .2s;
+        }
+        .card:hover .btn, .card:focus-visible .btn { border-image-source: var(--spr-btn-on); color: #FFD27A; text-shadow: 0 0 8px rgba(255, 154, 31, .8); }
+
+        /* большая карточка (База знаний) и узкие карточки в парах — текст по центру */
+        .card.big { text-align: center; padding: 14px 20px; }
+        .card.big .title { font-size: 1.55rem; }
+        .card.tall { text-align: center; }
+        .card.big .body, .card.tall .body { align-items: center; }
+
+        /* Карточка-блок со ссылкой на всю площадь (растянутая ссылка заголовка) и своими ссылками внутри */
+        .card .stretch { color: inherit; text-decoration: none; }
+        .card .stretch::before { content: ''; position: absolute; inset: calc(var(--fw) * -1); z-index: 1; }
+        .card:focus-within::after { opacity: 1; }
+        .card:has(.stretch:focus-visible) { transform: translateY(-4px); filter: drop-shadow(0 0 14px color-mix(in srgb, var(--sin) 45%, transparent)); }
+        .card .stretch:focus-visible { outline: none; }
+
+        /* разделы Базы знаний */
+        .sections { position: relative; z-index: 3; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin: 6px 0 2px; max-width: 640px; }
+        .sections a {
+            display: inline-flex; align-items: center; gap: 6px; padding: 0 6px; min-height: 22px;
+            border: 8px solid transparent; border-image: url('Assets/Timed_Assets/03_MainUI/MainUI_PersonalityList_1/MainUI_PersonalityList_1_004.png') 24 / 8px stretch;
+            background: rgba(10, 8, 6, .75) padding-box;
+            font: 500 .74rem/1 'Oswald', sans-serif; letter-spacing: 1px; text-transform: uppercase; color: var(--beige); text-decoration: none;
+            transition: color .15s;
+        }
+        .sections a img { width: 20px; height: 20px; object-fit: contain; filter: sepia(.3) brightness(.9); transition: filter .15s; }
+        .sections a:hover, .sections a:focus-visible {
+            border-image-source: url('Assets/Timed_Assets/03_MainUI/New_MainUI_Formation_1/New_MainUI_Formation_1_044.png'); border-image-slice: 22;
+            color: #FFD27A; outline: none;
+        }
+        .sections a:hover img, .sections a:focus-visible img { filter: drop-shadow(0 0 4px rgba(255, 154, 31, .8)); }
+
+        /* уровни Э.Г.О. на карточке конструктора */
+        .grades { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; margin-top: 2px; }
+        .grades img { height: 18px; width: auto; }
+
+        .footer-text { margin: 34px 0 30px; text-align: center; width: 100%; padding: 0 20px; color: #4a3a2c; font: .7rem/1.6 'Inter', sans-serif; letter-spacing: 2px; }
+        .footer-text img { width: 18px; height: 18px; vertical-align: -4px; margin-right: 6px; opacity: .7; }
+
+        /* ============ Адаптивность ============ */
+        @media (max-width: 1000px) {
+            .hub { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 600px) {
+            .lc-top { padding: 6px 12px; }
+            /* название в две строки, чтобы не заезжало под кнопки */
+            .lc-brand > div { min-width: 0; }
+            .lc-brand b { font-size: .8rem; line-height: 1.1; letter-spacing: 2px; white-space: normal; }
+            .lc-brand small { display: none; }
+            .lc-brand img { width: 28px; height: 28px; }
+            .lc-oct { width: 40px; height: 40px; }
+            .lc-ticker::before, .lc-ticker::after { width: 28px; }
+            .lc-hero { padding: 22px 16px 4px; }
+            .lc-sigil { width: 128px; height: 128px; }
+            /* «МЕФИСТОФЕЛЬ» одним словом не помещается в узкий экран */
+            .lc-h1 { font-size: clamp(1.6rem, 9.4vw, 3.1rem); letter-spacing: 2px; overflow-wrap: anywhere; }
+            .lc-sub { gap: 8px; }
+            .lc-sub p { font-size: .82rem; letter-spacing: 1px; }
+            .lc-sub img { display: none; }
+            .lc-status { font-size: .66rem; letter-spacing: 1px; }
+            .hub { padding: 20px 16px 6px; gap: 28px; }
+            .grid-pmd, .pair { grid-template-columns: 1fr; }
+            .col-head h2 { font-size: 1.05rem; white-space: normal; }
+            .card { --fw: 24px; min-height: 0; padding: 4px 4px 4px 10px; }
+            .card::after { inset: -24px; border-width: 18px; border-image-width: 18px; }   /* без вылета за край экрана */
+            .bar { width: 6px; }
+            /* в одну колонку узкие карточки выглядят как остальные — текст слева */
+            .card.tall { text-align: left; }
+            .card.tall .body { align-items: flex-start; }
+            .title { font-size: 1.12rem; }
+            .card.big .title { font-size: 1.25rem; }
+            .sections { gap: 4px; }
+            .sections a { font-size: .66rem; padding: 0 3px; gap: 4px; }
+            .sections a img { width: 16px; height: 16px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .lc-ticker-track, .lc-sigil img, .lc-sigil::after, .lc-status img { animation: none; }
+            .card, .card::before { transition: none; }
+        }
+    </style>
+    <script src="site/i18n.js"></script>
+    <script src="site/theme.js"></script>
+    <script type="module" src="site/ui.js"></script>
+</head>
+<body>
+
+    <nav class="lc-top">
+        <div class="lc-brand">
+            <img src="Assets/Timed_Assets/01_BattleUI/BattleUI_Choice_7/BattleUI_Choice_7_040.png" alt="">
+            <div class="notranslate"><b>MEPHISTOPHELES TERMINAL</b><small>LIMBUS COMPANY</small></div>
+        </div>
+        <div class="lc-actions">
+            <a class="lc-oct solo" id="lc-classic" href="index.html" title="Классическое оформление" aria-label="Классическое оформление">
+                <img src="Assets/Timed_Assets/03_MainUI/MainUI_common_1/MainUI_common_1_001.png" alt="">
+            </a>
+            <button class="lc-oct" id="lc-settings" type="button" title="Настройки" aria-label="Настройки">
+                <img class="off" src="Assets/Timed_Assets/05_Story_Tutorial_Misc/StoryUI_Frame_1/StoryUI_Frame_1_011.png" alt="">
+                <img class="on" src="Assets/Timed_Assets/05_Story_Tutorial_Misc/StoryUI_Frame_1/StoryUI_Frame_1_021.png" alt="">
+                <span class="dot"></span>
+            </button>
+        </div>
+    </nav>
+
+    <div class="lc-ticker notranslate" aria-hidden="true">
+        <div class="lc-ticker-track">
+            <span>LIMBUS COMPANY <i>✦</i> MEPHISTOPHELES TERMINAL <i>✦</i> PROJECT MOON 5E <i>✦</i> ZAYIN · TETH · HE · WAW · ALEPH <i>✦</i> FIND THE GOLDEN BOUGH <i>✦</i></span>
+            <span>LIMBUS COMPANY <i>✦</i> MEPHISTOPHELES TERMINAL <i>✦</i> PROJECT MOON 5E <i>✦</i> ZAYIN · TETH · HE · WAW · ALEPH <i>✦</i> FIND THE GOLDEN BOUGH <i>✦</i></span>
+        </div>
+    </div>
+
+    <header class="lc-hero">
+        <div class="lc-sigil" aria-hidden="true">
+            <img class="ring" src="Assets/Timed_Assets/01_BattleUI/BattleUI_GoldenBough/BattleUI_GoldenBough_028.png" alt="">
+            <img class="star" src="Assets/Timed_Assets/01_BattleUI/BattleUI_GoldenBough/BattleUI_GoldenBough_029.png" alt="">
+        </div>
+        <h1 class="lc-h1">СИСТЕМА МЕФИСТОФЕЛЬ</h1>
+        <div class="lc-sub">
+            <img src="Assets/Timed_Assets/05_Story_Tutorial_Misc/warning_img_glow/warning_img_glow_007.png" alt="">
+            <p>ВЫБЕРИТЕ ПРОТОКОЛ СИНХРОНИЗАЦИИ</p>
+            <img src="Assets/Timed_Assets/05_Story_Tutorial_Misc/warning_img_glow/warning_img_glow_007.png" alt="">
+        </div>
+        <div class="lc-status">
+            <img src="Assets/Timed_Assets/03_MainUI/MainUI_MainStage_1/MainUI_MainStage_1_019.png" alt="">
+            <span>СТАТУС СЕРВЕРА: АКТИВЕН // ОЖИДАНИЕ ВВОДА</span>
+        </div>
+    </header>
+
+    <main class="hub">
+
+        <!-- ЛЕВАЯ КОЛОНКА: УНИВЕРСАЛЬНЫЕ СИСТЕМЫ -->
+        <section class="col">
+            <div class="col-head"><span class="tag notranslate">I</span><h2>УНИВЕРСАЛЬНЫЕ СИСТЕМЫ</h2></div>
+            <div class="grid-uni">
+                <a href="office.html" class="card sin-gluttony">
+                    <span class="bar" aria-hidden="true"></span>
+                    <div class="body">
+                        <div class="sin">Чревоугодие</div>
+                        <div class="title">УПРАВЛЕНИЕ ОФИСОМ</div>
+                        <div class="lore">Глобальная корпоративная база. Менеджмент агентов, контрактов, репутации и новостей.</div>
+                        <div class="btn">СИНХРОНИЗАЦИЯ ДОСТУПНА</div>
+                    </div>
+                </a>
+
+                <a href="shirm.html" class="card sin-lust">
+                    <span class="bar" aria-hidden="true"></span>
+                    <div class="body">
+                        <div class="sin">Похоть</div>
+                        <div class="title">ШИРМА</div>
+                        <div class="lore">Доски лора и связей. Карта Города, фракции и свои кампании с туманом войны.</div>
+                        <div class="btn">РАЗВЕРНУТЬ ДОСКУ</div>
+                    </div>
+                </a>
+
+                <div class="pair">
+                    <a href="maps.html" class="card tall sin-wrath">
+                        <span class="bar" aria-hidden="true"></span>
+                        <div class="body">
+                            <div class="sin">Гнев</div>
+                            <div class="title">РЕДАКТОР КАРТ</div>
+                            <div class="lore">Боевые карты, районы и здания Города. Экспорт в Foundry, Roll20 и другие VTT.</div>
+                            <div class="btn">РАЗВЕРНУТЬ ХОЛСТ</div>
+                        </div>
+                    </a>
+
+                    <a href="foundry.html" class="card tall sin-sloth">
+                        <span class="bar" aria-hidden="true"></span>
+                        <div class="body">
+                            <div class="sin">Лень</div>
+                            <div class="title">FOUNDRY VTT</div>
+                            <div class="lore">Модуль Mephistopheles: База знаний, статусы, Свет и Э.Г.О. прямо в Foundry.</div>
+                            <div class="btn">СВЯЗЬ С VTT</div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- ПРАВАЯ КОЛОНКА: PMD (D&D 5E) -->
+        <section class="col">
+            <div class="col-head"><span class="tag notranslate">II</span><h2>СИСТЕМА (D&amp;D 5E)</h2></div>
+            <div class="grid-pmd">
+                <a href="builder.html" class="card tall sin-pride">
+                    <span class="bar" aria-hidden="true"></span>
+                    <div class="body">
+                        <div class="sin">Гордыня</div>
+                        <div class="title">КОНСТРУКТОР ПЕРСОНАЖА</div>
+                        <div class="lore">Система сборки агента. Выбор расы, архетипа и черт.</div>
+                        <div class="btn">СОЗДАТЬ АГЕНТА</div>
+                    </div>
+                </a>
+
+                <a href="egobuilder.html" class="card tall sin-envy">
+                    <span class="bar" aria-hidden="true"></span>
+                    <div class="body">
+                        <div class="sin">Зависть</div>
+                        <div class="title">КОНСТРУКТОР Э.Г.О.</div>
+                        <div class="lore">Генерация Э.Г.О. атак и оборудования с подсчетом очков.</div>
+                        <div class="grades" aria-hidden="true">
+                            <img src="Assets/Timed_Assets/03_MainUI/MainUI_PersonalityList_3/MainUI_PersonalityList_3_052.png" alt="">
+                            <img src="Assets/Timed_Assets/03_MainUI/MainUI_PersonalityList_3/MainUI_PersonalityList_3_054.png" alt="">
+                            <img src="Assets/Timed_Assets/03_MainUI/MainUI_PersonalityList_3/MainUI_PersonalityList_3_056.png" alt="">
+                            <img src="Assets/Timed_Assets/03_MainUI/MainUI_PersonalityList_3/MainUI_PersonalityList_3_062.png" alt="">
+                            <img src="Assets/Timed_Assets/03_MainUI/MainUI_PersonalityList_3/MainUI_PersonalityList_3_063.png" alt="">
+                        </div>
+                        <div class="btn">МАНИФЕСТАЦИЯ</div>
+                    </div>
+                </a>
+
+                <!-- вся карточка ведёт в Базу знаний (растянутая ссылка заголовка), значки — сразу в нужный раздел -->
+                <div class="card big wide sin-gloom">
+                    <span class="bar" aria-hidden="true"></span>
+                    <div class="body">
+                        <div class="sin">Уныние</div>
+                        <a class="title stretch" href="navigation.html">БАЗА ЗНАНИЙ (НАВИГАЦИЯ)</a>
+                        <div class="lore">Глобальный архив Project Moon 5e. Правила, лор, классы, черты и механики сеттинга.</div>
+                        <nav class="sections" aria-label="Разделы Базы знаний">
+                            <a href="navigation.html#classes"><img src="Assets/Timed_Assets/03_MainUI/MainUI_MainStage_1/MainUI_MainStage_1_020.png" alt="">Архетипы</a>
+                            <a href="navigation.html#bases"><img src="Assets/Timed_Assets/01_BattleUI/BattleUI_Popup_4/BattleUI_Popup_4_003.png" alt="">Классы</a>
+                            <a href="navigation.html#feats"><img src="Assets/Timed_Assets/01_BattleUI/BattleUI_Popup_4/BattleUI_Popup_4_009.png" alt="">Черты</a>
+                            <a href="navigation.html#equipment"><img src="Assets/Timed_Assets/03_MainUI/MainUI_MainStage_1/MainUI_MainStage_1_004.png" alt="">Снаряжение</a>
+                            <a href="navigation.html#rules"><img src="Assets/Timed_Assets/03_MainUI/MainUI_MainStage_1/MainUI_MainStage_1_005.png" alt="">Правила</a>
+                            <a href="navigation.html#bestiary"><img src="Assets/Timed_Assets/01_BattleUI/BattleUI_CreatureBattle_3/BattleUI_CreatureBattle_3_007.png" alt="">Бестиарий</a>
+                            <a href="navigation.html#gifts"><img src="Assets/Timed_Assets/03_MainUI/MainUI_BattleSelection_9/MainUI_BattleSelection_9_015.png" alt="">Э.Г.О. Гифты</a>
+                            <a href="navigation.html#statuses"><img src="Assets/Timed_Assets/01_BattleUI/BattleUI_Popup_4/BattleUI_Popup_4_021.png" alt="">Статус-эффекты</a>
+                            <a href="navigation.html#lore"><img src="Assets/Timed_Assets/03_MainUI/MainUI_Inventory_1/MainUI_Inventory_1_021.png" alt="">Время и история</a>
+                        </nav>
+                        <div class="btn" aria-hidden="true">ПОДКЛЮЧЕНИЕ К СЕТИ</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+
+    <div class="footer-text notranslate">
+        <img src="Assets/Timed_Assets/03_MainUI/New_MainUI_PersonalityList_2/New_MainUI_PersonalityList_2_012.png" alt="">PROJECT MOON TTRPG FRAMEWORK // BUILD 1.5 // LIMBUS UI
+    </div>
+
+    <script type="module">
+        // ⚙ в шапке — общее окно настроек; зелёная точка — вход выполнен (как у круглой кнопки ui.js)
+        import { onAuth } from './site/auth.js';
+        const gear = document.getElementById('lc-settings');
+        gear.addEventListener('click', () => window.SiteUI && window.SiteUI.open());
+        onAuth((s) => gear.classList.toggle('is-in', !!s.user));
+        // ← у тестера с выбранным оформлением переключает на обычное (иначе index.html вернёт сюда же)
+        document.getElementById('lc-classic').addEventListener('click', (e) => {
+            if (window.SiteTheme && window.SiteTheme.get() !== 'classic') { e.preventDefault(); window.SiteTheme.set('classic'); }
+        });
+    </script>
+</body>
+</html>
