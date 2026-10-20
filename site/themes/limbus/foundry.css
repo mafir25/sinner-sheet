@@ -1,0 +1,21 @@
+/* Оформление Limbus Company — страница Foundry VTT (foundry.html). Общие детали (панели, навигация, уведомления) — base.css.
+   Цвет страницы — --accent (зелёный «Универсальных систем»): он светится в неоновой полосе панелей и заголовках. */
+html[data-theme="limbus"] .panel-outer { --lb-accent: var(--accent); margin-bottom: 24px; }
+html[data-theme="limbus"] .panel-inner { padding: 14px 16px 14px 20px; }
+html[data-theme="limbus"] .top-nav-btn { --c: var(--accent); }
+
+html[data-theme="limbus"] header h1 {
+  font-weight: 700; color: transparent;
+  background: linear-gradient(180deg, rgba(255, 246, 214, .9) 0%, rgba(255, 246, 214, 0) 45%), var(--lb-gold-tex) center / 170% 170%;
+  -webkit-background-clip: text; background-clip: text;
+  filter: drop-shadow(0 2px 0 #3b2108) drop-shadow(0 0 12px rgba(255, 150, 40, .3));
+}
+html[data-theme="limbus"] header i { filter: drop-shadow(0 0 10px color-mix(in srgb, var(--accent) 60%, transparent)); }
+html[data-theme="limbus"] header p, html[data-theme="limbus"] .dim { color: var(--lb-text-dim); }
+html[data-theme="limbus"] code { background: #0d0907; border-color: #3a2717; }
+html[data-theme="limbus"] .copy-row input { background: #0d0907; border-color: #4a3220; color: var(--lb-text); }
+html[data-theme="limbus"] .btn {
+  border: 10px solid transparent; border-image: var(--lb-btn) 26 fill / 10px stretch; background: none;
+  padding: 0 8px; color: var(--accent); min-height: 38px;
+}
+html[data-theme="limbus"] .btn:hover { border-image-source: var(--lb-btn-on); background: none; color: #FFD27A; text-shadow: 0 0 8px rgba(255, 154, 31, .8); }

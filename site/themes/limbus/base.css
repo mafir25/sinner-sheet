@@ -58,6 +58,7 @@ html[data-theme="limbus"] ::selection { background: rgba(255, 154, 31, .35); col
 html[data-theme="limbus"] .cut-tl { clip-path: none; }
 html[data-theme="limbus"] .panel-outer {
   --fw: 22px; --lb-accent: var(--pc, var(--accent-primary, #FF9A1F));
+  position: relative;   /* неоновая полоса (::before) считается от панели — не у всех страниц панель уже relative */
   background: none; padding: 0; clip-path: none;
   border: var(--fw) solid transparent; border-image: var(--lb-frame) 64 fill / var(--fw) stretch;
 }
