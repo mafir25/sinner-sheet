@@ -1,0 +1,71 @@
+/* Оформление Limbus Company — общее для приложений на React: Ширмы (shirm.css) и Редактора карт (maps.css).
+   Оба построены на одних классах (.btn, .icon-btn, .input, .topbar, .modal, .toast, .ctx-menu) и переменных
+   (--accent, --surface, --line…): переменные перекрашиваем в тёплые тона, кнопки и окна — латунными спрайтами.
+   Холст (доска Ширмы, карта редактора) и цвета узлов, слоёв и объектов пользователя не трогаем. */
+html[data-theme="limbus"] {
+  --accent: var(--lb-orange); --bg: var(--lb-bg); --panel: #0d0907; --surface: #160f0a; --surface-2: #1f150d;
+  --line: #4a3220; --dim: var(--lb-text-dim); --dimmer: #5c4632; --text: var(--lb-text);
+}
+
+/* ---------- Кнопки ---------- */
+html[data-theme="limbus"] .btn {
+  border: 8px solid transparent; border-image: var(--lb-chip) 24 / 8px stretch; background: rgba(10, 8, 6, .9) padding-box;
+  padding: 0 6px; color: var(--lb-beige);
+}
+html[data-theme="limbus"] .btn-sm { border-width: 6px; border-image-width: 6px; padding: 0 4px; }
+/* верхняя панель плотная: латунная кромка шире обычной рамки — убираем лишнее поле, чтобы кнопки не уходили на вторую строку */
+html[data-theme="limbus"] .topbar .btn { padding: 0 4px; }
+html[data-theme="limbus"] .btn:hover:not(:disabled), html[data-theme="limbus"] .btn-on {
+  border-image-source: var(--lb-chip-on); border-image-slice: 22; background: rgba(40, 20, 6, .9) padding-box; color: #FFD27A;
+}
+/* главная кнопка — латунная плашка, при наведении горит */
+html[data-theme="limbus"] .btn-primary {
+  border: 9px solid transparent; border-image: var(--lb-btn) 26 fill / 9px stretch; background: none; color: var(--lb-orange);
+}
+html[data-theme="limbus"] .btn-primary:hover:not(:disabled) {
+  border-image-source: var(--lb-btn-on); background: none; color: #FFD27A !important; text-shadow: 0 0 8px rgba(255, 154, 31, .8);
+}
+html[data-theme="limbus"] .btn-danger, html[data-theme="limbus"] .btn-danger:hover:not(:disabled) { color: #ff6b5c !important; background: rgba(10, 8, 6, .9) padding-box; }
+html[data-theme="limbus"] .icon-btn {
+  border: 6px solid transparent; border-image: var(--lb-chip) 24 / 6px stretch; background: rgba(10, 8, 6, .9) padding-box; color: var(--lb-beige);
+}
+html[data-theme="limbus"] .icon-btn:hover:not(:disabled) {
+  border-image-source: var(--lb-chip-on); border-image-slice: 22; background: rgba(40, 20, 6, .9) padding-box; color: #FFD27A;
+}
+html[data-theme="limbus"] .icon-btn.danger:hover:not(:disabled) { color: #ff6b5c; }
+
+/* ---------- Поля ---------- */
+html[data-theme="limbus"] .input, html[data-theme="limbus"] input[type=color] { background: #0d0907; border-color: var(--line); }
+html[data-theme="limbus"] .input:focus { border-color: var(--lb-orange); }
+
+/* ---------- Верхняя панель и заставка ---------- */
+html[data-theme="limbus"] .topbar {
+  background: linear-gradient(180deg, #17100b 0%, #0c0806 100%); border-bottom: 2px solid #6b4422;
+  box-shadow: 0 1px 0 #2a1a0e, 0 6px 18px rgba(0, 0, 0, .6); position: relative; z-index: 30;
+}
+html[data-theme="limbus"] .splash h1, html[data-theme="limbus"] .topbar .title {
+  font-weight: 700; color: transparent;
+  background: linear-gradient(180deg, rgba(255, 246, 214, .9) 0%, rgba(255, 246, 214, 0) 45%), var(--lb-gold-tex) center / 170% 170%;
+  -webkit-background-clip: text; background-clip: text;
+  filter: drop-shadow(0 2px 0 #3b2108) drop-shadow(0 0 12px rgba(255, 150, 40, .3));
+}
+
+/* ---------- Окна, меню, уведомления ---------- */
+html[data-theme="limbus"] .modal {
+  background: #0d0907; border: 14px solid transparent; border-image: var(--lb-plate) 36 / 14px stretch;
+  box-shadow: none; filter: drop-shadow(0 10px 30px rgba(0, 0, 0, .8));
+}
+html[data-theme="limbus"] .modal-head { border-bottom-color: #3a2414; }
+html[data-theme="limbus"] .modal-head h2, html[data-theme="limbus"] .modal-head h3 { color: var(--lb-orange); text-shadow: 0 0 10px rgba(255, 154, 31, .4); }
+html[data-theme="limbus"] .modal-foot { border-top-color: #3a2414; }
+html[data-theme="limbus"] .ctx-menu {
+  background: #0d0907; border-color: #8b5a2b; box-shadow: 0 8px 24px rgba(0, 0, 0, .85), inset 0 2px 0 rgba(139, 90, 43, .55);
+}
+html[data-theme="limbus"] .ctx-item:hover:not(:disabled) { background: linear-gradient(180deg, #ffb43a, #d9772f); color: #1a0e05; }
+html[data-theme="limbus"] .ctx-menu button:hover, html[data-theme="limbus"] .ctx-menu button:focus-visible { background: rgba(255, 154, 31, .12); color: #FFD27A; }
+html[data-theme="limbus"] .toast-error { color: #ff9a8e; }
+html[data-theme="limbus"] .tabs button.on { color: var(--lb-orange); border-bottom-color: var(--lb-orange); }
+html[data-theme="limbus"] .seg { border-color: var(--line); }
+html[data-theme="limbus"] .seg button { border-right-color: var(--line); }
+html[data-theme="limbus"] .seg button.on { background: linear-gradient(180deg, #ffb43a, #d9772f); color: #1a0e05; }
+html[data-theme="limbus"] kbd { border-color: var(--line); background: #0d0907; }

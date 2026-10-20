@@ -1,0 +1,49 @@
+/* Оформление Limbus Company — Ширма (shirm-app). Общее для приложений — apps.css, общие переменные — base.css.
+   Подключается из shirm-app/src/main.tsx (мимо сборщика). Доска и цвета узлов, рамок и связей — как у пользователя. */
+@import url('apps.css');
+
+/* у Ширмы фон — сама доска: сетку и строки развёртки base.css не накладываем, чтобы не мешать работе */
+html[data-theme="limbus"] body::before, html[data-theme="limbus"] body::after { display: none; }
+
+html[data-theme="limbus"] .workspace { background: #1a120c; }
+html[data-theme="limbus"] .panel { border-color: #3a2717; background: #0d0907; }
+html[data-theme="limbus"] .panel.active { border-color: #8b5a2b; box-shadow: inset 0 0 0 1px rgba(139, 90, 43, .4); }
+html[data-theme="limbus"] .screen-select { border-color: #8b5a2b; }
+html[data-theme="limbus"] .save-state, html[data-theme="limbus"] .badge { background: rgba(13, 9, 7, .85); }
+html[data-theme="limbus"] .search-res { background: rgba(13, 9, 7, .97); border-color: #8b5a2b; }
+html[data-theme="limbus"] .search-item { border-bottom-color: #2a1a0e; }
+html[data-theme="limbus"] .search-item:hover { background: rgba(255, 154, 31, .1); }
+
+/* доска: тёплая точечная сетка */
+html[data-theme="limbus"] .board { background-color: #0e0a07; background-image: radial-gradient(circle, #3a2a1c 1.4px, transparent 1.4px); }
+html[data-theme="limbus"] .marquee { border-color: var(--lb-orange); background: rgba(255, 154, 31, .1); }
+html[data-theme="limbus"] .board-controls button, html[data-theme="limbus"] .minimap-toggle {
+  background: rgba(13, 9, 7, .9); border-color: #6b4422;
+}
+html[data-theme="limbus"] .board-controls button:hover, html[data-theme="limbus"] .board-controls button.on { border-color: var(--lb-orange); color: #FFD27A; }
+html[data-theme="limbus"] .minimap { border-color: #6b4422; background: rgba(13, 9, 7, .9); }
+html[data-theme="limbus"] .board-loading, html[data-theme="limbus"] .board-empty, html[data-theme="limbus"] .draw-hint { background: rgba(13, 9, 7, .85); }
+
+/* боковая панель узла */
+html[data-theme="limbus"] .sidebar {
+  background: linear-gradient(90deg, rgba(0, 0, 0, .5), transparent 30px), rgba(13, 9, 7, .97);
+  border-left: 3px solid #8b5a2b; box-shadow: -10px 0 30px rgba(0, 0, 0, .7), inset 1px 0 0 #2a1a0e;
+}
+html[data-theme="limbus"] .sidebar-head h2 { color: #F0DDBC; }
+html[data-theme="limbus"] .sections, html[data-theme="limbus"] .related { border-top-color: #4a3220; }
+html[data-theme="limbus"] .sec { border-left-color: #4a3220; background: rgba(255, 220, 170, .025); }
+html[data-theme="limbus"] .sec[open] { border-color: var(--lb-orange); }
+html[data-theme="limbus"] .related-item { border-bottom-color: #2a1a0e; }
+html[data-theme="limbus"] .related-item:hover { background: rgba(255, 154, 31, .08); }
+html[data-theme="limbus"] .md th { background: rgba(139, 90, 43, .18); }
+html[data-theme="limbus"] .md th, html[data-theme="limbus"] .md td { border-color: #3a2717; }
+html[data-theme="limbus"] .md code { background: #1a120c; }
+
+/* окна и заметки */
+html[data-theme="limbus"] .md-toolbar { background: #0d0907; }
+html[data-theme="limbus"] .sec-edit { background: rgba(255, 220, 170, .025); }
+html[data-theme="limbus"] .radio, html[data-theme="limbus"] .import-list, html[data-theme="limbus"] .map-pick-item { border-color: #3a2717; }
+html[data-theme="limbus"] .import-item:hover, html[data-theme="limbus"] .import-item.on { background: rgba(255, 154, 31, .1); }
+html[data-theme="limbus"] .notes { background: rgba(13, 9, 7, .97); border-color: #8b5a2b; }
+html[data-theme="limbus"] .notes-head { background: linear-gradient(180deg, #2a1c10, #15100b); }
+html[data-theme="limbus"] .map-pick-item { background: #0d0907; }
