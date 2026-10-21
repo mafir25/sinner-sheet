@@ -1,0 +1,169 @@
+/* Оформление Lobotomy Corporation — База знаний (navigation.html). Общие переменные и спрайты — base.css.
+   Цвет раздела по-прежнему задаёт site/navigation.js (--accent-primary): он — в штриховке панелей и под заголовком,
+   в выбранной вкладке; сами рамки и кнопки — кремовые спрайты игры, выбор — оранжевый или залитая плашка. */
+
+/* ---------- Верхняя панель ---------- */
+html[data-theme="lobotomy"] .topbar {
+  background: #000; backdrop-filter: none; border-bottom: 1px solid var(--lc-olive); box-shadow: 0 8px 24px rgba(0, 0, 0, .7);
+}
+html[data-theme="lobotomy"] .tb-btn {
+  border: 7px solid transparent; border-image: var(--lc-btn) 30 fill / 7px stretch; border-radius: 0;
+  padding: 0 6px; min-height: 30px; color: var(--lc-cream); letter-spacing: 1px; background: none;
+}
+html[data-theme="lobotomy"] .tb-btn:hover, html[data-theme="lobotomy"] .tb-btn.accent:hover {
+  border-image-source: var(--lc-btn-on); color: #111; background: none; text-shadow: none;
+}
+html[data-theme="lobotomy"] .tb-btn.accent { color: var(--lc-orange); }
+html[data-theme="lobotomy"] .tb-user { color: var(--lc-cream-dim); }
+html[data-theme="lobotomy"] .src-switch {
+  border: 5px solid transparent; border-image: var(--lc-chip) 8 fill / 5px stretch; border-radius: 0; background: none;
+}
+html[data-theme="lobotomy"] .src-switch button { color: var(--lc-cream-dim); border-right-color: var(--lc-line); padding: 3px 9px; }
+html[data-theme="lobotomy"] .src-switch button:hover { color: var(--lc-cream); }
+html[data-theme="lobotomy"] .src-switch button.active { background: var(--lc-cream); color: #111; }
+html[data-theme="lobotomy"] #system-select { background: #000; border-color: var(--lc-olive); color: var(--lc-cream); }
+
+/* ---------- Вкладки разделов: кремовые плашки, выбранная — оранжевый контур на цвете раздела ---------- */
+html[data-theme="lobotomy"] .cat-btn {
+  border: 8px solid transparent; border-image: var(--lc-btn) 30 fill / 8px stretch; border-radius: 0;
+  padding: 1px 8px; background: none; color: var(--lc-cream); letter-spacing: 1px;
+}
+html[data-theme="lobotomy"] .cat-btn:hover { color: #111; border-image-source: var(--lc-btn-on); }
+/* у выбранной site/navigation.js ставит фон цвета раздела прямо в style — перекрываем */
+html[data-theme="lobotomy"] .cat-btn.active {
+  border-image: var(--lc-chip-on) 8 fill / 8px stretch;
+  background: color-mix(in srgb, var(--accent-primary) 26%, #000) padding-box !important;
+  color: var(--lc-cream); font-weight: 500;
+}
+
+/* ---------- Значки разделов — спрайты, как на главной (вместо значков Font Awesome) ----------
+   Везде, где у раздела стоит значок: вкладки, метка раздела на карточке, сборка, всплывающая ссылка, поиск по базе,
+   полный парсинг, кабинет. site/navigation.js ставит значок раздела как <i class="fa-solid …"> — по этому классу и меняем. */
+html[data-theme="lobotomy"] :is(.cat-btn, .badge-cat, .sidebar-h2, .xp-cat, .xp-choice, .gs-cat, .fp-ghead, [data-act="cab-cat"]) > .fa-book-journal-whills { --lc-ico: url('/Assets/Assets_Lobotomy/icons/head-pray.png'); }   /* Архетипы */
+html[data-theme="lobotomy"] :is(.cat-btn, .badge-cat, .sidebar-h2, .xp-cat, .xp-choice, .gs-cat, .fp-ghead, [data-act="cab-cat"]) > .fa-sitemap             { --lc-ico: url('/Assets/Assets_Lobotomy/icons/head-shield.png'); }   /* Классы */
+html[data-theme="lobotomy"] :is(.cat-btn, .badge-cat, .sidebar-h2, .xp-cat, .xp-choice, .gs-cat, .fp-ghead, [data-act="cab-cat"]) > .fa-dumbbell            { --lc-ico: url('/Assets/Assets_Lobotomy/icons/head-music.png'); }   /* Черты */
+html[data-theme="lobotomy"] :is(.cat-btn, .badge-cat, .sidebar-h2, .xp-cat, .xp-choice, .gs-cat, .fp-ghead, [data-act="cab-cat"]) > .fa-shield-halved       { --lc-ico: url('/Assets/Assets_Lobotomy/icons/module.png'); }   /* Снаряжение */
+html[data-theme="lobotomy"] :is(.cat-btn, .badge-cat, .sidebar-h2, .xp-cat, .xp-choice, .gs-cat, .fp-ghead, [data-act="cab-cat"]) > .fa-scale-balanced      { --lc-ico: url('/Assets/Assets_Lobotomy/icons/alarm.png'); }   /* Правила */
+html[data-theme="lobotomy"] :is(.cat-btn, .badge-cat, .sidebar-h2, .xp-cat, .xp-choice, .gs-cat, .fp-ghead, [data-act="cab-cat"]) > .fa-skull               { --lc-ico: url('/Assets/Assets_Lobotomy/icons/cell.png'); }   /* Бестиарий */
+html[data-theme="lobotomy"] :is(.cat-btn, .badge-cat, .sidebar-h2, .xp-cat, .xp-choice, .gs-cat, .fp-ghead, [data-act="cab-cat"]) > .fa-gem                 { --lc-ico: url('/Assets/Assets_Lobotomy/icons/heart.png'); }   /* Э.Г.О. Гифты */
+html[data-theme="lobotomy"] :is(.cat-btn, .badge-cat, .sidebar-h2, .xp-cat, .xp-choice, .gs-cat, .fp-ghead, [data-act="cab-cat"]) > .fa-biohazard           { --lc-ico: url('/Assets/Assets_Lobotomy/icons/biohazard.png'); }   /* Статус-эффекты */
+html[data-theme="lobotomy"] :is(.cat-btn, .badge-cat, .sidebar-h2, .xp-cat, .xp-choice, .gs-cat, .fp-ghead, [data-act="cab-cat"]) > .fa-hourglass-half      { --lc-ico: url('/Assets/Assets_Lobotomy/icons/cycle.png'); }   /* Время и история */
+html[data-theme="lobotomy"] :is(.cat-btn, .badge-cat, .sidebar-h2, .xp-cat, .xp-choice, .gs-cat, .fp-ghead, [data-act="cab-cat"]) > .fa-id-card             { --lc-ico: url('/Assets/Assets_Lobotomy/icons/brain-cream.png'); }   /* Кабинет */
+html[data-theme="lobotomy"] :is(.cat-btn, .badge-cat, .sidebar-h2, .xp-cat, .xp-choice, .gs-cat, .fp-ghead, [data-act="cab-cat"]) > :is(.fa-book-journal-whills, .fa-sitemap, .fa-dumbbell, .fa-shield-halved, .fa-scale-balanced, .fa-skull, .fa-gem, .fa-biohazard, .fa-hourglass-half, .fa-id-card) {
+  display: inline-block; width: 1.35em; height: 1.35em; vertical-align: -.3em; flex: none;
+  background: var(--lc-ico) center / contain no-repeat; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .8));
+}
+html[data-theme="lobotomy"] :is(.cat-btn, .badge-cat, .sidebar-h2, .xp-cat, .xp-choice, .gs-cat, .fp-ghead, [data-act="cab-cat"]) > :is(.fa-book-journal-whills, .fa-sitemap, .fa-dumbbell, .fa-shield-halved, .fa-scale-balanced, .fa-skull, .fa-gem, .fa-biohazard, .fa-hourglass-half, .fa-id-card)::before { content: none; }
+html[data-theme="lobotomy"] .cat-btn > i.fa-solid { width: 1.6em; height: 1.6em; vertical-align: -.45em; }
+/* на залитой (наведение) и цветной (выбор) плашке значку нужна чёрная обводка */
+html[data-theme="lobotomy"] .cat-btn:hover > i.fa-solid, html[data-theme="lobotomy"] .cat-btn.active > i.fa-solid { filter: drop-shadow(0 0 1px #000) drop-shadow(0 0 1px #000); }
+
+/* ---------- Заголовок раздела: кремовый (base.css), под ним — штриховка цвета раздела ---------- */
+html[data-theme="lobotomy"] .header-subtitle { color: var(--lc-cream-dim); }
+
+/* ---------- Кнопки действий, вкладки внутри раздела ---------- */
+html[data-theme="lobotomy"] .action-btn, html[data-theme="lobotomy"] .subtab {
+  border: 10px solid transparent; border-image: var(--lc-btn) 30 fill / 10px stretch; border-radius: 0;
+  background: none; color: var(--lc-cream); padding: 0 8px; min-height: 38px; letter-spacing: 1px; transition: color .15s;
+}
+html[data-theme="lobotomy"] .action-btn:hover, html[data-theme="lobotomy"] .action-btn.ghost:hover,
+html[data-theme="lobotomy"] .subtab:hover, html[data-theme="lobotomy"] .subtab.active {
+  border-image-source: var(--lc-btn-on); background: none; color: #111; text-shadow: none;
+}
+html[data-theme="lobotomy"] .action-btn.ghost { color: var(--lc-cream-dim); }
+html[data-theme="lobotomy"] .mode-toggle {
+  border: 6px solid transparent; border-image: var(--lc-chip) 8 fill / 6px stretch; border-radius: 0;
+  background: none; color: var(--lc-cream-dim); padding: 1px 8px;
+}
+html[data-theme="lobotomy"] .mode-toggle:hover { border-image-source: var(--lc-chip-on); color: var(--lc-cream); }
+html[data-theme="lobotomy"] .mode-toggle input { accent-color: var(--lc-orange); }
+
+/* ---------- Поиск и фильтры ---------- */
+html[data-theme="lobotomy"] .search-wrapper {
+  clip-path: none; padding: 0; background: none;
+  border: 1px solid transparent; border-image: var(--lc-frame) 34 4 4 34 fill / 18px 3px 3px 18px;
+}
+html[data-theme="lobotomy"] .search-wrapper:focus-within { background: none; border-image-source: var(--lc-frame-on); }
+html[data-theme="lobotomy"] .search-inner { clip-path: none; background: transparent; }
+html[data-theme="lobotomy"] .search-input { color: var(--lc-text); padding: 6px 10px; }
+html[data-theme="lobotomy"] .search-input::placeholder, html[data-theme="lobotomy"] .search-icon { color: var(--lc-cream-dim); }
+html[data-theme="lobotomy"] .filter-group-title { color: var(--lc-cream); border-bottom-color: var(--lc-line); letter-spacing: 1px; }
+html[data-theme="lobotomy"] .filter-hint, html[data-theme="lobotomy"] .result-count { color: var(--lc-text-dim); }
+/* цвет выбранного фильтра site/navigation.js ставит в style — рамку оставляем обычной, чтобы он был виден */
+html[data-theme="lobotomy"] .filter-btn { background: #000; border-color: var(--lc-olive); color: var(--lc-cream-dim); }
+html[data-theme="lobotomy"] .filter-btn:hover { border-color: var(--lc-cream-dim); color: var(--lc-cream); }
+html[data-theme="lobotomy"] .filter-btn.active { background: rgba(255, 148, 66, .08); }
+
+/* ---------- Панели: рамка и штриховка — общие, в base.css (цвет штриховки — цвет раздела) ---------- */
+html[data-theme="lobotomy"] .article-host .panel-inner { padding: 16px 22px 20px; }
+
+html[data-theme="lobotomy"] .card { transition: transform .18s ease, filter .2s ease; }
+html[data-theme="lobotomy"] .card:hover { box-shadow: none; border-image-source: var(--lc-frame-on); filter: drop-shadow(0 0 8px color-mix(in srgb, var(--accent-primary) 35%, transparent)); }
+html[data-theme="lobotomy"] .card-title { letter-spacing: .5px; }
+html[data-theme="lobotomy"] .card-title-row { border-bottom-color: var(--lc-line); }
+html[data-theme="lobotomy"] .card-meta, html[data-theme="lobotomy"] .creator-tag, html[data-theme="lobotomy"] .sub-level { color: var(--lc-text-dim); }
+html[data-theme="lobotomy"] .expand-icon { color: var(--lc-cream-dim); }
+html[data-theme="lobotomy"] .card.expanded .expand-icon { color: var(--lc-orange); }
+html[data-theme="lobotomy"] .badge { background: #000; }
+html[data-theme="lobotomy"] .sub-block { background: rgba(255, 246, 200, .025); }
+html[data-theme="lobotomy"] .sub-block:hover { background: rgba(255, 246, 200, .05); }
+html[data-theme="lobotomy"] .card-controls { border-top-color: var(--lc-line); }
+html[data-theme="lobotomy"] .lore-text { color: var(--lc-text-dim); }
+
+/* кнопки карточки: тонкие белые контуры, цвет действия — в тексте; при наведении — оранжевый контур */
+html[data-theme="lobotomy"] .ctrl-btn, html[data-theme="lobotomy"] .mini-btn {
+  border: 6px solid transparent; border-image: var(--lc-chip) 8 fill / 6px stretch; border-radius: 0;
+  background: none; padding: 2px 4px;
+}
+html[data-theme="lobotomy"] .ctrl-btn:hover, html[data-theme="lobotomy"] .ctrl-pick.on, html[data-theme="lobotomy"] .mini-btn:hover {
+  border-image-source: var(--lc-chip-on); background: none;
+}
+html[data-theme="lobotomy"] .ctrl-pick:hover, html[data-theme="lobotomy"] .ctrl-pick.on { color: var(--lc-orange); }
+html[data-theme="lobotomy"] .ctrl-copy:hover { color: var(--color-cyan); }
+html[data-theme="lobotomy"] .ctrl-dl:hover { color: var(--lc-cream); }
+html[data-theme="lobotomy"] .ctrl-edit:hover { color: var(--color-yellow); }
+html[data-theme="lobotomy"] .ctrl-del:hover, html[data-theme="lobotomy"] .ctrl-priv:hover, html[data-theme="lobotomy"] .mini-btn.danger:hover { color: var(--lc-red); }
+html[data-theme="lobotomy"] .mini-btn { color: var(--lc-cream-dim); }
+html[data-theme="lobotomy"] .mini-btn:hover { color: var(--lc-cream); }
+
+/* текст, статьи, бестиарий */
+html[data-theme="lobotomy"] .md th { background: rgba(255, 246, 200, .07); }
+html[data-theme="lobotomy"] .md th, html[data-theme="lobotomy"] .md td { border-color: var(--lc-line); }
+html[data-theme="lobotomy"] .md table, html[data-theme="lobotomy"] .md-table { background: rgba(0, 0, 0, .5); }
+html[data-theme="lobotomy"] .article-host .section-title { border-bottom-color: var(--lc-line); }
+html[data-theme="lobotomy"] .article-host .quote-block, html[data-theme="lobotomy"] .article-host .conflict-block,
+html[data-theme="lobotomy"] .article-host .info-block { background: rgba(255, 246, 200, .03); }
+html[data-theme="lobotomy"] .section-sub { border-bottom-color: var(--lc-line); }
+html[data-theme="lobotomy"] .notice { color: var(--lc-cream-dim); }
+
+/* ---------- Боковые кнопки и сайдбары (Сборка, Основа, Слияние, Встреча) ---------- */
+html[data-theme="lobotomy"] .side-toggle button {
+  background: #000; border: 1px solid var(--lc-cream-dim); border-right: none; color: var(--lc-cream); box-shadow: -3px 0 10px rgba(0, 0, 0, .7);
+}
+html[data-theme="lobotomy"] .side-toggle button:hover { background: var(--lc-cream); color: #111; box-shadow: -2px 0 12px rgba(255, 246, 200, .3); }
+html[data-theme="lobotomy"] .side-count { background: var(--lc-orange); color: #160a02; }
+html[data-theme="lobotomy"] .sidebar {
+  background: #070707; border-left: 1px solid var(--lc-cream-dim);
+  box-shadow: -10px 0 30px rgba(0, 0, 0, .85), inset 4px 0 0 #000, inset 9px 0 0 var(--lc-olive);
+}
+html[data-theme="lobotomy"] .sidebar::-webkit-scrollbar-thumb { background: var(--lc-olive); }
+html[data-theme="lobotomy"] .sidebar-title { color: var(--lc-cream); border-bottom-color: var(--accent-primary); }
+html[data-theme="lobotomy"] .sidebar-h2 { border-bottom-color: var(--lc-line); }
+html[data-theme="lobotomy"] .pick-entry, html[data-theme="lobotomy"] .b-entry { border-color: var(--lc-line); background: rgba(255, 246, 200, .025); }
+html[data-theme="lobotomy"] .enc-bar { border-color: var(--lc-olive); background: #000; }
+
+/* ---------- Окна, поля, всплывающие подсказки, поиск по базе, уведомления ---------- */
+html[data-theme="lobotomy"] .tbl-grid input { background: #000; border-color: var(--lc-olive); color: var(--lc-text); }
+html[data-theme="lobotomy"] .tbl-grid input:focus { border-color: var(--lc-orange); }
+html[data-theme="lobotomy"] .md-toolbar button { background: #000; border-color: var(--lc-line); }
+html[data-theme="lobotomy"] .xref-pop, html[data-theme="lobotomy"] .gs-box, html[data-theme="lobotomy"] .ce-menu {
+  background: #070707; border-color: var(--lc-cream-dim); box-shadow: 0 14px 40px rgba(0, 0, 0, .9), inset 0 3px 0 var(--lc-orange);
+}
+html[data-theme="lobotomy"] .xref-pop .xp-head, html[data-theme="lobotomy"] .xref-pop .xp-foot { border-color: var(--lc-line); }
+html[data-theme="lobotomy"] .gs-item.sel, html[data-theme="lobotomy"] .gs-item:hover { border-color: var(--lc-orange); background: rgba(255, 148, 66, .07); }
+html[data-theme="lobotomy"] .cab-head, html[data-theme="lobotomy"] .cab-stat { border-color: var(--lc-line); background: rgba(0, 0, 0, .6); }
+
+@media (max-width: 600px) {
+  html[data-theme="lobotomy"] .cat-btn { padding: 0 4px; font-size: .82rem; }
+  html[data-theme="lobotomy"] .tb-btn { min-height: 28px; }
+}

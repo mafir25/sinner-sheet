@@ -159,6 +159,12 @@
     'Классическое оформление': 'Classic theme',
     'Гнев': 'Wrath', 'Похоть': 'Lust', 'Лень': 'Sloth', 'Чревоугодие': 'Gluttony', 'Уныние': 'Gloom', 'Гордыня': 'Pride', 'Зависть': 'Envy',
     'Разделы Базы знаний': 'Knowledge Base sections',
+    /* Главная в оформлении Lobotomy Corporation (index-lobotomy.html): карточки — отделы корпорации */
+    'ВЫБЕРИТЕ ОТДЕЛ ДЛЯ РАБОТЫ': 'SELECT A DEPARTMENT TO WORK IN',
+    'ДЕНЬ 01 // ВЫРАБОТКА ЭНЕРГИИ:': 'DAY 01 // ENERGY OUTPUT:', 'НОРМА': 'NOMINAL', '// ОЖИДАНИЕ ВВОДА': '// AWAITING INPUT',
+    'Отдел управления': 'Control Team', 'Центральное командование': 'Central Command Team', 'Отдел безопасности': 'Safety Team',
+    'Отдел обучения': 'Training Team', 'Отдел соцобеспечения': 'Welfare Team', 'Дисциплинарный отдел': 'Disciplinary Team',
+    'Информационный отдел': 'Information Team',
 
     /* ===================== Переадресации ===================== */
     'База пользователей переехала в «Базу знаний»:': 'The user database has moved to the Knowledge Base:',

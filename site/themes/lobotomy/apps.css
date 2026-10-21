@@ -1,0 +1,63 @@
+/* Оформление Lobotomy Corporation — общее для приложений на React: Ширмы (shirm.css) и Редактора карт (maps.css).
+   Оба построены на одних классах (.btn, .icon-btn, .input, .topbar, .modal, .toast, .ctx-menu) и переменных
+   (--accent, --surface, --line…): переменные перекрашиваем в чёрный и кремовый, кнопки и окна — спрайтами игры.
+   Холст (доска Ширмы, карта редактора) и цвета узлов, слоёв и объектов пользователя не трогаем. */
+html[data-theme="lobotomy"] {
+  --accent: var(--lc-orange); --bg: var(--lc-bg); --panel: #080807; --surface: #11110d; --surface-2: #1a1910;
+  --line: var(--lc-olive); --dim: var(--lc-text-dim); --dimmer: #55523d; --text: var(--lc-text);
+}
+
+/* ---------- Кнопки ---------- */
+html[data-theme="lobotomy"] .btn {
+  border: 7px solid transparent; border-image: var(--lc-chip) 8 fill / 7px stretch; background: none;
+  padding: 0 6px; color: var(--lc-cream);
+}
+html[data-theme="lobotomy"] .btn-sm { border-width: 5px; border-image-width: 5px; padding: 0 4px; }
+/* верхняя панель плотная: убираем лишнее поле, чтобы кнопки не уходили на вторую строку */
+html[data-theme="lobotomy"] .topbar .btn { padding: 0 4px; }
+html[data-theme="lobotomy"] .btn:hover:not(:disabled), html[data-theme="lobotomy"] .btn-on {
+  border-image-source: var(--lc-chip-on); background: none; color: var(--lc-orange);
+}
+/* главная кнопка — кремовая скошенная плашка, при наведении заливается */
+html[data-theme="lobotomy"] .btn-primary {
+  border: 8px solid transparent; border-image: var(--lc-btn) 30 fill / 8px stretch; background: none; color: var(--lc-cream);
+}
+html[data-theme="lobotomy"] .btn-primary:hover:not(:disabled) {
+  border-image-source: var(--lc-btn-on); background: none; color: #111 !important; text-shadow: none;
+}
+html[data-theme="lobotomy"] .btn-danger, html[data-theme="lobotomy"] .btn-danger:hover:not(:disabled) { color: var(--lc-red) !important; background: none; }
+html[data-theme="lobotomy"] .icon-btn {
+  border: 5px solid transparent; border-image: var(--lc-chip) 8 fill / 5px stretch; background: none; color: var(--lc-cream);
+}
+html[data-theme="lobotomy"] .icon-btn:hover:not(:disabled) { border-image-source: var(--lc-chip-on); background: none; color: var(--lc-orange); }
+html[data-theme="lobotomy"] .icon-btn.danger:hover:not(:disabled) { color: var(--lc-red); }
+
+/* ---------- Поля ---------- */
+html[data-theme="lobotomy"] .input, html[data-theme="lobotomy"] input[type=color] { background: #000; border-color: var(--line); }
+html[data-theme="lobotomy"] .input:focus { border-color: var(--lc-orange); }
+
+/* ---------- Верхняя панель и заставка ---------- */
+html[data-theme="lobotomy"] .topbar {
+  background: #000; border-bottom: 1px solid var(--lc-olive); box-shadow: 0 6px 18px rgba(0, 0, 0, .7); position: relative; z-index: 30;
+}
+html[data-theme="lobotomy"] .splash h1, html[data-theme="lobotomy"] .topbar .title {
+  font-weight: 700; color: var(--lc-cream); text-shadow: 0 0 14px rgba(255, 246, 200, .22);
+}
+
+/* ---------- Окна, меню, уведомления ---------- */
+html[data-theme="lobotomy"] .modal {
+  background: none; border: 1px solid transparent; border-image: var(--lc-frame) 34 4 4 34 fill / 22px 3px 3px 22px;
+  box-shadow: none; filter: drop-shadow(0 10px 30px rgba(0, 0, 0, .9));
+}
+html[data-theme="lobotomy"] .modal-head { border-bottom-color: var(--lc-line); }
+html[data-theme="lobotomy"] .modal-head h2, html[data-theme="lobotomy"] .modal-head h3 { color: var(--lc-orange); }
+html[data-theme="lobotomy"] .modal-foot { border-top-color: var(--lc-line); }
+html[data-theme="lobotomy"] .ctx-menu { background: #070707; border-color: var(--lc-cream-dim); box-shadow: 0 8px 24px rgba(0, 0, 0, .9), inset 0 3px 0 var(--lc-orange); }
+html[data-theme="lobotomy"] .ctx-item:hover:not(:disabled) { background: var(--lc-cream); color: #111; }
+html[data-theme="lobotomy"] .ctx-menu button:hover, html[data-theme="lobotomy"] .ctx-menu button:focus-visible { background: rgba(255, 148, 66, .14); color: var(--lc-orange); }
+html[data-theme="lobotomy"] .toast-error { color: #FF8A80; }
+html[data-theme="lobotomy"] .tabs button.on { color: var(--lc-orange); border-bottom-color: var(--lc-orange); }
+html[data-theme="lobotomy"] .seg { border-color: var(--line); }
+html[data-theme="lobotomy"] .seg button { border-right-color: var(--line); }
+html[data-theme="lobotomy"] .seg button.on { background: var(--lc-cream); color: #111; }
+html[data-theme="lobotomy"] kbd { border-color: var(--line); background: #000; }
