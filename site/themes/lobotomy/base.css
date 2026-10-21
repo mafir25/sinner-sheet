@@ -1,0 +1,167 @@
+/* Оформление Lobotomy Corporation — общий слой (фон, общие детали страниц, окно ⚙ Настроек). Работает только при
+   <html data-theme="lobotomy"> (его ставит site/theme.js), поэтому у обычного оформления ничего не меняется,
+   а спрайты грузятся только в этом оформлении.
+   Только спрайты интерфейса из Assets/Assets_Lobotomy/ (что где — в его README.md): без персонажей и аномалий.
+   Стиль игры: чёрные окна, тонкие кремовые линии со срезанным углом, кремовые скошенные плашки кнопок,
+   оранжевый — выбор, красный — тревога, цвет отдела — в штриховке «осторожно».
+   Подключение — в <head> после собственных стилей страницы:
+     <link rel="stylesheet" href="site/themes/lobotomy/base.css">
+     <link rel="stylesheet" href="site/themes/lobotomy/<страница>.css">   (если у страницы есть свой слой)
+   Рамки растягиваются через border-image (9-slice): числа после url — срезы спрайта в пикселях. У панелей толщина
+   рамки (border) — 1 px, а спрайт рисуется шире (border-image-width): срезанный угол ложится на поле, не сдвигая текст. */
+
+html[data-theme="lobotomy"] {
+  --lc-bg: #050505; --lc-panel: #0b0b0a; --lc-text: #E6E0C6; --lc-text-dim: #8C876E;
+  --lc-cream: #FFF6C8; --lc-yellow: #FFFFA1; --lc-cream-dim: #B9B28C; --lc-olive: #5F5B3C; --lc-line: #34321f;
+  --lc-orange: #FF9442; --lc-red: #FF3B3B; --lc-lamp: #33E6A6;
+  /* отделы — только цвета */
+  --dept-control: #E8C547; --dept-information: #9A6BF0; --dept-training: #F08A24; --dept-safety: #3FCF7A;
+  --dept-central: #F2A640; --dept-welfare: #3FB8E8; --dept-disciplinary: #E8392F;
+
+  /* спрайты (пути от корня сайта) */
+  --lc-frame: url('/Assets/Assets_Lobotomy/frames/panel.png');             /* кремовая линия, угол срезан; срез 34 4 4 34 */
+  --lc-frame-on: url('/Assets/Assets_Lobotomy/frames/panel-orange.png');   /* то же оранжевым — выбор, наведение */
+  --lc-hazard: url('/Assets/Assets_Lobotomy/frames/hazard.png');           /* жёлто-чёрная лента по контуру — «внимание»; срез 22 */
+  --lc-alert: url('/Assets/Assets_Lobotomy/frames/alert.png');             /* красная тревога; срез 26 */
+  --lc-btn: url('/Assets/Assets_Lobotomy/buttons/plate.png');              /* кремовая скошенная плашка; срез 30 */
+  --lc-btn-on: url('/Assets/Assets_Lobotomy/buttons/plate-lit.png');       /* она же залитая — горит */
+  --lc-btn-red: url('/Assets/Assets_Lobotomy/buttons/plate-red.png');      /* красная — опасное действие */
+  --lc-chip: url('/Assets/Assets_Lobotomy/buttons/chip.png');              /* тонкий белый контур, чёрное поле; срез 8 */
+  --lc-chip-on: url('/Assets/Assets_Lobotomy/buttons/chip-orange.png');    /* он же оранжевым — наведение, выбор */
+  --lc-bar: url('/Assets/Assets_Lobotomy/bars/orange.png');                /* оранжевая полоса заголовка, штриховка по краям; срез 0 170 */
+  --lc-bar-dark: url('/Assets/Assets_Lobotomy/bars/black.png');            /* чёрная полоса со штриховкой по краям; срез 0 125 */
+  color-scheme: dark;
+  scrollbar-color: var(--lc-olive) #000;
+}
+
+/* ---------- Фон: чёрный зал, редкая сетка коридоров, виньетка ---------- */
+html[data-theme="lobotomy"] body { background: var(--lc-bg); color: var(--lc-text); }
+html[data-theme="lobotomy"] body::before {
+  content: ''; position: fixed; inset: 0; z-index: -2; pointer-events: none;
+  background:
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(255, 246, 200, .06), transparent 70%),
+    radial-gradient(ellipse at 50% 50%, transparent 45%, rgba(0, 0, 0, .9) 100%),
+    linear-gradient(90deg, rgba(255, 246, 200, .028) 1px, transparent 1px) 0 0 / 96px 96px,
+    linear-gradient(rgba(255, 246, 200, .028) 1px, transparent 1px) 0 0 / 96px 96px,
+    var(--lc-bg);
+}
+html[data-theme="lobotomy"] ::selection { background: rgba(255, 148, 66, .4); color: #fff; }
+
+/* ---------- Общие детали страниц сайта ----------
+   Панели .panel-outer > .hazard-tape + .panel-inner (База знаний, конструкторы, Офис, Foundry) — окно игры:
+   чёрное поле в кремовой линии со срезанным углом. Штриховка .hazard-tape — цвета раздела: --pc (панель
+   конструктора), иначе --accent-primary, иначе оранжевый. */
+html[data-theme="lobotomy"] .cut-tl { clip-path: none; }
+html[data-theme="lobotomy"] .panel-outer {
+  --lc-accent: var(--pc, var(--accent-primary, #FF9442));
+  background: none; padding: 0; clip-path: none;
+  border: 1px solid transparent; border-image: var(--lc-frame) 34 4 4 34 fill / 22px 3px 3px 22px;
+}
+html[data-theme="lobotomy"] .panel-outer > .hazard-tape {
+  height: 5px; margin: 6px 8px 0 24px; border: 0; flex: none;
+  background: repeating-linear-gradient(-45deg, var(--lc-accent) 0 6px, transparent 6px 12px) !important;
+  opacity: .9;
+}
+html[data-theme="lobotomy"] .panel-inner { background: none; clip-path: none; padding: 10px 16px 14px; }
+/* панель с прокруткой (вывод в конструкторах): прокручивается содержимое, а не рамка */
+html[data-theme="lobotomy"] .output-panel { overflow: visible; }
+html[data-theme="lobotomy"] .output-panel > .panel-inner { overflow-y: auto; min-height: 0; flex: 1 1 auto; }
+
+/* заголовок страницы — кремовый, под ним линия и штриховка цвета раздела */
+html[data-theme="lobotomy"] .header-bar { border-bottom: 1px solid var(--lc-olive); position: relative; }
+html[data-theme="lobotomy"] .header-bar::after {
+  content: ''; position: absolute; left: 0; bottom: -7px; width: min(240px, 40%); height: 5px; pointer-events: none;
+  background: repeating-linear-gradient(-45deg, var(--accent-primary, var(--lc-orange)) 0 6px, transparent 6px 12px);
+}
+html[data-theme="lobotomy"] .header-title {
+  font-weight: 700; letter-spacing: 3px; color: var(--lc-cream);
+  text-shadow: 0 0 14px rgba(255, 246, 200, .22);
+}
+
+/* кнопки навигации между страницами — кремовые скошенные плашки, цвет ссылки — в тексте (--c) */
+html[data-theme="lobotomy"] .top-nav-btn, html[data-theme="lobotomy"] .nav-btn {
+  border: 7px solid transparent; border-image: var(--lc-btn) 30 fill / 7px stretch; background: none;
+  padding: 1px 8px; color: var(--c, var(--lc-cream)); letter-spacing: 1px; transition: color .15s;
+}
+html[data-theme="lobotomy"] .top-nav-btn:hover, html[data-theme="lobotomy"] .nav-btn:hover {
+  border-image-source: var(--lc-btn-on); background: none; color: #111; text-shadow: none;
+}
+
+/* поля ввода и списки */
+html[data-theme="lobotomy"] .cloud-input, html[data-theme="lobotomy"] .cloud-select { background: #000; border-color: var(--lc-olive); color: var(--lc-text); }
+html[data-theme="lobotomy"] .cloud-input:focus, html[data-theme="lobotomy"] .cloud-select:focus { border-color: var(--lc-orange); }
+
+/* всплывающее уведомление — чёрная полоса со штриховкой */
+html[data-theme="lobotomy"] .toast {
+  border: 0 solid transparent; border-width: 0 58px; border-image: var(--lc-bar-dark) 0 125 fill / 0 58px stretch; background: none;
+  color: var(--lc-cream); padding: 9px 6px; box-shadow: none; filter: drop-shadow(0 4px 12px rgba(0, 0, 0, .9));
+}
+
+/* форма и карточка Э.Г.О. (site/ego-core.js): цвет — Дисциплинарный отдел (красный) */
+html[data-theme="lobotomy"] .egc, html[data-theme="lobotomy"] .egc-sum { --egc: var(--dept-disciplinary); --egc-dim: var(--lc-text-dim); color: var(--lc-text); }
+html[data-theme="lobotomy"] .egc-tab {
+  border: 8px solid transparent; border-image: var(--lc-btn) 30 fill / 8px stretch; background: none;
+  color: var(--lc-cream-dim); padding: 0 6px; min-height: 36px;
+}
+html[data-theme="lobotomy"] .egc-tab[aria-pressed=true] { border-image-source: var(--lc-btn-on); background: none; color: #111; }
+html[data-theme="lobotomy"] .egc-pts {
+  border: 1px solid transparent; border-image: var(--lc-frame) 34 4 4 34 fill / 18px 3px 3px 18px; background: none; padding: 2px 10px;
+  color: var(--lc-cream);
+}
+html[data-theme="lobotomy"] .egc-pts.egc-bad { border-image-source: var(--lc-alert); border-image-slice: 26; border-image-width: 16px; color: var(--lc-red); background: none; }
+html[data-theme="lobotomy"] .egc label { color: var(--lc-cream-dim); }
+html[data-theme="lobotomy"] .egc input, html[data-theme="lobotomy"] .egc select, html[data-theme="lobotomy"] .egc textarea {
+  background: #000; border-color: var(--lc-olive); color: var(--lc-text);
+}
+html[data-theme="lobotomy"] .egc input:focus, html[data-theme="lobotomy"] .egc select:focus, html[data-theme="lobotomy"] .egc textarea:focus { border-color: var(--lc-orange); }
+html[data-theme="lobotomy"] .egc-sec { border-bottom-color: var(--lc-line); }
+html[data-theme="lobotomy"] .egc-up { border-bottom-color: #1c1b12; }
+html[data-theme="lobotomy"] .egc-qty button { background: #000; border-color: var(--lc-olive); color: var(--lc-cream); }
+html[data-theme="lobotomy"] .egc-qty button:hover { background: var(--lc-cream); border-color: var(--lc-cream); color: #111; }
+/* искажение Э.Г.О. — окно красной тревоги */
+html[data-theme="lobotomy"] .egc-corr { border: 12px solid transparent; border-image: var(--lc-alert) 26 fill / 12px stretch; background: none; padding: 4px 6px; }
+html[data-theme="lobotomy"] .egc-corr-t { color: var(--lc-red); border-bottom-color: rgba(255, 59, 59, .5); }
+
+@media (max-width: 600px) {
+  html[data-theme="lobotomy"] .header-title { letter-spacing: 1px; }
+  html[data-theme="lobotomy"] .egc-pts { font-size: 1.25rem; }
+  html[data-theme="lobotomy"] .panel-inner { padding: 8px 12px 12px; }
+}
+
+/* ---------- Окно ⚙ Настроек (site/ui.js) ---------- */
+html[data-theme="lobotomy"] .su-fab {
+  border: 1px solid transparent; border-image: var(--lc-frame) 34 4 4 34 fill / 14px 2px 2px 14px;
+  background: none; color: var(--lc-cream); opacity: .85;
+}
+html[data-theme="lobotomy"] .su-fab:hover, html[data-theme="lobotomy"] .su-fab:focus-visible {
+  border-image-source: var(--lc-frame-on); color: var(--lc-orange); box-shadow: none; opacity: 1; outline: none;
+}
+html[data-theme="lobotomy"] .su-fab .su-dot { background: var(--lc-lamp); box-shadow: 0 0 8px var(--lc-lamp); }
+html[data-theme="lobotomy"] .su-box {
+  border: 1px solid transparent; border-image: var(--lc-frame) 34 4 4 34 fill / 22px 3px 3px 22px; background: none;
+  color: var(--lc-text); box-shadow: none; filter: drop-shadow(0 10px 30px rgba(0, 0, 0, .9));
+}
+/* шапка окна — оранжевая полоса со штриховкой, как у окон игры */
+html[data-theme="lobotomy"] .su-head {
+  margin: 10px 8px 0 24px; padding: 6px 0; color: #160a02; border: 0 solid transparent; border-width: 0 58px;
+  border-image: var(--lc-bar) 0 170 fill / 0 58px stretch; font-weight: 700; letter-spacing: 2px;
+}
+html[data-theme="lobotomy"] .su-sec { border-bottom-color: var(--lc-line); }
+html[data-theme="lobotomy"] .su-t { color: var(--lc-cream-dim); }
+html[data-theme="lobotomy"] .su-x { border-color: rgba(0, 0, 0, .5); color: #160a02; background: rgba(0, 0, 0, .12); width: 26px; height: 26px; }
+html[data-theme="lobotomy"] .su-x:hover { border-color: #160a02; color: #fff; background: var(--lc-red); }
+html[data-theme="lobotomy"] #su-themes { flex-wrap: wrap; }
+html[data-theme="lobotomy"] .su-seg, html[data-theme="lobotomy"] .su-btn {
+  border: 8px solid transparent; border-image: var(--lc-btn) 30 fill / 8px stretch; background: none;
+  color: var(--lc-cream); padding: 1px 6px; transition: color .15s;
+}
+html[data-theme="lobotomy"] .su-seg[aria-pressed=true], html[data-theme="lobotomy"] .su-btn:hover:not(:disabled) {
+  border-image-source: var(--lc-btn-on); color: #111; background: none;
+}
+html[data-theme="lobotomy"] .su-btn.su-red { border-image-source: var(--lc-btn-red); color: #FF8A80; }
+html[data-theme="lobotomy"] .su-btn.su-red:hover:not(:disabled) { border-image-source: var(--lc-btn-red); background: none; color: #fff; }
+html[data-theme="lobotomy"] .su-in-f { background: #000; border-color: var(--lc-olive); color: var(--lc-text); }
+html[data-theme="lobotomy"] .su-in-f:focus { border-color: var(--lc-orange); }
+html[data-theme="lobotomy"] .su-mail { color: var(--lc-yellow); }
+html[data-theme="lobotomy"] .su-link { color: var(--lc-cream-dim); }
+html[data-theme="lobotomy"] .su-tag { border-color: var(--lc-orange); color: var(--lc-orange); }

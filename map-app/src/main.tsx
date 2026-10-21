@@ -5,13 +5,16 @@ import { tr } from './i18n';
 import './styles.css';
 
 document.title = tr('Редактор карт');
-// Оформление Limbus Company (site/themes/limbus/): действует только при html[data-theme="limbus"] — его ставит
-// site/theme.js. Стили грузятся мимо сборщика, как site/ui.js, и подключаются после стилей приложения.
-for (const f of ['base', 'maps']) {
-  const link = document.createElement('link');
-  link.rel = 'stylesheet';
-  link.href = `/site/themes/limbus/${f}.css`;
-  document.head.appendChild(link);
+// Оформления Limbus Company и Lobotomy Corporation (site/themes/<оформление>/): действуют только при
+// html[data-theme="limbus" / "lobotomy"] — его ставит site/theme.js. Грузим оба: оформление меняется в ⚙ Настройках
+// без перезагрузки. Стили грузятся мимо сборщика, как site/ui.js, и подключаются после стилей приложения.
+for (const theme of ['limbus', 'lobotomy']) {
+  for (const f of ['base', 'maps']) {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = `/site/themes/${theme}/${f}.css`;
+    document.head.appendChild(link);
+  }
 }
 
 // Общее окно настроек сайта (язык + вход). Грузится из dist/site, мимо сборщика;

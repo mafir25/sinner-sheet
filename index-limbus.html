@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="site/themes/limbus/base.css">
 
     <!--
-      Главная в оформлении Limbus Company: тот же хаб, что index.html, но всё оформление — спрайты из Assets/Timed_Assets/.
+      Главная в оформлении Limbus Company: тот же хаб, что index.html, но всё оформление — спрайты из Assets/Assets_Limbus/.
       Рамки растягиваются через border-image (9-slice), поэтому карточки любого размера не искажают углы.
       Семь карточек = семь цветов грехов: неоновая полоса, подпись и подсветка карточки (переменные .sin-*).
       Кнопка ⚙ в шапке открывает общее окно настроек (site/ui.js), своя круглая кнопка ui.js скрыта через data-site-ui="no-fab".
@@ -28,23 +28,23 @@
             --text: #E0D2B8; --text-dim: #8A7660;
 
             /* спрайты */
-            --spr-gold: url('Assets/Timed_Assets/03_MainUI/MainUI_common_Popup_01/MainUI_common_Popup_01_036.png');
-            --spr-card: url('Assets/Timed_Assets/01_BattleUI/BattleUI_Choice_3/BattleUI_Choice_3_023.png');
-            --spr-neon: url('Assets/Timed_Assets/03_MainUI/MainUI_UserInfo_6/MainUI_UserInfo_6_011.png');
-            --spr-btn: url('Assets/Timed_Assets/03_MainUI/MainUI_common_1/MainUI_common_1_020.png');
-            --spr-btn-on: url('Assets/Timed_Assets/03_MainUI/MainUI_common_1/MainUI_common_1_026.png');
-            --spr-tag: url('Assets/Timed_Assets/03_MainUI/MainUI_Formation_9/MainUI_Formation_9_046.png');
-            --spr-plate: url('Assets/Timed_Assets/01_BattleUI/BattleUI_Choice_5/BattleUI_Choice_5_043.png');
+            --spr-gold: url('Assets/Assets_Limbus/backgrounds/gold.png');
+            --spr-card: url('Assets/Assets_Limbus/frames/card-brass.png');
+            --spr-neon: url('Assets/Assets_Limbus/frames/neon-orange.png');
+            --spr-btn: url('Assets/Assets_Limbus/buttons/plate.png');
+            --spr-btn-on: url('Assets/Assets_Limbus/buttons/plate-lit.png');
+            --spr-tag: url('Assets/Assets_Limbus/frames/tag-brown.png');
+            --spr-plate: url('Assets/Assets_Limbus/frames/plate-brass.png');
         }
 
-        /* Семь грехов: цвет и неоновая полоса (Formation_9) */
-        .sin-wrath    { --sin: #E0402E; --bar: url('Assets/Timed_Assets/03_MainUI/MainUI_Formation_9/MainUI_Formation_9_016.png'); }
-        .sin-lust     { --sin: #F07A2A; --bar: url('Assets/Timed_Assets/03_MainUI/MainUI_Formation_9/MainUI_Formation_9_017.png'); }
-        .sin-sloth    { --sin: #E8B51E; --bar: url('Assets/Timed_Assets/03_MainUI/MainUI_Formation_9/MainUI_Formation_9_018.png'); }
-        .sin-gluttony { --sin: #8FCC2A; --bar: url('Assets/Timed_Assets/03_MainUI/MainUI_Formation_9/MainUI_Formation_9_019.png'); }
-        .sin-gloom    { --sin: #45B3CB; --bar: url('Assets/Timed_Assets/03_MainUI/MainUI_Formation_9/MainUI_Formation_9_020.png'); }
-        .sin-pride    { --sin: #3A78E0; --bar: url('Assets/Timed_Assets/03_MainUI/MainUI_Formation_9/MainUI_Formation_9_021.png'); }
-        .sin-envy     { --sin: #B24FE0; --bar: url('Assets/Timed_Assets/03_MainUI/MainUI_Formation_9/MainUI_Formation_9_022.png'); }
+        /* Семь грехов: цвет и неоновая полоса (bars/) */
+        .sin-wrath    { --sin: #E0402E; --bar: url('Assets/Assets_Limbus/bars/wrath.png'); }
+        .sin-lust     { --sin: #F07A2A; --bar: url('Assets/Assets_Limbus/bars/lust.png'); }
+        .sin-sloth    { --sin: #E8B51E; --bar: url('Assets/Assets_Limbus/bars/sloth.png'); }
+        .sin-gluttony { --sin: #8FCC2A; --bar: url('Assets/Assets_Limbus/bars/gluttony.png'); }
+        .sin-gloom    { --sin: #45B3CB; --bar: url('Assets/Assets_Limbus/bars/gloom.png'); }
+        .sin-pride    { --sin: #3A78E0; --bar: url('Assets/Assets_Limbus/bars/pride.png'); }
+        .sin-envy     { --sin: #B24FE0; --bar: url('Assets/Assets_Limbus/bars/envy.png'); }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -116,7 +116,7 @@
         html::before {
             content: ''; position: fixed; z-index: -1; pointer-events: none;
             left: 50%; top: 50%; width: min(600px, 80vw); aspect-ratio: 456 / 431; transform: translate(-50%, -50%);
-            background: url('Assets/Timed_Assets/03_MainUI/MainUI_common_Popup_01/MainUI_common_Popup_01_025.png') center / contain no-repeat;
+            background: url('Assets/Assets_Limbus/backgrounds/emblem-lcb.png') center / contain no-repeat;
             opacity: .26;
         }
         .lc-sigil { position: relative; width: 168px; height: 168px; display: grid; place-items: center; margin-bottom: 8px; }
@@ -168,7 +168,7 @@
         .wide { grid-column: 1 / -1; }
 
         /* ---- Карточка: латунная рамка (9-slice) + неоновая полоса и подсветка цвета греха ----
-           --fw — толщина рамки. Тёмное поле спрайта (Choice_3_023, срез 64 px) начинается в 42/38/41/36 px
+           --fw — толщина рамки. Тёмное поле спрайта (frames/card-brass.png, срез 64 px) начинается в 42/38/41/36 px
            от левого/верхнего/правого/нижнего края, углы поля срезаны на 14 px: полоса и подсветка
            считаются от этих размеров, чтобы занимать поле целиком, а не только внутреннюю область. */
         .card {
@@ -234,14 +234,14 @@
         .sections { position: relative; z-index: 3; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin: 6px 0 2px; max-width: 640px; }
         .sections a {
             display: inline-flex; align-items: center; gap: 6px; padding: 0 6px; min-height: 22px;
-            border: 8px solid transparent; border-image: url('Assets/Timed_Assets/03_MainUI/MainUI_PersonalityList_1/MainUI_PersonalityList_1_004.png') 24 / 8px stretch;
+            border: 8px solid transparent; border-image: url('Assets/Assets_Limbus/frames/chip-brass.png') 24 / 8px stretch;
             background: rgba(10, 8, 6, .75) padding-box;
             font: 500 .74rem/1 'Oswald', sans-serif; letter-spacing: 1px; text-transform: uppercase; color: var(--beige); text-decoration: none;
             transition: color .15s;
         }
         .sections a img { width: 20px; height: 20px; object-fit: contain; filter: sepia(.3) brightness(.9); transition: filter .15s; }
         .sections a:hover, .sections a:focus-visible {
-            border-image-source: url('Assets/Timed_Assets/03_MainUI/New_MainUI_Formation_1/New_MainUI_Formation_1_044.png'); border-image-slice: 22;
+            border-image-source: url('Assets/Assets_Limbus/frames/chip-neon.png'); border-image-slice: 22;
             color: #FFD27A; outline: none;
         }
         .sections a:hover img, .sections a:focus-visible img { filter: drop-shadow(0 0 4px rgba(255, 154, 31, .8)); }
@@ -302,16 +302,16 @@
 
     <nav class="lc-top">
         <div class="lc-brand">
-            <img src="Assets/Timed_Assets/01_BattleUI/BattleUI_Choice_7/BattleUI_Choice_7_040.png" alt="">
+            <img src="Assets/Assets_Limbus/decor/coin.png" alt="">
             <div class="notranslate"><b>MEPHISTOPHELES TERMINAL</b><small>LIMBUS COMPANY</small></div>
         </div>
         <div class="lc-actions">
             <a class="lc-oct solo" id="lc-classic" href="index.html" title="Классическое оформление" aria-label="Классическое оформление">
-                <img src="Assets/Timed_Assets/03_MainUI/MainUI_common_1/MainUI_common_1_001.png" alt="">
+                <img src="Assets/Assets_Limbus/buttons/back.png" alt="">
             </a>
             <button class="lc-oct" id="lc-settings" type="button" title="Настройки" aria-label="Настройки">
-                <img class="off" src="Assets/Timed_Assets/05_Story_Tutorial_Misc/StoryUI_Frame_1/StoryUI_Frame_1_011.png" alt="">
-                <img class="on" src="Assets/Timed_Assets/05_Story_Tutorial_Misc/StoryUI_Frame_1/StoryUI_Frame_1_021.png" alt="">
+                <img class="off" src="Assets/Assets_Limbus/buttons/gear.png" alt="">
+                <img class="on" src="Assets/Assets_Limbus/buttons/gear-lit.png" alt="">
                 <span class="dot"></span>
             </button>
         </div>
@@ -326,17 +326,17 @@
 
     <header class="lc-hero">
         <div class="lc-sigil" aria-hidden="true">
-            <img class="ring" src="Assets/Timed_Assets/01_BattleUI/BattleUI_GoldenBough/BattleUI_GoldenBough_028.png" alt="">
-            <img class="star" src="Assets/Timed_Assets/01_BattleUI/BattleUI_GoldenBough/BattleUI_GoldenBough_029.png" alt="">
+            <img class="ring" src="Assets/Assets_Limbus/decor/bough-ring.png" alt="">
+            <img class="star" src="Assets/Assets_Limbus/decor/bough-star.png" alt="">
         </div>
         <h1 class="lc-h1">СИСТЕМА МЕФИСТОФЕЛЬ</h1>
         <div class="lc-sub">
-            <img src="Assets/Timed_Assets/05_Story_Tutorial_Misc/warning_img_glow/warning_img_glow_007.png" alt="">
+            <img src="Assets/Assets_Limbus/decor/warning-stripes.png" alt="">
             <p>ВЫБЕРИТЕ ПРОТОКОЛ СИНХРОНИЗАЦИИ</p>
-            <img src="Assets/Timed_Assets/05_Story_Tutorial_Misc/warning_img_glow/warning_img_glow_007.png" alt="">
+            <img src="Assets/Assets_Limbus/decor/warning-stripes.png" alt="">
         </div>
         <div class="lc-status">
-            <img src="Assets/Timed_Assets/03_MainUI/MainUI_MainStage_1/MainUI_MainStage_1_019.png" alt="">
+            <img src="Assets/Assets_Limbus/decor/lamp-green.png" alt="">
             <span>СТАТУС СЕРВЕРА: АКТИВЕН // ОЖИДАНИЕ ВВОДА</span>
         </div>
     </header>
@@ -412,11 +412,11 @@
                         <div class="title">КОНСТРУКТОР Э.Г.О.</div>
                         <div class="lore">Генерация Э.Г.О. атак и оборудования с подсчетом очков.</div>
                         <div class="grades" aria-hidden="true">
-                            <img src="Assets/Timed_Assets/03_MainUI/MainUI_PersonalityList_3/MainUI_PersonalityList_3_052.png" alt="">
-                            <img src="Assets/Timed_Assets/03_MainUI/MainUI_PersonalityList_3/MainUI_PersonalityList_3_054.png" alt="">
-                            <img src="Assets/Timed_Assets/03_MainUI/MainUI_PersonalityList_3/MainUI_PersonalityList_3_056.png" alt="">
-                            <img src="Assets/Timed_Assets/03_MainUI/MainUI_PersonalityList_3/MainUI_PersonalityList_3_062.png" alt="">
-                            <img src="Assets/Timed_Assets/03_MainUI/MainUI_PersonalityList_3/MainUI_PersonalityList_3_063.png" alt="">
+                            <img src="Assets/Assets_Limbus/grades/zayin.png" alt="">
+                            <img src="Assets/Assets_Limbus/grades/teth.png" alt="">
+                            <img src="Assets/Assets_Limbus/grades/he.png" alt="">
+                            <img src="Assets/Assets_Limbus/grades/waw.png" alt="">
+                            <img src="Assets/Assets_Limbus/grades/aleph.png" alt="">
                         </div>
                         <div class="btn">МАНИФЕСТАЦИЯ</div>
                     </div>
@@ -430,15 +430,15 @@
                         <a class="title stretch" href="navigation.html">БАЗА ЗНАНИЙ (НАВИГАЦИЯ)</a>
                         <div class="lore">Глобальный архив Project Moon 5e. Правила, лор, классы, черты и механики сеттинга.</div>
                         <nav class="sections" aria-label="Разделы Базы знаний">
-                            <a href="navigation.html#classes"><img src="Assets/Timed_Assets/03_MainUI/MainUI_MainStage_1/MainUI_MainStage_1_020.png" alt="">Архетипы</a>
-                            <a href="navigation.html#bases"><img src="Assets/Timed_Assets/01_BattleUI/BattleUI_Popup_4/BattleUI_Popup_4_003.png" alt="">Классы</a>
-                            <a href="navigation.html#feats"><img src="Assets/Timed_Assets/01_BattleUI/BattleUI_Popup_4/BattleUI_Popup_4_009.png" alt="">Черты</a>
-                            <a href="navigation.html#equipment"><img src="Assets/Timed_Assets/03_MainUI/MainUI_MainStage_1/MainUI_MainStage_1_004.png" alt="">Снаряжение</a>
-                            <a href="navigation.html#rules"><img src="Assets/Timed_Assets/03_MainUI/MainUI_MainStage_1/MainUI_MainStage_1_005.png" alt="">Правила</a>
-                            <a href="navigation.html#bestiary"><img src="Assets/Timed_Assets/01_BattleUI/BattleUI_CreatureBattle_3/BattleUI_CreatureBattle_3_007.png" alt="">Бестиарий</a>
-                            <a href="navigation.html#gifts"><img src="Assets/Timed_Assets/03_MainUI/MainUI_BattleSelection_9/MainUI_BattleSelection_9_015.png" alt="">Э.Г.О. Гифты</a>
-                            <a href="navigation.html#statuses"><img src="Assets/Timed_Assets/01_BattleUI/BattleUI_Popup_4/BattleUI_Popup_4_021.png" alt="">Статус-эффекты</a>
-                            <a href="navigation.html#lore"><img src="Assets/Timed_Assets/03_MainUI/MainUI_Inventory_1/MainUI_Inventory_1_021.png" alt="">Время и история</a>
+                            <a href="navigation.html#classes"><img src="Assets/Assets_Limbus/icons/sections/archetypes.png" alt="">Архетипы</a>
+                            <a href="navigation.html#bases"><img src="Assets/Assets_Limbus/icons/sections/classes.png" alt="">Классы</a>
+                            <a href="navigation.html#feats"><img src="Assets/Assets_Limbus/icons/sections/feats.png" alt="">Черты</a>
+                            <a href="navigation.html#equipment"><img src="Assets/Assets_Limbus/icons/sections/equipment.png" alt="">Снаряжение</a>
+                            <a href="navigation.html#rules"><img src="Assets/Assets_Limbus/icons/sections/rules.png" alt="">Правила</a>
+                            <a href="navigation.html#bestiary"><img src="Assets/Assets_Limbus/icons/sections/bestiary.png" alt="">Бестиарий</a>
+                            <a href="navigation.html#gifts"><img src="Assets/Assets_Limbus/icons/sections/gifts.png" alt="">Э.Г.О. Гифты</a>
+                            <a href="navigation.html#statuses"><img src="Assets/Assets_Limbus/icons/sections/statuses.png" alt="">Статус-эффекты</a>
+                            <a href="navigation.html#lore"><img src="Assets/Assets_Limbus/icons/sections/lore.png" alt="">Время и история</a>
                         </nav>
                         <div class="btn" aria-hidden="true">ПОДКЛЮЧЕНИЕ К СЕТИ</div>
                     </div>
@@ -450,7 +450,7 @@
 
 
     <div class="footer-text notranslate">
-        <img src="Assets/Timed_Assets/03_MainUI/New_MainUI_PersonalityList_2/New_MainUI_PersonalityList_2_012.png" alt="">PROJECT MOON TTRPG FRAMEWORK // BUILD 1.5 // LIMBUS UI
+        <img src="Assets/Assets_Limbus/decor/footer-mark.png" alt="">PROJECT MOON TTRPG FRAMEWORK // BUILD 1.5 // LIMBUS UI
     </div>
 
     <script type="module">

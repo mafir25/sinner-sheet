@@ -1,0 +1,87 @@
+/* Оформление Lobotomy Corporation — Конструктор персонажа (builder.html). Общие детали (панели, навигация, поля,
+   заголовок, уведомления) — base.css. Цвета панелей (--pc), кнопок (--c) и слотов задаёт страница — они остаются
+   в тексте, штриховке панелей и кубах; рамки и кнопки — спрайты игры. */
+
+/* ---------- Панель инструментов ---------- */
+html[data-theme="lobotomy"] .tool-btn {
+  border: 8px solid transparent; border-image: var(--lc-btn) 30 fill / 8px stretch; background: none;
+  padding: 1px 6px; color: var(--c, var(--lc-cream)); letter-spacing: 1px; transition: color .15s;
+}
+html[data-theme="lobotomy"] .tool-btn:hover { border-image-source: var(--lc-btn-on); background: none; color: #111; text-shadow: none; }
+html[data-theme="lobotomy"] .view-toggle { border: 5px solid transparent; border-image: var(--lc-chip) 8 fill / 5px stretch; background: none; }
+html[data-theme="lobotomy"] .view-toggle button { background: transparent; color: var(--lc-cream-dim); padding: 3px 10px; }
+html[data-theme="lobotomy"] .view-toggle button[aria-pressed=true] { background: var(--lc-cream); color: #111; }
+html[data-theme="lobotomy"] .custom-status { color: var(--lc-text-dim); }
+
+/* ---------- Формы, мелкие кнопки, переключатели ---------- */
+html[data-theme="lobotomy"] .form-group label, html[data-theme="lobotomy"] .mini-label { color: var(--lc-cream-dim); letter-spacing: .5px; }
+html[data-theme="lobotomy"] .panel-title small, html[data-theme="lobotomy"] .hint, html[data-theme="lobotomy"] .opts { color: var(--lc-text-dim); }
+html[data-theme="lobotomy"] .opts input, html[data-theme="lobotomy"] .chk input { accent-color: var(--lc-orange); }
+html[data-theme="lobotomy"] .lvl-row button, html[data-theme="lobotomy"] .stat-step button { background: #000; border-color: var(--lc-olive); color: var(--lc-cream); }
+html[data-theme="lobotomy"] .lvl-row button:hover, html[data-theme="lobotomy"] .stat-step button:hover { background: var(--lc-cream); border-color: var(--lc-cream); color: #111; }
+html[data-theme="lobotomy"] .btn-mini, html[data-theme="lobotomy"] .seg {
+  border: 6px solid transparent; border-image: var(--lc-chip) 8 fill / 6px stretch;
+  background: none; padding: 1px 4px; color: var(--lc-cream);
+}
+html[data-theme="lobotomy"] .btn-mini:hover, html[data-theme="lobotomy"] .btn-mini.accent:hover, html[data-theme="lobotomy"] .btn-mini.red:hover,
+html[data-theme="lobotomy"] .seg.on { border-image-source: var(--lc-chip-on); background: none; }
+html[data-theme="lobotomy"] .btn-mini:hover, html[data-theme="lobotomy"] .seg.on { color: var(--lc-orange); }
+html[data-theme="lobotomy"] .btn-mini.accent, html[data-theme="lobotomy"] .btn-mini.accent:hover { color: var(--lc-orange); }
+html[data-theme="lobotomy"] .btn-mini.red, html[data-theme="lobotomy"] .btn-mini.red:hover { color: var(--lc-red); }
+html[data-theme="lobotomy"] .chip { background: #000; border-color: var(--lc-olive); }
+html[data-theme="lobotomy"] .chip:hover { border-color: var(--lc-orange); }
+
+/* ---------- Характеристики, ресурсы, лист ---------- */
+html[data-theme="lobotomy"] .stat-card, html[data-theme="lobotomy"] .res-card, html[data-theme="lobotomy"] .asi-card {
+  background: linear-gradient(180deg, rgba(255, 246, 200, .04), rgba(0, 0, 0, .4)); border-color: var(--lc-olive);
+}
+html[data-theme="lobotomy"] .derived > div, html[data-theme="lobotomy"] .ss { border-color: var(--lc-line); background: rgba(0, 0, 0, .6); }
+html[data-theme="lobotomy"] .stat-in { background: #000; border-color: var(--lc-olive); color: var(--lc-text); }
+html[data-theme="lobotomy"] .stat-k, html[data-theme="lobotomy"] .ss-k { color: var(--lc-cream); }
+html[data-theme="lobotomy"] .stat-max, html[data-theme="lobotomy"] .derived span, html[data-theme="lobotomy"] .res-formula,
+html[data-theme="lobotomy"] .sheet-line, html[data-theme="lobotomy"] .note { color: var(--lc-text-dim); }
+html[data-theme="lobotomy"] .res-card.hp { border-color: color-mix(in srgb, var(--lc-red) 60%, var(--lc-olive)); }
+html[data-theme="lobotomy"] .res-card.sp { border-color: color-mix(in srgb, var(--dept-welfare) 60%, var(--lc-olive)); }
+html[data-theme="lobotomy"] .roll-log div { border-bottom-color: #1c1b12; }
+
+/* ---------- Слоты: группы, строки (кубы остаются в цвете слота) ---------- */
+html[data-theme="lobotomy"] .group-title { border-bottom-color: var(--lc-line); color: var(--lc-cream); }
+html[data-theme="lobotomy"] .row { border-color: var(--lc-line); background: rgba(255, 246, 200, .02); }
+html[data-theme="lobotomy"] .row-desc::after { background: linear-gradient(transparent, #0c0c0b); }
+html[data-theme="lobotomy"] .cube .cube-face { box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .5); }
+
+/* ---------- Досье ---------- */
+html[data-theme="lobotomy"] .output-panel::-webkit-scrollbar-thumb, html[data-theme="lobotomy"] .modal-box::-webkit-scrollbar-thumb { background: var(--lc-olive); }
+html[data-theme="lobotomy"] .output-header { border-bottom-color: var(--lc-orange); }
+html[data-theme="lobotomy"] .char-name-display { color: var(--lc-cream); }
+html[data-theme="lobotomy"] .char-meta-display { color: var(--lc-yellow); }
+html[data-theme="lobotomy"] .block-title { border-bottom-color: var(--lc-line); }
+html[data-theme="lobotomy"] .trait-entry { border-left-color: var(--lc-olive); }
+html[data-theme="lobotomy"] .trait-entry:hover { background-color: rgba(255, 148, 66, .05); }
+html[data-theme="lobotomy"] .md td, html[data-theme="lobotomy"] .md th,
+html[data-theme="lobotomy"] .trait-desc td, html[data-theme="lobotomy"] .trait-desc th { border-color: var(--lc-line); }
+/* «требует внимания» — окно в жёлто-чёрной ленте */
+html[data-theme="lobotomy"] .dm-warn { border: 11px solid transparent; border-image: var(--lc-hazard) 22 fill / 11px stretch; background: none; padding: 2px 6px; }
+html[data-theme="lobotomy"] .dm-warn-t { color: var(--lc-yellow); }
+
+/* ---------- Поповер выбора, подсказка, окна ---------- */
+html[data-theme="lobotomy"] .choice-pop {
+  background: #070707; border-color: var(--lc-cream-dim); box-shadow: 0 8px 30px rgba(0, 0, 0, .9), inset 0 3px 0 var(--lc-orange);
+}
+html[data-theme="lobotomy"] .cp { border-top-color: var(--lc-line); }
+html[data-theme="lobotomy"] .cp-opt { background: #000; border-color: var(--lc-olive); }
+html[data-theme="lobotomy"] .tip { background: #070707; border-color: var(--lc-cream-dim); }
+/* окно конструктора: чёрное поле в кремовой линии со срезанным углом (липкая шапка — того же цвета, что поле) */
+html[data-theme="lobotomy"] .modal-box {
+  background: none; border: 1px solid transparent; border-image: var(--lc-frame) 34 4 4 34 fill / 22px 3px 3px 22px;
+  box-shadow: none; filter: drop-shadow(0 10px 30px rgba(0, 0, 0, .9));
+}
+html[data-theme="lobotomy"] .modal-head, html[data-theme="lobotomy"] .picker-tools { background: #080807; }
+html[data-theme="lobotomy"] .modal-head { border-bottom-color: var(--lc-line); }
+html[data-theme="lobotomy"] .modal-head h3 { color: var(--lc-orange); }
+html[data-theme="lobotomy"] .modal-x { border-color: var(--lc-olive); color: var(--lc-cream-dim); background: #000; }
+html[data-theme="lobotomy"] .modal-x:hover { border-color: var(--lc-red); color: #fff; background: var(--lc-red); }
+html[data-theme="lobotomy"] .pick { border-color: var(--lc-line); background: rgba(255, 246, 200, .02); }
+html[data-theme="lobotomy"] .pick:hover { border-color: var(--lc-orange); background: rgba(255, 148, 66, .06); }
+html[data-theme="lobotomy"] .ego-prev { border-left-color: var(--lc-line); }
+html[data-theme="lobotomy"] .lvl-table td { border-bottom-color: var(--lc-line); }

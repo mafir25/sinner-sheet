@@ -1,0 +1,50 @@
+/* Оформление Lobotomy Corporation — Конструктор Э.Г.О. (egobuilder.html). Общие детали и форма Э.Г.О. (site/ego-core.js) —
+   base.css. Цвет Э.Г.О. в этом оформлении — Дисциплинарный отдел (красный, как карточка на главной). */
+html[data-theme="lobotomy"] { --accent-primary: var(--dept-disciplinary); --accent-muted: color-mix(in srgb, var(--dept-disciplinary) 35%, #000); }
+
+html[data-theme="lobotomy"] .form-group label { color: var(--lc-cream-dim); }
+html[data-theme="lobotomy"] .points-display {
+  border: 1px solid transparent; border-image: var(--lc-frame) 34 4 4 34 fill / 18px 3px 3px 18px; background: none; color: var(--lc-cream);
+}
+html[data-theme="lobotomy"] .points-display.error {
+  border-image: var(--lc-alert) 26 fill / 16px stretch; color: var(--lc-red); background: none;
+}
+html[data-theme="lobotomy"] .upgrade-row { border-bottom-color: #1c1b12; }
+html[data-theme="lobotomy"] .btn-qty { background: #000; border-color: var(--lc-olive); color: var(--lc-cream); }
+html[data-theme="lobotomy"] .btn-qty:hover { background: var(--lc-cream); border-color: var(--lc-cream); color: #111; }
+
+/* кнопки: тонкие белые контуры, цвет действия — в тексте; при наведении — оранжевый контур */
+html[data-theme="lobotomy"] .copy-btn, html[data-theme="lobotomy"] .btn-small-bld {
+  border: 7px solid transparent; border-image: var(--lc-chip) 8 fill / 7px stretch;
+  background: none; padding: 1px 6px; color: var(--lc-cream);
+}
+html[data-theme="lobotomy"] .copy-btn:hover, html[data-theme="lobotomy"] .btn-small-bld:hover {
+  border-image-source: var(--lc-chip-on); background: none; color: var(--lc-orange);
+}
+html[data-theme="lobotomy"] .save-btn, html[data-theme="lobotomy"] .save-btn:hover { color: var(--color-yellow); }
+html[data-theme="lobotomy"] .tab-btn {
+  border: 10px solid transparent; border-image: var(--lc-btn) 30 fill / 10px stretch; background: none; color: var(--lc-cream-dim); padding: 0 6px;
+}
+html[data-theme="lobotomy"] .tab-btn.active { border-image-source: var(--lc-btn-on); background: none; color: #111; text-shadow: none; }
+
+/* вывод и библиотека */
+html[data-theme="lobotomy"] .output-panel::-webkit-scrollbar-thumb, html[data-theme="lobotomy"] .status-sidebar::-webkit-scrollbar-thumb { background: var(--lc-olive); }
+html[data-theme="lobotomy"] .output-header { border-bottom-color: var(--accent-primary); }
+html[data-theme="lobotomy"] .ego-name-display { color: var(--lc-cream); }
+html[data-theme="lobotomy"] .ego-meta, html[data-theme="lobotomy"] .lib-item-meta { color: var(--lc-yellow); }
+html[data-theme="lobotomy"] .ego-quote, html[data-theme="lobotomy"] .lib-sub, html[data-theme="lobotomy"] .lib-empty { color: var(--lc-text-dim); }
+html[data-theme="lobotomy"] .lib-block { border-top-color: var(--lc-line); }
+html[data-theme="lobotomy"] .lib-item { border-color: var(--lc-line); background: rgba(255, 246, 200, .02); }
+html[data-theme="lobotomy"] .lib-item:hover { border-color: var(--lc-orange); }
+html[data-theme="lobotomy"] .corrosion-block { border: 12px solid transparent; border-image: var(--lc-alert) 26 fill / 12px stretch; background: none; padding: 6px 8px; }
+html[data-theme="lobotomy"] .rule-section h3 { border-bottom-color: var(--lc-line); }
+
+/* сайдбар Базы статусов */
+html[data-theme="lobotomy"] .status-sidebar {
+  background: #070707; border-left: 1px solid var(--lc-cream-dim);
+  box-shadow: -10px 0 30px rgba(0, 0, 0, .85), inset 4px 0 0 #000, inset 9px 0 0 var(--lc-olive);
+}
+html[data-theme="lobotomy"] .sidebar-header { border-bottom-color: var(--lc-orange); }
+html[data-theme="lobotomy"] .sidebar-title { color: var(--lc-cream); }
+html[data-theme="lobotomy"] .status-card { border-color: var(--lc-line); background: rgba(255, 246, 200, .02); }
+html[data-theme="lobotomy"] .status-card-name { color: var(--lc-cream); }

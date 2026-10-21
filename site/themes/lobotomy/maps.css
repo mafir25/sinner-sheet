@@ -1,0 +1,33 @@
+/* Оформление Lobotomy Corporation — Редактор карт (map-app). Общее для приложений — apps.css, общие переменные — base.css.
+   Подключается из map-app/src/main.tsx (мимо сборщика). Холст карты и её цвета не меняются. */
+@import url('apps.css');
+
+/* фон — сама карта: сетку base.css не накладываем */
+html[data-theme="lobotomy"] body::before { display: none; }
+
+/* боковые панели — чёрные с тонкой оливковой кромкой */
+html[data-theme="lobotomy"] .left, html[data-theme="lobotomy"] .right { background: #070707; }
+html[data-theme="lobotomy"] .left { border-right: 1px solid var(--lc-olive); }
+html[data-theme="lobotomy"] .right { border-left: 1px solid var(--lc-olive); }
+html[data-theme="lobotomy"] .tools { background: rgba(0, 0, 0, .5); }
+html[data-theme="lobotomy"] .tool:hover:not(:disabled) { border-color: var(--lc-olive); }
+html[data-theme="lobotomy"] .tool.on { border-color: var(--lc-orange); color: var(--lc-orange); background: rgba(255, 148, 66, .1); }
+html[data-theme="lobotomy"] .props > h3, html[data-theme="lobotomy"] .subsec > h3, html[data-theme="lobotomy"] .meta-form > h3 { color: var(--lc-orange); }
+html[data-theme="lobotomy"] .side-sec { border-bottom-color: var(--lc-line); }
+html[data-theme="lobotomy"] .bottombar { background: #070707; border-top: 1px solid var(--lc-olive); }
+html[data-theme="lobotomy"] .coords { background: rgba(0, 0, 0, .8); }
+
+/* библиотека, слои, списки */
+html[data-theme="lobotomy"] .lib-item, html[data-theme="lobotomy"] .meta-file, html[data-theme="lobotomy"] .list li,
+html[data-theme="lobotomy"] .lib-mini, html[data-theme="lobotomy"] .chip, html[data-theme="lobotomy"] .version { background: #11110d; }
+html[data-theme="lobotomy"] .thumb { background: repeating-conic-gradient(#11110d 0 25%, #1a1910 0 50%) 0 0 / 12px 12px; }
+html[data-theme="lobotomy"] .meta-dir.on { background: rgba(255, 148, 66, .1); }
+html[data-theme="lobotomy"] .gen-bar { background: rgba(0, 0, 0, .92); border-color: var(--lc-cream-dim); }
+html[data-theme="lobotomy"] .slider input[type=range] { accent-color: var(--lc-orange); }
+html[data-theme="lobotomy"] .anchor button.on { background: var(--lc-cream); color: #111; }
+
+/* стартовый экран: карты — окна игры (кремовая линия со срезанным углом) */
+html[data-theme="lobotomy"] .start-body h2 { color: var(--lc-orange); }
+html[data-theme="lobotomy"] .card { border: 1px solid transparent; border-image: var(--lc-frame) 34 4 4 34 fill / 20px 3px 3px 20px; background: none; }
+html[data-theme="lobotomy"] .card:hover { border-image-source: var(--lc-frame-on); }
+html[data-theme="lobotomy"] .card-thumb { background: #000; }

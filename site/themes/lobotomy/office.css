@@ -1,0 +1,69 @@
+/* Оформление Lobotomy Corporation — Офис (office.html). Общие детали (панели, поля, заголовок, уведомления) — base.css.
+   Цвет панели в Офисе — --tape (t-green, t-yellow, t-red, t-cyan): он — в штриховке и заголовке панели. */
+html[data-theme="lobotomy"] .panel-outer { --lc-accent: var(--tape, var(--accent-primary)); }
+
+/* ---------- Верхняя панель ---------- */
+html[data-theme="lobotomy"] .topbar { background: #000; border-bottom: 1px solid var(--lc-olive); box-shadow: 0 8px 24px rgba(0, 0, 0, .7); }
+html[data-theme="lobotomy"] .nav-btn.cyan { --c: var(--color-cyan); }
+html[data-theme="lobotomy"] .nav-btn { --c: var(--accent-primary); }
+html[data-theme="lobotomy"] .dropdown-content { background: #070707; border-color: var(--lc-cream-dim); box-shadow: 0 6px 20px rgba(0, 0, 0, .9), inset 0 3px 0 var(--lc-orange); }
+html[data-theme="lobotomy"] .dropdown-item { border-bottom-color: #1c1b12; }
+html[data-theme="lobotomy"] .dropdown-item:hover, html[data-theme="lobotomy"] .dropdown-item:focus-visible { background-color: var(--lc-cream); color: #111; }
+html[data-theme="lobotomy"] .dropdown-item.current { color: var(--lc-orange); }
+
+/* ---------- Кнопки: тонкие белые контуры, цвет действия — в тексте; при наведении — оранжевый контур ---------- */
+html[data-theme="lobotomy"] .btn {
+  border: 7px solid transparent; border-image: var(--lc-chip) 8 fill / 7px stretch;
+  background: none; padding: 1px 6px; color: var(--lc-cream-dim);
+}
+html[data-theme="lobotomy"] .btn:hover:not(:disabled) { border-image-source: var(--lc-chip-on); background: none; color: var(--lc-orange); }
+html[data-theme="lobotomy"] .btn.yellow, html[data-theme="lobotomy"] .btn.yellow:hover:not(:disabled) { color: var(--color-yellow); }
+html[data-theme="lobotomy"] .btn.red, html[data-theme="lobotomy"] .btn.red:hover:not(:disabled) { color: var(--lc-red); }
+html[data-theme="lobotomy"] .btn.cyan, html[data-theme="lobotomy"] .btn.cyan:hover:not(:disabled) { color: var(--color-cyan); }
+html[data-theme="lobotomy"] .btn.green, html[data-theme="lobotomy"] .btn.green:hover:not(:disabled) { color: var(--accent-primary); }
+/* крупные кнопки — кремовые скошенные плашки, при наведении заливаются */
+html[data-theme="lobotomy"] .btn.big {
+  border: 10px solid transparent; border-image: var(--lc-btn) 30 fill / 10px stretch; background: none; padding: 0 8px; color: var(--lc-cream);
+}
+html[data-theme="lobotomy"] .btn.big:hover:not(:disabled) { border-image-source: var(--lc-btn-on); background: none; color: #111; text-shadow: none; }
+html[data-theme="lobotomy"] .icon-btn:hover { color: var(--lc-orange); }
+
+/* ---------- Поля ---------- */
+html[data-theme="lobotomy"] .field { background: #000; border-color: var(--lc-olive); color: var(--lc-text); }
+html[data-theme="lobotomy"] .field:focus { border-color: var(--lc-orange); }
+html[data-theme="lobotomy"] .check input { accent-color: var(--lc-orange); }
+html[data-theme="lobotomy"] .section { border-bottom-color: #1c1b12; }
+
+/* ---------- Левая колонка ---------- */
+html[data-theme="lobotomy"] .logo-area { background-color: #000; border-color: var(--lc-olive); }
+html[data-theme="lobotomy"] .logo-area:not(:disabled):hover, html[data-theme="lobotomy"] .logo-area:not(:disabled):focus-visible { border-color: var(--lc-orange); }
+html[data-theme="lobotomy"] .office-name-input { color: var(--lc-cream); }
+html[data-theme="lobotomy"] .member-item { border-bottom-color: #1c1b12; }
+html[data-theme="lobotomy"] .builder-card { border-color: var(--lc-olive); background: rgba(255, 246, 200, .03); }
+html[data-theme="lobotomy"] .preset-card { border-color: var(--lc-line); background: rgba(255, 246, 200, .02); }
+html[data-theme="lobotomy"] .preset-desc { border-top-color: #1c1b12; }
+
+/* ---------- Доска контрактов ---------- */
+html[data-theme="lobotomy"] .grade-block { border-color: var(--lc-line); }
+html[data-theme="lobotomy"] .grade-header { background: linear-gradient(90deg, rgba(255, 246, 200, .08), rgba(0, 0, 0, .6) 60%); }
+html[data-theme="lobotomy"] .grade-header:hover { background: linear-gradient(90deg, rgba(255, 148, 66, .16), rgba(0, 0, 0, .6) 60%); }
+html[data-theme="lobotomy"] .grade-content { background: #000; }
+html[data-theme="lobotomy"] .quest-item { border-bottom-color: #1c1b12; }
+html[data-theme="lobotomy"] .quest-toggle:hover { background: rgba(255, 148, 66, .05); }
+html[data-theme="lobotomy"] .quest-admin { border-top-color: #1c1b12; }
+
+/* ---------- Правая колонка ---------- */
+html[data-theme="lobotomy"] .tab-btn { color: var(--lc-cream-dim); }
+html[data-theme="lobotomy"] .tab-btn:hover { color: var(--lc-cream); }
+html[data-theme="lobotomy"] .tab-btn[aria-selected="true"] { color: var(--lc-orange); border-bottom-color: var(--lc-orange); }
+html[data-theme="lobotomy"] .ledger-item, html[data-theme="lobotomy"] .stock-item { border-bottom-color: #1c1b12; }
+html[data-theme="lobotomy"] .converter { border-color: var(--lc-line); background: rgba(0, 0, 0, .6); }
+html[data-theme="lobotomy"] .rep-bar { border-color: var(--lc-olive); background: #000; }
+html[data-theme="lobotomy"] .bank-chart svg { border-bottom-color: #1c1b12; }
+
+/* ---------- Окна и уведомления ---------- */
+html[data-theme="lobotomy"] .dialog-preview, html[data-theme="lobotomy"] .q-icon-option { background-color: #000; border-color: var(--lc-olive); }
+html[data-theme="lobotomy"] .qm-row { border-bottom-color: #1c1b12; }
+html[data-theme="lobotomy"] .toast.success { color: var(--lc-lamp); }
+html[data-theme="lobotomy"] .toast.error { color: var(--lc-red); }
+html[data-theme="lobotomy"] .toast.loading { color: var(--lc-yellow); }
