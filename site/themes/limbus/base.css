@@ -1,7 +1,8 @@
 /* Оформление Limbus Company — общий слой (фон, общие детали страниц, окно ⚙ Настроек). Работает только при
    <html data-theme="limbus"> (его ставит site/theme.js), поэтому у обычного оформления ничего не меняется,
    а спрайты грузятся только в этом оформлении.
-   Только спрайты интерфейса из Assets/Timed_Assets/: без героев Limbus и без иконок грехов — только их цвета.
+   Только спрайты интерфейса из Assets/Assets_Limbus/ (что где — в его README.md): без героев Limbus и без иконок грехов —
+   только их цвета.
    Подключение — в <head> после собственных стилей страницы:
      <link rel="stylesheet" href="site/themes/limbus/base.css">
      <link rel="stylesheet" href="site/themes/limbus/<страница>.css">   (если у страницы есть свой слой)
@@ -15,18 +16,18 @@ html[data-theme="limbus"] {
   --sin-gloom: #45B3CB; --sin-pride: #3A78E0; --sin-envy: #B24FE0;
 
   /* спрайты (пути от корня сайта) */
-  --lb-grid: url('/Assets/Timed_Assets/03_MainUI/MainUI_BattleSelection_1/MainUI_BattleSelection_1_001.png');
-  --lb-gold-tex: url('/Assets/Timed_Assets/03_MainUI/MainUI_common_Popup_01/MainUI_common_Popup_01_036.png');
-  --lb-frame: url('/Assets/Timed_Assets/01_BattleUI/BattleUI_Choice_3/BattleUI_Choice_3_023.png');        /* латунь + тёмное поле, срез 64 */
-  --lb-plate: url('/Assets/Timed_Assets/01_BattleUI/BattleUI_Choice_5/BattleUI_Choice_5_043.png');        /* латунь с полутоном, срез 36 */
-  --lb-btn: url('/Assets/Timed_Assets/03_MainUI/MainUI_common_1/MainUI_common_1_020.png');               /* кнопка, срез 26 */
-  --lb-btn-on: url('/Assets/Timed_Assets/03_MainUI/MainUI_common_1/MainUI_common_1_026.png');            /* кнопка горит, срез 26 */
-  --lb-chip: url('/Assets/Timed_Assets/03_MainUI/MainUI_PersonalityList_1/MainUI_PersonalityList_1_004.png'); /* тонкая латунная обводка, срез 24 */
-  --lb-chip-on: url('/Assets/Timed_Assets/03_MainUI/New_MainUI_Formation_1/New_MainUI_Formation_1_044.png');  /* оранжевый неон, срез 22 */
-  --lb-neon: url('/Assets/Timed_Assets/03_MainUI/MainUI_UserInfo_6/MainUI_UserInfo_6_011.png');          /* неон со срезанными углами, срез 44 */
-  --lb-tag: url('/Assets/Timed_Assets/03_MainUI/MainUI_Formation_9/MainUI_Formation_9_046.png');         /* бурая плашка с полутоном */
-  --lb-gear: url('/Assets/Timed_Assets/05_Story_Tutorial_Misc/StoryUI_Frame_1/StoryUI_Frame_1_011.png');
-  --lb-gear-on: url('/Assets/Timed_Assets/05_Story_Tutorial_Misc/StoryUI_Frame_1/StoryUI_Frame_1_021.png');
+  --lb-grid: url('/Assets/Assets_Limbus/backgrounds/grid.png');
+  --lb-gold-tex: url('/Assets/Assets_Limbus/backgrounds/gold.png');
+  --lb-frame: url('/Assets/Assets_Limbus/frames/card-brass.png');        /* латунь + тёмное поле, срез 64 */
+  --lb-plate: url('/Assets/Assets_Limbus/frames/plate-brass.png');        /* латунь с полутоном, срез 36 */
+  --lb-btn: url('/Assets/Assets_Limbus/buttons/plate.png');               /* кнопка, срез 26 */
+  --lb-btn-on: url('/Assets/Assets_Limbus/buttons/plate-lit.png');            /* кнопка горит, срез 26 */
+  --lb-chip: url('/Assets/Assets_Limbus/frames/chip-brass.png'); /* тонкая латунная обводка, срез 24 */
+  --lb-chip-on: url('/Assets/Assets_Limbus/frames/chip-neon.png');  /* оранжевый неон, срез 22 */
+  --lb-neon: url('/Assets/Assets_Limbus/frames/neon-orange.png');          /* неон со срезанными углами, срез 44 */
+  --lb-tag: url('/Assets/Assets_Limbus/frames/tag-brown.png');         /* бурая плашка с полутоном */
+  --lb-gear: url('/Assets/Assets_Limbus/buttons/gear.png');
+  --lb-gear-on: url('/Assets/Assets_Limbus/buttons/gear-lit.png');
   color-scheme: dark;
   scrollbar-color: #6b4422 #0d0907;
 }

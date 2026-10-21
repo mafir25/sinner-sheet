@@ -1,4 +1,4 @@
-/* Оформления сайта (пока тестируются): classic — обычное, limbus — Limbus Company (спрайты Assets/Timed_Assets/).
+/* Оформления сайта (пока тестируются): classic — обычное, limbus — Limbus Company (спрайты Assets/Assets_Limbus/).
    1. Хранит выбор в браузере (localStorage 'site.theme'; нет записи — classic).
    2. Ставит <html data-theme="…"> до отрисовки — по нему слои site/themes/<оформление>/ стилизуют страницы.
       Версия страницы под оформление (index-limbus.html) объявляет его сама: <html data-page-theme="limbus">.
