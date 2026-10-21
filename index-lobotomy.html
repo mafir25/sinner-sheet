@@ -31,7 +31,8 @@
             --spr-panel-on: url('Assets/Assets_Lobotomy/frames/panel-orange.png');
             --spr-btn: url('Assets/Assets_Lobotomy/buttons/plate.png');
             --spr-btn-on: url('Assets/Assets_Lobotomy/buttons/plate-lit.png');
-            --spr-chip: url('Assets/Assets_Lobotomy/buttons/chip.png');
+            --spr-frame: url('Assets/Assets_Lobotomy/buttons/frame.png');
+            --spr-frame-on: url('Assets/Assets_Lobotomy/buttons/frame-lit.png');
         }
 
         /* Семь отделов: цвет и комната (departments/) */
@@ -119,7 +120,10 @@
         }
         .lc-sub { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 10px; max-width: 100%; }
         .lc-sub p { font: 500 1rem/1.2 'Oswald', sans-serif; letter-spacing: 3px; color: var(--orange); text-transform: uppercase; }
-        .lc-sub span { width: 90px; height: 9px; flex: none; background: url('Assets/Assets_Lobotomy/stripes/hazard-orange.png') left center / auto 100% repeat-x; opacity: .85; }
+        /* штриховка — только целыми сегментами (плитка с одним сегментом, repeat: space; см. --lc-stripe в base.css) */
+        .lc-sub span { width: 90px; height: 7px; flex: none; background: var(--orange); opacity: .85;
+            -webkit-mask: linear-gradient(135deg, transparent 33.3%, #000 33.3% 66.7%, transparent 66.7%) 0 0 / 14px 7px space no-repeat;
+            mask: linear-gradient(135deg, transparent 33.3%, #000 33.3% 66.7%, transparent 66.7%) 0 0 / 14px 7px space no-repeat; }
         .lc-status {
             margin-top: 14px; display: inline-flex; align-items: center; gap: 10px; min-height: 34px;
             font: 500 .78rem/1.2 'Oswald', sans-serif; letter-spacing: 2px; color: var(--cream-dim); text-transform: uppercase;
@@ -148,7 +152,9 @@
         .wide { grid-column: 1 / -1; }
 
         /* ---- Карточка-отдел: чёрное окно в кремовой линии со срезанным углом (9-slice; спрайт шире рамки — угол ложится на поле),
-           справа — комната отдела, уходящая в черноту; сверху — штриховка цвета отдела. При наведении — оранжевая линия. */
+           справа — комната отдела, уходящая в черноту; сверху — штриховка цвета отдела. При наведении — оранжевая линия.
+           Картинка комнаты больше окна (.room::before выходит за него на 24 px) и чуть сдвигается за курсором и при прокрутке —
+           параллакс (--px, --py от −1 до 1 ставит скрипт внизу страницы). */
         .card {
             position: relative; display: flex; flex-direction: column; justify-content: center;
             height: 100%; min-height: 156px; padding: 22px 22px 16px 24px;
@@ -156,23 +162,29 @@
             color: inherit; text-decoration: none; isolation: isolate;
             transition: transform .2s ease, filter .25s ease;
         }
-        .card::before {   /* комната отдела: проступает справа, ярче при наведении */
-            content: ''; position: absolute; inset: 2px; z-index: -1; pointer-events: none;
+        .room {   /* комната отдела: проступает справа, ярче при наведении */
+            position: absolute; inset: 2px; z-index: -1; pointer-events: none; overflow: hidden;   /* картинка больше окна — не даёт прокрутки вбок */
             clip-path: polygon(22px 0, 100% 0, 100% 100%, 0 100%, 0 22px);
-            background: var(--room) right center / cover no-repeat;
             -webkit-mask-image: linear-gradient(90deg, transparent 18%, rgba(0, 0, 0, .8) 70%, #000);
             mask-image: linear-gradient(90deg, transparent 18%, rgba(0, 0, 0, .8) 70%, #000);
             opacity: .55; transition: opacity .25s;
         }
-        .card::after {   /* штриховка «осторожно» цвета отдела */
+        .room::before {
+            content: ''; position: absolute; inset: -24px;
+            background: var(--room) right center / cover no-repeat;
+            transform: translate3d(calc(var(--px, 0) * -18px), calc(var(--py, 0) * -14px), 0);
+            transition: transform .35s ease-out;
+        }
+        .card::after {   /* штриховка «осторожно» цвета отдела — целыми сегментами */
             content: ''; position: absolute; top: 7px; left: 26px; right: 10px; height: 5px; pointer-events: none;
-            background: repeating-linear-gradient(-45deg, var(--d) 0 6px, transparent 6px 12px); opacity: .9;
+            background: var(--d); opacity: .9;
+            -webkit-mask: var(--lc-stripe) 0 0 / 12px 5px space no-repeat; mask: var(--lc-stripe) 0 0 / 12px 5px space no-repeat;
         }
         .card:hover, .card:focus-visible, .card:focus-within {
             border-image-source: var(--spr-panel-on); transform: translateY(-4px); outline: none;
             filter: drop-shadow(0 0 12px color-mix(in srgb, var(--d) 40%, transparent));
         }
-        .card:hover::before, .card:focus-visible::before, .card:focus-within::before { opacity: .9; }
+        .card:hover .room, .card:focus-visible .room, .card:focus-within .room { opacity: .9; }
 
         .body { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; width: 100%; min-width: 0; }
         .dept { font: 500 .68rem/1 'Oswald', sans-serif; letter-spacing: 4px; text-transform: uppercase; color: var(--d);
@@ -197,35 +209,36 @@
         .card.big .body, .card.tall .body { align-items: center; }
         .card.big .lore, .card.tall .lore { max-width: none; }
         /* в узких и большой карточках комната — на всё поле, затемнена к центру текста */
-        .card.tall::before, .card.big::before {
-            background-position: center; opacity: .4;
+        .card.tall .room, .card.big .room {
+            opacity: .4;
             -webkit-mask-image: radial-gradient(ellipse at 50% 40%, rgba(0, 0, 0, .25), #000 85%);
             mask-image: radial-gradient(ellipse at 50% 40%, rgba(0, 0, 0, .25), #000 85%);
         }
-        .card.tall:hover::before, .card.big:hover::before, .card.big:focus-within::before { opacity: .7; }
+        .card.tall .room::before, .card.big .room::before { background-position: center; }
+        .card.tall:hover .room, .card.big:hover .room, .card.big:focus-within .room { opacity: .7; }
 
         /* Карточка-блок со ссылкой на всю площадь (растянутая ссылка заголовка) и своими ссылками внутри */
         .card .stretch { color: inherit; text-decoration: none; }
         .card .stretch::before { content: ''; position: absolute; inset: 0; z-index: 1; }
         .card .stretch:focus-visible { outline: none; }
 
-        /* разделы Базы знаний — белые контурные плашки (ResearchUI), при наведении — кремовые */
+        /* разделы Базы знаний — рамки со срезанным углом, при наведении — залитые кремовым */
         .sections { position: relative; z-index: 3; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin: 6px 0 2px; max-width: 660px; }
         .sections a {
             display: inline-flex; align-items: center; gap: 6px; padding: 0 6px; min-height: 26px;
-            border: 6px solid transparent; border-image: var(--spr-chip) 8 fill / 6px stretch;
+            border: 4px solid transparent; border-image: var(--spr-frame) 20 fill / 8px stretch;
             font: 500 .74rem/1 'Oswald', sans-serif; letter-spacing: 1px; text-transform: uppercase; color: var(--cream); text-decoration: none;
             transition: color .15s;
         }
         .sections a img { width: 20px; height: 20px; object-fit: contain; }
         .sections a:hover, .sections a:focus-visible {
-            border-image: var(--spr-btn-on) 30 fill / 6px stretch; color: #111; outline: none;
+            border-image-source: var(--spr-frame-on); color: #111; outline: none;
         }
 
         /* уровни угрозы Э.Г.О. на карточке конструктора — в цветах классов риска из игры */
         .risk { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; margin-top: 2px; }
         .risk span {
-            border: 5px solid transparent; border-image: var(--spr-chip) 8 fill / 5px stretch; padding: 0 4px;
+            border: 3px solid transparent; border-image: var(--spr-frame) 20 fill / 7px stretch; padding: 1px 5px;
             font: 700 .7rem/1.2 'Oswald', sans-serif; letter-spacing: 1px; color: var(--r);
         }
 
@@ -260,11 +273,12 @@
             /* в одну колонку узкие карточки выглядят как остальные — текст слева, комната справа */
             .card.tall { text-align: left; }
             .card.tall .body { align-items: flex-start; }
-            .card.tall::before {
-                background-position: right center; opacity: .55;
+            .card.tall .room {
+                opacity: .55;
                 -webkit-mask-image: linear-gradient(90deg, transparent 18%, rgba(0, 0, 0, .8) 70%, #000);
                 mask-image: linear-gradient(90deg, transparent 18%, rgba(0, 0, 0, .8) 70%, #000);
             }
+            .card.tall .room::before { background-position: right center; }
             .title { font-size: 1.12rem; }
             .card.big .title { font-size: 1.25rem; }
             .sections { gap: 4px; }
@@ -273,7 +287,8 @@
         }
         @media (prefers-reduced-motion: reduce) {
             .lc-ticker-track, .lc-status img { animation: none; }
-            .card, .card::before { transition: none; }
+            .card, .room, .room::before { transition: none; }
+            .room::before { transform: none; }
         }
     </style>
     <script src="site/i18n.js"></script>
@@ -325,6 +340,7 @@
             <div class="col-head"><span class="tag notranslate">I</span><h2>УНИВЕРСАЛЬНЫЕ СИСТЕМЫ</h2></div>
             <div class="grid-uni">
                 <a href="office.html" class="card dept-control">
+                    <span class="room" aria-hidden="true"></span>
                     <div class="body">
                         <div class="dept">Отдел управления</div>
                         <div class="title">УПРАВЛЕНИЕ ОФИСОМ</div>
@@ -334,6 +350,7 @@
                 </a>
 
                 <a href="shirm.html" class="card dept-central">
+                    <span class="room" aria-hidden="true"></span>
                     <div class="body">
                         <div class="dept">Центральное командование</div>
                         <div class="title">ШИРМА</div>
@@ -344,6 +361,7 @@
 
                 <div class="pair">
                     <a href="maps.html" class="card tall dept-safety">
+                        <span class="room" aria-hidden="true"></span>
                         <div class="body">
                             <div class="dept">Отдел безопасности</div>
                             <div class="title">РЕДАКТОР КАРТ</div>
@@ -353,6 +371,7 @@
                     </a>
 
                     <a href="foundry.html" class="card tall dept-training">
+                        <span class="room" aria-hidden="true"></span>
                         <div class="body">
                             <div class="dept">Отдел обучения</div>
                             <div class="title">FOUNDRY VTT</div>
@@ -369,6 +388,7 @@
             <div class="col-head"><span class="tag notranslate">II</span><h2>СИСТЕМА (D&amp;D 5E)</h2></div>
             <div class="grid-pmd">
                 <a href="builder.html" class="card tall dept-welfare">
+                    <span class="room" aria-hidden="true"></span>
                     <div class="body">
                         <div class="dept">Отдел соцобеспечения</div>
                         <div class="title">КОНСТРУКТОР ПЕРСОНАЖА</div>
@@ -378,6 +398,7 @@
                 </a>
 
                 <a href="egobuilder.html" class="card tall dept-disciplinary">
+                    <span class="room" aria-hidden="true"></span>
                     <div class="body">
                         <div class="dept">Дисциплинарный отдел</div>
                         <div class="title">КОНСТРУКТОР Э.Г.О.</div>
@@ -391,6 +412,7 @@
 
                 <!-- вся карточка ведёт в Базу знаний (растянутая ссылка заголовка), значки — сразу в нужный раздел -->
                 <div class="card big wide dept-information">
+                    <span class="room" aria-hidden="true"></span>
                     <div class="body">
                         <div class="dept">Информационный отдел</div>
                         <a class="title stretch" href="navigation.html">БАЗА ЗНАНИЙ (НАВИГАЦИЯ)</a>
@@ -419,6 +441,39 @@
         <img src="Assets/Assets_Lobotomy/icons/brain-cream.png" alt="">PROJECT MOON TTRPG FRAMEWORK // BUILD 1.5 // LOBOTOMY UI
     </div>
 
+    <script>
+        // Параллакс комнат отделов: картинка больше окна карточки и сдвигается за курсором (мышь), а при прокрутке —
+        // по высоте карточки на экране (так и на телефоне). --px, --py — от −1 до 1, сдвиг считает CSS (.room::before).
+        // Отдельный обычный скрипт: модуль ниже не выполнится, если не загрузится вход (Firebase).
+        if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            const cards = [...document.querySelectorAll('.card')];
+            const clamp = (v) => Math.max(-1, Math.min(1, v)).toFixed(3);
+            let raf = 0;
+            const onScroll = () => {
+                raf = raf || requestAnimationFrame(() => {
+                    raf = 0;
+                    for (const c of cards) {
+                        if (c.dataset.pointer) continue;
+                        const r = c.getBoundingClientRect();
+                        c.style.setProperty('--py', clamp((r.top + r.height / 2 - innerHeight / 2) / innerHeight));
+                    }
+                });
+            };
+            for (const c of cards) {
+                c.addEventListener('pointermove', (e) => {
+                    if (e.pointerType !== 'mouse') return;
+                    const r = c.getBoundingClientRect();
+                    c.dataset.pointer = '1';
+                    c.style.setProperty('--px', clamp(((e.clientX - r.left) / r.width) * 2 - 1));
+                    c.style.setProperty('--py', clamp(((e.clientY - r.top) / r.height) * 2 - 1));
+                });
+                c.addEventListener('pointerleave', () => { delete c.dataset.pointer; c.style.setProperty('--px', 0); onScroll(); });
+            }
+            addEventListener('scroll', onScroll, { passive: true });
+            addEventListener('resize', onScroll);
+            onScroll();
+        }
+    </script>
     <script type="module">
         // ⚙ в шапке — общее окно настроек; зелёная лампа — вход выполнен (как у круглой кнопки ui.js)
         import { onAuth } from './site/auth.js';

@@ -8,26 +8,27 @@ html[data-theme="lobotomy"] .title { font-weight: 700; color: var(--lc-cream); t
 html[data-theme="lobotomy"] h2 { color: var(--lc-orange); }
 html[data-theme="lobotomy"] .tabs { border-bottom-color: var(--lc-line); gap: 6px; padding-bottom: 6px; }
 html[data-theme="lobotomy"] .tab {
-  border: 8px solid transparent; border-image: var(--lc-btn) 30 fill / 8px stretch; background: none;
+  border: 8px solid transparent; border-image: var(--lc-btn) 20 fill / 10px stretch; background: none;
   color: var(--lc-cream-dim); padding: 0 8px; margin: 0;
 }
 html[data-theme="lobotomy"] .tab:hover { color: var(--lc-cream); }
 html[data-theme="lobotomy"] .tab[aria-selected=true] { border-image-source: var(--lc-btn-on); background: none; color: #111; margin: 0; }
 
-/* ---------- Кнопки: тонкие белые контуры, цвет действия — в тексте; при наведении — оранжевый контур ---------- */
+/* ---------- Кнопки: кремовые рамки со срезанным углом, цвет действия — в тексте; при наведении — оранжевый контур ---------- */
 html[data-theme="lobotomy"] .btn {
-  border: 7px solid transparent; border-image: var(--lc-chip) 8 fill / 7px stretch; background: none; padding: 1px 6px; color: var(--cyan);
+  border: 7px solid transparent; border-image: var(--lc-btn) 20 fill / 8px stretch; background: none; padding: 1px 6px; color: var(--cyan);
 }
-html[data-theme="lobotomy"] .btn.sm { border-width: 5px; border-image-width: 5px; padding: 0 4px; }
+html[data-theme="lobotomy"] .btn.sm { border-width: 5px; border-image-width: 7px; padding: 0 4px; }
 html[data-theme="lobotomy"] .btn:hover:not(:disabled), html[data-theme="lobotomy"] .btn.ghost:hover:not(:disabled) {
-  border-image-source: var(--lc-chip-on); background: none; color: var(--lc-orange);
+  border-image-source: var(--lc-btn-orange); background: none; color: var(--lc-orange);
 }
 html[data-theme="lobotomy"] .btn.red, html[data-theme="lobotomy"] .btn.red:hover:not(:disabled) { color: var(--lc-red); }
 html[data-theme="lobotomy"] .btn.green, html[data-theme="lobotomy"] .btn.green:hover:not(:disabled) { color: var(--green); }
 html[data-theme="lobotomy"] .btn.yellow, html[data-theme="lobotomy"] .btn.yellow:hover:not(:disabled) { color: var(--yellow); }
 html[data-theme="lobotomy"] .btn.ghost { color: var(--lc-cream-dim); }
-html[data-theme="lobotomy"] .seg { background: #000; border-color: var(--lc-olive); color: var(--lc-cream-dim); }
-html[data-theme="lobotomy"] .seg.on { border-color: var(--lc-cream); color: #111; background: var(--lc-cream); }
+html[data-theme="lobotomy"] .seg { border: 1px solid transparent; border-image: var(--lc-btn) 20 fill / 8px stretch; background: none; color: var(--lc-cream-dim); }
+html[data-theme="lobotomy"] .seg:hover { border-image-source: var(--lc-btn-orange); color: var(--lc-orange); }
+html[data-theme="lobotomy"] .seg.on, html[data-theme="lobotomy"] .seg.on:hover { border-image-source: var(--lc-btn-on); color: #111; background: none; }
 
 /* ---------- Панели, обзор, поля ---------- */
 html[data-theme="lobotomy"] .panel { background: none; border: 1px solid transparent; border-image: var(--lc-frame) 34 4 4 34 fill / 20px 3px 3px 20px; }

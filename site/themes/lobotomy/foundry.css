@@ -10,7 +10,7 @@ html[data-theme="lobotomy"] header p, html[data-theme="lobotomy"] .dim { color: 
 html[data-theme="lobotomy"] code { background: #000; border-color: var(--lc-line); }
 html[data-theme="lobotomy"] .copy-row input { background: #000; border-color: var(--lc-olive); color: var(--lc-text); }
 html[data-theme="lobotomy"] .btn {
-  border: 9px solid transparent; border-image: var(--lc-btn) 30 fill / 9px stretch; background: none;
+  border: 9px solid transparent; border-image: var(--lc-btn) 20 fill / 10px stretch; background: none;
   padding: 0 8px; color: var(--accent); min-height: 38px;
 }
 html[data-theme="lobotomy"] .btn:hover { border-image-source: var(--lc-btn-on); background: none; color: #111; text-shadow: none; }

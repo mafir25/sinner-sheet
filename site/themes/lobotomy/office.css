@@ -11,19 +11,19 @@ html[data-theme="lobotomy"] .dropdown-item { border-bottom-color: #1c1b12; }
 html[data-theme="lobotomy"] .dropdown-item:hover, html[data-theme="lobotomy"] .dropdown-item:focus-visible { background-color: var(--lc-cream); color: #111; }
 html[data-theme="lobotomy"] .dropdown-item.current { color: var(--lc-orange); }
 
-/* ---------- Кнопки: тонкие белые контуры, цвет действия — в тексте; при наведении — оранжевый контур ---------- */
+/* ---------- Кнопки: кремовые рамки со срезанным углом, цвет действия — в тексте; при наведении — оранжевый контур ---------- */
 html[data-theme="lobotomy"] .btn {
-  border: 7px solid transparent; border-image: var(--lc-chip) 8 fill / 7px stretch;
+  border: 7px solid transparent; border-image: var(--lc-btn) 20 fill / 8px stretch;
   background: none; padding: 1px 6px; color: var(--lc-cream-dim);
 }
-html[data-theme="lobotomy"] .btn:hover:not(:disabled) { border-image-source: var(--lc-chip-on); background: none; color: var(--lc-orange); }
+html[data-theme="lobotomy"] .btn:hover:not(:disabled) { border-image-source: var(--lc-btn-orange); background: none; color: var(--lc-orange); }
 html[data-theme="lobotomy"] .btn.yellow, html[data-theme="lobotomy"] .btn.yellow:hover:not(:disabled) { color: var(--color-yellow); }
 html[data-theme="lobotomy"] .btn.red, html[data-theme="lobotomy"] .btn.red:hover:not(:disabled) { color: var(--lc-red); }
 html[data-theme="lobotomy"] .btn.cyan, html[data-theme="lobotomy"] .btn.cyan:hover:not(:disabled) { color: var(--color-cyan); }
 html[data-theme="lobotomy"] .btn.green, html[data-theme="lobotomy"] .btn.green:hover:not(:disabled) { color: var(--accent-primary); }
-/* крупные кнопки — кремовые скошенные плашки, при наведении заливаются */
+/* крупные кнопки — кремовые рамки со срезанным углом, при наведении заливаются */
 html[data-theme="lobotomy"] .btn.big {
-  border: 10px solid transparent; border-image: var(--lc-btn) 30 fill / 10px stretch; background: none; padding: 0 8px; color: var(--lc-cream);
+  border: 10px solid transparent; border-image: var(--lc-btn) 20 fill / 10px stretch; background: none; padding: 0 8px; color: var(--lc-cream);
 }
 html[data-theme="lobotomy"] .btn.big:hover:not(:disabled) { border-image-source: var(--lc-btn-on); background: none; color: #111; text-shadow: none; }
 html[data-theme="lobotomy"] .icon-btn:hover { color: var(--lc-orange); }
