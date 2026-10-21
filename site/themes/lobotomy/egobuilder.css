@@ -7,23 +7,23 @@ html[data-theme="lobotomy"] .points-display {
   border: 1px solid transparent; border-image: var(--lc-frame) 34 4 4 34 fill / 18px 3px 3px 18px; background: none; color: var(--lc-cream);
 }
 html[data-theme="lobotomy"] .points-display.error {
-  border-image: var(--lc-alert) 26 fill / 16px stretch; color: var(--lc-red); background: none;
+  border-image: none; border-color: var(--lc-red); background: var(--lc-alert); box-shadow: var(--lc-alert-glow); color: var(--lc-red);
 }
 html[data-theme="lobotomy"] .upgrade-row { border-bottom-color: #1c1b12; }
-html[data-theme="lobotomy"] .btn-qty { background: #000; border-color: var(--lc-olive); color: var(--lc-cream); }
-html[data-theme="lobotomy"] .btn-qty:hover { background: var(--lc-cream); border-color: var(--lc-cream); color: #111; }
+html[data-theme="lobotomy"] .btn-qty { border: 1px solid transparent; border-image: var(--lc-btn) 20 fill / 7px stretch; background: none; color: var(--lc-cream); }
+html[data-theme="lobotomy"] .btn-qty:hover { border-image-source: var(--lc-btn-on); background: none; color: #111; }
 
-/* кнопки: тонкие белые контуры, цвет действия — в тексте; при наведении — оранжевый контур */
+/* кнопки: кремовые рамки со срезанным углом, цвет действия — в тексте; при наведении — оранжевый контур */
 html[data-theme="lobotomy"] .copy-btn, html[data-theme="lobotomy"] .btn-small-bld {
-  border: 7px solid transparent; border-image: var(--lc-chip) 8 fill / 7px stretch;
+  border: 7px solid transparent; border-image: var(--lc-btn) 20 fill / 8px stretch;
   background: none; padding: 1px 6px; color: var(--lc-cream);
 }
 html[data-theme="lobotomy"] .copy-btn:hover, html[data-theme="lobotomy"] .btn-small-bld:hover {
-  border-image-source: var(--lc-chip-on); background: none; color: var(--lc-orange);
+  border-image-source: var(--lc-btn-orange); background: none; color: var(--lc-orange);
 }
 html[data-theme="lobotomy"] .save-btn, html[data-theme="lobotomy"] .save-btn:hover { color: var(--color-yellow); }
 html[data-theme="lobotomy"] .tab-btn {
-  border: 10px solid transparent; border-image: var(--lc-btn) 30 fill / 10px stretch; background: none; color: var(--lc-cream-dim); padding: 0 6px;
+  border: 10px solid transparent; border-image: var(--lc-btn) 20 fill / 10px stretch; background: none; color: var(--lc-cream-dim); padding: 0 6px;
 }
 html[data-theme="lobotomy"] .tab-btn.active { border-image-source: var(--lc-btn-on); background: none; color: #111; text-shadow: none; }
 
@@ -36,7 +36,7 @@ html[data-theme="lobotomy"] .ego-quote, html[data-theme="lobotomy"] .lib-sub, ht
 html[data-theme="lobotomy"] .lib-block { border-top-color: var(--lc-line); }
 html[data-theme="lobotomy"] .lib-item { border-color: var(--lc-line); background: rgba(255, 246, 200, .02); }
 html[data-theme="lobotomy"] .lib-item:hover { border-color: var(--lc-orange); }
-html[data-theme="lobotomy"] .corrosion-block { border: 12px solid transparent; border-image: var(--lc-alert) 26 fill / 12px stretch; background: none; padding: 6px 8px; }
+html[data-theme="lobotomy"] .corrosion-block { border: 1px solid var(--lc-red); background: var(--lc-alert); box-shadow: var(--lc-alert-glow); padding: 16px 14px; }
 html[data-theme="lobotomy"] .rule-section h3 { border-bottom-color: var(--lc-line); }
 
 /* сайдбар Базы статусов */

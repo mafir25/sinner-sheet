@@ -1,13 +1,13 @@
 /* Оформление Lobotomy Corporation — База знаний (navigation.html). Общие переменные и спрайты — base.css.
    Цвет раздела по-прежнему задаёт site/navigation.js (--accent-primary): он — в штриховке панелей и под заголовком,
-   в выбранной вкладке; сами рамки и кнопки — кремовые спрайты игры, выбор — оранжевый или залитая плашка. */
+   в выбранной вкладке; сами рамки и кнопки — кремовые рамки со срезанным углом, выбор — оранжевый или залитая рамка. */
 
 /* ---------- Верхняя панель ---------- */
 html[data-theme="lobotomy"] .topbar {
   background: #000; backdrop-filter: none; border-bottom: 1px solid var(--lc-olive); box-shadow: 0 8px 24px rgba(0, 0, 0, .7);
 }
 html[data-theme="lobotomy"] .tb-btn {
-  border: 7px solid transparent; border-image: var(--lc-btn) 30 fill / 7px stretch; border-radius: 0;
+  border: 7px solid transparent; border-image: var(--lc-btn) 20 fill / 10px stretch; border-radius: 0;
   padding: 0 6px; min-height: 30px; color: var(--lc-cream); letter-spacing: 1px; background: none;
 }
 html[data-theme="lobotomy"] .tb-btn:hover, html[data-theme="lobotomy"] .tb-btn.accent:hover {
@@ -15,23 +15,25 @@ html[data-theme="lobotomy"] .tb-btn:hover, html[data-theme="lobotomy"] .tb-btn.a
 }
 html[data-theme="lobotomy"] .tb-btn.accent { color: var(--lc-orange); }
 html[data-theme="lobotomy"] .tb-user { color: var(--lc-cream-dim); }
+/* переключатель из нескольких кнопок: общая рамка, выбранная часть залита кремовым; у первой части срезан угол, как у рамки */
 html[data-theme="lobotomy"] .src-switch {
-  border: 5px solid transparent; border-image: var(--lc-chip) 8 fill / 5px stretch; border-radius: 0; background: none;
+  border: 1px solid transparent; border-image: var(--lc-btn) 20 fill / 8px stretch; border-radius: 0; background: none; padding: 2px;
 }
 html[data-theme="lobotomy"] .src-switch button { color: var(--lc-cream-dim); border-right-color: var(--lc-line); padding: 3px 9px; }
-html[data-theme="lobotomy"] .src-switch button:hover { color: var(--lc-cream); }
+html[data-theme="lobotomy"] .src-switch button:first-child { clip-path: polygon(5px 0, 100% 0, 100% 100%, 0 100%, 0 5px); }
+html[data-theme="lobotomy"] .src-switch button:hover { color: var(--lc-orange); }
 html[data-theme="lobotomy"] .src-switch button.active { background: var(--lc-cream); color: #111; }
 html[data-theme="lobotomy"] #system-select { background: #000; border-color: var(--lc-olive); color: var(--lc-cream); }
 
-/* ---------- Вкладки разделов: кремовые плашки, выбранная — оранжевый контур на цвете раздела ---------- */
+/* ---------- Вкладки разделов: кремовые рамки, выбранная — оранжевый контур на цвете раздела ---------- */
 html[data-theme="lobotomy"] .cat-btn {
-  border: 8px solid transparent; border-image: var(--lc-btn) 30 fill / 8px stretch; border-radius: 0;
+  border: 8px solid transparent; border-image: var(--lc-btn) 20 fill / 10px stretch; border-radius: 0;
   padding: 1px 8px; background: none; color: var(--lc-cream); letter-spacing: 1px;
 }
 html[data-theme="lobotomy"] .cat-btn:hover { color: #111; border-image-source: var(--lc-btn-on); }
 /* у выбранной site/navigation.js ставит фон цвета раздела прямо в style — перекрываем */
 html[data-theme="lobotomy"] .cat-btn.active {
-  border-image: var(--lc-chip-on) 8 fill / 8px stretch;
+  border-image: var(--lc-btn-orange) 20 fill / 10px stretch;
   background: color-mix(in srgb, var(--accent-primary) 26%, #000) padding-box !important;
   color: var(--lc-cream); font-weight: 500;
 }
@@ -55,7 +57,7 @@ html[data-theme="lobotomy"] :is(.cat-btn, .badge-cat, .sidebar-h2, .xp-cat, .xp-
 }
 html[data-theme="lobotomy"] :is(.cat-btn, .badge-cat, .sidebar-h2, .xp-cat, .xp-choice, .gs-cat, .fp-ghead, [data-act="cab-cat"]) > :is(.fa-book-journal-whills, .fa-sitemap, .fa-dumbbell, .fa-shield-halved, .fa-scale-balanced, .fa-skull, .fa-gem, .fa-biohazard, .fa-hourglass-half, .fa-id-card)::before { content: none; }
 html[data-theme="lobotomy"] .cat-btn > i.fa-solid { width: 1.6em; height: 1.6em; vertical-align: -.45em; }
-/* на залитой (наведение) и цветной (выбор) плашке значку нужна чёрная обводка */
+/* на залитой (наведение) и цветной (выбор) рамке значку нужна чёрная обводка */
 html[data-theme="lobotomy"] .cat-btn:hover > i.fa-solid, html[data-theme="lobotomy"] .cat-btn.active > i.fa-solid { filter: drop-shadow(0 0 1px #000) drop-shadow(0 0 1px #000); }
 
 /* ---------- Заголовок раздела: кремовый (base.css), под ним — штриховка цвета раздела ---------- */
@@ -63,7 +65,7 @@ html[data-theme="lobotomy"] .header-subtitle { color: var(--lc-cream-dim); }
 
 /* ---------- Кнопки действий, вкладки внутри раздела ---------- */
 html[data-theme="lobotomy"] .action-btn, html[data-theme="lobotomy"] .subtab {
-  border: 10px solid transparent; border-image: var(--lc-btn) 30 fill / 10px stretch; border-radius: 0;
+  border: 10px solid transparent; border-image: var(--lc-btn) 20 fill / 10px stretch; border-radius: 0;
   background: none; color: var(--lc-cream); padding: 0 8px; min-height: 38px; letter-spacing: 1px; transition: color .15s;
 }
 html[data-theme="lobotomy"] .action-btn:hover, html[data-theme="lobotomy"] .action-btn.ghost:hover,
@@ -72,10 +74,10 @@ html[data-theme="lobotomy"] .subtab:hover, html[data-theme="lobotomy"] .subtab.a
 }
 html[data-theme="lobotomy"] .action-btn.ghost { color: var(--lc-cream-dim); }
 html[data-theme="lobotomy"] .mode-toggle {
-  border: 6px solid transparent; border-image: var(--lc-chip) 8 fill / 6px stretch; border-radius: 0;
+  border: 6px solid transparent; border-image: var(--lc-btn) 20 fill / 8px stretch; border-radius: 0;
   background: none; color: var(--lc-cream-dim); padding: 1px 8px;
 }
-html[data-theme="lobotomy"] .mode-toggle:hover { border-image-source: var(--lc-chip-on); color: var(--lc-cream); }
+html[data-theme="lobotomy"] .mode-toggle:hover { border-image-source: var(--lc-btn-orange); color: var(--lc-cream); }
 html[data-theme="lobotomy"] .mode-toggle input { accent-color: var(--lc-orange); }
 
 /* ---------- Поиск и фильтры ---------- */
@@ -110,13 +112,13 @@ html[data-theme="lobotomy"] .sub-block:hover { background: rgba(255, 246, 200, .
 html[data-theme="lobotomy"] .card-controls { border-top-color: var(--lc-line); }
 html[data-theme="lobotomy"] .lore-text { color: var(--lc-text-dim); }
 
-/* кнопки карточки: тонкие белые контуры, цвет действия — в тексте; при наведении — оранжевый контур */
+/* кнопки карточки: кремовые рамки со срезанным углом, цвет действия — в тексте; при наведении — оранжевый контур */
 html[data-theme="lobotomy"] .ctrl-btn, html[data-theme="lobotomy"] .mini-btn {
-  border: 6px solid transparent; border-image: var(--lc-chip) 8 fill / 6px stretch; border-radius: 0;
+  border: 6px solid transparent; border-image: var(--lc-btn) 20 fill / 8px stretch; border-radius: 0;
   background: none; padding: 2px 4px;
 }
 html[data-theme="lobotomy"] .ctrl-btn:hover, html[data-theme="lobotomy"] .ctrl-pick.on, html[data-theme="lobotomy"] .mini-btn:hover {
-  border-image-source: var(--lc-chip-on); background: none;
+  border-image-source: var(--lc-btn-orange); background: none;
 }
 html[data-theme="lobotomy"] .ctrl-pick:hover, html[data-theme="lobotomy"] .ctrl-pick.on { color: var(--lc-orange); }
 html[data-theme="lobotomy"] .ctrl-copy:hover { color: var(--color-cyan); }

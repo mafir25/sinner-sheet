@@ -2,8 +2,10 @@
    <html data-theme="lobotomy"> (его ставит site/theme.js), поэтому у обычного оформления ничего не меняется,
    а спрайты грузятся только в этом оформлении.
    Только спрайты интерфейса из Assets/Assets_Lobotomy/ (что где — в его README.md): без персонажей и аномалий.
-   Стиль игры: чёрные окна, тонкие кремовые линии со срезанным углом, кремовые скошенные плашки кнопок,
+   Стиль игры: чёрные окна и кнопки в тонкой кремовой линии со срезанным углом (у кнопок при наведении поле заливается),
    оранжевый — выбор, красный — тревога, цвет отдела — в штриховке «осторожно».
+   Скошенные плашки главного меню игры (buttons/plate*.png) — только на главной: при растяжении на кнопки любого размера
+   их наклонные края ломаются на границах срезов, поэтому на страницах — прямые рамки со срезанным углом.
    Подключение — в <head> после собственных стилей страницы:
      <link rel="stylesheet" href="site/themes/lobotomy/base.css">
      <link rel="stylesheet" href="site/themes/lobotomy/<страница>.css">   (если у страницы есть свой слой)
@@ -21,15 +23,24 @@ html[data-theme="lobotomy"] {
   /* спрайты (пути от корня сайта) */
   --lc-frame: url('/Assets/Assets_Lobotomy/frames/panel.png');             /* кремовая линия, угол срезан; срез 34 4 4 34 */
   --lc-frame-on: url('/Assets/Assets_Lobotomy/frames/panel-orange.png');   /* то же оранжевым — выбор, наведение */
-  --lc-hazard: url('/Assets/Assets_Lobotomy/frames/hazard.png');           /* жёлто-чёрная лента по контуру — «внимание»; срез 22 */
-  --lc-alert: url('/Assets/Assets_Lobotomy/frames/alert.png');             /* красная тревога; срез 26 */
-  --lc-btn: url('/Assets/Assets_Lobotomy/buttons/plate.png');              /* кремовая скошенная плашка; срез 30 */
-  --lc-btn-on: url('/Assets/Assets_Lobotomy/buttons/plate-lit.png');       /* она же залитая — горит */
-  --lc-btn-red: url('/Assets/Assets_Lobotomy/buttons/plate-red.png');      /* красная — опасное действие */
-  --lc-chip: url('/Assets/Assets_Lobotomy/buttons/chip.png');              /* тонкий белый контур, чёрное поле; срез 8 */
-  --lc-chip-on: url('/Assets/Assets_Lobotomy/buttons/chip-orange.png');    /* он же оранжевым — наведение, выбор */
+  /* кнопки: срез 20, ширина 10 px (у мелких 7–8 px) — линия 1–1,5 px, угол срезан на 6–8 px */
+  --lc-btn: url('/Assets/Assets_Lobotomy/buttons/frame.png');              /* кремовая линия, чёрное поле */
+  --lc-btn-on: url('/Assets/Assets_Lobotomy/buttons/frame-lit.png');       /* залита кремовым — горит, выбрана (текст чёрный) */
+  --lc-btn-orange: url('/Assets/Assets_Lobotomy/buttons/frame-orange.png'); /* оранжевая линия — наведение на мелкие кнопки */
+  --lc-btn-red: url('/Assets/Assets_Lobotomy/buttons/frame-red.png');      /* красная линия — опасное действие */
   --lc-bar: url('/Assets/Assets_Lobotomy/bars/orange.png');                /* оранжевая полоса заголовка, штриховка по краям; срез 0 170 */
   --lc-bar-dark: url('/Assets/Assets_Lobotomy/bars/black.png');            /* чёрная полоса со штриховкой по краям; срез 0 125 */
+  /* Штриховка «осторожно» — только целыми сегментами: один наклонный сегмент на плитку 12×5 px, плитки раскладываются
+     с repeat: space (сколько поместится целиком, остаток — поровну в промежутки). Как маска — цвет задаёт background,
+     как картинка — свой цвет (--lc-stripe-yellow, --lc-stripe-red). */
+  --lc-stripe: linear-gradient(135deg, transparent 29.4%, #000 29.4% 64.7%, transparent 64.7%);
+  --lc-stripe-yellow: linear-gradient(135deg, transparent 29.4%, #FFE14A 29.4% 64.7%, transparent 64.7%);
+  --lc-stripe-red: linear-gradient(135deg, transparent 29.4%, #FF3B3B 29.4% 64.7%, transparent 64.7%);
+  /* окно тревоги (красное) и «внимания» (жёлтое): тонкая рамка, свечение и штриховка вдоль верхнего и нижнего края */
+  --lc-alert: var(--lc-stripe-red) 0 3px / 12px 5px space no-repeat, var(--lc-stripe-red) 0 calc(100% - 3px) / 12px 5px space no-repeat,
+    linear-gradient(rgba(255, 59, 59, .07), rgba(255, 59, 59, .07)), #0a0505;
+  --lc-alert-glow: 0 0 12px rgba(255, 59, 59, .45), inset 0 0 14px rgba(255, 59, 59, .25);
+  --lc-hazard: var(--lc-stripe-yellow) 0 3px / 12px 5px space no-repeat, var(--lc-stripe-yellow) 0 calc(100% - 3px) / 12px 5px space no-repeat, #070705;
   color-scheme: dark;
   scrollbar-color: var(--lc-olive) #000;
 }
@@ -58,9 +69,9 @@ html[data-theme="lobotomy"] .panel-outer {
   border: 1px solid transparent; border-image: var(--lc-frame) 34 4 4 34 fill / 22px 3px 3px 22px;
 }
 html[data-theme="lobotomy"] .panel-outer > .hazard-tape {
-  height: 5px; margin: 6px 8px 0 24px; border: 0; flex: none;
-  background: repeating-linear-gradient(-45deg, var(--lc-accent) 0 6px, transparent 6px 12px) !important;
-  opacity: .9;
+  height: 5px; margin: 6px 8px 0 24px; border: 0; flex: none; opacity: .9;
+  background: var(--lc-accent) !important;
+  -webkit-mask: var(--lc-stripe) 0 0 / 12px 5px space no-repeat; mask: var(--lc-stripe) 0 0 / 12px 5px space no-repeat;
 }
 html[data-theme="lobotomy"] .panel-inner { background: none; clip-path: none; padding: 10px 16px 14px; }
 /* панель с прокруткой (вывод в конструкторах): прокручивается содержимое, а не рамка */
@@ -71,16 +82,17 @@ html[data-theme="lobotomy"] .output-panel > .panel-inner { overflow-y: auto; min
 html[data-theme="lobotomy"] .header-bar { border-bottom: 1px solid var(--lc-olive); position: relative; }
 html[data-theme="lobotomy"] .header-bar::after {
   content: ''; position: absolute; left: 0; bottom: -7px; width: min(240px, 40%); height: 5px; pointer-events: none;
-  background: repeating-linear-gradient(-45deg, var(--accent-primary, var(--lc-orange)) 0 6px, transparent 6px 12px);
+  background: var(--accent-primary, var(--lc-orange));
+  -webkit-mask: var(--lc-stripe) 0 0 / 12px 5px space no-repeat; mask: var(--lc-stripe) 0 0 / 12px 5px space no-repeat;
 }
 html[data-theme="lobotomy"] .header-title {
   font-weight: 700; letter-spacing: 3px; color: var(--lc-cream);
   text-shadow: 0 0 14px rgba(255, 246, 200, .22);
 }
 
-/* кнопки навигации между страницами — кремовые скошенные плашки, цвет ссылки — в тексте (--c) */
+/* кнопки навигации между страницами — кремовые рамки со срезанным углом, цвет ссылки — в тексте (--c) */
 html[data-theme="lobotomy"] .top-nav-btn, html[data-theme="lobotomy"] .nav-btn {
-  border: 7px solid transparent; border-image: var(--lc-btn) 30 fill / 7px stretch; background: none;
+  border: 7px solid transparent; border-image: var(--lc-btn) 20 fill / 10px stretch; background: none;
   padding: 1px 8px; color: var(--c, var(--lc-cream)); letter-spacing: 1px; transition: color .15s;
 }
 html[data-theme="lobotomy"] .top-nav-btn:hover, html[data-theme="lobotomy"] .nav-btn:hover {
@@ -100,7 +112,7 @@ html[data-theme="lobotomy"] .toast {
 /* форма и карточка Э.Г.О. (site/ego-core.js): цвет — Дисциплинарный отдел (красный) */
 html[data-theme="lobotomy"] .egc, html[data-theme="lobotomy"] .egc-sum { --egc: var(--dept-disciplinary); --egc-dim: var(--lc-text-dim); color: var(--lc-text); }
 html[data-theme="lobotomy"] .egc-tab {
-  border: 8px solid transparent; border-image: var(--lc-btn) 30 fill / 8px stretch; background: none;
+  border: 8px solid transparent; border-image: var(--lc-btn) 20 fill / 10px stretch; background: none;
   color: var(--lc-cream-dim); padding: 0 6px; min-height: 36px;
 }
 html[data-theme="lobotomy"] .egc-tab[aria-pressed=true] { border-image-source: var(--lc-btn-on); background: none; color: #111; }
@@ -108,7 +120,7 @@ html[data-theme="lobotomy"] .egc-pts {
   border: 1px solid transparent; border-image: var(--lc-frame) 34 4 4 34 fill / 18px 3px 3px 18px; background: none; padding: 2px 10px;
   color: var(--lc-cream);
 }
-html[data-theme="lobotomy"] .egc-pts.egc-bad { border-image-source: var(--lc-alert); border-image-slice: 26; border-image-width: 16px; color: var(--lc-red); background: none; }
+html[data-theme="lobotomy"] .egc-pts.egc-bad { border-image: none; border-color: var(--lc-red); background: var(--lc-alert); box-shadow: var(--lc-alert-glow); color: var(--lc-red); }
 html[data-theme="lobotomy"] .egc label { color: var(--lc-cream-dim); }
 html[data-theme="lobotomy"] .egc input, html[data-theme="lobotomy"] .egc select, html[data-theme="lobotomy"] .egc textarea {
   background: #000; border-color: var(--lc-olive); color: var(--lc-text);
@@ -116,10 +128,10 @@ html[data-theme="lobotomy"] .egc input, html[data-theme="lobotomy"] .egc select,
 html[data-theme="lobotomy"] .egc input:focus, html[data-theme="lobotomy"] .egc select:focus, html[data-theme="lobotomy"] .egc textarea:focus { border-color: var(--lc-orange); }
 html[data-theme="lobotomy"] .egc-sec { border-bottom-color: var(--lc-line); }
 html[data-theme="lobotomy"] .egc-up { border-bottom-color: #1c1b12; }
-html[data-theme="lobotomy"] .egc-qty button { background: #000; border-color: var(--lc-olive); color: var(--lc-cream); }
-html[data-theme="lobotomy"] .egc-qty button:hover { background: var(--lc-cream); border-color: var(--lc-cream); color: #111; }
+html[data-theme="lobotomy"] .egc-qty button { border: 1px solid transparent; border-image: var(--lc-btn) 20 fill / 7px stretch; background: none; color: var(--lc-cream); }
+html[data-theme="lobotomy"] .egc-qty button:hover { border-image-source: var(--lc-btn-on); background: none; color: #111; }
 /* искажение Э.Г.О. — окно красной тревоги */
-html[data-theme="lobotomy"] .egc-corr { border: 12px solid transparent; border-image: var(--lc-alert) 26 fill / 12px stretch; background: none; padding: 4px 6px; }
+html[data-theme="lobotomy"] .egc-corr { border: 1px solid var(--lc-red); background: var(--lc-alert); box-shadow: var(--lc-alert-glow); padding: 14px 12px; }
 html[data-theme="lobotomy"] .egc-corr-t { color: var(--lc-red); border-bottom-color: rgba(255, 59, 59, .5); }
 
 @media (max-width: 600px) {
@@ -152,9 +164,10 @@ html[data-theme="lobotomy"] .su-x { border-color: rgba(0, 0, 0, .5); color: #160
 html[data-theme="lobotomy"] .su-x:hover { border-color: #160a02; color: #fff; background: var(--lc-red); }
 html[data-theme="lobotomy"] #su-themes { flex-wrap: wrap; }
 html[data-theme="lobotomy"] .su-seg, html[data-theme="lobotomy"] .su-btn {
-  border: 8px solid transparent; border-image: var(--lc-btn) 30 fill / 8px stretch; background: none;
+  border: 8px solid transparent; border-image: var(--lc-btn) 20 fill / 10px stretch; background: none;
   color: var(--lc-cream); padding: 1px 6px; transition: color .15s;
 }
+html[data-theme="lobotomy"] .su-seg:hover { border-image-source: var(--lc-btn-orange); color: var(--lc-orange); }
 html[data-theme="lobotomy"] .su-seg[aria-pressed=true], html[data-theme="lobotomy"] .su-btn:hover:not(:disabled) {
   border-image-source: var(--lc-btn-on); color: #111; background: none;
 }
