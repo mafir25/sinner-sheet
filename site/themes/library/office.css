@@ -2,6 +2,10 @@
    Цвет панели в Офисе — --tape (t-green, t-yellow, t-red, t-cyan): он — в линии с орнаментом над панелью. */
 html[data-theme="library"] .panel-outer { --lb-accent: var(--tape, var(--accent-primary)); }
 
+/* заголовки окон, доски контрактов и вкладок — шрифтом с засечками (у Офиса все заголовки — Oswald) */
+html[data-theme="library"] h2, html[data-theme="library"] .grade-header, html[data-theme="library"] .preset-toggle,
+html[data-theme="library"] .quest-toggle, html[data-theme="library"] .builder-card .bc-name { font-family: var(--lb-serif); font-weight: 400; letter-spacing: 1px; }
+
 /* ---------- Верхняя панель ---------- */
 html[data-theme="library"] .topbar { background: linear-gradient(#17100a, #0d0906); border-bottom: 1px solid var(--lb-gold-dim); box-shadow: 0 8px 24px rgba(0, 0, 0, .75); }
 html[data-theme="library"] .nav-btn.cyan { --c: var(--color-cyan); }

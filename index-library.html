@@ -97,6 +97,8 @@
         .lb-circle {
             position: absolute; z-index: -1; left: 50%; top: 50%; width: min(440px, 92vw); aspect-ratio: 1;
             transform: translate(-50%, -50%); pointer-events: none;
+            /* вращается квадратный слой: повёрнутый, по диагонали он шире экрана телефона — обрезаем по кругу */
+            overflow: hidden; border-radius: 50%;
         }
         .lb-circle::before {
             content: ''; position: absolute; inset: 0; opacity: .1;
