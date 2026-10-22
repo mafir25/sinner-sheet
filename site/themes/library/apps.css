@@ -47,7 +47,7 @@ html[data-theme="library"] .splash h1, html[data-theme="library"] .topbar .title
 
 /* ---------- Окна, меню, уведомления ---------- */
 html[data-theme="library"] .modal {
-  background: none; border: 1px solid transparent; border-image: var(--lb-frame) 24 fill / 24px;
+  background: none; border: 1px solid transparent; border-image: var(--lb-frame) 16 fill / 16px;
   box-shadow: none; filter: drop-shadow(0 10px 30px rgba(0, 0, 0, .9));
 }
 html[data-theme="library"] .modal-head { border-bottom-color: var(--lb-line); }
@@ -63,9 +63,12 @@ html[data-theme="library"] .ctx-item:hover:not(:disabled) { background: var(--lb
 html[data-theme="library"] .ctx-menu button:hover, html[data-theme="library"] .ctx-menu button:focus-visible { background: rgba(255, 180, 90, .14); color: var(--lb-gold-hi); }
 html[data-theme="library"] .toast-error { color: #FF9A8A; }
 html[data-theme="library"] .tabs button.on { color: var(--lb-amber); border-bottom-color: var(--lb-amber); }
-/* переключатель из нескольких кнопок: общая рамка, выбранная часть залита золотом */
-html[data-theme="library"] .seg { border: 1px solid transparent; border-image: var(--lb-btn) 14 fill / 8px stretch; padding: 3px; }
-html[data-theme="library"] .seg button { border-right-color: var(--lb-line); }
-html[data-theme="library"] .seg button:hover:not(.on) { color: var(--lb-gold-hi); }
-html[data-theme="library"] .seg button.on { background: var(--lb-gold); color: var(--lb-ink); }
+/* переключатель из нескольких кнопок: каждая часть — своя рамка с вогнутыми углами, выбранная залита золотом по той же форме */
+html[data-theme="library"] .seg { border: 0; gap: 3px; }
+html[data-theme="library"] .seg button {
+  border: 5px solid transparent; border-image: var(--lb-btn) 14 fill / 8px stretch; background: none; min-height: 30px; padding: 0 4px;
+  color: var(--lb-gold);
+}
+html[data-theme="library"] .seg button:hover:not(.on) { border-image-source: var(--lb-btn-bright); color: var(--lb-gold-hi); }
+html[data-theme="library"] .seg button.on { border-image-source: var(--lb-btn-on); background: none; color: var(--lb-ink); }
 html[data-theme="library"] kbd { border-color: var(--line); background: #0a0705; }

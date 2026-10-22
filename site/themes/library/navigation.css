@@ -16,13 +16,15 @@ html[data-theme="library"] .tb-btn:hover, html[data-theme="library"] .tb-btn.acc
 }
 html[data-theme="library"] .tb-btn.accent { color: var(--lb-amber); }
 html[data-theme="library"] .tb-user { color: var(--lb-text-dim); }
-/* переключатель из нескольких кнопок: общая рамка, выбранная часть залита золотом */
-html[data-theme="library"] .src-switch {
-  border: 1px solid transparent; border-image: var(--lb-btn) 14 fill / 8px stretch; border-radius: 0; background: none; padding: 3px;
+/* переключатель из нескольких кнопок: каждая часть — своя рамка с вогнутыми углами, выбранная залита золотом
+   по той же форме (не прямоугольником внутри общей рамки) */
+html[data-theme="library"] .src-switch { border: 0; border-radius: 0; background: none; overflow: visible; gap: 3px; }
+html[data-theme="library"] .src-switch button {
+  border: 5px solid transparent; border-image: var(--lb-btn) 14 fill / 8px stretch; padding: 0 5px;
+  color: var(--lb-gold); font-family: var(--lb-serif); transition: color .15s;
 }
-html[data-theme="library"] .src-switch button { color: var(--lb-gold); font-family: var(--lb-serif); border-right-color: var(--lb-line); padding: 3px 9px; }
-html[data-theme="library"] .src-switch button:hover { color: var(--lb-gold-hi); }
-html[data-theme="library"] .src-switch button.active { background: var(--lb-gold); color: var(--lb-ink); }
+html[data-theme="library"] .src-switch button:hover { border-image-source: var(--lb-btn-bright); color: var(--lb-gold-hi); }
+html[data-theme="library"] .src-switch button.active { border-image-source: var(--lb-btn-on); background: none; color: var(--lb-ink); }
 html[data-theme="library"] #system-select { background: #0a0705; border-color: var(--lb-edge); color: var(--lb-cream); }
 
 /* ---------- Вкладки разделов: золотые рамки, выбранная — светлая линия на цвете раздела ---------- */
@@ -83,7 +85,7 @@ html[data-theme="library"] .mode-toggle input { accent-color: var(--lb-amber); }
 /* ---------- Поиск и фильтры ---------- */
 html[data-theme="library"] .search-wrapper {
   clip-path: none; padding: 0; background: none;
-  border: 1px solid transparent; border-image: var(--lb-frame) 24 fill / 18px;
+  border: 1px solid transparent; border-image: var(--lb-frame) 16 fill / 16px;
 }
 html[data-theme="library"] .search-wrapper:focus-within { background: none; border-image-source: var(--lb-frame-on); }
 html[data-theme="library"] .search-inner { clip-path: none; background: transparent; }
