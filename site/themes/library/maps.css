@@ -30,6 +30,6 @@ html[data-theme="library"] .anchor button.on { background: var(--lb-gold); color
 
 /* стартовый экран: карты — страницы в двойной золотой линии */
 html[data-theme="library"] .start-body h2 { color: var(--lb-gold-hi); font-family: var(--lb-serif); font-weight: 400; letter-spacing: 1px; }
-html[data-theme="library"] .card { border: 1px solid transparent; border-image: var(--lb-frame) 16 fill / 16px; background: none; }
+html[data-theme="library"] .card { border: 1px solid transparent; border-image: var(--lb-frame) 24 fill / 22px; background: none; }
 html[data-theme="library"] .card:hover { border-image-source: var(--lb-frame-on); }
 html[data-theme="library"] .card-thumb { background: #0a0705; }

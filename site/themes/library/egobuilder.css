@@ -4,7 +4,7 @@ html[data-theme="library"] { --accent-primary: var(--floor-language); --accent-m
 
 html[data-theme="library"] .form-group label { color: var(--lb-gold); }
 html[data-theme="library"] .points-display {
-  border: 1px solid transparent; border-image: var(--lb-frame) 16 fill / 16px; background: none; color: var(--lb-cream); font-family: var(--lb-serif);
+  border: 1px solid transparent; border-image: var(--lb-frame) 24 fill / 18px; background: none; color: var(--lb-cream); font-family: var(--lb-serif);
 }
 /* перерасход очков — страница в красной резной рамке */
 html[data-theme="library"] .points-display.error {

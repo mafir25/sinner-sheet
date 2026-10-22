@@ -33,7 +33,7 @@ html[data-theme="library"] .seg:hover { border-image-source: var(--lb-btn-bright
 html[data-theme="library"] .seg.on, html[data-theme="library"] .seg.on:hover { border-image-source: var(--lb-btn-on); color: var(--lb-ink); background: none; }
 
 /* ---------- Панели, обзор, поля ---------- */
-html[data-theme="library"] .panel { background: none; border: 1px solid transparent; border-image: var(--lb-frame) 16 fill / 16px; }
+html[data-theme="library"] .panel { background: none; border: 1px solid transparent; border-image: var(--lb-frame) 24 fill / 22px; }
 html[data-theme="library"] .stat { background: linear-gradient(180deg, rgba(222, 186, 124, .05), rgba(0, 0, 0, .45)); border-color: var(--lb-edge); }
 html[data-theme="library"] .stat b { color: var(--lb-cream); font-family: var(--lb-serif); font-weight: 400; }
 html[data-theme="library"] .chip { background: #0a0705; }
@@ -67,7 +67,7 @@ html[data-theme="library"] .diff-wrap { border-color: var(--lb-line); }
 
 /* ---------- Окна и уведомления ---------- */
 html[data-theme="library"] .modal {
-  background: none; border: 1px solid transparent; border-image: var(--lb-frame) 16 fill / 16px;
+  background: none; border: 1px solid transparent; border-image: var(--lb-frame) 24 fill / 24px;
   filter: drop-shadow(0 10px 30px rgba(0, 0, 0, .9));
 }
 html[data-theme="library"] .toast.ok { color: var(--lb-ok); }

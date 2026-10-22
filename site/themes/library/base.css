@@ -24,7 +24,7 @@ html[data-theme="library"] {
   --lb-italic: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
 
   /* спрайты (пути от корня сайта) */
-  --lb-frame: url('/Assets/Assets_Library/frames/page.png');          /* двойная золотая линия с вогнутыми углами, тёмное поле; срез 16 */
+  --lb-frame: url('/Assets/Assets_Library/frames/page.png');          /* двойная золотая линия, вырезанные углы, тёмное поле; срез 24 */
   --lb-frame-on: url('/Assets/Assets_Library/frames/page-lit.png');   /* то же светлее, со свечением — наведение, фокус */
   --lb-card: url('/Assets/Assets_Library/frames/card.png');           /* золотая рамка с резными углами; срез 50 */
   --lb-card-on: url('/Assets/Assets_Library/frames/card-lit.png');
@@ -66,7 +66,7 @@ html[data-theme="library"] .cut-tl { clip-path: none; }
 html[data-theme="library"] .panel-outer {
   --lb-accent: var(--pc, var(--accent-primary, #DEBA7C));
   background: none; padding: 0; clip-path: none;
-  border: 1px solid transparent; border-image: var(--lb-frame) 16 fill / 16px;
+  border: 1px solid transparent; border-image: var(--lb-frame) 24 fill / 24px;
 }
 html[data-theme="library"] .panel-outer > .hazard-tape {
   height: 13px; margin: 9px 26px 0; border: 0; flex: none; opacity: .95;
@@ -128,7 +128,7 @@ html[data-theme="library"] .egc-tab {
 }
 html[data-theme="library"] .egc-tab[aria-pressed=true] { border-image-source: var(--lb-btn-on); background: none; color: var(--lb-ink); }
 html[data-theme="library"] .egc-pts {
-  border: 1px solid transparent; border-image: var(--lb-frame) 16 fill / 16px; background: none; padding: 2px 12px;
+  border: 1px solid transparent; border-image: var(--lb-frame) 24 fill / 18px; background: none; padding: 2px 12px;
   color: var(--lb-cream); font-family: var(--lb-serif);
 }
 html[data-theme="library"] .egc-pts.egc-bad {

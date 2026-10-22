@@ -87,7 +87,7 @@ html[data-theme="library"] .cp-opt { background: #0a0705; border-color: var(--lb
 html[data-theme="library"] .tip { background: #100b07; border-color: var(--lb-gold-dim); }
 /* окно конструктора: тёмная страница в двойной золотой линии (липкая шапка — того же цвета, что поле) */
 html[data-theme="library"] .modal-box {
-  background: none; border: 1px solid transparent; border-image: var(--lb-frame) 16 fill / 16px;
+  background: none; border: 1px solid transparent; border-image: var(--lb-frame) 24 fill / 24px;
   box-shadow: none; filter: drop-shadow(0 10px 30px rgba(0, 0, 0, .9));
 }
 html[data-theme="library"] .modal-head, html[data-theme="library"] .picker-tools { background: #110c08; }
