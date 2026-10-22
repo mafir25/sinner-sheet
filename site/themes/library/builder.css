@@ -8,14 +8,7 @@ html[data-theme="library"] .tool-btn {
   padding: 1px 6px; color: var(--c, var(--lb-gold)); font-family: var(--lb-serif); letter-spacing: 1px; transition: color .15s;
 }
 html[data-theme="library"] .tool-btn:hover { border-image-source: var(--lb-btn-on); background: none; color: var(--lb-ink); text-shadow: none; }
-/* переключатель из нескольких кнопок: каждая часть — своя рамка с вогнутыми углами, выбранная залита золотом по той же форме */
-html[data-theme="library"] .view-toggle { border: 0; background: none; gap: 3px; }
-html[data-theme="library"] .view-toggle button {
-  border: 6px solid transparent; border-image: var(--lb-btn) 14 fill / 8px stretch; background: none;
-  color: var(--lb-gold); font-family: var(--lb-serif); padding: 0 6px; transition: color .15s;
-}
-html[data-theme="library"] .view-toggle button:hover { border-image-source: var(--lb-btn-bright); color: var(--lb-gold-hi); }
-html[data-theme="library"] .view-toggle button[aria-pressed=true] { border-image-source: var(--lb-btn-on); background: none; color: var(--lb-ink); }
+/* переключатель Кубы / Строки — цельный, с бегунком (base.css) */
 html[data-theme="library"] .custom-status { color: var(--lb-text-dim); }
 
 /* ---------- Формы, мелкие кнопки, переключатели ---------- */
