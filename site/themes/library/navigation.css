@@ -1,0 +1,174 @@
+/* Оформление Library of Ruina — База знаний (navigation.html). Общие переменные и спрайты — base.css.
+   Цвет раздела по-прежнему задаёт site/navigation.js (--accent-primary): он — в линии с орнаментом над панелями,
+   в разделителе под заголовком и в выбранной вкладке; сами рамки и кнопки — золотые, выбор — янтарный или залитая рамка. */
+
+/* ---------- Верхняя панель ---------- */
+html[data-theme="library"] .topbar {
+  background: linear-gradient(#17100a, #0d0906); backdrop-filter: none; border-bottom: 1px solid var(--lb-gold-dim);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .75);
+}
+html[data-theme="library"] .tb-btn {
+  border: 7px solid transparent; border-image: var(--lb-btn) 14 fill / 10px stretch; border-radius: 0;
+  padding: 0 6px; min-height: 30px; color: var(--lb-gold); font-family: var(--lb-serif); letter-spacing: 1px; background: none;
+}
+html[data-theme="library"] .tb-btn:hover, html[data-theme="library"] .tb-btn.accent:hover {
+  border-image-source: var(--lb-btn-on); color: var(--lb-ink); background: none; text-shadow: none;
+}
+html[data-theme="library"] .tb-btn.accent { color: var(--lb-amber); }
+html[data-theme="library"] .tb-user { color: var(--lb-text-dim); }
+/* переключатель из нескольких кнопок: общая рамка, выбранная часть залита золотом */
+html[data-theme="library"] .src-switch {
+  border: 1px solid transparent; border-image: var(--lb-btn) 14 fill / 8px stretch; border-radius: 0; background: none; padding: 3px;
+}
+html[data-theme="library"] .src-switch button { color: var(--lb-gold); font-family: var(--lb-serif); border-right-color: var(--lb-line); padding: 3px 9px; }
+html[data-theme="library"] .src-switch button:hover { color: var(--lb-gold-hi); }
+html[data-theme="library"] .src-switch button.active { background: var(--lb-gold); color: var(--lb-ink); }
+html[data-theme="library"] #system-select { background: #0a0705; border-color: var(--lb-edge); color: var(--lb-cream); }
+
+/* ---------- Вкладки разделов: золотые рамки, выбранная — светлая линия на цвете раздела ---------- */
+html[data-theme="library"] .cat-btn {
+  border: 8px solid transparent; border-image: var(--lb-btn) 14 fill / 10px stretch; border-radius: 0;
+  padding: 1px 8px; background: none; color: var(--lb-gold); font-family: var(--lb-serif); letter-spacing: 1px;
+}
+html[data-theme="library"] .cat-btn:hover { color: var(--lb-ink); border-image-source: var(--lb-btn-on); }
+/* у выбранной site/navigation.js ставит фон цвета раздела прямо в style — перекрываем */
+html[data-theme="library"] .cat-btn.active {
+  border-image: var(--lb-btn-bright) 14 fill / 10px stretch;
+  background: color-mix(in srgb, var(--accent-primary) 24%, #0b0806) padding-box !important;
+  color: var(--lb-cream); text-shadow: 0 0 8px rgba(255, 200, 120, .35);
+}
+
+/* ---------- Значки разделов — спрайты, как на главной (вместо значков Font Awesome) ----------
+   Везде, где у раздела стоит значок: вкладки, метка раздела на карточке, сборка, всплывающая ссылка, поиск по базе,
+   полный парсинг, кабинет. site/navigation.js ставит значок раздела как <i class="fa-solid …"> — по этому классу и меняем. */
+html[data-theme="library"] :is(.cat-btn, .badge-cat, .sidebar-h2, .xp-cat, .xp-choice, .gs-cat, .fp-ghead, [data-act="cab-cat"]) > .fa-book-journal-whills { --lb-ico: url('/Assets/Assets_Library/icons/bust.png'); }   /* Архетипы */
+html[data-theme="library"] :is(.cat-btn, .badge-cat, .sidebar-h2, .xp-cat, .xp-choice, .gs-cat, .fp-ghead, [data-act="cab-cat"]) > .fa-sitemap             { --lb-ico: url('/Assets/Assets_Library/icons/pages.png'); }   /* Классы */
+html[data-theme="library"] :is(.cat-btn, .badge-cat, .sidebar-h2, .xp-cat, .xp-choice, .gs-cat, .fp-ghead, [data-act="cab-cat"]) > .fa-dumbbell            { --lb-ico: url('/Assets/Assets_Library/icons/pen.png'); }   /* Черты */
+html[data-theme="library"] :is(.cat-btn, .badge-cat, .sidebar-h2, .xp-cat, .xp-choice, .gs-cat, .fp-ghead, [data-act="cab-cat"]) > .fa-shield-halved       { --lb-ico: url('/Assets/Assets_Library/icons/sword.png'); }   /* Снаряжение */
+html[data-theme="library"] :is(.cat-btn, .badge-cat, .sidebar-h2, .xp-cat, .xp-choice, .gs-cat, .fp-ghead, [data-act="cab-cat"]) > .fa-scale-balanced      { --lb-ico: url('/Assets/Assets_Library/icons/scroll.png'); }   /* Правила */
+html[data-theme="library"] :is(.cat-btn, .badge-cat, .sidebar-h2, .xp-cat, .xp-choice, .gs-cat, .fp-ghead, [data-act="cab-cat"]) > .fa-skull               { --lb-ico: url('/Assets/Assets_Library/icons/eye.png'); }   /* Бестиарий */
+html[data-theme="library"] :is(.cat-btn, .badge-cat, .sidebar-h2, .xp-cat, .xp-choice, .gs-cat, .fp-ghead, [data-act="cab-cat"]) > .fa-gem                 { --lb-ico: url('/Assets/Assets_Library/icons/heart.png'); }   /* Э.Г.О. Гифты */
+html[data-theme="library"] :is(.cat-btn, .badge-cat, .sidebar-h2, .xp-cat, .xp-choice, .gs-cat, .fp-ghead, [data-act="cab-cat"]) > .fa-biohazard           { --lb-ico: url('/Assets/Assets_Library/icons/flame.png'); }   /* Статус-эффекты */
+html[data-theme="library"] :is(.cat-btn, .badge-cat, .sidebar-h2, .xp-cat, .xp-choice, .gs-cat, .fp-ghead, [data-act="cab-cat"]) > .fa-hourglass-half      { --lb-ico: url('/Assets/Assets_Library/icons/bookmark.png'); }   /* Время и история */
+html[data-theme="library"] :is(.cat-btn, .badge-cat, .sidebar-h2, .xp-cat, .xp-choice, .gs-cat, .fp-ghead, [data-act="cab-cat"]) > .fa-id-card             { --lb-ico: url('/Assets/Assets_Library/icons/lock.png'); }   /* Кабинет */
+html[data-theme="library"] :is(.cat-btn, .badge-cat, .sidebar-h2, .xp-cat, .xp-choice, .gs-cat, .fp-ghead, [data-act="cab-cat"]) > :is(.fa-book-journal-whills, .fa-sitemap, .fa-dumbbell, .fa-shield-halved, .fa-scale-balanced, .fa-skull, .fa-gem, .fa-biohazard, .fa-hourglass-half, .fa-id-card) {
+  display: inline-block; width: 1.35em; height: 1.35em; vertical-align: -.3em; flex: none;
+  background: var(--lb-ico) center / contain no-repeat; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .8));
+}
+html[data-theme="library"] :is(.cat-btn, .badge-cat, .sidebar-h2, .xp-cat, .xp-choice, .gs-cat, .fp-ghead, [data-act="cab-cat"]) > :is(.fa-book-journal-whills, .fa-sitemap, .fa-dumbbell, .fa-shield-halved, .fa-scale-balanced, .fa-skull, .fa-gem, .fa-biohazard, .fa-hourglass-half, .fa-id-card)::before { content: none; }
+html[data-theme="library"] .cat-btn > i.fa-solid { width: 1.6em; height: 1.6em; vertical-align: -.45em; }
+/* на залитой золотом рамке (наведение) золотому значку нужна тёмная обводка */
+html[data-theme="library"] .cat-btn:hover > i.fa-solid { filter: drop-shadow(0 0 1px #000) drop-shadow(0 0 1px #000); }
+
+/* ---------- Заголовок раздела: шрифт с засечками (base.css), под ним — разделитель цвета раздела ---------- */
+html[data-theme="library"] .header-subtitle { color: var(--lb-text-dim); font-family: var(--lb-italic); font-style: italic; font-size: 1.05em; }
+
+/* ---------- Кнопки действий, вкладки внутри раздела ---------- */
+html[data-theme="library"] .action-btn, html[data-theme="library"] .subtab {
+  border: 10px solid transparent; border-image: var(--lb-btn) 14 fill / 10px stretch; border-radius: 0;
+  background: none; color: var(--lb-gold); font-family: var(--lb-serif); padding: 0 8px; min-height: 38px; letter-spacing: 1px; transition: color .15s;
+}
+html[data-theme="library"] .action-btn:hover, html[data-theme="library"] .action-btn.ghost:hover,
+html[data-theme="library"] .subtab:hover, html[data-theme="library"] .subtab.active {
+  border-image-source: var(--lb-btn-on); background: none; color: var(--lb-ink); text-shadow: none;
+}
+html[data-theme="library"] .action-btn.ghost { color: var(--lb-text-dim); }
+html[data-theme="library"] .mode-toggle {
+  border: 6px solid transparent; border-image: var(--lb-btn) 14 fill / 8px stretch; border-radius: 0;
+  background: none; color: var(--lb-text-dim); padding: 1px 8px;
+}
+html[data-theme="library"] .mode-toggle:hover { border-image-source: var(--lb-btn-bright); color: var(--lb-gold-hi); }
+html[data-theme="library"] .mode-toggle input { accent-color: var(--lb-amber); }
+
+/* ---------- Поиск и фильтры ---------- */
+html[data-theme="library"] .search-wrapper {
+  clip-path: none; padding: 0; background: none;
+  border: 1px solid transparent; border-image: var(--lb-frame) 24 fill / 18px;
+}
+html[data-theme="library"] .search-wrapper:focus-within { background: none; border-image-source: var(--lb-frame-on); }
+html[data-theme="library"] .search-inner { clip-path: none; background: transparent; }
+html[data-theme="library"] .search-input { color: var(--lb-text); padding: 6px 12px; }
+html[data-theme="library"] .search-input::placeholder, html[data-theme="library"] .search-icon { color: var(--lb-gold-dim); }
+html[data-theme="library"] .filter-group-title { color: var(--lb-gold); border-bottom-color: var(--lb-line); font-family: var(--lb-serif); letter-spacing: 1px; }
+html[data-theme="library"] .filter-hint, html[data-theme="library"] .result-count { color: var(--lb-text-dim); }
+/* цвет выбранного фильтра site/navigation.js ставит в style — рамку оставляем обычной, чтобы он был виден */
+html[data-theme="library"] .filter-btn { background: #0a0705; border-color: var(--lb-edge); color: var(--lb-text-dim); }
+html[data-theme="library"] .filter-btn:hover { border-color: var(--lb-gold); color: var(--lb-cream); }
+html[data-theme="library"] .filter-btn.active { background: rgba(255, 180, 90, .08); }
+
+/* ---------- Панели: рамка и линия с орнаментом — общие, в base.css (цвет линии — цвет раздела) ---------- */
+html[data-theme="library"] .article-host .panel-inner { padding: 16px 24px 20px; }
+
+html[data-theme="library"] .card { transition: transform .18s ease, filter .2s ease; }
+html[data-theme="library"] .card:hover { box-shadow: none; border-image-source: var(--lb-frame-on); filter: drop-shadow(0 0 8px color-mix(in srgb, var(--accent-primary) 30%, transparent)); }
+html[data-theme="library"] .card-title { font-family: var(--lb-serif); font-weight: 400; letter-spacing: .5px; color: var(--lb-cream); }
+html[data-theme="library"] .card-title-row { border-bottom-color: var(--lb-line); }
+html[data-theme="library"] .card-meta, html[data-theme="library"] .creator-tag, html[data-theme="library"] .sub-level { color: var(--lb-text-dim); }
+html[data-theme="library"] .expand-icon { color: var(--lb-gold-dim); }
+html[data-theme="library"] .card.expanded .expand-icon { color: var(--lb-amber); }
+html[data-theme="library"] .badge { background: #0a0705; }
+html[data-theme="library"] .sub-block { background: rgba(222, 186, 124, .03); }
+html[data-theme="library"] .sub-block:hover { background: rgba(222, 186, 124, .06); }
+html[data-theme="library"] .card-controls { border-top-color: var(--lb-line); }
+html[data-theme="library"] .lore-text { color: var(--lb-text-dim); font-family: var(--lb-italic); font-size: 1.06em; }
+
+/* кнопки карточки: золотые рамки, цвет действия — в тексте; при наведении линия светлеет */
+html[data-theme="library"] .ctrl-btn, html[data-theme="library"] .mini-btn {
+  border: 6px solid transparent; border-image: var(--lb-btn) 14 fill / 8px stretch; border-radius: 0;
+  background: none; padding: 2px 4px;
+}
+html[data-theme="library"] .ctrl-btn:hover, html[data-theme="library"] .ctrl-pick.on, html[data-theme="library"] .mini-btn:hover {
+  border-image-source: var(--lb-btn-bright); background: none;
+}
+html[data-theme="library"] .ctrl-pick:hover, html[data-theme="library"] .ctrl-pick.on { color: var(--lb-amber); }
+html[data-theme="library"] .ctrl-copy:hover { color: var(--color-cyan); }
+html[data-theme="library"] .ctrl-dl:hover { color: var(--lb-cream); }
+html[data-theme="library"] .ctrl-edit:hover { color: var(--color-yellow); }
+html[data-theme="library"] .ctrl-del:hover, html[data-theme="library"] .ctrl-priv:hover, html[data-theme="library"] .mini-btn.danger:hover { color: var(--lb-red); }
+html[data-theme="library"] .mini-btn { color: var(--lb-text-dim); }
+html[data-theme="library"] .mini-btn:hover { color: var(--lb-gold-hi); }
+
+/* текст, статьи, бестиарий */
+html[data-theme="library"] .md th { background: rgba(222, 186, 124, .08); color: var(--lb-cream); }
+html[data-theme="library"] .md th, html[data-theme="library"] .md td { border-color: var(--lb-line); }
+html[data-theme="library"] .md table, html[data-theme="library"] .md-table { background: rgba(0, 0, 0, .45); }
+html[data-theme="library"] .article-host .section-title { border-bottom-color: var(--lb-line); font-family: var(--lb-serif); font-weight: 400; }
+html[data-theme="library"] .article-host .quote-block, html[data-theme="library"] .article-host .conflict-block,
+html[data-theme="library"] .article-host .info-block { background: rgba(222, 186, 124, .035); }
+html[data-theme="library"] .article-host .quote-block { font-family: var(--lb-italic); font-size: 1.06em; }
+html[data-theme="library"] .section-sub { border-bottom-color: var(--lb-line); }
+html[data-theme="library"] .notice { color: var(--lb-text-dim); }
+
+/* ---------- Боковые кнопки и сайдбары (Сборка, Основа, Слияние, Встреча) ---------- */
+html[data-theme="library"] .side-toggle button {
+  background: #110c08; border: 1px solid var(--lb-gold-dim); border-right: none; color: var(--lb-gold); box-shadow: -3px 0 10px rgba(0, 0, 0, .7);
+}
+html[data-theme="library"] .side-toggle button:hover { background: var(--lb-gold); color: var(--lb-ink); box-shadow: -2px 0 12px rgba(255, 190, 110, .3); }
+html[data-theme="library"] .side-count { background: var(--lb-amber); color: var(--lb-ink); }
+/* сайдбар — страница с двойной кромкой слева */
+html[data-theme="library"] .sidebar {
+  background: #0e0a07; border-left: 1px solid var(--lb-gold-dim);
+  box-shadow: -10px 0 30px rgba(0, 0, 0, .85), inset 4px 0 0 #0e0a07, inset 5px 0 0 var(--lb-gold-dim);
+}
+html[data-theme="library"] .sidebar::-webkit-scrollbar-thumb { background: var(--lb-gold-dim); }
+html[data-theme="library"] .sidebar-title { color: var(--lb-cream); font-family: var(--lb-serif); font-weight: 400; border-bottom-color: var(--accent-primary); }
+html[data-theme="library"] .sidebar-h2 { border-bottom-color: var(--lb-line); font-family: var(--lb-serif); font-weight: 400; }
+html[data-theme="library"] .pick-entry, html[data-theme="library"] .b-entry { border-color: var(--lb-line); background: rgba(222, 186, 124, .03); }
+html[data-theme="library"] .enc-bar { border-color: var(--lb-edge); background: #0a0705; }
+
+/* ---------- Окна, поля, всплывающие подсказки, поиск по базе, уведомления ---------- */
+html[data-theme="library"] .tbl-grid input { background: #0a0705; border-color: var(--lb-edge); color: var(--lb-text); }
+html[data-theme="library"] .tbl-grid input:focus { border-color: var(--lb-amber); }
+html[data-theme="library"] .md-toolbar button { background: #0a0705; border-color: var(--lb-line); }
+html[data-theme="library"] .xref-pop, html[data-theme="library"] .gs-box, html[data-theme="library"] .ce-menu {
+  background: #100b07; border-color: var(--lb-gold-dim);
+  box-shadow: 0 14px 40px rgba(0, 0, 0, .9), inset 0 0 0 3px #100b07, inset 0 0 0 4px rgba(222, 186, 124, .28);
+}
+html[data-theme="library"] .xref-pop .xp-head, html[data-theme="library"] .xref-pop .xp-foot { border-color: var(--lb-line); }
+html[data-theme="library"] .gs-item.sel, html[data-theme="library"] .gs-item:hover { border-color: var(--lb-amber); background: rgba(255, 180, 90, .07); }
+html[data-theme="library"] .cab-head, html[data-theme="library"] .cab-stat { border-color: var(--lb-line); background: rgba(0, 0, 0, .5); }
+
+@media (max-width: 600px) {
+  html[data-theme="library"] .cat-btn { padding: 0 4px; font-size: .86rem; }
+  html[data-theme="library"] .tb-btn { min-height: 28px; }
+}

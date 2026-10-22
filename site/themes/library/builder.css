@@ -1,0 +1,99 @@
+/* Оформление Library of Ruina — Конструктор персонажа (builder.html). Общие детали (панели, навигация, поля,
+   заголовок, уведомления) — base.css. Цвета панелей (--pc), кнопок (--c) и слотов задаёт страница — они остаются
+   в тексте, линии с орнаментом над панелью и кубах; рамки и кнопки — спрайты игры. */
+
+/* ---------- Панель инструментов ---------- */
+html[data-theme="library"] .tool-btn {
+  border: 8px solid transparent; border-image: var(--lb-btn) 14 fill / 10px stretch; background: none;
+  padding: 1px 6px; color: var(--c, var(--lb-gold)); font-family: var(--lb-serif); letter-spacing: 1px; transition: color .15s;
+}
+html[data-theme="library"] .tool-btn:hover { border-image-source: var(--lb-btn-on); background: none; color: var(--lb-ink); text-shadow: none; }
+/* переключатель из нескольких кнопок: общая рамка, выбранная часть залита золотом */
+html[data-theme="library"] .view-toggle { border: 1px solid transparent; border-image: var(--lb-btn) 14 fill / 8px stretch; background: none; padding: 3px; }
+html[data-theme="library"] .view-toggle button { background: transparent; color: var(--lb-gold); font-family: var(--lb-serif); padding: 4px 10px; }
+html[data-theme="library"] .view-toggle button + button { border-left: 1px solid var(--lb-line); }
+html[data-theme="library"] .view-toggle button:hover { color: var(--lb-gold-hi); }
+html[data-theme="library"] .view-toggle button[aria-pressed=true] { background: var(--lb-gold); color: var(--lb-ink); }
+html[data-theme="library"] .custom-status { color: var(--lb-text-dim); }
+
+/* ---------- Формы, мелкие кнопки, переключатели ---------- */
+html[data-theme="library"] .form-group label, html[data-theme="library"] .mini-label { color: var(--lb-gold); letter-spacing: .5px; }
+html[data-theme="library"] .panel-title { font-family: var(--lb-serif); font-weight: 400; }
+html[data-theme="library"] .panel-title small, html[data-theme="library"] .hint, html[data-theme="library"] .opts { color: var(--lb-text-dim); }
+html[data-theme="library"] .opts input, html[data-theme="library"] .chk input { accent-color: var(--lb-amber); }
+/* «−» и «+» у уровня и характеристик — маленькие рамки с вогнутыми углами */
+html[data-theme="library"] .lvl-row button, html[data-theme="library"] .stat-step button {
+  border: 1px solid transparent; border-image: var(--lb-btn) 14 fill / 7px stretch; background: none; color: var(--lb-gold);
+}
+html[data-theme="library"] .lvl-row button:hover, html[data-theme="library"] .stat-step button:hover { border-image-source: var(--lb-btn-on); background: none; color: var(--lb-ink); }
+html[data-theme="library"] .btn-mini, html[data-theme="library"] .seg {
+  border: 6px solid transparent; border-image: var(--lb-btn) 14 fill / 8px stretch;
+  background: none; padding: 1px 4px; color: var(--lb-gold);
+}
+html[data-theme="library"] .btn-mini:hover, html[data-theme="library"] .btn-mini.accent:hover, html[data-theme="library"] .btn-mini.red:hover,
+html[data-theme="library"] .seg:hover { border-image-source: var(--lb-btn-bright); background: none; }
+html[data-theme="library"] .btn-mini:hover, html[data-theme="library"] .seg:hover { color: var(--lb-gold-hi); }
+html[data-theme="library"] .seg.on, html[data-theme="library"] .seg.on:hover { border-image-source: var(--lb-btn-on); color: var(--lb-ink); }
+html[data-theme="library"] .btn-mini.accent, html[data-theme="library"] .btn-mini.accent:hover { color: var(--lb-amber); }
+html[data-theme="library"] .btn-mini.red, html[data-theme="library"] .btn-mini.red:hover { color: var(--lb-red); }
+html[data-theme="library"] .chip { background: #0a0705; border-color: var(--lb-edge); }
+html[data-theme="library"] .chip:hover { border-color: var(--lb-amber); }
+
+/* ---------- Характеристики, ресурсы, лист ---------- */
+html[data-theme="library"] .stat-card, html[data-theme="library"] .res-card, html[data-theme="library"] .asi-card {
+  background: linear-gradient(180deg, rgba(222, 186, 124, .05), rgba(0, 0, 0, .4)); border-color: var(--lb-edge);
+}
+html[data-theme="library"] .derived > div, html[data-theme="library"] .ss { border-color: var(--lb-line); background: rgba(0, 0, 0, .5); }
+html[data-theme="library"] .stat-in { background: #0a0705; border-color: var(--lb-edge); color: var(--lb-text); }
+html[data-theme="library"] .stat-k, html[data-theme="library"] .ss-k { color: var(--lb-cream); font-family: var(--lb-serif); }
+html[data-theme="library"] .stat-max, html[data-theme="library"] .derived span, html[data-theme="library"] .res-formula,
+html[data-theme="library"] .sheet-line, html[data-theme="library"] .note { color: var(--lb-text-dim); }
+html[data-theme="library"] .res-card.hp { border-color: color-mix(in srgb, var(--lb-red) 60%, var(--lb-edge)); }
+html[data-theme="library"] .res-card.sp { border-color: color-mix(in srgb, var(--floor-social) 60%, var(--lb-edge)); }
+html[data-theme="library"] .roll-log div { border-bottom-color: #22180f; }
+
+/* ---------- Слоты: группы, строки (кубы остаются в цвете слота) ---------- */
+html[data-theme="library"] .group-title { border-bottom-color: var(--lb-line); color: var(--lb-cream); font-family: var(--lb-serif); font-weight: 400; }
+html[data-theme="library"] .row { border-color: var(--lb-line); background: rgba(222, 186, 124, .025); }
+html[data-theme="library"] .row-desc::after { background: linear-gradient(transparent, #110c08); }
+html[data-theme="library"] .cube .cube-face { box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .5); }
+
+/* ---------- Досье ---------- */
+html[data-theme="library"] .output-panel::-webkit-scrollbar-thumb, html[data-theme="library"] .modal-box::-webkit-scrollbar-thumb { background: var(--lb-gold-dim); }
+html[data-theme="library"] .output-header { border-bottom-color: var(--lb-gold-dim); }
+html[data-theme="library"] .char-name-display { color: var(--lb-cream); font-family: var(--lb-serif); font-weight: 400; }
+html[data-theme="library"] .char-meta-display { color: var(--lb-gold-hi); }
+html[data-theme="library"] .block-title { border-bottom-color: var(--lb-line); font-family: var(--lb-serif); font-weight: 400; }
+html[data-theme="library"] .trait-entry { border-left-color: var(--lb-edge); }
+html[data-theme="library"] .trait-entry:hover { background-color: rgba(255, 180, 90, .05); }
+html[data-theme="library"] .md td, html[data-theme="library"] .md th,
+html[data-theme="library"] .trait-desc td, html[data-theme="library"] .trait-desc th { border-color: var(--lb-line); }
+/* «требует внимания» — страница в янтарной рамке с тёплым свечением */
+html[data-theme="library"] .dm-warn {
+  border-color: rgba(255, 180, 90, .7); padding: 14px 12px; box-shadow: 0 0 12px rgba(255, 180, 90, .2), inset 0 0 0 3px #120b05, inset 0 0 0 4px rgba(255, 180, 90, .3);
+  background: radial-gradient(ellipse at 50% 0%, rgba(255, 180, 90, .12), transparent 70%), #120b05;
+}
+html[data-theme="library"] .dm-warn-t { color: var(--lb-amber); font-family: var(--lb-serif); }
+
+/* ---------- Поповер выбора, подсказка, окна ---------- */
+html[data-theme="library"] .choice-pop {
+  background: #100b07; border-color: var(--lb-gold-dim);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, .9), inset 0 0 0 3px #100b07, inset 0 0 0 4px rgba(222, 186, 124, .28);
+}
+html[data-theme="library"] .cp { border-top-color: var(--lb-line); }
+html[data-theme="library"] .cp-opt { background: #0a0705; border-color: var(--lb-edge); }
+html[data-theme="library"] .tip { background: #100b07; border-color: var(--lb-gold-dim); }
+/* окно конструктора: тёмная страница в двойной золотой линии (липкая шапка — того же цвета, что поле) */
+html[data-theme="library"] .modal-box {
+  background: none; border: 1px solid transparent; border-image: var(--lb-frame) 24 fill / 24px;
+  box-shadow: none; filter: drop-shadow(0 10px 30px rgba(0, 0, 0, .9));
+}
+html[data-theme="library"] .modal-head, html[data-theme="library"] .picker-tools { background: #110c08; }
+html[data-theme="library"] .modal-head { border-bottom-color: var(--lb-line); }
+html[data-theme="library"] .modal-head h3 { color: var(--lb-gold-hi); font-family: var(--lb-serif); font-weight: 400; letter-spacing: 1px; }
+html[data-theme="library"] .modal-x { border-color: var(--lb-edge); color: var(--lb-gold); background: #0a0705; }
+html[data-theme="library"] .modal-x:hover { border-color: var(--lb-red); color: #fff; background: var(--lb-red); }
+html[data-theme="library"] .pick { border-color: var(--lb-line); background: rgba(222, 186, 124, .025); }
+html[data-theme="library"] .pick:hover { border-color: var(--lb-amber); background: rgba(255, 180, 90, .06); }
+html[data-theme="library"] .ego-prev { border-left-color: var(--lb-line); }
+html[data-theme="library"] .lvl-table td { border-bottom-color: var(--lb-line); }

@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="ru" data-site-ui="no-fab" data-page-theme="library">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="manifest" href="/manifest.webmanifest">
+    <meta name="theme-color" content="#0b0806">
+    <link rel="apple-touch-icon" href="/Assets/App/icon-192.png">
+    <title>Mephistopheles Terminal / Main Hub</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <!-- шрифты оформления: тот же адрес, что FONTS в site/theme.js, и тот же id — theme.js второй раз не подключит -->
+    <link id="site-theme-fonts-library" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,700;1,500&family=Forum&display=swap" rel="stylesheet">
+    <!-- общий слой оформления: фон и окно ⚙ Настроек (страница всегда в нём — data-page-theme) -->
+    <link rel="stylesheet" href="site/themes/library/base.css">
+
+    <!--
+      Главная в оформлении Library of Ruina: тот же хаб, что index.html, но всё оформление — спрайты из Assets/Assets_Library/.
+      Рамки растягиваются через border-image (9-slice), поэтому карточки любого размера не искажают углы.
+      Семь карточек = семь этажей Библиотеки: цвет этажа (подпись, свечение) и его эмблема (floors/).
+      Кнопка ⚙ в шапке открывает общее окно настроек (site/ui.js), своя круглая кнопка ui.js скрыта через data-site-ui="no-fab".
+      Кодер и Тестеры попадают сюда с index.html, выбрав оформление «Library of Ruina» в ⚙ Настройках (site/theme.js).
+      Общие части оформления (фон, окно ⚙ Настроек) — site/themes/library/base.css; страница всегда в нём (data-page-theme).
+    -->
+    <style>
+        :root {
+            --bg: #0b0806;
+            --gold: #DEBA7C; --gold-hi: #FFDDA0; --gold-dim: #8C6E44; --cream: #F3E3C3; --ink: #1d1209;
+            --text: #E6D8BC; --text-dim: #A3916F; --line: #3a2b1b; --amber: #FFB45A;
+            --serif: 'Forum', 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+            --italic: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+
+            /* спрайты */
+            --spr-card: url('Assets/Assets_Library/frames/card.png');
+            --spr-card-on: url('Assets/Assets_Library/frames/card-lit.png');
+            --spr-plate: url('Assets/Assets_Library/buttons/plate.png');
+            --spr-plate-on: url('Assets/Assets_Library/buttons/plate-lit.png');
+            --spr-notch: url('Assets/Assets_Library/buttons/notch.png');
+            --spr-notch-on: url('Assets/Assets_Library/buttons/notch-bright.png');
+        }
+
+        /* Семь этажей: цвет и эмблема (floors/) */
+        .floor-history    { --f: #E8B04A; --emblem: url('Assets/Assets_Library/floors/history.png'); }
+        .floor-technology { --f: #A57BE0; --emblem: url('Assets/Assets_Library/floors/technology.png'); }
+        .floor-literature { --f: #F0903C; --emblem: url('Assets/Assets_Library/floors/literature.png'); }
+        .floor-art        { --f: #5BC47E; --emblem: url('Assets/Assets_Library/floors/art.png'); }
+        .floor-language   { --f: #E5503E; --emblem: url('Assets/Assets_Library/floors/language.png'); }
+        .floor-social     { --f: #4E9CE6; --emblem: url('Assets/Assets_Library/floors/social.png'); }
+        .floor-general    { --f: #F2E6C8; --emblem: url('Assets/Assets_Library/floors/general.png'); }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif;
+            min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+            overflow-x: hidden;
+        }
+        /* фон зала (тёплый свет, виньетка, полки) — общий, в site/themes/library/base.css */
+
+        /* ============ Верхняя панель ============ */
+        .lb-top {
+            position: sticky; top: 0; z-index: 40; width: 100%;
+            display: flex; align-items: center; justify-content: space-between; gap: 12px;
+            padding: 8px 20px; background: linear-gradient(#17100a, #0d0906);
+            border-bottom: 1px solid var(--gold-dim); box-shadow: 0 8px 24px rgba(0, 0, 0, .75);
+        }
+        /* орнамент посередине нижней линии */
+        .lb-top::after {
+            content: ''; position: absolute; left: 50%; bottom: 0; width: 74px; height: 34px; transform: translate(-50%, 50%);
+            background: url('Assets/Assets_Library/decor/ornament.png') center / contain no-repeat; pointer-events: none;
+        }
+        .lb-brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+        .lb-brand img { width: 34px; height: auto; flex: none; }
+        .lb-brand b { font: 400 1.08rem/1 var(--serif); letter-spacing: 3px; color: var(--cream); white-space: nowrap; }
+        .lb-brand small { display: block; margin-top: 4px; font: 400 .66rem/1 var(--serif); letter-spacing: 4px; color: var(--gold); }
+
+        /* квадратные кнопки в золотой рамке с вогнутыми углами: при наведении линия светлеет */
+        .lb-sq {
+            position: relative; width: 42px; height: 42px; flex: none; display: grid; place-items: center;
+            border: 1px solid transparent; border-image: var(--spr-notch) 14 fill / 11px stretch;
+            background: none; padding: 0; cursor: pointer; color: var(--gold); transition: color .15s;
+        }
+        .lb-sq img { width: 20px; height: 20px; object-fit: contain; }
+        .lb-sq svg { width: 22px; height: 22px; fill: currentColor; }
+        .lb-sq:hover, .lb-sq:focus-visible { border-image-source: var(--spr-notch-on); color: var(--gold-hi); outline: none; }
+        .lb-sq:hover img, .lb-sq:focus-visible img { filter: drop-shadow(0 0 5px rgba(255, 180, 90, .9)); }
+        .lb-sq .dot { position: absolute; top: 4px; right: 4px; width: 8px; height: 8px; border-radius: 50%; background: #FFE3A3;
+            box-shadow: 0 0 8px var(--amber); display: none; }
+        .lb-sq.is-in .dot { display: block; }
+        .lb-actions { display: flex; gap: 8px; }
+
+        /* ============ Заставка: магический круг за заголовком, искры Света ============ */
+        .lb-hero {
+            position: relative; width: 100%; max-width: 1400px; padding: 58px 20px 10px;
+            display: flex; flex-direction: column; align-items: center; text-align: center; isolation: isolate;
+        }
+        .lb-circle {
+            position: absolute; z-index: -1; left: 50%; top: 50%; width: min(440px, 92vw); aspect-ratio: 1;
+            transform: translate(-50%, -50%); pointer-events: none;
+        }
+        .lb-circle::before {
+            content: ''; position: absolute; inset: 0; opacity: .1;
+            background: url('Assets/Assets_Library/decor/circle.png') center / contain no-repeat;
+            animation: lb-spin 240s linear infinite;
+        }
+        @keyframes lb-spin { to { transform: rotate(360deg); } }
+        /* искры Света — медленно поднимаются и гаснут (позиции и задержки — в разметке, --x и --d) */
+        .lb-motes { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+        .lb-motes i {
+            position: absolute; left: var(--x); bottom: -10px; width: 4px; height: 4px; border-radius: 50%;
+            background: #FFE3A3; box-shadow: 0 0 8px 2px rgba(255, 180, 90, .55); opacity: 0;
+            animation: lb-rise 14s linear var(--d) infinite;
+        }
+        @keyframes lb-rise {
+            10% { opacity: .8; }
+            70% { opacity: .5; }
+            to { transform: translate(var(--dx, 12px), -260px); opacity: 0; }
+        }
+
+        .lb-pre { font: italic 500 1.08rem/1.2 var(--italic); letter-spacing: 2px; color: var(--gold); }
+        .lb-h1 {
+            margin-top: 8px; font: 400 3.1rem/1.05 var(--serif); text-transform: uppercase; letter-spacing: 7px;
+            color: var(--cream); text-shadow: 0 0 26px rgba(255, 190, 110, .32), 0 3px 0 #000;
+            max-width: 100%;
+        }
+        .lb-sub { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 12px; max-width: 100%; }
+        .lb-sub p { font: 400 1.05rem/1.2 var(--serif); letter-spacing: 4px; color: var(--gold-hi); text-transform: uppercase; }
+        .lb-sub span { width: 97px; height: 29px; flex: none; background: center / contain no-repeat; }
+        .lb-sub span:first-child { background-image: url('Assets/Assets_Library/decor/flourish-left.png'); }
+        .lb-sub span:last-child { background-image: url('Assets/Assets_Library/decor/flourish-right.png'); }
+        .lb-motto {
+            margin-top: 16px; display: inline-flex; align-items: center; gap: 10px; min-height: 36px;
+            font: italic 500 1.02rem/1.25 var(--italic); color: var(--text-dim);
+            border: 1px solid transparent; border-image: url('Assets/Assets_Library/frames/page.png') 24 fill / 18px; padding: 4px 18px;
+        }
+        .lb-motto img { width: 20px; height: auto; flex: none; animation: lb-glow 3s ease-in-out infinite; }
+        @keyframes lb-glow { 50% { opacity: .45; } }
+
+        /* ============ Хаб ============ */
+        .hub { display: grid; grid-template-columns: 1fr 1.5fr; gap: 34px; width: 100%; max-width: 1400px; padding: 30px 20px 10px; align-items: stretch; }
+        .col { display: flex; flex-direction: column; min-width: 0; }
+
+        .col-head { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
+        .col-head .tag {
+            flex: none; min-width: 64px; height: 34px; padding: 0 2px; display: grid; place-items: center;
+            border: 0 solid transparent; border-width: 0 20px; border-image: var(--spr-plate) 0 44 fill / 0 20px stretch;
+            font: 400 1.1rem/1 var(--serif); color: var(--gold-hi); letter-spacing: 2px;
+        }
+        .col-head h2 { font: 400 1.3rem/1.2 var(--serif); letter-spacing: 3px; color: var(--cream); text-transform: uppercase; white-space: nowrap; }
+        .col-head::after { content: ''; flex: 1; height: 1px; min-width: 20px; background: linear-gradient(90deg, var(--gold), rgba(222, 186, 124, 0)); }
+
+        .grid-uni { display: grid; grid-template-columns: 1fr; gap: 22px; flex: 1; }
+        .grid-pmd { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; flex: 1; }
+        .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+        .wide { grid-column: 1 / -1; }
+
+        /* ---- Карточка-этаж: тёмная страница в золотой рамке с резными углами (9-slice; спрайт шире рамки — уголки
+           ложатся на поле). Слева — эмблема этажа на свечении цвета этажа. При наведении рамка и эмблема разгораются. */
+        .card {
+            position: relative; display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 4px 20px;
+            height: 100%; min-height: 160px; padding: 24px 26px 20px 24px;
+            border: 1px solid transparent; border-image: var(--spr-card) 50 fill / 36px;
+            color: inherit; text-decoration: none; isolation: isolate;
+            transition: transform .2s ease, filter .25s ease;
+        }
+        .card::before {   /* свечение цвета этажа за эмблемой */
+            content: ''; position: absolute; inset: 12px; z-index: -1; pointer-events: none; opacity: .55; transition: opacity .25s;
+            background: radial-gradient(circle at var(--gx, 66px) var(--gy, 50%), color-mix(in srgb, var(--f) 26%, transparent), transparent 62%);
+        }
+        .emblem {
+            width: 84px; aspect-ratio: 115 / 128; flex: none;
+            background: var(--emblem) center / contain no-repeat;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, .8)); transition: filter .25s, transform .3s ease;
+        }
+        .card:hover, .card:focus-visible, .card:focus-within {
+            border-image-source: var(--spr-card-on); transform: translateY(-4px); outline: none;
+            filter: drop-shadow(0 0 14px color-mix(in srgb, var(--f) 30%, transparent));
+        }
+        .card:hover::before, .card:focus-visible::before, .card:focus-within::before { opacity: 1; }
+        .card:hover .emblem, .card:focus-visible .emblem, .card:focus-within .emblem {
+            filter: drop-shadow(0 0 10px color-mix(in srgb, var(--f) 70%, transparent)); transform: scale(1.05);
+        }
+
+        .body { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; width: 100%; min-width: 0; }
+        .floor { font: 400 .74rem/1.3 var(--serif); letter-spacing: 3px; text-transform: uppercase; color: var(--f); text-shadow: 0 1px 2px #000; }
+        /* ромб — в строке текста: длинная подпись переносится вместе с ним */
+        .floor::before { content: ''; display: inline-block; width: 7px; height: 7px; margin: 0 9px 1px 1px; vertical-align: middle;
+            background: var(--f); transform: rotate(45deg); box-shadow: 0 0 6px var(--f); }
+        .title { font: 400 1.42rem/1.15 var(--serif); letter-spacing: 1.5px; text-transform: uppercase; color: var(--cream); overflow-wrap: anywhere;
+            text-shadow: 0 0 14px rgba(255, 190, 110, .18), 0 2px 4px #000; }
+        .lore { font: italic 500 1.02rem/1.4 var(--italic); color: var(--text-dim); text-shadow: 0 1px 3px #000; max-width: 46ch; }
+        /* кнопка — золотая плашка с гранёными концами (главное меню игры), при наведении на карточку разгорается */
+        .btn {
+            margin-top: 6px; display: inline-flex; align-items: center; min-height: 30px;
+            border: 0 solid transparent; border-width: 0 24px; border-image: var(--spr-plate) 0 44 fill / 0 24px stretch; padding: 0 4px;
+            font: 400 .8rem/1.2 var(--serif); letter-spacing: 2px; text-transform: uppercase; color: var(--gold);
+            transition: color .2s;
+        }
+        .card:hover .btn, .card:focus-visible .btn, .card:focus-within .btn { border-image-source: var(--spr-plate-on); color: var(--gold-hi); }
+
+        /* большая карточка (База знаний) и узкие карточки в парах — эмблема сверху, текст по центру */
+        .card.big, .card.tall { grid-template-columns: 1fr; justify-items: center; align-content: center; gap: 10px; text-align: center; --gx: 50%; --gy: 70px; }
+        .card.tall .floor { letter-spacing: 2px; }
+        .card.big .body, .card.tall .body { align-items: center; }
+        .card.big .lore, .card.tall .lore { max-width: none; }
+        .card.big .title { font-size: 1.7rem; }
+        .card.big .emblem { width: 96px; }
+
+        /* Карточка-блок со ссылкой на всю площадь (растянутая ссылка заголовка) и своими ссылками внутри */
+        .card .stretch { color: inherit; text-decoration: none; }
+        .card .stretch::before { content: ''; position: absolute; inset: 0; z-index: 1; }
+        .card .stretch:focus-visible { outline: none; }
+
+        /* разделы Базы знаний — рамки с вогнутыми углами, при наведении линия светлеет */
+        .sections { position: relative; z-index: 3; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin: 8px 0 2px; max-width: 680px; }
+        .sections a {
+            display: inline-flex; align-items: center; gap: 6px; padding: 0 6px; min-height: 28px;
+            border: 4px solid transparent; border-image: var(--spr-notch) 14 fill / 8px stretch;
+            font: 400 .8rem/1 var(--serif); letter-spacing: 1px; text-transform: uppercase; color: var(--gold); text-decoration: none;
+            transition: color .15s;
+        }
+        .sections a img { width: 20px; height: 20px; object-fit: contain; }
+        .sections a:hover, .sections a:focus-visible { border-image-source: var(--spr-notch-on); color: var(--gold-hi); outline: none; }
+
+        /* типы костей боя на карточке конструктора Э.Г.О. — значки игры */
+        .dice { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-top: 2px; }
+        .dice img { width: 30px; height: auto; filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .8)); }
+
+        .footer-text { margin: 36px 0 30px; text-align: center; width: 100%; padding: 0 20px; color: #6a5638; font: .7rem/1.6 'Inter', sans-serif; letter-spacing: 2px; }
+        .footer-text img { width: 20px; height: auto; vertical-align: -5px; margin-right: 6px; opacity: .75; }
+
+        /* ============ Адаптивность ============ */
+        @media (max-width: 1000px) {
+            .hub { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 600px) {
+            .lb-top { padding: 6px 12px; }
+            .lb-top::after { width: 56px; height: 26px; }
+            /* название в две строки, чтобы не заезжало под кнопки */
+            .lb-brand > div { min-width: 0; }
+            .lb-brand b { font-size: .84rem; line-height: 1.1; letter-spacing: 2px; white-space: normal; }
+            .lb-brand small { display: none; }
+            .lb-brand img { width: 28px; }
+            .lb-sq { width: 38px; height: 38px; }
+            .lb-hero { padding: 40px 16px 4px; }
+            /* «МЕФИСТОФЕЛЬ» одним словом не помещается в узкий экран */
+            .lb-h1 { font-size: clamp(1.6rem, 9.4vw, 3rem); letter-spacing: 2px; overflow-wrap: anywhere; }
+            .lb-pre { font-size: .95rem; letter-spacing: 1px; }
+            .lb-sub { gap: 8px; }
+            .lb-sub p { font-size: .86rem; letter-spacing: 1px; }
+            .lb-sub span { display: none; }
+            .lb-motto { font-size: .92rem; padding: 4px 12px; }
+            .hub { padding: 22px 16px 6px; gap: 28px; }
+            .grid-pmd, .pair { grid-template-columns: 1fr; }
+            .col-head h2 { font-size: 1.08rem; white-space: normal; }
+            .card { min-height: 0; padding: 20px 16px 16px; gap: 4px 14px; border-image-width: 30px; --gx: 44px; }
+            .emblem { width: 60px; }
+            /* в одну колонку узкие карточки выглядят как остальные — эмблема слева, текст рядом */
+            .card.tall { grid-template-columns: auto 1fr; justify-items: stretch; gap: 4px 14px; text-align: left; --gx: 44px; --gy: 50%; }
+            .card.tall .body { align-items: flex-start; }
+            .title { font-size: 1.18rem; }
+            .card.big .title { font-size: 1.3rem; }
+            /* надпись плашки — в одну строку: при переносе плашка растягивается по высоте и гранёные концы вытягиваются */
+            .btn { letter-spacing: .5px; font-size: .74rem; border-width: 0 20px; border-image-width: 0 20px; }
+            .card.big .emblem { width: 72px; }
+            .sections { gap: 4px; }
+            .sections a { font-size: .72rem; padding: 0 3px; gap: 4px; }
+            .sections a img { width: 16px; height: 16px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .lb-circle::before, .lb-motto img { animation: none; }
+            .lb-motes { display: none; }
+            .card, .emblem { transition: none; }
+        }
+    </style>
+    <script src="site/i18n.js"></script>
+    <script src="site/theme.js"></script>
+    <script type="module" src="site/ui.js"></script>
+</head>
+<body>
+
+    <nav class="lb-top">
+        <div class="lb-brand">
+            <img src="Assets/Assets_Library/icons/book.png" alt="">
+            <div class="notranslate"><b>MEPHISTOPHELES TERMINAL</b><small>LIBRARY OF RUINA</small></div>
+        </div>
+        <div class="lb-actions">
+            <a class="lb-sq" id="lb-classic" href="index.html" title="Классическое оформление" aria-label="Классическое оформление">
+                <img src="Assets/Assets_Library/icons/return.png" alt="">
+            </a>
+            <button class="lb-sq" id="lb-settings" type="button" title="Настройки" aria-label="Настройки">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.6 7.6 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.4 7.4 0 0 0 1.7 1l.4 2.6h4l.4-2.6a7.4 7.4 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg>
+                <span class="dot"></span>
+            </button>
+        </div>
+    </nav>
+
+    <header class="lb-hero">
+        <div class="lb-circle" aria-hidden="true"></div>
+        <div class="lb-motes" aria-hidden="true">
+            <i style="--x: 8%; --d: 0s"></i><i style="--x: 17%; --d: -6s; --dx: -10px"></i><i style="--x: 26%; --d: -2s"></i>
+            <i style="--x: 38%; --d: -9s; --dx: -16px"></i><i style="--x: 47%; --d: -4s"></i><i style="--x: 58%; --d: -11s; --dx: -8px"></i>
+            <i style="--x: 66%; --d: -1s"></i><i style="--x: 75%; --d: -7s; --dx: -14px"></i><i style="--x: 84%; --d: -3s"></i>
+            <i style="--x: 93%; --d: -10s; --dx: -12px"></i>
+        </div>
+        <p class="lb-pre">Добро пожаловать в Библиотеку</p>
+        <h1 class="lb-h1">СИСТЕМА МЕФИСТОФЕЛЬ</h1>
+        <div class="lb-sub">
+            <span aria-hidden="true"></span>
+            <p>ВЫБЕРИТЕ ЭТАЖ БИБЛИОТЕКИ</p>
+            <span aria-hidden="true"></span>
+        </div>
+        <div class="lb-motto">
+            <img src="Assets/Assets_Library/icons/book.png" alt="">
+            <span>Да найдёте вы здесь свою книгу.</span>
+        </div>
+    </header>
+
+    <main class="hub">
+
+        <!-- ЛЕВАЯ КОЛОНКА: УНИВЕРСАЛЬНЫЕ СИСТЕМЫ -->
+        <section class="col">
+            <div class="col-head"><span class="tag notranslate">I</span><h2>УНИВЕРСАЛЬНЫЕ СИСТЕМЫ</h2></div>
+            <div class="grid-uni">
+                <a href="office.html" class="card floor-social">
+                    <span class="emblem" aria-hidden="true"></span>
+                    <div class="body">
+                        <div class="floor">Этаж общественных наук</div>
+                        <div class="title">УПРАВЛЕНИЕ ОФИСОМ</div>
+                        <div class="lore">Глобальная корпоративная база. Менеджмент агентов, контрактов, репутации и новостей.</div>
+                        <div class="btn">СИНХРОНИЗАЦИЯ ДОСТУПНА</div>
+                    </div>
+                </a>
+
+                <a href="shirm.html" class="card floor-history">
+                    <span class="emblem" aria-hidden="true"></span>
+                    <div class="body">
+                        <div class="floor">Этаж истории</div>
+                        <div class="title">ШИРМА</div>
+                        <div class="lore">Доски лора и связей. Карта Города, фракции и свои кампании с туманом войны.</div>
+                        <div class="btn">РАЗВЕРНУТЬ ДОСКУ</div>
+                    </div>
+                </a>
+
+                <div class="pair">
+                    <a href="maps.html" class="card tall floor-art">
+                        <span class="emblem" aria-hidden="true"></span>
+                        <div class="body">
+                            <div class="floor">Этаж искусства</div>
+                            <div class="title">РЕДАКТОР КАРТ</div>
+                            <div class="lore">Боевые карты, районы и здания Города. Экспорт в Foundry, Roll20 и другие VTT.</div>
+                            <div class="btn">РАЗВЕРНУТЬ ХОЛСТ</div>
+                        </div>
+                    </a>
+
+                    <a href="foundry.html" class="card tall floor-technology">
+                        <span class="emblem" aria-hidden="true"></span>
+                        <div class="body">
+                            <div class="floor">Этаж технологических наук</div>
+                            <div class="title">FOUNDRY VTT</div>
+                            <div class="lore">Модуль Mephistopheles: База знаний, статусы, Свет и Э.Г.О. прямо в Foundry.</div>
+                            <div class="btn">СВЯЗЬ С VTT</div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- ПРАВАЯ КОЛОНКА: PMD (D&D 5E) -->
+        <section class="col">
+            <div class="col-head"><span class="tag notranslate">II</span><h2>СИСТЕМА (D&amp;D 5E)</h2></div>
+            <div class="grid-pmd">
+                <a href="builder.html" class="card tall floor-literature">
+                    <span class="emblem" aria-hidden="true"></span>
+                    <div class="body">
+                        <div class="floor">Этаж литературы</div>
+                        <div class="title">КОНСТРУКТОР ПЕРСОНАЖА</div>
+                        <div class="lore">Система сборки агента. Выбор расы, архетипа и черт.</div>
+                        <div class="btn">СОЗДАТЬ АГЕНТА</div>
+                    </div>
+                </a>
+
+                <a href="egobuilder.html" class="card tall floor-language">
+                    <span class="emblem" aria-hidden="true"></span>
+                    <div class="body">
+                        <div class="floor">Этаж языкознания</div>
+                        <div class="title">КОНСТРУКТОР Э.Г.О.</div>
+                        <div class="lore">Генерация Э.Г.О. атак и оборудования с подсчетом очков.</div>
+                        <div class="dice" aria-hidden="true">
+                            <img src="Assets/Assets_Library/icons/dice-slash.png" alt=""><img src="Assets/Assets_Library/icons/dice-pierce.png" alt=""><img src="Assets/Assets_Library/icons/dice-blunt.png" alt=""><img src="Assets/Assets_Library/icons/dice-guard.png" alt=""><img src="Assets/Assets_Library/icons/dice-evade.png" alt="">
+                        </div>
+                        <div class="btn">МАНИФЕСТАЦИЯ</div>
+                    </div>
+                </a>
+
+                <!-- вся карточка ведёт в Базу знаний (растянутая ссылка заголовка), значки — сразу в нужный раздел -->
+                <div class="card big wide floor-general">
+                    <span class="emblem" aria-hidden="true"></span>
+                    <div class="body">
+                        <div class="floor">Этаж общих трудов</div>
+                        <a class="title stretch" href="navigation.html">БАЗА ЗНАНИЙ (НАВИГАЦИЯ)</a>
+                        <div class="lore">Глобальный архив Project Moon 5e. Правила, лор, классы, черты и механики сеттинга.</div>
+                        <nav class="sections" aria-label="Разделы Базы знаний">
+                            <a href="navigation.html#classes"><img src="Assets/Assets_Library/icons/bust.png" alt="">Архетипы</a>
+                            <a href="navigation.html#bases"><img src="Assets/Assets_Library/icons/pages.png" alt="">Классы</a>
+                            <a href="navigation.html#feats"><img src="Assets/Assets_Library/icons/pen.png" alt="">Черты</a>
+                            <a href="navigation.html#equipment"><img src="Assets/Assets_Library/icons/sword.png" alt="">Снаряжение</a>
+                            <a href="navigation.html#rules"><img src="Assets/Assets_Library/icons/scroll.png" alt="">Правила</a>
+                            <a href="navigation.html#bestiary"><img src="Assets/Assets_Library/icons/eye.png" alt="">Бестиарий</a>
+                            <a href="navigation.html#gifts"><img src="Assets/Assets_Library/icons/heart.png" alt="">Э.Г.О. Гифты</a>
+                            <a href="navigation.html#statuses"><img src="Assets/Assets_Library/icons/flame.png" alt="">Статус-эффекты</a>
+                            <a href="navigation.html#lore"><img src="Assets/Assets_Library/icons/bookmark.png" alt="">Время и история</a>
+                        </nav>
+                        <div class="btn" aria-hidden="true">ПОДКЛЮЧЕНИЕ К СЕТИ</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+
+    <div class="footer-text notranslate">
+        <img src="Assets/Assets_Library/icons/book.png" alt="">PROJECT MOON TTRPG FRAMEWORK // BUILD 1.5 // LIBRARY UI
+    </div>
+
+    <script type="module">
+        // ⚙ в шапке — общее окно настроек; огонёк — вход выполнен (как у круглой кнопки ui.js)
+        import { onAuth } from './site/auth.js';
+        const gear = document.getElementById('lb-settings');
+        gear.addEventListener('click', () => window.SiteUI && window.SiteUI.open());
+        onAuth((s) => gear.classList.toggle('is-in', !!s.user));
+        // ← у тестера с выбранным оформлением переключает на обычное (иначе index.html вернёт сюда же)
+        document.getElementById('lb-classic').addEventListener('click', (e) => {
+            if (window.SiteTheme && window.SiteTheme.get() !== 'classic') { e.preventDefault(); window.SiteTheme.set('classic'); }
+        });
+    </script>
+</body>
+</html>

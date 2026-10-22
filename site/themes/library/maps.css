@@ -1,0 +1,35 @@
+/* Оформление Library of Ruina — Редактор карт (map-app). Общее для приложений — apps.css, общие переменные — base.css.
+   Подключается из map-app/src/main.tsx (мимо сборщика). Холст карты и её цвета не меняются. */
+@import url('apps.css');
+
+/* фон — сама карта: свет и полки base.css не накладываем */
+html[data-theme="library"] body::before { display: none; }
+
+/* боковые панели — тёмно-коричневые с тонкой золотой кромкой */
+html[data-theme="library"] .left, html[data-theme="library"] .right { background: #100b07; }
+html[data-theme="library"] .left { border-right: 1px solid var(--lb-gold-dim); }
+html[data-theme="library"] .right { border-left: 1px solid var(--lb-gold-dim); }
+html[data-theme="library"] .tools { background: rgba(0, 0, 0, .4); }
+html[data-theme="library"] .tool:hover:not(:disabled) { border-color: var(--lb-edge); }
+html[data-theme="library"] .tool.on { border-color: var(--lb-amber); color: var(--lb-gold-hi); background: rgba(255, 180, 90, .1); }
+html[data-theme="library"] .props > h3, html[data-theme="library"] .subsec > h3, html[data-theme="library"] .meta-form > h3 {
+  color: var(--lb-gold-hi); font-family: var(--lb-serif); font-weight: 400; letter-spacing: 1px;
+}
+html[data-theme="library"] .side-sec { border-bottom-color: var(--lb-line); }
+html[data-theme="library"] .bottombar { background: #100b07; border-top: 1px solid var(--lb-gold-dim); }
+html[data-theme="library"] .coords { background: rgba(10, 7, 5, .82); }
+
+/* библиотека, слои, списки */
+html[data-theme="library"] .lib-item, html[data-theme="library"] .meta-file, html[data-theme="library"] .list li,
+html[data-theme="library"] .lib-mini, html[data-theme="library"] .chip, html[data-theme="library"] .version { background: #16100a; }
+html[data-theme="library"] .thumb { background: repeating-conic-gradient(#16100a 0 25%, #1d150d 0 50%) 0 0 / 12px 12px; }
+html[data-theme="library"] .meta-dir.on { background: rgba(255, 180, 90, .1); }
+html[data-theme="library"] .gen-bar { background: rgba(10, 7, 5, .94); border-color: var(--lb-gold-dim); }
+html[data-theme="library"] .slider input[type=range] { accent-color: var(--lb-amber); }
+html[data-theme="library"] .anchor button.on { background: var(--lb-gold); color: var(--lb-ink); }
+
+/* стартовый экран: карты — страницы в двойной золотой линии */
+html[data-theme="library"] .start-body h2 { color: var(--lb-gold-hi); font-family: var(--lb-serif); font-weight: 400; letter-spacing: 1px; }
+html[data-theme="library"] .card { border: 1px solid transparent; border-image: var(--lb-frame) 24 fill / 22px; background: none; }
+html[data-theme="library"] .card:hover { border-image-source: var(--lb-frame-on); }
+html[data-theme="library"] .card-thumb { background: #0a0705; }

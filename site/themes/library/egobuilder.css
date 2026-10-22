@@ -1,0 +1,57 @@
+/* Оформление Library of Ruina — Конструктор Э.Г.О. (egobuilder.html). Общие детали и форма Э.Г.О. (site/ego-core.js) —
+   base.css. Цвет Э.Г.О. в этом оформлении — Этаж языкознания (красный, как карточка на главной). */
+html[data-theme="library"] { --accent-primary: var(--floor-language); --accent-muted: color-mix(in srgb, var(--floor-language) 35%, #000); }
+
+html[data-theme="library"] .form-group label { color: var(--lb-gold); }
+html[data-theme="library"] .points-display {
+  border: 1px solid transparent; border-image: var(--lb-frame) 24 fill / 18px; background: none; color: var(--lb-cream); font-family: var(--lb-serif);
+}
+/* перерасход очков — страница в красной резной рамке */
+html[data-theme="library"] .points-display.error {
+  border-image: var(--lb-card-red) 50 fill / 22px; background: none; box-shadow: none; filter: drop-shadow(var(--lb-alert-glow)); color: var(--lb-red);
+}
+html[data-theme="library"] .upgrade-row { border-bottom-color: #22180f; }
+html[data-theme="library"] .btn-qty { border: 1px solid transparent; border-image: var(--lb-btn) 14 fill / 7px stretch; background: none; color: var(--lb-gold); }
+html[data-theme="library"] .btn-qty:hover { border-image-source: var(--lb-btn-on); background: none; color: var(--lb-ink); }
+
+/* кнопки: золотые рамки с вогнутыми углами, цвет действия — в тексте; при наведении линия светлеет */
+html[data-theme="library"] .copy-btn, html[data-theme="library"] .btn-small-bld {
+  border: 7px solid transparent; border-image: var(--lb-btn) 14 fill / 8px stretch;
+  background: none; padding: 1px 6px; color: var(--lb-gold); font-family: var(--lb-serif);
+}
+html[data-theme="library"] .copy-btn:hover, html[data-theme="library"] .btn-small-bld:hover {
+  border-image-source: var(--lb-btn-bright); background: none; color: var(--lb-gold-hi);
+}
+html[data-theme="library"] .save-btn, html[data-theme="library"] .save-btn:hover { color: var(--color-yellow); }
+html[data-theme="library"] .tab-btn {
+  border: 10px solid transparent; border-image: var(--lb-btn) 14 fill / 10px stretch; background: none; color: var(--lb-gold);
+  font-family: var(--lb-serif); padding: 0 6px;
+}
+html[data-theme="library"] .tab-btn.active { border-image-source: var(--lb-btn-on); background: none; color: var(--lb-ink); text-shadow: none; }
+
+/* вывод и библиотека */
+html[data-theme="library"] .output-panel::-webkit-scrollbar-thumb, html[data-theme="library"] .status-sidebar::-webkit-scrollbar-thumb { background: var(--lb-gold-dim); }
+html[data-theme="library"] .output-header { border-bottom-color: var(--accent-primary); }
+html[data-theme="library"] .ego-name-display { color: var(--lb-cream); font-family: var(--lb-serif); font-weight: 400; }
+html[data-theme="library"] .ego-meta, html[data-theme="library"] .lib-item-meta { color: var(--lb-gold-hi); }
+html[data-theme="library"] .ego-quote { font-family: var(--lb-italic); font-size: 1.08em; }
+html[data-theme="library"] .ego-quote, html[data-theme="library"] .lib-sub, html[data-theme="library"] .lib-empty { color: var(--lb-text-dim); }
+html[data-theme="library"] .lib-block { border-top-color: var(--lb-line); }
+html[data-theme="library"] .lib-item { border-color: var(--lb-line); background: rgba(222, 186, 124, .025); }
+html[data-theme="library"] .lib-item:hover { border-color: var(--lb-amber); }
+/* искажение — страница в красной резной рамке */
+html[data-theme="library"] .corrosion-block {
+  border: 1px solid transparent; border-image: var(--lb-card-red) 50 fill / 30px; background: var(--lb-alert-bg) padding-box;
+  box-shadow: none; padding: 20px 18px;
+}
+html[data-theme="library"] .rule-section h3 { border-bottom-color: var(--lb-line); font-family: var(--lb-serif); font-weight: 400; }
+
+/* сайдбар Базы статусов — страница с двойной кромкой слева */
+html[data-theme="library"] .status-sidebar {
+  background: #0e0a07; border-left: 1px solid var(--lb-gold-dim);
+  box-shadow: -10px 0 30px rgba(0, 0, 0, .85), inset 4px 0 0 #0e0a07, inset 5px 0 0 var(--lb-gold-dim);
+}
+html[data-theme="library"] .sidebar-header { border-bottom-color: var(--lb-gold-dim); }
+html[data-theme="library"] .sidebar-title { color: var(--lb-cream); font-family: var(--lb-serif); font-weight: 400; }
+html[data-theme="library"] .status-card { border-color: var(--lb-line); background: rgba(222, 186, 124, .025); }
+html[data-theme="library"] .status-card-name { color: var(--lb-cream); }
