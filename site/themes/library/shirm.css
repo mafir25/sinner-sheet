@@ -1,0 +1,50 @@
+/* Оформление Library of Ruina — Ширма (shirm-app). Общее для приложений — apps.css, общие переменные — base.css.
+   Подключается из shirm-app/src/main.tsx (мимо сборщика). Доска и цвета узлов, рамок и связей — как у пользователя. */
+@import url('apps.css');
+
+/* у Ширмы фон — сама доска: свет и полки base.css не накладываем, чтобы не мешать работе */
+html[data-theme="library"] body::before { display: none; }
+
+html[data-theme="library"] .workspace { background: #0a0705; }
+html[data-theme="library"] .panel { border-color: var(--lb-line); background: #100b07; }
+html[data-theme="library"] .panel.active { border-color: var(--lb-gold-dim); box-shadow: inset 0 0 0 1px rgba(222, 186, 124, .2); }
+html[data-theme="library"] .screen-select { border-color: var(--lb-gold-dim); }
+html[data-theme="library"] .save-state, html[data-theme="library"] .badge { background: rgba(10, 7, 5, .88); }
+html[data-theme="library"] .search-res { background: rgba(16, 11, 7, .97); border-color: var(--lb-gold-dim); }
+html[data-theme="library"] .search-item { border-bottom-color: #22180f; }
+html[data-theme="library"] .search-item:hover { background: rgba(255, 180, 90, .1); }
+
+/* доска: тёмный пергамент с редкой золотой сеткой, как разлиновка страницы */
+html[data-theme="library"] .board {
+  background-color: #0c0906;
+  background-image: linear-gradient(90deg, rgba(222, 186, 124, .04) 1px, transparent 1px), linear-gradient(rgba(222, 186, 124, .04) 1px, transparent 1px);
+}
+html[data-theme="library"] .marquee { border-color: var(--lb-amber); background: rgba(255, 180, 90, .1); }
+html[data-theme="library"] .board-controls button, html[data-theme="library"] .minimap-toggle { background: rgba(10, 7, 5, .92); border-color: var(--lb-edge); }
+html[data-theme="library"] .board-controls button:hover, html[data-theme="library"] .board-controls button.on { border-color: var(--lb-amber); color: var(--lb-gold-hi); }
+html[data-theme="library"] .minimap { border-color: var(--lb-edge); background: rgba(10, 7, 5, .92); }
+html[data-theme="library"] .board-loading, html[data-theme="library"] .board-empty, html[data-theme="library"] .draw-hint { background: rgba(10, 7, 5, .88); }
+
+/* боковая панель узла — страница с двойной кромкой слева */
+html[data-theme="library"] .sidebar {
+  background: rgba(14, 10, 7, .97); border-left: 1px solid var(--lb-gold-dim);
+  box-shadow: -10px 0 30px rgba(0, 0, 0, .8), inset 4px 0 0 #0e0a07, inset 5px 0 0 var(--lb-gold-dim);
+}
+html[data-theme="library"] .sidebar-head h2 { color: var(--lb-cream); font-family: var(--lb-serif); font-weight: 400; }
+html[data-theme="library"] .sections, html[data-theme="library"] .related { border-top-color: var(--lb-line); }
+html[data-theme="library"] .sec { border-left-color: var(--lb-line); background: rgba(222, 186, 124, .025); }
+html[data-theme="library"] .sec[open] { border-color: var(--lb-amber); }
+html[data-theme="library"] .related-item { border-bottom-color: #22180f; }
+html[data-theme="library"] .related-item:hover { background: rgba(255, 180, 90, .08); }
+html[data-theme="library"] .md th { background: rgba(222, 186, 124, .08); }
+html[data-theme="library"] .md th, html[data-theme="library"] .md td { border-color: var(--lb-line); }
+html[data-theme="library"] .md code { background: #16100a; }
+
+/* окна и заметки */
+html[data-theme="library"] .md-toolbar { background: #100b07; }
+html[data-theme="library"] .sec-edit { background: rgba(222, 186, 124, .025); }
+html[data-theme="library"] .radio, html[data-theme="library"] .import-list, html[data-theme="library"] .map-pick-item { border-color: var(--lb-line); }
+html[data-theme="library"] .import-item:hover, html[data-theme="library"] .import-item.on { background: rgba(255, 180, 90, .1); }
+html[data-theme="library"] .notes { background: rgba(16, 11, 7, .97); border-color: var(--lb-gold-dim); }
+html[data-theme="library"] .notes-head { background: #1d150d; }
+html[data-theme="library"] .map-pick-item { background: #100b07; }

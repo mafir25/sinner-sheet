@@ -1,0 +1,72 @@
+/* Оформление Library of Ruina — Офис (office.html). Общие детали (панели, поля, заголовок, уведомления) — base.css.
+   Цвет панели в Офисе — --tape (t-green, t-yellow, t-red, t-cyan): он — в линии с орнаментом над панелью. */
+html[data-theme="library"] .panel-outer { --lb-accent: var(--tape, var(--accent-primary)); }
+
+/* ---------- Верхняя панель ---------- */
+html[data-theme="library"] .topbar { background: linear-gradient(#17100a, #0d0906); border-bottom: 1px solid var(--lb-gold-dim); box-shadow: 0 8px 24px rgba(0, 0, 0, .75); }
+html[data-theme="library"] .nav-btn.cyan { --c: var(--color-cyan); }
+html[data-theme="library"] .nav-btn { --c: var(--accent-primary); }
+html[data-theme="library"] .dropdown-content {
+  background: #100b07; border-color: var(--lb-gold-dim);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, .9), inset 0 0 0 3px #100b07, inset 0 0 0 4px rgba(222, 186, 124, .28);
+}
+html[data-theme="library"] .dropdown-item { border-bottom-color: #22180f; }
+html[data-theme="library"] .dropdown-item:hover, html[data-theme="library"] .dropdown-item:focus-visible { background-color: var(--lb-gold); color: var(--lb-ink); }
+html[data-theme="library"] .dropdown-item.current { color: var(--lb-amber); }
+
+/* ---------- Кнопки: золотые рамки с вогнутыми углами, цвет действия — в тексте; при наведении линия светлеет ---------- */
+html[data-theme="library"] .btn {
+  border: 7px solid transparent; border-image: var(--lb-btn) 14 fill / 8px stretch;
+  background: none; padding: 1px 6px; color: var(--lb-gold); font-family: var(--lb-serif);
+}
+html[data-theme="library"] .btn:hover:not(:disabled) { border-image-source: var(--lb-btn-bright); background: none; color: var(--lb-gold-hi); }
+html[data-theme="library"] .btn.yellow, html[data-theme="library"] .btn.yellow:hover:not(:disabled) { color: var(--color-yellow); }
+html[data-theme="library"] .btn.red, html[data-theme="library"] .btn.red:hover:not(:disabled) { color: var(--lb-red); }
+html[data-theme="library"] .btn.cyan, html[data-theme="library"] .btn.cyan:hover:not(:disabled) { color: var(--color-cyan); }
+html[data-theme="library"] .btn.green, html[data-theme="library"] .btn.green:hover:not(:disabled) { color: var(--accent-primary); }
+/* крупные кнопки — золотые рамки, при наведении заливаются золотом */
+html[data-theme="library"] .btn.big {
+  border: 10px solid transparent; border-image: var(--lb-btn) 14 fill / 10px stretch; background: none; padding: 0 8px; color: var(--lb-gold);
+}
+html[data-theme="library"] .btn.big:hover:not(:disabled) { border-image-source: var(--lb-btn-on); background: none; color: var(--lb-ink); text-shadow: none; }
+html[data-theme="library"] .icon-btn:hover { color: var(--lb-gold-hi); }
+
+/* ---------- Поля ---------- */
+html[data-theme="library"] .field { background: #0a0705; border-color: var(--lb-edge); color: var(--lb-text); }
+html[data-theme="library"] .field:focus { border-color: var(--lb-amber); }
+html[data-theme="library"] .check input { accent-color: var(--lb-amber); }
+html[data-theme="library"] .section { border-bottom-color: #22180f; }
+
+/* ---------- Левая колонка ---------- */
+html[data-theme="library"] .logo-area { background-color: #0a0705; border-color: var(--lb-edge); }
+html[data-theme="library"] .logo-area:not(:disabled):hover, html[data-theme="library"] .logo-area:not(:disabled):focus-visible { border-color: var(--lb-amber); }
+html[data-theme="library"] .office-name-input { color: var(--lb-cream); font-family: var(--lb-serif); }
+html[data-theme="library"] .member-item { border-bottom-color: #22180f; }
+html[data-theme="library"] .builder-card { border-color: var(--lb-edge); background: rgba(222, 186, 124, .035); }
+html[data-theme="library"] .preset-card { border-color: var(--lb-line); background: rgba(222, 186, 124, .025); }
+html[data-theme="library"] .preset-desc { border-top-color: #22180f; }
+
+/* ---------- Доска контрактов ---------- */
+html[data-theme="library"] .grade-block { border-color: var(--lb-line); }
+html[data-theme="library"] .grade-header { background: linear-gradient(90deg, rgba(222, 186, 124, .09), rgba(0, 0, 0, .5) 60%); }
+html[data-theme="library"] .grade-header:hover { background: linear-gradient(90deg, rgba(255, 180, 90, .16), rgba(0, 0, 0, .5) 60%); }
+html[data-theme="library"] .grade-content { background: #0a0705; }
+html[data-theme="library"] .quest-item { border-bottom-color: #22180f; }
+html[data-theme="library"] .quest-toggle:hover { background: rgba(255, 180, 90, .05); }
+html[data-theme="library"] .quest-admin { border-top-color: #22180f; }
+
+/* ---------- Правая колонка ---------- */
+html[data-theme="library"] .tab-btn { color: var(--lb-gold); font-family: var(--lb-serif); }
+html[data-theme="library"] .tab-btn:hover { color: var(--lb-gold-hi); }
+html[data-theme="library"] .tab-btn[aria-selected="true"] { color: var(--lb-amber); border-bottom-color: var(--lb-amber); }
+html[data-theme="library"] .ledger-item, html[data-theme="library"] .stock-item { border-bottom-color: #22180f; }
+html[data-theme="library"] .converter { border-color: var(--lb-line); background: rgba(0, 0, 0, .5); }
+html[data-theme="library"] .rep-bar { border-color: var(--lb-edge); background: #0a0705; }
+html[data-theme="library"] .bank-chart svg { border-bottom-color: #22180f; }
+
+/* ---------- Окна и уведомления ---------- */
+html[data-theme="library"] .dialog-preview, html[data-theme="library"] .q-icon-option { background-color: #0a0705; border-color: var(--lb-edge); }
+html[data-theme="library"] .qm-row { border-bottom-color: #22180f; }
+html[data-theme="library"] .toast.success { color: var(--lb-ok); }
+html[data-theme="library"] .toast.error { color: var(--lb-red); }
+html[data-theme="library"] .toast.loading { color: var(--lb-gold-hi); }

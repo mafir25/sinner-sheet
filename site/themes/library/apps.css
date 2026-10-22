@@ -1,0 +1,71 @@
+/* Оформление Library of Ruina — общее для приложений на React: Ширмы (shirm.css) и Редактора карт (maps.css).
+   Оба построены на одних классах (.btn, .icon-btn, .input, .topbar, .modal, .toast, .ctx-menu) и переменных
+   (--accent, --surface, --line…): переменные перекрашиваем в тёмно-коричневый и золотой, кнопки и окна — спрайтами игры.
+   Холст (доска Ширмы, карта редактора) и цвета узлов, слоёв и объектов пользователя не трогаем. */
+html[data-theme="library"] {
+  --accent: var(--lb-amber); --bg: var(--lb-bg); --panel: #110c08; --surface: #16100a; --surface-2: #1d150d;
+  --line: var(--lb-edge); --dim: var(--lb-text-dim); --dimmer: #6a5638; --text: var(--lb-text);
+}
+
+/* ---------- Кнопки ---------- */
+html[data-theme="library"] .btn {
+  border: 7px solid transparent; border-image: var(--lb-btn) 14 fill / 8px stretch; background: none;
+  padding: 0 6px; color: var(--lb-gold);
+}
+html[data-theme="library"] .btn-sm { border-width: 5px; border-image-width: 7px; padding: 0 4px; }
+/* верхняя панель плотная: убираем лишнее поле, чтобы кнопки не уходили на вторую строку */
+html[data-theme="library"] .topbar .btn { padding: 0 4px; }
+html[data-theme="library"] .btn:hover:not(:disabled), html[data-theme="library"] .btn-on {
+  border-image-source: var(--lb-btn-bright); background: none; color: var(--lb-gold-hi);
+}
+/* главная кнопка — золотая рамка, при наведении заливается золотом */
+html[data-theme="library"] .btn-primary {
+  border: 8px solid transparent; border-image: var(--lb-btn) 14 fill / 10px stretch; background: none; color: var(--lb-gold-hi);
+}
+html[data-theme="library"] .btn-primary:hover:not(:disabled) {
+  border-image-source: var(--lb-btn-on); background: none; color: var(--lb-ink) !important; text-shadow: none;
+}
+html[data-theme="library"] .btn-danger, html[data-theme="library"] .btn-danger:hover:not(:disabled) { color: var(--lb-red) !important; background: none; }
+html[data-theme="library"] .icon-btn {
+  border: 5px solid transparent; border-image: var(--lb-btn) 14 fill / 8px stretch; background: none; color: var(--lb-gold);
+}
+html[data-theme="library"] .icon-btn:hover:not(:disabled) { border-image-source: var(--lb-btn-bright); background: none; color: var(--lb-gold-hi); }
+html[data-theme="library"] .icon-btn.danger:hover:not(:disabled) { color: var(--lb-red); }
+
+/* ---------- Поля ---------- */
+html[data-theme="library"] .input, html[data-theme="library"] input[type=color] { background: #0a0705; border-color: var(--line); }
+html[data-theme="library"] .input:focus { border-color: var(--lb-amber); }
+
+/* ---------- Верхняя панель и заставка ---------- */
+html[data-theme="library"] .topbar {
+  background: linear-gradient(#17100a, #0d0906); border-bottom: 1px solid var(--lb-gold-dim); box-shadow: 0 6px 18px rgba(0, 0, 0, .75);
+  position: relative; z-index: 30;
+}
+html[data-theme="library"] .splash h1, html[data-theme="library"] .topbar .title {
+  font-family: var(--lb-serif); font-weight: 400; letter-spacing: 2px; color: var(--lb-cream); text-shadow: 0 0 16px rgba(255, 196, 120, .25);
+}
+
+/* ---------- Окна, меню, уведомления ---------- */
+html[data-theme="library"] .modal {
+  background: none; border: 1px solid transparent; border-image: var(--lb-frame) 24 fill / 24px;
+  box-shadow: none; filter: drop-shadow(0 10px 30px rgba(0, 0, 0, .9));
+}
+html[data-theme="library"] .modal-head { border-bottom-color: var(--lb-line); }
+html[data-theme="library"] .modal-head h2, html[data-theme="library"] .modal-head h3 {
+  color: var(--lb-gold-hi); font-family: var(--lb-serif); font-weight: 400; letter-spacing: 1px;
+}
+html[data-theme="library"] .modal-foot { border-top-color: var(--lb-line); }
+html[data-theme="library"] .ctx-menu {
+  background: #100b07; border-color: var(--lb-gold-dim);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .9), inset 0 0 0 3px #100b07, inset 0 0 0 4px rgba(222, 186, 124, .28);
+}
+html[data-theme="library"] .ctx-item:hover:not(:disabled) { background: var(--lb-gold); color: var(--lb-ink); }
+html[data-theme="library"] .ctx-menu button:hover, html[data-theme="library"] .ctx-menu button:focus-visible { background: rgba(255, 180, 90, .14); color: var(--lb-gold-hi); }
+html[data-theme="library"] .toast-error { color: #FF9A8A; }
+html[data-theme="library"] .tabs button.on { color: var(--lb-amber); border-bottom-color: var(--lb-amber); }
+/* переключатель из нескольких кнопок: общая рамка, выбранная часть залита золотом */
+html[data-theme="library"] .seg { border: 1px solid transparent; border-image: var(--lb-btn) 14 fill / 8px stretch; padding: 3px; }
+html[data-theme="library"] .seg button { border-right-color: var(--lb-line); }
+html[data-theme="library"] .seg button:hover:not(.on) { color: var(--lb-gold-hi); }
+html[data-theme="library"] .seg button.on { background: var(--lb-gold); color: var(--lb-ink); }
+html[data-theme="library"] kbd { border-color: var(--line); background: #0a0705; }

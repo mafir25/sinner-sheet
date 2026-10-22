@@ -165,6 +165,12 @@
     'Отдел управления': 'Control Team', 'Центральное командование': 'Central Command Team', 'Отдел безопасности': 'Safety Team',
     'Отдел обучения': 'Training Team', 'Отдел соцобеспечения': 'Welfare Team', 'Дисциплинарный отдел': 'Disciplinary Team',
     'Информационный отдел': 'Information Team',
+    /* Главная в оформлении Library of Ruina (index-library.html): карточки — этажи Библиотеки */
+    'Добро пожаловать в Библиотеку': 'Welcome to the Library', 'ВЫБЕРИТЕ ЭТАЖ БИБЛИОТЕКИ': 'SELECT A FLOOR OF THE LIBRARY',
+    'Да найдёте вы здесь свою книгу.': 'May you find your book in this place.',
+    'Этаж истории': 'Floor of History', 'Этаж технологических наук': 'Floor of Technological Sciences', 'Этаж литературы': 'Floor of Literature',
+    'Этаж искусства': 'Floor of Art', 'Этаж языкознания': 'Floor of Language', 'Этаж общественных наук': 'Floor of Social Sciences',
+    'Этаж общих трудов': 'Floor of General Works',
 
     /* ===================== Переадресации ===================== */
     'База пользователей переехала в «Базу знаний»:': 'The user database has moved to the Knowledge Base:',

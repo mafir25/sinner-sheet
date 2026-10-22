@@ -1,0 +1,191 @@
+/* Оформление Library of Ruina — общий слой (фон, общие детали страниц, окно ⚙ Настроек). Работает только при
+   <html data-theme="library"> (его ставит site/theme.js), поэтому у обычного оформления ничего не меняется,
+   а спрайты грузятся только в этом оформлении.
+   Только спрайты интерфейса из Assets/Assets_Library/ (что где — в его README.md): без персонажей (библиотекари, гости)
+   и аномалий. Стиль игры: тёмные страницы книги в тонкой золотой линии, кнопки с вогнутыми углами (при наведении
+   линия светлеет, крупные — заливаются золотом), заголовки — шрифтом с засечками, цвет раздела — в линии
+   с орнаментом над панелью. Янтарный — выбор и фокус, красный — опасность.
+   Шрифты Forum и Cormorant Garamond подключает site/theme.js (FONTS) только в этом оформлении; без сети — Georgia.
+   Подключение — в <head> после собственных стилей страницы:
+     <link rel="stylesheet" href="site/themes/library/base.css">
+     <link rel="stylesheet" href="site/themes/library/<страница>.css">   (если у страницы есть свой слой)
+   Рамки растягиваются через border-image (9-slice): числа после url — срезы спрайта в пикселях. Толщина рамки (border)
+   у панелей — 1 px, а спрайт рисуется шире (border-image-width): уголки ложатся на поле, не сдвигая текст. */
+
+html[data-theme="library"] {
+  --lb-bg: #0b0806; --lb-panel: #110c08; --lb-text: #E6D8BC; --lb-text-dim: #A3916F;
+  --lb-gold: #DEBA7C; --lb-gold-hi: #FFDDA0; --lb-gold-dim: #8C6E44; --lb-cream: #F3E3C3;
+  --lb-line: #3a2b1b; --lb-edge: #5a4529; --lb-ink: #1d1209;
+  --lb-amber: #FFB45A; --lb-red: #E25240; --lb-light: #FFE3A3; --lb-ok: #A8D88A;
+  /* этажи Библиотеки — только цвета (карточки главной, цвет раздела) */
+  --floor-history: #E8B04A; --floor-technology: #A57BE0; --floor-literature: #F0903C; --floor-art: #5BC47E;
+  --floor-language: #E5503E; --floor-social: #4E9CE6; --floor-general: #F2E6C8;
+  --lb-serif: 'Forum', 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  --lb-italic: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+
+  /* спрайты (пути от корня сайта) */
+  --lb-frame: url('/Assets/Assets_Library/frames/page.png');          /* двойная золотая линия, вырезанные углы, тёмное поле; срез 24 */
+  --lb-frame-on: url('/Assets/Assets_Library/frames/page-lit.png');   /* то же светлее, со свечением — наведение, фокус */
+  --lb-card: url('/Assets/Assets_Library/frames/card.png');           /* золотая рамка с резными углами; срез 50 */
+  --lb-card-on: url('/Assets/Assets_Library/frames/card-lit.png');
+  --lb-card-red: url('/Assets/Assets_Library/frames/card-red.png');   /* красная — искажение, ошибка */
+  /* кнопки: срез 14, ширина 10 px (у мелких 7–8 px) — линия 1 px, вогнутые углы */
+  --lb-btn: url('/Assets/Assets_Library/buttons/notch.png');            /* золотая линия, тёмное поле */
+  --lb-btn-bright: url('/Assets/Assets_Library/buttons/notch-bright.png'); /* светлая линия со свечением — наведение на мелкие */
+  --lb-btn-on: url('/Assets/Assets_Library/buttons/notch-lit.png');     /* залита золотом — выбрана, наведение на крупные (текст тёмный) */
+  --lb-btn-red: url('/Assets/Assets_Library/buttons/notch-red.png');    /* красная линия — опасное действие */
+  --lb-plate: url('/Assets/Assets_Library/buttons/plate.png');          /* золотая плашка с гранёными концами; срез 0 44 */
+  --lb-plate-on: url('/Assets/Assets_Library/buttons/plate-lit.png');
+  --lb-bar: url('/Assets/Assets_Library/buttons/bar.png');              /* большая плашка с завитками; срез 0 70 */
+  --lb-ornament: url('/Assets/Assets_Library/decor/ornament.png');      /* 74×34 */
+  --lb-divider: url('/Assets/Assets_Library/decor/divider.png');        /* 167×17 */
+  /* окно ошибки и искажения: красная резная рамка поверх тёмно-красного поля */
+  --lb-alert-bg: radial-gradient(ellipse at 50% 0%, rgba(226, 82, 64, .16), transparent 70%), #140806;
+  --lb-alert-glow: 0 0 14px rgba(226, 82, 64, .35);
+  color-scheme: dark;
+  scrollbar-color: var(--lb-gold-dim) #000;
+}
+
+/* ---------- Фон: тёмный зал Библиотеки — тёплый свет сверху, виньетка, едва заметные полки ---------- */
+html[data-theme="library"] body { background: var(--lb-bg); color: var(--lb-text); }
+html[data-theme="library"] body::before {
+  content: ''; position: fixed; inset: 0; z-index: -2; pointer-events: none;
+  background:
+    radial-gradient(ellipse 70% 45% at 50% 0%, rgba(255, 186, 96, .09), transparent 70%),
+    radial-gradient(ellipse 90% 40% at 50% 100%, rgba(120, 62, 18, .14), transparent 70%),
+    radial-gradient(ellipse at 50% 50%, transparent 40%, rgba(0, 0, 0, .88) 100%),
+    repeating-linear-gradient(90deg, rgba(222, 186, 124, .018) 0 1px, transparent 1px 44px),
+    var(--lb-bg);
+}
+html[data-theme="library"] ::selection { background: rgba(255, 180, 90, .35); color: #fff; }
+
+/* ---------- Общие детали страниц сайта ----------
+   Панели .panel-outer > .hazard-tape + .panel-inner (База знаний, конструкторы, Офис, Foundry) — страница книги:
+   тёмное поле в двойной золотой линии. .hazard-tape — линия цвета раздела с орнаментом посередине: --pc (панель
+   конструктора), иначе --accent-primary, иначе золото. */
+html[data-theme="library"] .cut-tl { clip-path: none; }
+html[data-theme="library"] .panel-outer {
+  --lb-accent: var(--pc, var(--accent-primary, #DEBA7C));
+  background: none; padding: 0; clip-path: none;
+  border: 1px solid transparent; border-image: var(--lb-frame) 24 fill / 24px;
+}
+html[data-theme="library"] .panel-outer > .hazard-tape {
+  height: 13px; margin: 9px 26px 0; border: 0; flex: none; opacity: .95;
+  background: var(--lb-accent) !important;
+  -webkit-mask: var(--lb-ornament) center / auto 13px no-repeat, linear-gradient(90deg, transparent, #000 18% 82%, transparent) center / 100% 1px no-repeat;
+  mask: var(--lb-ornament) center / auto 13px no-repeat, linear-gradient(90deg, transparent, #000 18% 82%, transparent) center / 100% 1px no-repeat;
+}
+html[data-theme="library"] .panel-inner { background: none; clip-path: none; padding: 10px 18px 16px; }
+/* панель с прокруткой (вывод в конструкторах): прокручивается содержимое, а не рамка */
+html[data-theme="library"] .output-panel { overflow: visible; }
+html[data-theme="library"] .output-panel > .panel-inner { overflow-y: auto; min-height: 0; flex: 1 1 auto; }
+
+/* заголовок страницы — шрифт с засечками, под ним — золотая линия и резной разделитель цвета раздела */
+html[data-theme="library"] .header-bar { border-bottom: 1px solid var(--lb-edge); position: relative; }
+html[data-theme="library"] .header-bar::after {
+  content: ''; position: absolute; left: 0; bottom: -9px; width: 167px; max-width: 45%; height: 17px; pointer-events: none;
+  background: var(--accent-primary, var(--lb-gold));
+  -webkit-mask: var(--lb-divider) left center / contain no-repeat; mask: var(--lb-divider) left center / contain no-repeat;
+}
+html[data-theme="library"] .header-title {
+  font-family: var(--lb-serif); font-weight: 400; letter-spacing: 3px; color: var(--lb-cream);
+  text-shadow: 0 0 16px rgba(255, 196, 120, .25);
+}
+
+/* кнопки навигации между страницами — золотые рамки с вогнутыми углами, цвет ссылки — в тексте (--c) */
+html[data-theme="library"] .top-nav-btn, html[data-theme="library"] .nav-btn {
+  border: 7px solid transparent; border-image: var(--lb-btn) 14 fill / 10px stretch; background: none;
+  padding: 1px 8px; color: var(--c, var(--lb-gold)); font-family: var(--lb-serif); letter-spacing: 1px; transition: color .15s;
+}
+html[data-theme="library"] .top-nav-btn:hover, html[data-theme="library"] .nav-btn:hover {
+  border-image-source: var(--lb-btn-on); background: none; color: var(--lb-ink); text-shadow: none;
+}
+
+/* поля ввода и списки */
+html[data-theme="library"] .cloud-input, html[data-theme="library"] .cloud-select { background: #0a0705; border-color: var(--lb-edge); color: var(--lb-text); }
+html[data-theme="library"] .cloud-input:focus, html[data-theme="library"] .cloud-select:focus { border-color: var(--lb-amber); }
+
+/* всплывающее уведомление — золотая плашка с завитками */
+html[data-theme="library"] .toast {
+  border: 0 solid transparent; border-width: 0 34px; border-image: var(--lb-bar) 0 70 fill / 0 34px stretch; background: none;
+  color: var(--lb-cream); padding: 10px 4px; box-shadow: none; filter: drop-shadow(0 4px 12px rgba(0, 0, 0, .9));
+}
+
+/* форма и карточка Э.Г.О. (site/ego-core.js): цвет — Этаж языкознания (красный, как карточка на главной) */
+html[data-theme="library"] .egc, html[data-theme="library"] .egc-sum { --egc: var(--floor-language); --egc-dim: var(--lb-text-dim); color: var(--lb-text); }
+html[data-theme="library"] .egc-tab {
+  border: 8px solid transparent; border-image: var(--lb-btn) 14 fill / 10px stretch; background: none;
+  color: var(--lb-gold); font-family: var(--lb-serif); padding: 0 6px; min-height: 36px;
+}
+html[data-theme="library"] .egc-tab[aria-pressed=true] { border-image-source: var(--lb-btn-on); background: none; color: var(--lb-ink); }
+html[data-theme="library"] .egc-pts {
+  border: 1px solid transparent; border-image: var(--lb-frame) 24 fill / 18px; background: none; padding: 2px 12px;
+  color: var(--lb-cream); font-family: var(--lb-serif);
+}
+html[data-theme="library"] .egc-pts.egc-bad {
+  border-image: var(--lb-card-red) 50 fill / 22px; background: none; box-shadow: none; filter: drop-shadow(var(--lb-alert-glow)); color: var(--lb-red);
+}
+html[data-theme="library"] .egc label { color: var(--lb-gold); }
+html[data-theme="library"] .egc input, html[data-theme="library"] .egc select, html[data-theme="library"] .egc textarea {
+  background: #0a0705; border-color: var(--lb-edge); color: var(--lb-text);
+}
+html[data-theme="library"] .egc input:focus, html[data-theme="library"] .egc select:focus, html[data-theme="library"] .egc textarea:focus { border-color: var(--lb-amber); }
+html[data-theme="library"] .egc-sec { border-bottom-color: var(--lb-line); }
+html[data-theme="library"] .egc-up { border-bottom-color: #22180f; }
+html[data-theme="library"] .egc-qty button { border: 1px solid transparent; border-image: var(--lb-btn) 14 fill / 7px stretch; background: none; color: var(--lb-gold); }
+html[data-theme="library"] .egc-qty button:hover { border-image-source: var(--lb-btn-on); background: none; color: var(--lb-ink); }
+/* искажение Э.Г.О. — страница в красной резной рамке */
+html[data-theme="library"] .egc-corr {
+  border: 1px solid transparent; border-image: var(--lb-card-red) 50 fill / 30px; background: var(--lb-alert-bg) padding-box;
+  box-shadow: none; padding: 18px 16px;
+}
+html[data-theme="library"] .egc-corr-t { color: var(--lb-red); border-bottom-color: rgba(226, 82, 64, .45); font-family: var(--lb-serif); }
+
+@media (max-width: 600px) {
+  html[data-theme="library"] .header-title { letter-spacing: 1px; }
+  html[data-theme="library"] .egc-pts { font-size: 1.25rem; }
+  html[data-theme="library"] .panel-inner { padding: 8px 12px 12px; }
+  html[data-theme="library"] .panel-outer > .hazard-tape { margin: 8px 16px 0; }
+}
+
+/* ---------- Окно ⚙ Настроек (site/ui.js) ---------- */
+html[data-theme="library"] .su-fab {
+  border: 1px solid transparent; border-image: var(--lb-btn) 14 fill / 10px stretch;
+  background: none; color: var(--lb-gold); opacity: .9;
+}
+html[data-theme="library"] .su-fab:hover, html[data-theme="library"] .su-fab:focus-visible {
+  border-image-source: var(--lb-btn-bright); color: var(--lb-gold-hi); box-shadow: none; opacity: 1; outline: none;
+}
+html[data-theme="library"] .su-fab .su-dot { background: var(--lb-light); box-shadow: 0 0 8px var(--lb-amber); }
+/* окно — страница в золотой рамке с резными углами */
+html[data-theme="library"] .su-box {
+  border: 1px solid transparent; border-image: var(--lb-card) 50 fill / 34px; background: none; padding: 0 10px 8px;
+  color: var(--lb-text); box-shadow: none; filter: drop-shadow(0 10px 30px rgba(0, 0, 0, .9));
+}
+/* шапка окна — золотая плашка с завитками */
+html[data-theme="library"] .su-head {
+  margin: 12px 0 0; padding: 7px 0; color: var(--lb-gold-hi); border: 0 solid transparent; border-width: 0 34px;
+  border-image: var(--lb-bar) 0 70 fill / 0 34px stretch; font-family: var(--lb-serif); font-weight: 400; letter-spacing: 3px;
+  text-shadow: 0 0 10px rgba(255, 190, 100, .35);
+}
+/* разделители секций — внутри рамки (у окна поле по бокам) */
+html[data-theme="library"] .su-sec { border-bottom-color: var(--lb-line); }
+html[data-theme="library"] .su-t { color: var(--lb-gold); font-family: var(--lb-serif); letter-spacing: 1px; }
+html[data-theme="library"] .su-x { border-color: var(--lb-edge); color: var(--lb-gold); background: rgba(0, 0, 0, .35); width: 26px; height: 26px; }
+html[data-theme="library"] .su-x:hover { border-color: var(--lb-red); color: #fff; background: var(--lb-red); }
+html[data-theme="library"] #su-themes { flex-wrap: wrap; }
+html[data-theme="library"] .su-seg, html[data-theme="library"] .su-btn {
+  border: 8px solid transparent; border-image: var(--lb-btn) 14 fill / 10px stretch; background: none;
+  color: var(--lb-gold); font-family: var(--lb-serif); padding: 1px 6px; transition: color .15s;
+}
+html[data-theme="library"] .su-seg:hover { border-image-source: var(--lb-btn-bright); color: var(--lb-gold-hi); }
+html[data-theme="library"] .su-seg[aria-pressed=true], html[data-theme="library"] .su-btn:hover:not(:disabled) {
+  border-image-source: var(--lb-btn-on); color: var(--lb-ink); background: none;
+}
+html[data-theme="library"] .su-btn.su-red { border-image-source: var(--lb-btn-red); color: #FF9A8A; }
+html[data-theme="library"] .su-btn.su-red:hover:not(:disabled) { border-image-source: var(--lb-btn-red); background: none; color: #fff; }
+html[data-theme="library"] .su-in-f { background: #0a0705; border-color: var(--lb-edge); color: var(--lb-text); }
+html[data-theme="library"] .su-in-f:focus { border-color: var(--lb-amber); }
+html[data-theme="library"] .su-mail { color: var(--lb-gold-hi); }
+html[data-theme="library"] .su-link { color: var(--lb-gold); }
+html[data-theme="library"] .su-tag { border-color: var(--lb-amber); color: var(--lb-amber); }
