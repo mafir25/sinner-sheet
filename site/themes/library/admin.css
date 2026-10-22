@@ -28,9 +28,7 @@ html[data-theme="library"] .btn.red, html[data-theme="library"] .btn.red:hover:n
 html[data-theme="library"] .btn.green, html[data-theme="library"] .btn.green:hover:not(:disabled) { color: var(--green); }
 html[data-theme="library"] .btn.yellow, html[data-theme="library"] .btn.yellow:hover:not(:disabled) { color: var(--yellow); }
 html[data-theme="library"] .btn.ghost { color: var(--lb-gold); }
-html[data-theme="library"] .seg { border: 1px solid transparent; border-image: var(--lb-btn) 14 fill / 8px stretch; background: none; color: var(--lb-gold); }
-html[data-theme="library"] .seg:hover { border-image-source: var(--lb-btn-bright); color: var(--lb-gold-hi); }
-html[data-theme="library"] .seg.on, html[data-theme="library"] .seg.on:hover { border-image-source: var(--lb-btn-on); color: var(--lb-ink); background: none; }
+/* Поля | Код (.segs > .seg) — цельный переключатель с бегунком (base.css) */
 
 /* ---------- Панели, обзор, поля ---------- */
 html[data-theme="library"] .panel { background: none; border: 1px solid transparent; border-image: var(--lb-frame) 24 fill / 22px; }

@@ -157,6 +157,50 @@ html[data-theme="library"] .egc-corr-t { color: var(--lb-red); border-bottom-col
   html[data-theme="library"] .panel-outer > .hazard-tape { margin: 8px 16px 0; }
 }
 
+/* ---------- Переключатели: цельная рамка и бегунок ----------
+   Канон / Кастом / Всё (База знаний), Кубы / Строки (конструктор), переключатели Редактора карт (div.seg), Поля / Код
+   (Админ-панель, .segs): одна рамка с вогнутыми углами на все варианты, выбранный подсвечивает бегунок той же формы,
+   залитый золотом. Бегунок — ::before рамки, блик на нём — ::after. Место бегунка (--sw-l/t/r/b), data-sw и само
+   движение («жидкий» переезд с перелётом, блик по приезде) — site/theme.js (SLIDERS). Текст выбранного варианта
+   темнеет, когда бегунок доехал (кнопку под бегунком помечает data-sw-under). Пока бегунка нет (первый кадр, без скриптов) выбранный вариант просто светлее. */
+@property --sw-l { syntax: '<length>'; inherits: true; initial-value: 0px; }
+@property --sw-r { syntax: '<length>'; inherits: true; initial-value: 0px; }
+@property --sw-t { syntax: '<length>'; inherits: true; initial-value: 0px; }
+@property --sw-b { syntax: '<length>'; inherits: true; initial-value: 0px; }
+@property --sw-g { syntax: '<number>'; inherits: true; initial-value: 0; }
+@property --sw-go { syntax: '<number>'; inherits: true; initial-value: 0; }
+html[data-theme="library"] :is(.src-switch, .view-toggle, div.seg, .segs) {
+  position: relative; isolation: isolate; gap: 0; padding: 4px; overflow: visible; border-radius: 0; background: none;
+  border: 1px solid transparent; border-image: var(--lb-btn) 14 fill / 10px stretch;
+}
+html[data-theme="library"] .segs { display: inline-flex; }
+html[data-theme="library"] :is(.src-switch, .view-toggle, div.seg, .segs) > button {
+  position: relative; z-index: 1; background: transparent; border: 0; border-radius: 0; margin: 0; padding: 4px 10px;
+  color: var(--lb-gold); font-family: var(--lb-serif); letter-spacing: .5px; transition: color .25s ease;
+}
+html[data-theme="library"] :is(.src-switch, .view-toggle, div.seg, .segs) > button:hover:not(:disabled):not([data-sw-under]) { color: var(--lb-gold-hi); background: transparent; }
+html[data-theme="library"] :is(.src-switch > .active, .view-toggle > [aria-pressed="true"], div.seg > .on, .segs > .on) {
+  background: transparent; border-color: transparent; color: var(--lb-gold-hi); text-shadow: 0 0 8px rgba(255, 200, 120, .45);
+}
+html[data-theme="library"] :is(.src-switch, .view-toggle, div.seg, .segs) > [data-sw-under] { color: var(--lb-ink); text-shadow: none; }
+/* пока бегунок едет, текст над ним золотой на золоте — тёмная обводка держит его читаемым */
+html[data-theme="library"] [data-sw="move"]:is(.src-switch, .view-toggle, div.seg, .segs) > button { text-shadow: 0 0 2px #1d1209, 0 0 4px rgba(29, 18, 9, .8); }
+/* бегунок: кнопка той же формы, залитая золотом, с тёплым свечением */
+html[data-theme="library"] :is(.src-switch, .view-toggle, div.seg, .segs)::before {
+  content: ''; position: absolute; z-index: 0; pointer-events: none; opacity: 0; transition: opacity .2s;
+  left: var(--sw-l); top: var(--sw-t); right: var(--sw-r); bottom: var(--sw-b);
+  border: 7px solid transparent; border-image: var(--lb-btn-on) 14 fill / 7px stretch;
+  filter: drop-shadow(0 0 6px rgba(255, 190, 100, .5));
+}
+html[data-theme="library"] :is([data-sw="on"], [data-sw="move"]):is(.src-switch, .view-toggle, div.seg, .segs)::before { opacity: 1; }
+/* блик: светлая косая полоса пробегает по бегунку (путь --sw-g, яркость --sw-go — анимирует site/theme.js) */
+html[data-theme="library"] :is(.src-switch, .view-toggle, div.seg, .segs)::after {
+  content: ''; position: absolute; z-index: 2; pointer-events: none; mix-blend-mode: overlay; opacity: var(--sw-go);
+  left: calc(var(--sw-l) + 6px); right: calc(var(--sw-r) + 6px); top: calc(var(--sw-t) + 3px); bottom: calc(var(--sw-b) + 3px);
+  background: linear-gradient(105deg, transparent 38%, rgba(255, 252, 240, .95) 50%, transparent 62%) no-repeat;
+  background-size: 260% 100%; background-position: calc(105% - var(--sw-g) * 1.1%) 0;
+}
+
 /* ---------- Окно ⚙ Настроек (site/ui.js) ---------- */
 html[data-theme="library"] .su-fab {
   border: 1px solid transparent; border-image: var(--lb-btn) 14 fill / 10px stretch;
