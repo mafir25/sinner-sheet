@@ -5,6 +5,7 @@ import { type BoardStore, useBoard } from '../state/boardStore';
 import { type FrameItem, type Item, type NodeItem, emptyNode, isFrame, isLink, isNode, uid } from '../model/schema';
 import { searchNodes } from '../model/search';
 import { type ListedScreen, canAdmin } from '../data/screens';
+import { isAuditEmail } from '../../../site/access-config.js';
 import { ContextMenu, type MenuItem } from './ContextMenu';
 import { FrameEditor, NodeEditor } from './NodeEditor';
 import { Sidebar } from './Sidebar';
@@ -46,7 +47,7 @@ function pasteItems(at: { x: number; y: number }): Item[] {
   });
 }
 
-const GROUP_LABEL: Record<string, string> = { base: 'Базовый мир', mine: 'Мои ширмы', admin: 'Я админ', friends: 'Друзья', public: 'Общие' };
+const GROUP_LABEL: Record<string, string> = { base: 'Базовый мир', mine: 'Мои ширмы', admin: 'Я админ', friends: 'Друзья', public: 'Общие', other: 'Чужие ширмы (Аудит)' };
 
 export function Panel({ store, screens, screenId, onPickScreen, email, active, onActivate, onOpenSettings, onDeleteScreen }: {
   store: BoardStore; screens: ListedScreen[]; screenId: string; onPickScreen: (id: string) => void; email: string;
@@ -270,7 +271,7 @@ export function Panel({ store, screens, screenId, onPickScreen, email, active, o
         {meta && !meta.isLocal && (canAdmin(meta, email) || isCreator) && (
           <button className="icon-btn" title="Настройки и доступы" onClick={onOpenSettings}>⚙</button>
         )}
-        {isCreator && <button className="icon-btn danger" title="Удалить ширму" onClick={onDeleteScreen}>🗑</button>}
+        {(isCreator || isAuditEmail(email)) && <button className="icon-btn danger" title="Удалить ширму (Очистка)" onClick={onDeleteScreen}>🗑</button>}
         {admin && (
           <>
             <button className="icon-btn" title="Отменить (Ctrl+Z)" disabled={!st.canUndo} onClick={() => store.undo()}>↶</button>

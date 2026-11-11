@@ -2,7 +2,7 @@
 import { useSyncExternalStore } from 'react';
 import { type Item, type ItemMap, type NodeItem, type ScreenMeta, isFrame, isNode } from '../model/schema';
 import { migrateV1, type V1Graph } from '../model/migrate';
-import { canAdmin, finishMigration, publishBaseScreen, saveChanges, subscribeItems } from '../data/screens';
+import { canAdmin, canSeeSecret, finishMigration, publishBaseScreen, saveChanges, subscribeItems } from '../data/screens';
 import { auth } from '../data/firebase';
 import { toast } from '../ui/toast';
 
@@ -88,6 +88,7 @@ export class BoardStore {
     // в какой подколлекции лежит каждый объект (при скрытии он «переезжает» из items в secret)
     const where = new Map<string, Set<string>>();
     const seenFirst = new Set<string>();
+    const canSecret = canSeeSecret(meta, email);
     this.unsub = subscribeItems(meta, admin, (ups, rems, part) => {
       if (this.state.meta?.id !== meta.id) return;
       let items: ItemMap;
@@ -112,7 +113,7 @@ export class BoardStore {
       console.error(e);
       this.set({ loading: false });
       toast('Нет доступа к ширме или ошибка сети.', 'error');
-    });
+    }, canSecret);
   }
 
   /** Обновить метаданные (название, доступы). Если поменялись права — переподключиться. */

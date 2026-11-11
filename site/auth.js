@@ -212,7 +212,8 @@ async function ensureRegistered(user) {
    Тестер — testers/<uid>: не роль сотрудника, а отметка; видит переключатель оформлений (site/theme.js).
      Выдаёт только Кодер, сам Кодер — тестер всегда.
    Реальные права проверяет сервер (firestore.rules); здесь — только интерфейс. */
-export { CODER_EMAILS, CANON_GROUPS };
+import { CODER_EMAILS, AUDIT_EMAILS, CANON_GROUPS, isCoderEmail, isAuditEmail } from './access-config.js';
+export { CODER_EMAILS, AUDIT_EMAILS, CANON_GROUPS, isCoderEmail, isAuditEmail };
 export const ROLES = { coder: 'Кодер', headadmin: 'Гл-Админ', admin: 'Админ', tester: 'Тестер' };
 export const PERMS = {
   canon: 'Редактирование канона',
@@ -266,6 +267,8 @@ export async function loadAccess(user = auth.currentUser) {
 export const can = (s, perm) => !!s?.perms?.[perm] && (perm === 'canon' ? s.perms.canon.length > 0 : true);
 export const canCanon = (s, group) => !!s?.perms?.canon?.includes(group);
 export const isHead = (s) => s?.role === 'coder' || s?.role === 'headadmin';
+export const isCoder = (s) => s?.role === 'coder' || isCoderUser(s?.user);
+export const canAudit = (s) => isCoder(s) || isHead(s) || can(s, 'moderate') || isAuditEmail(s?.user?.email);
 export const isTester = (s) => s?.role === 'coder' || s?.tester === true;
 
 /* ---------------- Активность (для мониторинга) ----------------

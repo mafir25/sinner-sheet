@@ -82,9 +82,9 @@ function mount() {
         <div class="su-row" id="su-langs"></div>
       </div>
       <div class="su-sec" id="su-theme" hidden>
-        <div class="su-t">Оформление<span class="su-tag">тест</span></div>
+        <div class="su-t">Оформление</div>
         <div class="su-row" id="su-themes"></div>
-        <div class="su-hint">Видно только Кодеру и Тестерам. Страницы без своей версии остаются в обычном оформлении.</div>
+        <div class="su-hint">Страницы без своей версии остаются в обычном оформлении.</div>
       </div>
       <div class="su-sec" id="su-account"></div>
     </div>`;
@@ -115,11 +115,11 @@ function mount() {
   renderAccount();
 }
 
-// Переключатель оформления — только Кодеру и Тестерам (и только если страница подключила site/theme.js)
+// Переключатель оформления (если страница подключила site/theme.js)
 function renderTheme() {
   const sec = root?.querySelector('#su-theme');
   if (!sec) return;
-  sec.hidden = !(window.SiteTheme && isTester(state));
+  sec.hidden = !window.SiteTheme;
   const cur = window.SiteTheme?.get();
   for (const b of sec.querySelectorAll('[data-su-theme]')) b.setAttribute('aria-pressed', String(b.dataset.suTheme === cur));
 }
@@ -257,10 +257,6 @@ export function close() {
 onAuth((s) => {
   state = s;
   if (fab) fab.classList.toggle('su-in', !!s.user);
-  // оформление не для всех: без отметки тестера (вышел, сняли роль) — обратно к обычному.
-  // tester === null — отметку не удалось прочитать, выбор не трогаем.
-  const Theme = window.SiteTheme;
-  if (s.ready && Theme && Theme.get() !== 'classic' && !isTester(s) && s.tester !== null) Theme.set('classic', { stay: true });
   if (root) { renderTheme(); renderAccount(); }
 });
 

@@ -22,6 +22,7 @@ service cloud.firestore {
     }
     function isHead() { return isCoder() || roleData().role == 'headadmin'; }
     function isStaff() { return isCoder() || roleData().role in ['headadmin', 'admin']; }
+    function canAudit() { return isHead() || can('moderate'); }
     // Право Админа (Гл-Админ и Кодер имеют все права)
     function can(perm) {
       let r = roleData();
@@ -270,8 +271,8 @@ service cloud.firestore {
       }
 
       // resource == null — офис удалён: слушатель получает «документа нет», а не ошибку доступа.
-      // Гл-Админ видит все офисы и может удалить любой.
-      allow read: if signedIn() && (resource == null || isMemberOf(resource.data) || isHead());
+      // Кодер и участники с правом аудита видят чужие офисы и могут очистить их при необходимости.
+      allow read: if signedIn() && (resource == null || isMemberOf(resource.data) || canAudit());
       allow create: if signedIn() && notBanned()
         && request.resource.data.creator == myEmail()
         && request.resource.data.creatorUid == request.auth.uid
@@ -282,7 +283,7 @@ service cloud.firestore {
           && creatorKept(request.resource.data, resource.data))
         || (!isCreatorOf(resource.data) && isMemberOf(resource.data) && onlySelf(request.resource.data, resource.data))
       );
-      allow delete: if signedIn() && (isCreatorOf(resource.data) || isHead());
+      allow delete: if signedIn() && (isCreatorOf(resource.data) || canAudit());
 
       // Досье агентов. Создатель офиса управляет всеми; участник может добавить своё досье
       // и обновлять досье, привязанные к нему (ownerUid), но не переназначать их.
@@ -294,9 +295,9 @@ service cloud.firestore {
             && d.get('ownerUid', '') is string
             && d.get('presetJson', '') is string && d.get('presetJson', '').size() < 600000;
         }
-        // Полное досье читают только менеджер, владелец досье и Гл-Админ. Остальные участники видят
-        // карточку (cards/<aid>) — в ней только поля, разрешённые настройками приватности офиса.
-        allow read: if signedIn() && (isHead() || isCreatorOf(office())
+        // Полное досье (скрытая информация) читают только менеджер, владелец досье и Кодер.
+        // Остальные участники видят карточку (cards/<aid>) — в ней только разрешённые поля.
+        allow read: if signedIn() && (isCoder() || isCreatorOf(office())
           || (isMemberOf(office()) && resource.data.get('ownerUid', '') == request.auth.uid));
         allow create: if signedIn() && notBanned() && validAgent(request.resource.data) && (
           isCreatorOf(office())
@@ -305,8 +306,8 @@ service cloud.firestore {
           isCreatorOf(office())
           || (isMemberOf(office()) && resource.data.ownerUid == request.auth.uid
               && request.resource.data.ownerUid == request.auth.uid));
-        // офис мог быть уже удалён (Гл-Админ удаляет досье после офиса)
-        allow delete: if signedIn() && (isHead() || isCreatorOf(office()));
+        // офис мог быть уже удалён (Кодер/аудитор удаляет досье после офиса для очистки)
+        allow delete: if signedIn() && (canAudit() || isCreatorOf(office()));
       }
 
       // Журнал сессий: пишет менеджер, читают участники.
@@ -320,9 +321,9 @@ service cloud.firestore {
             && d.get('agents', []) is list && d.get('agents', []).size() <= 30
             && isShortString(d.get('by', ''), 40);
         }
-        allow read: if signedIn() && (isHead() || isMemberOf(office()));
+        allow read: if signedIn() && (canAudit() || isMemberOf(office()));
         allow create, update: if signedIn() && notBanned() && isCreatorOf(office()) && validSession(request.resource.data);
-        allow delete: if signedIn() && (isHead() || isCreatorOf(office()));
+        allow delete: if signedIn() && (canAudit() || isCreatorOf(office()));
       }
 
       // Открытая карточка досье: копия разрешённых полей досье agents/<aid>. Пишется одной пачкой с досье
@@ -349,11 +350,11 @@ service cloud.firestore {
             && same(d, a, 'feats') && same(d, a, 'description') && same(d, a, 'presetJson')
             && same(d, a, 'order') && same(d, a, 'createdAt') && same(d, a, 'updatedAt');
         }
-        allow read: if signedIn() && (isHead() || isMemberOf(office()));
+        allow read: if signedIn() && (canAudit() || isMemberOf(office()));
         allow create, update: if signedIn() && notBanned() && validCard(request.resource.data) && (
           isCreatorOf(office())
           || (isMemberOf(office()) && agentAfter().get('ownerUid', '') == request.auth.uid));
-        allow delete: if signedIn() && (isHead() || isCreatorOf(office()));
+        allow delete: if signedIn() && (canAudit() || isCreatorOf(office()));
       }
     }
 
@@ -368,27 +369,27 @@ service cloud.firestore {
       function canAdmin(d) { return d.creatorEmail == myEmail() || myEmail() in d.adminUsers; }
       function screen() { return get(/databases/$(database)/documents/custom_screens/$(sid)).data; }
 
-      // Гл-Админ видит все Ширмы (вместе с «туманом войны») и может удалить любую.
-      allow read: if signedIn() && (canRead(resource.data) || isHead());
+      // Кодер и участники с правом аудита видят все Ширмы и могут удалить любую для очистки.
+      allow read: if signedIn() && (canRead(resource.data) || canAudit());
       allow create: if signedIn() && notBanned() && request.resource.data.creatorEmail == myEmail();
       // админы могут переименовывать и переводить формат; доступы и автора меняет только создатель
       allow update: if signedIn() && notBanned() && canAdmin(resource.data)
         && request.resource.data.creatorEmail == resource.data.creatorEmail
         && (resource.data.creatorEmail == myEmail()
             || !request.resource.data.diff(resource.data).affectedKeys().hasAny(['allowedUsers', 'adminUsers', 'accessLevel']));
-      allow delete: if signedIn() && (resource.data.creatorEmail == myEmail() || isHead());
+      allow delete: if signedIn() && (resource.data.creatorEmail == myEmail() || canAudit());
 
       // видимые объекты доски
       match /items/{iid} {
-        allow read: if signedIn() && (isHead() || canRead(screen()));
+        allow read: if signedIn() && (canAudit() || canRead(screen()));
         allow write: if signedIn() && notBanned() && canAdmin(screen());
-        allow delete: if signedIn() && isHead();
+        allow delete: if signedIn() && canAudit();
       }
-      // скрытые объекты («туман войны») — только админы ширмы (и Гл-Админ сайта)
+      // скрытые объекты («туман войны») — только админы ширмы и Кодер сайта
       match /secret/{iid} {
-        allow read: if signedIn() && (isHead() || canAdmin(screen()));
+        allow read: if signedIn() && (isCoder() || canAdmin(screen()));
         allow write: if signedIn() && notBanned() && canAdmin(screen());
-        allow delete: if signedIn() && isHead();
+        allow delete: if signedIn() && canAudit();
       }
     }
 

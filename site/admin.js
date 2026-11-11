@@ -8,7 +8,7 @@ import {
 } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 import { db, auth } from './firebase.js';
 import {
-  onAuth, refreshAccess, ROLES, PERMS, CANON_GROUPS, CODER_EMAILS, can, canCanon, isHead,
+  onAuth, refreshAccess, ROLES, PERMS, CANON_GROUPS, CODER_EMAILS, can, canCanon, isHead, canAudit,
   findUserByNick, normalizePerms, banActive,
 } from './auth.js';
 import * as Canon from './canon.js';
@@ -188,7 +188,7 @@ const TABS = [
   { id: 'canon', icon: 'fa-book', label: 'Канон', allowed: (s) => can(s, 'canon'), render: renderCanon },
   { id: 'users', icon: 'fa-users', label: 'Пользователи', allowed: (s) => can(s, 'monitor') || can(s, 'ban'), render: renderUsers },
   { id: 'moderation', icon: 'fa-gavel', label: 'Модерация', allowed: (s) => can(s, 'moderate'), render: renderModeration },
-  { id: 'hidden', icon: 'fa-eye', label: 'Скрытое', allowed: isHead, render: renderHidden },
+  { id: 'hidden', icon: 'fa-eye', label: 'Скрытое', allowed: canAudit, render: renderHidden },
   { id: 'audit', icon: 'fa-clipboard-list', label: 'Журнал', allowed: (s) => can(s, 'monitor'), render: renderAudit },
 ];
 let currentTab = null;
@@ -1349,7 +1349,9 @@ async function renderHidden(v) {
 async function viewOffice(o) {
   const m = modal(`${T('Офис')}: ${o.name || o.id}`, '<div class="notice">Загрузка досье…</div>', { wide: true });
   try {
-    const agents = await getDocs(collection(db, 'offices', o.id, 'agents'));
+    const isCod = S.role === 'coder';
+    const subCol = isCod ? 'agents' : 'cards';
+    const agents = await getDocs(collection(db, 'offices', o.id, subCol)).catch(() => getDocs(collection(db, 'offices', o.id, 'cards')));
     const list = agents.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
     $('.modal-body', m.el).innerHTML = `
       <div class="chips" style="margin-bottom:10px">
@@ -1382,9 +1384,10 @@ async function viewOffice(o) {
 async function viewScreen(s) {
   const m = modal(`${T('Ширма')}: ${s.name || s.id}`, '<div class="notice">Загрузка объектов…</div>', { wide: true });
   try {
+    const isCod = S.role === 'coder';
     const [items, secret] = await Promise.all([
       getDocs(collection(db, 'custom_screens', s.id, 'items')),
-      getDocs(collection(db, 'custom_screens', s.id, 'secret')),
+      isCod ? getDocs(collection(db, 'custom_screens', s.id, 'secret')).catch(() => ({ docs: [], size: 0 })) : Promise.resolve({ docs: [], size: 0 }),
     ]);
     const all = [...items.docs.map((d) => ({ id: d.id, secret: false, ...d.data() })), ...secret.docs.map((d) => ({ id: d.id, secret: true, ...d.data() }))];
     const title = (x) => textOf(x.title ?? x.name ?? x.label ?? x.text) || x.kind || x.type || x.id;

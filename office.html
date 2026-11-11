@@ -6,6 +6,10 @@
     <link rel="manifest" href="/manifest.webmanifest">
     <meta name="theme-color" content="#0a0a0a">
     <link rel="apple-touch-icon" href="/Assets/App/icon-192.png">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Управление Офисом / Office Management">
+    <meta property="og:description" content="Контракты, досье агентов, сессии и казна Офиса.">
+    <meta property="og:image" content="/Assets/App/icon-512.png">
     <title>Управление Офисом / Office Management</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Merriweather:ital,wght@0,300;1,300;1,700&family=Oswald:wght@400;500;700&display=swap" rel="stylesheet">
@@ -295,6 +299,16 @@
         .toast.loading { border-color: var(--color-yellow); color: var(--color-yellow); }
         .toast.out { opacity: 0; transform: translateY(6px); transition: 0.3s; }
         @keyframes toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+        @keyframes questHighlight {
+            0% { box-shadow: 0 0 0 0 rgba(143, 204, 42, 0.8); border-color: var(--accent-primary); }
+            50% { box-shadow: 0 0 18px 4px rgba(143, 204, 42, 0.95); border-color: #fff; }
+            100% { box-shadow: 0 0 0 0 rgba(143, 204, 42, 0); }
+        }
+        .quest-item.highlighted {
+            animation: questHighlight 1.5s ease-in-out 3;
+            border-color: var(--accent-primary) !important;
+        }
 
         /* Видимость по роли */
         body:not(.is-creator) .creator-only { display: none !important; }
@@ -704,6 +718,24 @@
                 </div>
             </div>
         </form>
+    </div>
+
+    <!-- Превью задания (по ссылке) -->
+    <div class="modal-overlay" id="questPreviewModal" role="dialog" aria-modal="true" aria-labelledby="qp-title" hidden>
+        <div class="panel-outer cut-tl modal-box" style="max-width: 640px;">
+            <div class="hazard-tape"></div>
+            <div class="panel-inner cut-tl">
+                <div class="panel-title">
+                    <span id="qp-title">ПРЕВЬЮ КОНТРАКТА</span>
+                    <button type="button" class="btn-close-modal" data-close aria-label="Закрыть"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+                </div>
+                <div id="qp-body" style="padding: 14px 0;"></div>
+                <div class="modal-actions" style="margin-top: 10px;">
+                    <button class="btn" type="button" data-close id="qp-close">ЗАКРЫТЬ</button>
+                    <button class="btn green" type="button" id="qp-goto" hidden><i class="fa-solid fa-arrow-right" aria-hidden="true"></i> ПЕРЕЙТИ В ОФИС</button>
+                </div>
+            </div>
+        </div>
     </div>
 
 </body>

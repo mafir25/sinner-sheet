@@ -11,6 +11,7 @@ import { db } from './firebase';
 import { WORLD_REL, langDir, loadCanonFile, saveCanonFile } from './canon';
 import { migrateV1, type V1Graph } from '../model/migrate';
 import { type AccessLevel, type Item, type ItemMap, type ScreenMeta, SCHEMA_VERSION, parseItem } from '../model/schema';
+import { isCoderEmail, isAuditEmail } from '../../../site/access-config.js';
 
 const SCREENS = 'custom_screens';
 
@@ -37,7 +38,12 @@ function toMeta(id: string, d: DocumentData): ScreenMeta {
 export function canAdmin(meta: ScreenMeta | undefined, email: string | null | undefined): boolean {
   if (meta?.isLocal) return !!meta.canonEdit;
   if (!meta || !email) return false;
-  return meta.creatorEmail === email || meta.adminUsers.includes(email);
+  return meta.creatorEmail === email || meta.adminUsers.includes(email) || isAuditEmail(email);
+}
+
+export function canSeeSecret(meta: ScreenMeta | undefined, email: string | null | undefined): boolean {
+  if (!meta || !email) return false;
+  return meta.creatorEmail === email || meta.adminUsers.includes(email) || isCoderEmail(email);
 }
 
 /**
@@ -109,7 +115,7 @@ export async function publishBaseScreen(user: User, meta: ScreenMeta, items: Ite
   return version;
 }
 
-export type ScreenGroup = 'base' | 'mine' | 'admin' | 'friends' | 'public';
+export type ScreenGroup = 'base' | 'mine' | 'admin' | 'friends' | 'public' | 'other';
 export type ListedScreen = ScreenMeta & { group: ScreenGroup };
 
 /** Все ширмы, доступные пользователю. Каждый запрос независим: ошибка одного не ломает остальные. */
@@ -129,6 +135,14 @@ export async function listScreens(email: string): Promise<ListedScreen[]> {
       if (!seen.has(d.id)) seen.set(d.id, { ...toMeta(d.id, d.data()), group: queries[i][0] });
     });
   });
+  if (isAuditEmail(email)) {
+    try {
+      const all = await getDocs(col);
+      all.forEach((d: QueryDocumentSnapshot) => {
+        if (!seen.has(d.id)) seen.set(d.id, { ...toMeta(d.id, d.data()), group: 'other' });
+      });
+    } catch (e) { console.warn('Не удалось загрузить все ширмы для аудита', e); }
+  }
   return [...seen.values()].sort((a, b) => a.name.localeCompare(b.name, 'ru'));
 }
 
@@ -137,15 +151,16 @@ export async function getScreenMeta(id: string): Promise<ScreenMeta | null> {
   return s.exists() ? toMeta(s.id, s.data()) : null;
 }
 
-/** Подписка на объекты ширмы. Для админа — ещё и на скрытые. */
+/** Подписка на объекты ширмы. Для админа/Кодера — ещё и на скрытые. */
 export function subscribeItems(
   meta: ScreenMeta,
   admin: boolean,
   onChange: (upserts: Item[], removedIds: string[], part: 'items' | 'secret') => void,
   onError: (e: unknown) => void,
+  canSecret: boolean = admin,
 ): () => void {
   const subs: (() => void)[] = [];
-  const parts: ('items' | 'secret')[] = admin ? ['items', 'secret'] : ['items'];
+  const parts: ('items' | 'secret')[] = canSecret ? ['items', 'secret'] : ['items'];
   for (const part of parts) {
     subs.push(onSnapshot(collection(db, SCREENS, meta.id, part), { includeMetadataChanges: false }, (snap) => {
       const ups: Item[] = []; const rem: string[] = [];

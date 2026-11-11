@@ -17,7 +17,7 @@ import {
   runTransaction, writeBatch, arrayUnion, arrayRemove, deleteField,
 } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 import { db } from './firebase.js';
-import { onAuth, findUserByNick, nicknamesOf } from './auth.js';
+import { onAuth, findUserByNick, nicknamesOf, isCoder, canAudit } from './auth.js';
 
 const T = (s) => (window.I18N ? window.I18N.t(s) : s);
 const $ = (id) => document.getElementById(id);
@@ -84,6 +84,7 @@ const LS_BUILDER_STATE = 'builder.v2.state';
 /* ---------------- Состояние ---------------- */
 const st = {
   user: null, nick: '', nickStatus: null,
+  access: null, isCoder: false, canAudit: false, pendingQuest: null,
   offices: [],           // [{ id, name, creator }]
   officeId: null, office: null, isCreator: false,
   agents: [], agentsReady: false,
@@ -213,7 +214,7 @@ function renderOfficeList() {
   list.innerHTML = st.offices.map((o) => `
     <button class="dropdown-item${o.id === st.officeId ? ' current' : ''}" data-act="open-office" data-id="${esc(o.id)}">
       <span class="notranslate">${esc(o.name || T('Без названия'))}</span>
-      <span class="role">${esc(T(o.mine ? 'менеджер' : 'агент'))}</span>
+      <span class="role">${esc(T(o.mine ? 'менеджер' : o.audit ? (st.isCoder ? 'кодер' : 'аудит') : 'агент'))}</span>
     </button>`).join('')
     + `<button class="dropdown-item dropdown-create" data-act="create-office"><i class="fa-solid fa-plus" aria-hidden="true"></i> ${esc(T('СОЗДАТЬ ОФИС'))}</button>`;
 }
@@ -240,9 +241,17 @@ async function loadUserOffices() {
       snap.forEach((d) => found.set(d.id, { id: d.id, name: d.data().name, mine: amCreatorOf(d.data()) }));
     } catch (e) { failed++; console.error(e); }
   }));
+  if (st.canAudit) {
+    try {
+      const allSnap = await getDocs(collection(db, 'offices'));
+      allSnap.forEach((d) => {
+        if (!found.has(d.id)) found.set(d.id, { id: d.id, name: d.data().name, mine: amCreatorOf(d.data()), audit: true });
+      });
+    } catch (e) { console.warn('Не удалось загрузить офисы для аудита', e); }
+  }
   if (st.user !== u) return;
   $('loading-gate').hidden = true;
-  if (failed === queries.length) {
+  if (failed === queries.length && !found.size) {
     toast('Ошибка доступа к базе офисов', 'error');
     $('office-list').innerHTML = `<div class="dropdown-item" style="color:var(--color-red)">${esc(T('Ошибка загрузки'))}</div>`;
     return;
@@ -250,11 +259,16 @@ async function loadUserOffices() {
   st.offices = [...found.values()].sort((a, b) => (b.mine - a.mine) || String(a.name).localeCompare(String(b.name)));
   renderOfficeList();
 
+  const urlParams = new URLSearchParams(location.search);
+  const paramOffice = urlParams.get('office') || urlParams.get('id');
+  if (urlParams.get('quest')) st.pendingQuest = urlParams.get('quest');
+
   if (!st.offices.length) { showEmpty(); return; }
   if (!st.officeId || !found.has(st.officeId)) {
     let last = null;
     try { last = localStorage.getItem(LS_LAST + u.uid); } catch (e) { /* ignore */ }
-    openOffice(found.has(last) ? last : st.offices[0].id);
+    const target = (paramOffice && (found.has(paramOffice) || st.canAudit)) ? paramOffice : (found.has(last) ? last : st.offices[0].id);
+    openOffice(target);
   }
 }
 
@@ -315,7 +329,8 @@ function openOffice(id) {
     const first = !st.office;
     st.office = snap.data();
     setCreator(amCreatorOf(st.office));
-    if (st.agentMode !== (st.isCreator ? 'creator' : 'member')) listenAgents(id, tok);
+    const fullAccess = st.isCreator || st.isCoder;
+    if (st.agentMode !== (fullAccess ? 'creator' : 'member')) listenAgents(id, tok);
     const entry = st.offices.find((o) => o.id === id);
     if (entry && entry.name !== st.office.name) { entry.name = st.office.name; renderOfficeList(); }
     renderOffice();
@@ -352,8 +367,9 @@ function openOffice(id) {
 function listenAgents(id, tok) {
   st.agentUnsub?.forEach((f) => { try { f(); } catch (e) { /* ignore */ } });
   st.agentUnsub = [];
-  st.agentMode = st.isCreator ? 'creator' : 'member';
-  st.full = []; st.cards = []; st.fullReady = false; st.cardsReady = st.isCreator;
+  const canSeeFull = st.isCreator || st.isCoder;
+  st.agentMode = canSeeFull ? 'creator' : 'member';
+  st.full = []; st.cards = []; st.fullReady = false; st.cardsReady = canSeeFull;
   const sortAgents = (list) => list.sort((a, b) => (a.order ?? a.createdAt ?? 0) - (b.order ?? b.createdAt ?? 0));
   const update = () => {
     if (tok !== st.token) return;
@@ -366,13 +382,13 @@ function listenAgents(id, tok) {
   };
   const fail = (err) => { if (tok !== st.token) return; console.error(err); st.fullReady = true; st.cardsReady = true; update(); };
   const agentsCol = collection(db, 'offices', id, 'agents');
-  const q = st.isCreator ? agentsCol : query(agentsCol, where('ownerUid', '==', st.user.uid));
+  const q = canSeeFull ? agentsCol : query(agentsCol, where('ownerUid', '==', st.user.uid));
   st.agentUnsub.push(onSnapshot(q, (snap) => {
     st.full = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
     st.fullReady = true;
     update();
   }, fail));
-  if (!st.isCreator) {
+  if (!canSeeFull) {
     st.agentUnsub.push(onSnapshot(collection(db, 'offices', id, 'cards'), (snap) => {
       st.cards = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
       st.cardsReady = true;
@@ -618,7 +634,7 @@ async function createOffice() {
 }
 
 async function deleteOffice() {
-  if (!st.isCreator) return;
+  if (!st.isCreator && !st.canAudit) return;
   const name = st.office.name || '';
   const typed = await dialog({
     title: 'УДАЛЕНИЕ ОФИСА', danger: true, ok: 'УДАЛИТЬ НАВСЕГДА',
@@ -1054,6 +1070,28 @@ function renderBoard() {
     html = `<p class="hint" style="margin-bottom:10px;">${esc(T('Создайте первый контракт кнопкой «+» — он сразу появится на доске.'))}</p>` + html;
   }
   box.innerHTML = html;
+  if (st.pendingQuest) {
+    const qid = st.pendingQuest;
+    const qObj = quests().find((x) => x.id === qid);
+    if (qObj) {
+      const g = parseInt(qObj.grade, 10) || 1;
+      if (!st.open.grades.has(g) || !st.open.quests.has(qid)) {
+        st.open.grades.add(g);
+        st.open.quests.add(qid);
+        renderBoard();
+        return;
+      }
+      st.pendingQuest = null;
+      requestAnimationFrame(() => {
+        const el = $(`quest-${qid}`);
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          el.classList.add('highlighted');
+          setTimeout(() => el.classList.remove('highlighted'), 4500);
+        }
+      });
+    }
+  }
 }
 
 function questHtml(q) {
@@ -1063,6 +1101,9 @@ function questHtml(q) {
   const assignee = q.assignee ? `<span><i class="fa-solid fa-user" aria-hidden="true"></i> <span class="notranslate">${esc(q.assignee)}</span></span>` : '';
   const reward = Number(q.reward) > 0
     ? `<span title="${esc(T(q.paidAmount ? 'Награда зачислена в казну' : 'Награда'))}"><i class="fa-solid fa-coins" aria-hidden="true"></i> ${esc(fmtNum(q.reward))} ${esc(T('Ан'))}${q.paidAmount ? ` <i class="fa-solid fa-check" aria-hidden="true"></i>` : ''}</span>` : '';
+  const shareBtn = `<button class="icon-btn" data-act="quest-share" data-id="${esc(q.id)}" title="${esc(T('Скопировать ссылку на контракт'))}" aria-label="${esc(T('Скопировать ссылку'))}"><i class="fa-solid fa-share-nodes" aria-hidden="true"></i></button>`;
+  const auditBtn = (!st.isCreator && st.canAudit)
+    ? `<button class="icon-btn danger" data-act="quest-delete" data-id="${esc(q.id)}" title="${esc(T('Удалить контракт (Аудит)'))}" aria-label="${esc(T('Удалить контракт'))}"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>` : '';
   const admin = st.isCreator ? `
     <div class="quest-admin">
       <select class="field" data-act="quest-status" data-id="${esc(q.id)}" aria-label="${esc(T('Статус'))}">
@@ -1072,16 +1113,16 @@ function questHtml(q) {
       <button class="icon-btn" data-act="quest-edit" data-id="${esc(q.id)}" title="${esc(T('Редактировать'))}" aria-label="${esc(T('Редактировать'))}"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>
       <button class="icon-btn" data-act="quest-hide" data-id="${esc(q.id)}" title="${esc(T('Скрыть с доски'))}" aria-label="${esc(T('Скрыть с доски'))}"><i class="fa-solid fa-eye-slash" aria-hidden="true"></i></button>
       <button class="icon-btn danger" data-act="quest-delete" data-id="${esc(q.id)}" title="${esc(T('Удалить контракт'))}" aria-label="${esc(T('Удалить контракт'))}"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
-    </div>` : '';
+    </div>` : auditBtn ? `<div class="quest-admin">${auditBtn}</div>` : '';
   return `
-    <div class="quest-item${open ? ' open' : ''}${s === 'done' || s === 'failed' ? ' closed-status' : ''}">
+    <div class="quest-item${open ? ' open' : ''}${s === 'done' || s === 'failed' ? ' closed-status' : ''}" id="quest-${esc(q.id)}">
       <button class="quest-toggle" data-act="quest-toggle" data-id="${esc(q.id)}" aria-expanded="${open}">
         <span class="qn notranslate">${esc(q.name)}</span>
         ${icon ? `<img src="${esc(icon)}" class="quest-icon" alt="" onerror="this.style.display='none'">` : ''}
         ${s !== 'open' ? statusTag(q) : ''}
       </button>
       <div class="quest-body">
-        <div class="quest-meta">${statusTag(q)}${assignee}${reward}</div>
+        <div class="quest-meta">${statusTag(q)}${assignee}${reward}${shareBtn}</div>
         <div class="md notranslate">${q.desc ? md(q.desc) : `<span class="muted">${esc(T('Без описания.'))}</span>`}</div>
         ${admin}
       </div>
@@ -1801,7 +1842,97 @@ function resetForms() {
   resetRepForm();
   resetStockForm();
   $('bank-form').reset();
-  ['agentModal', 'questBuilderModal', 'questManagerModal', 'dialogModal'].forEach(closeModal);
+  ['agentModal', 'questBuilderModal', 'questManagerModal', 'dialogModal', 'questPreviewModal'].forEach(closeModal);
+}
+
+/* ---------------- Ссылки и превью контрактов ---------------- */
+function shareQuestLink(id) {
+  const q = quests().find((x) => x.id === id);
+  if (!q) return;
+  const u = new URL(location.origin + location.pathname);
+  if (st.officeId) u.searchParams.set('office', st.officeId);
+  u.searchParams.set('quest', q.id);
+  const p = {
+    id: q.id,
+    name: q.name,
+    grade: q.grade,
+    status: statusOf(q),
+    reward: q.reward,
+    assignee: q.assignee || '',
+    desc: (q.desc || '').slice(0, 1000),
+    icon: q.Icon || '',
+    officeId: st.officeId || '',
+    officeName: st.office?.name || '',
+  };
+  try {
+    u.hash = 'qp=' + encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify(p)))));
+  } catch {
+    u.hash = 'quest=' + encodeURIComponent(q.id);
+  }
+  const text = u.href;
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(text).then(() => {
+      toast('Ссылка на задание скопирована в буфер обмена', 'success');
+    }).catch(() => prompt(T('Ссылка на контракт:'), text));
+  } else prompt(T('Ссылка на контракт:'), text);
+}
+
+function openQuestPreview(p) {
+  if (!p || !p.name) return;
+  const modal = $('questPreviewModal');
+  if (!modal) return;
+  const icon = safeUrl(p.icon);
+  const gradeLabel = GRADES[p.grade] || `${p.grade || 1} класс`;
+  const statusInfo = STATUSES[p.status] || { label: p.status || 'Открыт', color: 'yellow' };
+  const reward = Number(p.reward) > 0 ? `<span class="chip yellow"><i class="fa-solid fa-coins" aria-hidden="true"></i> ${esc(fmtNum(p.reward))} ${esc(T('Ан'))}</span>` : '';
+  const assignee = p.assignee ? `<span class="chip"><i class="fa-solid fa-user" aria-hidden="true"></i> ${esc(p.assignee)}</span>` : '';
+  const officeTag = p.officeName ? `<span class="chip cyan"><i class="fa-solid fa-building" aria-hidden="true"></i> ${esc(p.officeName)}</span>` : '';
+
+  $('qp-title').textContent = `${T('КОНТРАКТ')}: ${p.name}`;
+  $('qp-body').innerHTML = `
+    <div style="display:flex;gap:12px;align-items:flex-start;margin-bottom:12px;">
+      ${icon ? `<img src="${esc(icon)}" style="width:48px;height:48px;object-fit:contain;border:1px solid var(--line);border-radius:4px;" alt="">` : ''}
+      <div>
+        <h2 style="font-family:'Oswald';font-size:1.3rem;margin-bottom:4px;color:var(--text-main);">${esc(p.name)}</h2>
+        <div class="row" style="gap:6px;flex-wrap:wrap;">
+          ${officeTag}
+          <span class="chip">${esc(T(gradeLabel))}</span>
+          <span class="chip ${statusInfo.color}">${esc(T(statusInfo.label))}</span>
+          ${reward}
+          ${assignee}
+        </div>
+      </div>
+    </div>
+    <div class="md notranslate" style="background:var(--bg-field);padding:12px;border:1px solid var(--line);border-radius:4px;max-height:40vh;overflow-y:auto;">
+      ${p.desc ? md(p.desc) : `<span class="muted">${esc(T('Без описания.'))}</span>`}
+    </div>`;
+
+  const btnGoto = $('qp-goto');
+  if (btnGoto) {
+    const hasAccess = p.officeId && (st.officeId === p.officeId || st.offices.some((o) => o.id === p.officeId) || st.canAudit);
+    btnGoto.hidden = !hasAccess;
+    btnGoto.onclick = () => {
+      closeModal('questPreviewModal');
+      st.pendingQuest = p.id;
+      if (st.officeId !== p.officeId) openOffice(p.officeId);
+      else renderBoard();
+    };
+  }
+  openModal('questPreviewModal');
+}
+
+function checkQuestPreviewHash() {
+  const hash = location.hash || '';
+  if (hash.startsWith('#qp=')) {
+    try {
+      const raw = decodeURIComponent(hash.slice(4));
+      const json = decodeURIComponent(escape(atob(raw)));
+      const p = JSON.parse(json);
+      openQuestPreview(p);
+    } catch (e) {
+      console.warn('Не удалось прочитать превью задания из ссылки', e);
+    }
+  }
 }
 
 /* ---------------- Действия по клику ---------------- */
@@ -1841,6 +1972,7 @@ const ACTIONS = {
     b.closest('.quest-item').classList.toggle('open', st.open.quests.has(id));
     b.setAttribute('aria-expanded', String(st.open.quests.has(id)));
   },
+  'quest-share': (b) => shareQuestLink(b.dataset.id),
   'new-quest': () => openQuestEditor(null, [...st.open.grades][0]),
   'quest-manager': openQuestManager,
   'quest-edit': (b) => { const q = quests().find((x) => x.id === b.dataset.id); if (q) openQuestEditor(q); },
@@ -1897,7 +2029,11 @@ document.addEventListener('keydown', (e) => {
 
 /* ---------------- Вход ---------------- */
 let authSeen = false;
-onAuth(({ ready, user, nick, nickStatus }) => {
+onAuth((access) => {
+  const { ready, user, nick, nickStatus } = access;
+  st.access = access;
+  st.isCoder = isCoder(access);
+  st.canAudit = canAudit(access);
   if (!ready) return;
   const changed = !authSeen || (user?.uid || null) !== (st.user?.uid || null);
   authSeen = true;
@@ -1927,3 +2063,5 @@ onAuth(({ ready, user, nick, nickStatus }) => {
 });
 
 loadRates();
+checkQuestPreviewHash();
+window.addEventListener('hashchange', checkQuestPreviewHash);
