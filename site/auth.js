@@ -8,7 +8,7 @@ import {
   doc, getDoc, setDoc, updateDoc, runTransaction, serverTimestamp,
 } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 import { auth, db } from './firebase.js';
-import { CODER_EMAILS, CANON_GROUPS } from './access-config.js';
+import { CODER_EMAILS, AUDIT_EMAILS, CANON_GROUPS, isCoderEmail, isAuditEmail } from './access-config.js';
 
 /* ---------------- Ограничение попыток ввода пароля ----------------
    Не больше MAX_ATTEMPTS неудачных попыток входа/регистрации за WINDOW_MS в этом браузере.
@@ -212,7 +212,6 @@ async function ensureRegistered(user) {
    Тестер — testers/<uid>: не роль сотрудника, а отметка; видит переключатель оформлений (site/theme.js).
      Выдаёт только Кодер, сам Кодер — тестер всегда.
    Реальные права проверяет сервер (firestore.rules); здесь — только интерфейс. */
-import { CODER_EMAILS, AUDIT_EMAILS, CANON_GROUPS, isCoderEmail, isAuditEmail } from './access-config.js';
 export { CODER_EMAILS, AUDIT_EMAILS, CANON_GROUPS, isCoderEmail, isAuditEmail };
 export const ROLES = { coder: 'Кодер', headadmin: 'Гл-Админ', admin: 'Админ', tester: 'Тестер' };
 export const PERMS = {
