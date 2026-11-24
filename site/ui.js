@@ -8,6 +8,9 @@ import {
   onAuth, login, register, logout, setNickname, lockRemainingMs, attemptsLeft,
   MAX_ATTEMPTS, WINDOW_MS, MIN_PASSWORD, NICK_MAX, ROLES, isTester,
 } from './auth.js';
+import {
+  getCommentsVisible, setCommentsVisible, onCommentsVisibilityChange,
+} from './comments.js';
 
 const I18N = window.I18N || { lang: 'ru', langs: { ru: { label: 'Русский' } }, setLang() {}, t: (s) => s };
 const t = (s) => I18N.t(s);
@@ -49,6 +52,8 @@ const CSS = `
 .su-mail{color:#45B3CB;word-break:break-all;margin-bottom:10px}
 .su-hint{color:#696969;font-size:12px;line-height:1.4;margin-top:4px}
 .su-tag{display:inline-block;margin-left:6px;padding:1px 5px;border:1px solid #D9772F;color:#D9772F;font-size:10px;vertical-align:1px}
+.su-toggle-wrap{display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:4px 0;user-select:none}
+.su-toggle-wrap input[type=checkbox]{width:18px;height:18px;accent-color:#45B3CB;cursor:pointer}
 `;
 
 const html = String.raw;
@@ -86,6 +91,14 @@ function mount() {
         <div class="su-row" id="su-themes"></div>
         <div class="su-hint">Страницы без своей версии остаются в обычном оформлении.</div>
       </div>
+      <div class="su-sec" id="su-comments">
+        <div class="su-t">Комментарии</div>
+        <label class="su-toggle-wrap">
+          <span>Видимость комментариев</span>
+          <input type="checkbox" id="su-comments-toggle">
+        </label>
+        <div class="su-hint">Показывать комментарии под постами (База, Офис) и нефизические ноды с комментариями (Ширма).</div>
+      </div>
       <div class="su-sec" id="su-account"></div>
     </div>`;
   document.body.appendChild(root);
@@ -111,6 +124,18 @@ function mount() {
     if (e.target === root || e.target.closest('[data-su="close"]')) close();
   });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && root.classList.contains('su-open')) close(); });
+
+  const cmToggle = root.querySelector('#su-comments-toggle');
+  if (cmToggle) {
+    cmToggle.checked = getCommentsVisible();
+    cmToggle.addEventListener('change', () => {
+      setCommentsVisible(cmToggle.checked);
+    });
+    onCommentsVisibilityChange((v) => {
+      cmToggle.checked = v;
+    });
+  }
+
   renderTheme();
   renderAccount();
 }
@@ -260,6 +285,9 @@ onAuth((s) => {
   if (root) { renderTheme(); renderAccount(); }
 });
 
-window.SiteUI = { open, close, openAccount: () => open('account') };
+window.SiteUI = {
+  open, close, openAccount: () => open('account'),
+  getCommentsVisible, setCommentsVisible, onCommentsVisibilityChange,
+};
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount);
 else mount();

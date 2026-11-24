@@ -130,8 +130,12 @@ export function NodeEditor({ node, onSave, onClose }: { node: NodeItem; onSave: 
           </div>
           <div className="row">
             <label>Форма
-              <select className="input" value={n.shape} onChange={(e) => set({ shape: e.target.value as NodeItem['shape'] })}>
-                <option value="circle">Круг</option><option value="square">Квадрат</option><option value="icon">Иконка (только картинка)</option>
+              <select className="input" value={n.shape} onChange={(e) => {
+                const shape = e.target.value as NodeItem['shape'];
+                const isCm = shape === 'comment';
+                set({ shape, isComment: isCm || n.isComment, noPhysics: isCm || n.noPhysics });
+              }}>
+                <option value="circle">Круг</option><option value="square">Квадрат</option><option value="icon">Иконка (только картинка)</option><option value="comment">Комментарий 💬</option>
               </select>
             </label>
             <label>Цвет
@@ -141,7 +145,15 @@ export function NodeEditor({ node, onSave, onClose }: { node: NodeItem; onSave: 
               <input type="range" min={0.5} max={3} step={0.1} value={n.size} onChange={(e) => set({ size: Number(e.target.value) })} />
             </label>
             <label className="check"><input type="checkbox" checked={n.hidden} onChange={(e) => set({ hidden: e.target.checked })} /> Скрыт от игроков</label>
+            <label className="check" title="Не участвует в симуляции физики (не пружинит и не расталкивает)"><input type="checkbox" checked={n.noPhysics || n.isComment} onChange={(e) => set({ noPhysics: e.target.checked, isComment: e.target.checked })} /> Нефизический (комментарий)</label>
           </div>
+          {(n.isComment || n.noPhysics) && (
+            <div className="row">
+              <label className="grow">Автор комментария
+                <input className="input" value={n.authorNick || ''} placeholder="Никнейм или имя автора" onChange={(e) => set({ authorNick: e.target.value })} />
+              </label>
+            </div>
+          )}
           <label>Картинка (ссылка)
             <input className="input" value={n.image} placeholder="https://…" onChange={(e) => set({ image: e.target.value.trim() })} />
           </label>

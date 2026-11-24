@@ -18,6 +18,7 @@ import {
 } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 import { db } from './firebase.js';
 import { onAuth, findUserByNick, nicknamesOf, isCoder, canAudit } from './auth.js';
+import { mountCommentsWidget } from './comments.js';
 
 const T = (s) => (window.I18N ? window.I18N.t(s) : s);
 const $ = (id) => document.getElementById(id);
@@ -252,9 +253,13 @@ async function loadUserOffices() {
   if (st.user !== u) return;
   $('loading-gate').hidden = true;
   if (failed === queries.length && !found.size) {
-    toast('Ошибка доступа к базе офисов', 'error');
-    $('office-list').innerHTML = `<div class="dropdown-item" style="color:var(--color-red)">${esc(T('Ошибка загрузки'))}</div>`;
-    return;
+    if (typeof location !== 'undefined' && ['localhost', '127.0.0.1'].includes(location.hostname) && localStorage.getItem('dev.mockUser')) {
+      found.set('demo_office', { id: 'demo_office', name: 'Офис «Грешники»', mine: true });
+    } else {
+      toast('Ошибка доступа к базе офисов', 'error');
+      $('office-list').innerHTML = `<div class="dropdown-item" style="color:var(--color-red)">${esc(T('Ошибка загрузки'))}</div>`;
+      return;
+    }
   }
   st.offices = [...found.values()].sort((a, b) => (b.mine - a.mine) || String(a.name).localeCompare(String(b.name)));
   renderOfficeList();
@@ -314,6 +319,51 @@ function openOffice(id) {
   try { localStorage.setItem(LS_LAST + st.user.uid, id); } catch (e) { /* ignore */ }
   renderOfficeList();
   const stopLoading = toast('Получение данных офиса...', 'loading', 0);
+
+  if (id === 'demo_office') {
+    stopLoading();
+    setSync('live');
+    st.office = {
+      name: 'Офис «Грешники»',
+      rank: '1',
+      reputation: 100,
+      balance: 50000,
+      customQuests: [
+        {
+          id: 'q1',
+          name: 'Контракт: Зачистка района 23',
+          grade: 2,
+          reward: 50000,
+          status: 'open',
+          desc: 'Устранить искажение в заброшенном цехе.',
+          assignee: 'Грешник #1',
+        },
+      ],
+      activeQuests: ['q1'],
+      news: [
+        {
+          id: 'n1',
+          author: 'Менеджер',
+          date: '24.11.2026',
+          text: 'Внимание всем сотрудникам: активирован новый протокол безопасности.',
+          pinned: true,
+        },
+      ],
+    };
+    st.sessions = [
+      {
+        id: 's1',
+        name: 'Сессия #1: Прорыв границы',
+        date: '20.11.2026',
+        notes: 'Успешная операция в районе 4. Потерь нет.',
+      },
+    ];
+    st.sessionsState = 'ok';
+    setCreator(true);
+    renderOffice();
+    renderSessions();
+    return;
+  }
 
   const ref = doc(db, 'offices', id);
   st.unsub.push(onSnapshot(ref, (snap) => {
@@ -1102,6 +1152,7 @@ function questHtml(q) {
   const reward = Number(q.reward) > 0
     ? `<span title="${esc(T(q.paidAmount ? 'Награда зачислена в казну' : 'Награда'))}"><i class="fa-solid fa-coins" aria-hidden="true"></i> ${esc(fmtNum(q.reward))} ${esc(T('Ан'))}${q.paidAmount ? ` <i class="fa-solid fa-check" aria-hidden="true"></i>` : ''}</span>` : '';
   const shareBtn = `<button class="icon-btn" data-act="quest-share" data-id="${esc(q.id)}" title="${esc(T('Скопировать ссылку на контракт'))}" aria-label="${esc(T('Скопировать ссылку'))}"><i class="fa-solid fa-share-nodes" aria-hidden="true"></i></button>`;
+  const cmBtn = `<button class="icon-btn" data-act="quest-comments" data-id="${esc(q.id)}" title="${esc(T('Комментарии'))}" aria-label="${esc(T('Комментарии'))}"><i class="fa-regular fa-comment" aria-hidden="true"></i></button>`;
   const auditBtn = (!st.isCreator && st.canAudit)
     ? `<button class="icon-btn danger" data-act="quest-delete" data-id="${esc(q.id)}" title="${esc(T('Удалить контракт (Аудит)'))}" aria-label="${esc(T('Удалить контракт'))}"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>` : '';
   const admin = st.isCreator ? `
@@ -1122,9 +1173,10 @@ function questHtml(q) {
         ${s !== 'open' ? statusTag(q) : ''}
       </button>
       <div class="quest-body">
-        <div class="quest-meta">${statusTag(q)}${assignee}${reward}${shareBtn}</div>
+        <div class="quest-meta">${statusTag(q)}${assignee}${reward}${shareBtn}${cmBtn}</div>
         <div class="md notranslate">${q.desc ? md(q.desc) : `<span class="muted">${esc(T('Без описания.'))}</span>`}</div>
         ${admin}
+        <div class="quest-comments" id="quest-cm-${esc(q.id)}" hidden></div>
       </div>
     </div>`;
 }
@@ -1379,10 +1431,12 @@ function renderSessions() {
   const list = [...st.sessions].sort((a, b) => (Number(b.num) || 0) - (Number(a.num) || 0) || (b.createdAt || 0) - (a.createdAt || 0));
   box.innerHTML = list.map((x) => {
     const open = st.open.sessions.has(x.id);
+    const cmBtn = `<button class="icon-btn" data-act="session-comments" data-id="${esc(x.id)}" title="${esc(T('Комментарии'))}" aria-label="${esc(T('Комментарии'))}"><i class="fa-regular fa-comment" aria-hidden="true"></i></button>`;
     const tools = st.isCreator ? `<div class="item-tools">
+        ${cmBtn}
         <button class="icon-btn" data-act="session-edit" data-id="${esc(x.id)}" title="${esc(T('Редактировать'))}" aria-label="${esc(T('Редактировать'))}"><i class="fa-solid fa-pen" aria-hidden="true"></i></button>
         <button class="icon-btn danger" data-act="session-delete" data-id="${esc(x.id)}" title="${esc(T('Удалить запись'))}" aria-label="${esc(T('Удалить запись'))}"><i class="fa-solid fa-trash" aria-hidden="true"></i></button>
-      </div>` : '';
+      </div>` : `<div class="item-tools">${cmBtn}</div>`;
     const who = Array.isArray(x.agents) && x.agents.length
       ? `<div class="hint notranslate"><i class="fa-solid fa-users" aria-hidden="true"></i> ${esc(x.agents.join(', '))}</div>` : '';
     return `<article class="session-item${open ? ' open' : ''}">
@@ -1393,7 +1447,11 @@ function renderSessions() {
           ${x.date ? `<span class="news-date notranslate">${esc(x.date)}</span>` : ''}
         </button>${tools}
       </div>
-      <div class="session-body">${who}<div class="news-text md notranslate">${md(x.text)}</div></div>
+      <div class="session-body">
+        ${who}
+        <div class="news-text md notranslate">${md(x.text)}</div>
+        <div class="session-comments" id="session-cm-${esc(x.id)}" hidden></div>
+      </div>
     </article>`;
   }).join('');
 }
@@ -1973,6 +2031,24 @@ const ACTIONS = {
     b.setAttribute('aria-expanded', String(st.open.quests.has(id)));
   },
   'quest-share': (b) => shareQuestLink(b.dataset.id),
+  'quest-comments': (b) => {
+    const id = b.dataset.id;
+    const box = $(`quest-cm-${id}`);
+    if (!box) return;
+    const item = b.closest('.quest-item');
+    if (item && !item.classList.contains('open')) {
+      st.open.quests.add(id);
+      item.classList.add('open');
+      const toggle = item.querySelector('.quest-toggle');
+      if (toggle) toggle.setAttribute('aria-expanded', 'true');
+    }
+    const willOpen = box.hidden;
+    box.hidden = !willOpen;
+    b.classList.toggle('active', willOpen);
+    if (willOpen && !box._unmount) {
+      box._unmount = mountCommentsWidget(box, `office_${st.officeId || 'default'}_quest_${id}`, 'office');
+    }
+  },
   'new-quest': () => openQuestEditor(null, [...st.open.grades][0]),
   'quest-manager': openQuestManager,
   'quest-edit': (b) => { const q = quests().find((x) => x.id === b.dataset.id); if (q) openQuestEditor(q); },
@@ -1988,6 +2064,24 @@ const ACTIONS = {
     if (st.open.sessions.has(id)) st.open.sessions.delete(id); else st.open.sessions.add(id);
     b.closest('.session-item').classList.toggle('open', st.open.sessions.has(id));
     b.setAttribute('aria-expanded', String(st.open.sessions.has(id)));
+  },
+  'session-comments': (b) => {
+    const id = b.dataset.id;
+    const box = $(`session-cm-${id}`);
+    if (!box) return;
+    const item = b.closest('.session-item');
+    if (item && !item.classList.contains('open')) {
+      st.open.sessions.add(id);
+      item.classList.add('open');
+      const toggle = item.querySelector('.session-toggle');
+      if (toggle) toggle.setAttribute('aria-expanded', 'true');
+    }
+    const willOpen = box.hidden;
+    box.hidden = !willOpen;
+    b.classList.toggle('active', willOpen);
+    if (willOpen && !box._unmount) {
+      box._unmount = mountCommentsWidget(box, `office_${st.officeId || 'default'}_session_${id}`, 'office');
+    }
   },
   'session-edit': (b) => editSession(b.dataset.id),
   'session-delete': (b) => deleteSession(b.dataset.id),

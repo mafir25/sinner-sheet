@@ -66,7 +66,32 @@ export async function loadBaseWorld(canonEdit = false): Promise<ScreenMeta[]> {
     const res = await fetchData('world.json', { cache: 'no-cache' });
     if (!res.ok) return [];
     const arr = await res.json();
-    if (!Array.isArray(arr)) return [];
+    if (!Array.isArray(arr) || !arr.length) {
+      return [{
+        id: 'base:default',
+        name: 'Демо-Ширма',
+        creatorEmail: '',
+        accessLevel: 'public' as AccessLevel,
+        allowedUsers: [], adminUsers: [],
+        schemaVersion: SCHEMA_VERSION,
+        isLocal: true,
+        localItems: {
+          'demo-node-1': {
+            id: 'demo-node-1',
+            type: 'node',
+            name: 'Штаб-квартира',
+            x: 200,
+            y: 200,
+            color: '#3498DB',
+            shape: 'circle',
+            size: 1.5,
+          } as any,
+        },
+        baseId: 'default',
+        baseRaw: '',
+        canonEdit: false,
+      }];
+    }
     return arr.map((s: BaseEntry, i: number) => ({
       id: `base:${baseIdOf(s, i)}`,
       name: s.name ?? `Мир ${i + 1}`,
@@ -82,7 +107,30 @@ export async function loadBaseWorld(canonEdit = false): Promise<ScreenMeta[]> {
     }));
   } catch (e) {
     console.warn('world.json не загрузился', e);
-    return [];
+    return [{
+      id: 'base:default',
+      name: 'Демо-Ширма',
+      creatorEmail: '',
+      accessLevel: 'public' as AccessLevel,
+      allowedUsers: [], adminUsers: [],
+      schemaVersion: SCHEMA_VERSION,
+      isLocal: true,
+      localItems: {
+        'demo-node-1': {
+          id: 'demo-node-1',
+          type: 'node',
+          name: 'Штаб-квартира',
+          x: 200,
+          y: 200,
+          color: '#3498DB',
+          shape: 'circle',
+          size: 1.5,
+        } as any,
+      },
+      baseId: 'default',
+      baseRaw: '',
+      canonEdit: false,
+    }];
   }
 }
 

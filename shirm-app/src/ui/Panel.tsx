@@ -85,6 +85,12 @@ export function Panel({ store, screens, screenId, onPickScreen, email, active, o
     n.frameId = store.frameAt(x, y);
     setEditNode(n);
   };
+  const createCommentNode = (x: number, y: number) => {
+    const n = emptyNode(x, y, true);
+    n.frameId = store.frameAt(x, y);
+    n.authorNick = email.split('@')[0];
+    setEditNode(n);
+  };
   /** Рамка точно по прямоугольнику; узлы, чьи центры внутри, становятся её детьми. */
   const createFrameRect = async (r: { x: number; y: number; w: number; h: number }, onlyIds?: string[]) => {
     const title = await promptDialog('Название рамки', 'Новая рамка');
@@ -139,6 +145,7 @@ export function Panel({ store, screens, screenId, onPickScreen, email, active, o
     if (t.type === 'background') {
       if (s.admin) {
         items.push({ label: 'Создать узел здесь', icon: '＋', onClick: () => createNode(t.x, t.y) });
+        items.push({ label: 'Добавить узел-комментарий', icon: '💬', onClick: () => createCommentNode(t.x, t.y) });
         items.push({ label: 'Нарисовать рамку', icon: '▭', onClick: () => store.setDrawFrame(true) });
         items.push({ label: 'Быстрый импорт из базы', icon: '⇩', onClick: () => setImportAt({ x: t.x, y: t.y }) });
         if (clipboard.length) items.push({ label: `Вставить (${clipboard.filter((i) => !isLink(i)).length})`, icon: '⎘', onClick: () => paste(t) });

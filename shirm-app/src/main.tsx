@@ -19,4 +19,12 @@ for (const theme of ['limbus', 'lobotomy', 'library']) {
 const siteUi = '/site/ui.js';
 import(/* @vite-ignore */ siteUi).catch((e) => console.warn('site/ui.js не загрузился', e));
 
+const siteComments = '/site/comments.js';
+import(/* @vite-ignore */ siteComments).catch((e) => console.warn('site/comments.js не загрузился', e));
+
+const cmLink = document.createElement('link');
+cmLink.rel = 'stylesheet';
+cmLink.href = '/site/comments.css';
+document.head.appendChild(cmLink);
+
 createRoot(document.getElementById('root')!).render(<StrictMode><App /></StrictMode>);

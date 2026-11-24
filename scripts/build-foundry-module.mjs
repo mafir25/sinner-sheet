@@ -7,11 +7,12 @@
 // Релиз — .github/workflows/foundry-module.yml (тег или коммит с «[pm5e-release]»).
 import { readFile, writeFile, mkdir, readdir } from 'node:fs/promises';
 import { join, relative } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import JSZip from 'jszip';
 import { firebaseConfig, FIRESTORE_DB } from '../site/firebase-config.js';
 import { KB_FILES } from '../site/foundry-kb.js';
 
-const root = new URL('..', import.meta.url).pathname;
+const root = fileURLToPath(new URL('..', import.meta.url));
 const src = join(root, 'foundry-module');
 const out = join(root, 'dist-foundry');
 const REPO = 'mafir25/sinner-sheet';

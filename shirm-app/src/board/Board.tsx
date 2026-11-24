@@ -55,6 +55,18 @@ export const Board = forwardRef<BoardHandle, Props>(function Board(props, ref) {
   const drawRef = useRef(false);
   drawRef.current = st.drawFrame;
 
+  // ---------------------------------------------------------- видимость комментариев
+  const [commentsVisible, setCommentsVisibleState] = useState(() => {
+    try { return localStorage.getItem('site.comments.visible') !== '0'; } catch { return true; }
+  });
+  useEffect(() => {
+    const onVis = (e: any) => {
+      setCommentsVisibleState(e.detail?.visible ?? (localStorage.getItem('site.comments.visible') !== '0'));
+    };
+    window.addEventListener('site:comments-visibility', onVis);
+    return () => window.removeEventListener('site:comments-visibility', onVis);
+  }, []);
+
   // ---------------------------------------------------------- физика
   const [physicsOn, setPhysicsOn] = useState(() => lsGet(LS_PHYS) !== '0');
   const physOnRef = useRef(physicsOn); physOnRef.current = physicsOn;
@@ -350,13 +362,27 @@ export const Board = forwardRef<BoardHandle, Props>(function Board(props, ref) {
               </marker>
             ))}
           </defs>
-          {links.map((l) => <LinkView key={l.id} l={l} a={st.items[l.from]} b={st.items[l.to]}
-            pa={physicsOn ? vis.current.get(l.from) : undefined} pb={physicsOn ? vis.current.get(l.to) : undefined} />)}
+          {links.map((l) => {
+            const a = st.items[l.from], b = st.items[l.to];
+            if (!commentsVisible && ((isNode(a) && (a.isComment || a.shape === 'comment')) || (isNode(b) && (b.isComment || b.shape === 'comment')))) return null;
+            const aStatic = !physicsOn || (isNode(a) && (a.isComment || a.noPhysics));
+            const bStatic = !physicsOn || (isNode(b) && (b.isComment || b.noPhysics));
+            return (
+              <LinkView key={l.id} l={l} a={a} b={b}
+                pa={aStatic ? (a as any) : (physicsOn ? vis.current.get(l.from) : undefined)}
+                pb={bStatic ? (b as any) : (physicsOn ? vis.current.get(l.to) : undefined)} />
+            );
+          })}
         </svg>
-        {nodes.map((n) => (
-          <NodeView key={n.id} n={n} selected={selected.has(n.id)} open={st.openNodeId === n.id} admin={st.admin} {...handlers}
-            px={physicsOn ? vis.current.get(n.id)?.x : undefined} py={physicsOn ? vis.current.get(n.id)?.y : undefined} />
-        ))}
+        {nodes.map((n) => {
+          if ((n.isComment || n.shape === 'comment') && !commentsVisible) return null;
+          const isStatic = !physicsOn || n.isComment || n.noPhysics;
+          return (
+            <NodeView key={n.id} n={n} selected={selected.has(n.id)} open={st.openNodeId === n.id} admin={st.admin} {...handlers}
+              px={isStatic ? n.x : vis.current.get(n.id)?.x}
+              py={isStatic ? n.y : vis.current.get(n.id)?.y} />
+          );
+        })}
       </div>
       {marquee && (
         <div className={`marquee${marquee.mode === 'frame' ? ' marquee-frame' : ''}`} style={{
@@ -401,9 +427,10 @@ const NodeView = memo(function NodeView({ n, selected, open, px, py, ...h }:
   const [imgOk, setImgOk] = useState(true);
   useEffect(() => setImgOk(true), [n.image]);
   const showImg = !!n.image && imgOk;
+  const isCm = n.isComment || n.shape === 'comment';
   return (
     <div
-      className={`node shape-${n.shape}${selected ? ' selected' : ''}${open ? ' open' : ''}${n.hidden ? ' is-hidden' : ''}${n.size >= 1.5 ? ' big' : ''}`}
+      className={`node shape-${n.shape}${selected ? ' selected' : ''}${open ? ' open' : ''}${n.hidden ? ' is-hidden' : ''}${n.size >= 1.5 ? ' big' : ''}${isCm ? ' is-comment' : ''}${n.noPhysics ? ' no-physics' : ''}`}
       style={{ left: px ?? n.x, top: py ?? n.y, ['--c' as any]: n.color }}
       data-node-id={n.id}
       data-drag=""
@@ -414,8 +441,10 @@ const NodeView = memo(function NodeView({ n, selected, open, px, py, ...h }:
     >
       <div className="node-shape" style={{ width: size, height: size }}>
         {showImg && <img src={n.image} alt="" draggable={false} onError={() => setImgOk(false)} />}
+        {!showImg && isCm && <span className="node-cm-icon" style={{ fontSize: size * 0.65 }}>💬</span>}
       </div>
       {n.title && <div className="node-label" style={{ color: n.titleColor || n.color }}>{n.title}</div>}
+      {isCm && n.authorNick && <div className="node-author-tag">{n.authorNick}</div>}
     </div>
   );
 });

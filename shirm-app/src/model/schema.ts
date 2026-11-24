@@ -39,7 +39,7 @@ export const NodeSchema = z.object({
   tags: z.array(TagSchema).catch([]),
   body: z.string().catch(''),
   sections: z.array(SectionSchema).catch([]),
-  shape: z.enum(['circle', 'square', 'icon']).catch('circle'),
+  shape: z.enum(['circle', 'square', 'icon', 'comment']).catch('circle'),
   color,
   size: z.number().min(0.4).max(4).catch(1),
   image: z.string().catch(''),
@@ -47,6 +47,10 @@ export const NodeSchema = z.object({
   y: z.number().catch(0),
   frameId: z.string().nullable().catch(null),
   hidden: z.boolean().catch(false),
+  isComment: z.boolean().catch(false),
+  noPhysics: z.boolean().catch(false),
+  authorNick: z.string().catch(''),
+  createdAt: z.number().catch(0),
 });
 export type NodeItem = z.infer<typeof NodeSchema>;
 
@@ -114,10 +118,19 @@ export type ScreenMeta = {
 
 export const uid = (p = 'i') => `${p}_${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
 
-export function emptyNode(x: number, y: number): NodeItem {
+export function emptyNode(x: number, y: number, isComment = false): NodeItem {
   return {
-    kind: 'node', id: uid('n'), title: '', aliases: [], tags: [], body: '', sections: [],
-    shape: 'circle', color: '#40E0D0', size: 1, image: '', x, y, frameId: null, hidden: false,
+    kind: 'node', id: uid('n'),
+    title: isComment ? 'Комментарий' : '',
+    aliases: [], tags: [], body: '', sections: [],
+    shape: isComment ? 'comment' : 'circle',
+    color: isComment ? '#F1C40F' : '#40E0D0',
+    size: isComment ? 1.4 : 1,
+    image: '', x, y, frameId: null, hidden: false,
+    isComment,
+    noPhysics: isComment,
+    authorNick: '',
+    createdAt: Date.now(),
   };
 }
 

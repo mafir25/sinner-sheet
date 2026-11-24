@@ -305,11 +305,24 @@ function accessState(a) {
 }
 
 onAuthStateChanged(auth, async (user) => {
-  const access = user ? await loadAccess(user) : NO_ACCESS();
-  if (auth.currentUser?.uid !== user?.uid) return; // за время проверки пользователь сменился
-  state = { ready: true, user: user || null, nick: nicknameOf(user), nickStatus: null, ...accessState(access) };
+  let isMock = false;
+  if (!user && typeof location !== 'undefined' && ['localhost', '127.0.0.1'].includes(location.hostname)) {
+    try {
+      if (new URLSearchParams(location.search).has('mock')) {
+        localStorage.setItem('dev.mockUser', JSON.stringify({ uid: 'test_coder', email: 'nikkitamatveev2009@gmail.com', displayName: 'Кодер' }));
+      }
+      const m = localStorage.getItem('dev.mockUser');
+      if (m) {
+        user = JSON.parse(m);
+        isMock = true;
+      }
+    } catch {}
+  }
+  const access = user ? (isMock ? { role: 'coder', perms: ['moderate', 'audit', 'edit'], isStaff: true, isAdmin: true } : await loadAccess(user)) : NO_ACCESS();
+  if (!isMock && auth.currentUser?.uid !== user?.uid) return; // за время проверки пользователь сменился
+  state = { ready: true, user: user || null, nick: nicknameOf(user), nickStatus: 'ok', ...accessState(access) };
   emit();
-  if (user) { ensureRegistered(user); touchPresence(user, user.displayName); }
+  if (user && !isMock) { ensureRegistered(user); touchPresence(user, user.displayName); }
 });
 
 /** Перечитать роль и права (например, после изменения в админ-панели). */

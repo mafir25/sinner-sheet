@@ -1,5 +1,5 @@
 // Боковая панель с описанием узла.
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { renderMarkdown } from '../model/markdown';
 import { type ItemMap, type NodeItem, type Section, isLink, isNode } from '../model/schema';
 
@@ -45,6 +45,24 @@ export function Sidebar({ node, items, admin, width, maxWidth, compact, onWidth,
 }) {
   const drag = useRef<number | null>(null);
   const [allOpen, setAllOpen] = useState<boolean | null>(null);
+  const cmRef = useRef<HTMLDivElement>(null);
+  const [commentsVisible, setCommentsVisibleState] = useState(() => {
+    try { return localStorage.getItem('site.comments.visible') !== '0'; } catch { return true; }
+  });
+  useEffect(() => {
+    const onVis = (e: any) => setCommentsVisibleState(e.detail?.visible ?? (localStorage.getItem('site.comments.visible') !== '0'));
+    window.addEventListener('site:comments-visibility', onVis);
+    return () => window.removeEventListener('site:comments-visibility', onVis);
+  }, []);
+
+  useEffect(() => {
+    const el = cmRef.current;
+    if (!el || !commentsVisible) return;
+    const siteComments = (window as any).SiteComments;
+    if (siteComments?.mountCommentsWidget) {
+      return siteComments.mountCommentsWidget(el, `shirm_node_${node.id}`, 'shirm');
+    }
+  }, [node.id, commentsVisible]);
 
   const related = useMemo(() => {
     const out: { id: string; title: string; label: string; dir: '→' | '←' }[] = [];
@@ -98,6 +116,11 @@ export function Sidebar({ node, items, admin, width, maxWidth, compact, onWidth,
               <span className="dir">{r.dir}</span> {r.title || 'Без названия'} {r.label && <em>— {r.label}</em>}
             </button>
           ))}
+        </div>
+      )}
+      {commentsVisible && (
+        <div className="sidebar-comments" style={{ marginTop: 24 }}>
+          <div ref={cmRef} />
         </div>
       )}
     </aside>

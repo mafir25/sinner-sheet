@@ -8,6 +8,7 @@ import { DICT, SCHEMAS, fieldHtml as fieldHtmlBase, repeatRow as repeatRowBase, 
   CLASS_REGISTRY, classFileRel } from "./fields.js";
 import { fusionTier, parseChallenge, encounterBudget, rateEncounter } from "./compendium-tools.js";
 import { canExport, buildPackage, packageSize, importDataJson, foundryMacro } from "./foundry-export.js";
+import { mountCommentsWidget } from "./comments.js";
 
 /* ============================================================
    0. ИНИЦИАЛИЗАЦИЯ
@@ -771,6 +772,9 @@ function cardHtml(it, catId = state.cat, opts = {}){
     <button class="ctrl-btn ctrl-copy" data-act="parse-item" data-uid="${esc(uid)}" title="Полный парсинг ссылок"><i class="fa-solid fa-wand-magic-sparkles"></i></button>
     <button class="ctrl-btn ctrl-del" data-act="del-item" data-uid="${esc(uid)}"><i class="fa-solid fa-trash"></i></button>`;
 
+  ctrl += `
+    <button class="ctrl-btn ctrl-comment" data-act="comments-toggle" data-uid="${esc(uid)}" title="Комментарии к записи"><i class="fa-regular fa-comment"></i> Комментарии</button>`;
+
   return `<div class="panel-outer cut-tl card" data-uid="${esc(uid)}">
     <div class="hazard-tape"></div>
     <div class="panel-inner cut-tl" style="border-top:none">
@@ -785,6 +789,7 @@ function cardHtml(it, catId = state.cat, opts = {}){
         ${v.body}
         ${it.__origin === "custom" ? `<div class="creator-tag">Автор: ${esc(it.__creator)}</div>` : ""}
         <div class="card-controls">${ctrl}</div>
+        <div class="card-comments" id="comments-${esc(uid)}" hidden></div>
       </div></div>
     </div>
   </div>`;
@@ -2769,11 +2774,12 @@ function renderPop(){
     pop.innerHTML = `<div class="xp-head">${back}<div style="min-width:0">
         <div class="xp-cat"><i class="fa-solid ${esc(c.icon)}"></i> ${esc(c.label)}${e.it.__origin === "custom" ? ` · автор: ${esc(e.it.__creator)}` : ""}</div>
         <div class="xp-title">${esc(v.title)}</div>${v.meta ? `<div class="xp-meta">${v.meta}</div>` : ""}</div>${close}</div>
-      <div class="xp-body">${v.level ? `<div class="level-badge">${v.level}</div>` : ""}${v.badges ? `<div class="badges">${v.badges}</div>` : ""}${v.body}</div>
+      <div class="xp-body">${v.level ? `<div class="level-badge">${v.level}</div>` : ""}${v.badges ? `<div class="badges">${v.badges}</div>` : ""}${v.body}<div class="card-comments xp-comments" hidden></div></div>
       <div class="xp-foot">
         <button class="ctrl-btn ctrl-copy" data-act="xp-open"><i class="fa-solid fa-arrow-up-right-from-square"></i> Открыть в базе</button>
         <button class="ctrl-btn ctrl-pick${picked ? " on" : ""}" data-act="pick" data-uid="${esc(e.uid)}">
           <i class="fa-regular ${picked ? "fa-square-check" : "fa-square"}"></i> ${picked ? "Выбрано" : "Выбрать"}</button>
+        <button class="ctrl-btn ctrl-comment" data-act="xp-comments" data-uid="${esc(e.uid)}"><i class="fa-regular fa-comment"></i> Комментарии</button>
         <button class="ctrl-btn ctrl-dl" data-act="xp-link"><i class="fa-solid fa-link"></i> Ссылка</button>
       </div>`;
     const body = pop.querySelector(".xp-body");
@@ -3591,6 +3597,32 @@ document.addEventListener("click", async ev => {
     case "gs-open": openGlobalSearch(); break;
     case "gs-go": { const e = GS.results[+el.dataset.i]; if (e){ closeGlobalSearch(); await openInBase(e); } break; }
     case "dl-item": { const it = findItem(uid); if (it) downloadJson([cleanCopy(it)], `${it.Name || "item"}.json`); break; }
+    case "comments-toggle": {
+      const cardEl = el.closest(".card");
+      if (!cardEl) break;
+      const box = cardEl.querySelector(".card-comments");
+      if (!box) break;
+      const willOpen = box.hidden;
+      box.hidden = !willOpen;
+      el.classList.toggle("on", willOpen);
+      if (willOpen && !box._unmount) {
+        box._unmount = mountCommentsWidget(box, uid, "navigation");
+      }
+      break;
+    }
+    case "xp-comments": {
+      const pop = $("#xref-pop");
+      if (!pop) break;
+      const box = pop.querySelector(".xp-comments");
+      if (!box) break;
+      const willOpen = box.hidden;
+      box.hidden = !willOpen;
+      el.classList.toggle("on", willOpen);
+      if (willOpen && !box._unmount) {
+        box._unmount = mountCommentsWidget(box, uid, "navigation");
+      }
+      break;
+    }
 
     case "open-picks": openSidebar("#sb-picks"); break;
     case "open-fusion": renderFusion(); openSidebar("#sb-fusion"); break;

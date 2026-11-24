@@ -1,0 +1,243 @@
+/* site/comments.css — Стили для комментариев на всех страницах */
+
+/* Глобальное скрытие комментариев при выключенной настройке */
+html[data-hide-comments="true"] .comments-container,
+html[data-hide-comments="true"] .card-comments,
+html[data-hide-comments="true"] .quest-comments,
+html[data-hide-comments="true"] .session-comments,
+html[data-hide-comments="true"] [data-act="comments-toggle"],
+html[data-hide-comments="true"] .node-comment,
+html.hide-comments .comments-container,
+html.hide-comments .card-comments,
+html.hide-comments .quest-comments,
+html.hide-comments .session-comments,
+html.hide-comments [data-act="comments-toggle"],
+html.hide-comments .node-comment {
+  display: none !important;
+}
+
+.comments-container {
+  margin-top: 14px;
+  padding: 12px 14px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid #222;
+  border-left: 3px solid #45B3CB;
+  border-radius: 2px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  color: #E0D8C8;
+}
+
+.comments-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.comments-title {
+  font-family: 'Oswald', sans-serif;
+  font-size: 13px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #45B3CB;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.comments-count-badge {
+  background: rgba(69, 179, 203, 0.15);
+  color: #45B3CB;
+  border: 1px solid #45B3CB;
+  font-family: 'Oswald', sans-serif;
+  font-size: 11px;
+  padding: 1px 7px;
+  border-radius: 10px;
+}
+
+.comments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 12px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.comments-loading,
+.comments-empty {
+  font-size: 12px;
+  color: #696969;
+  font-style: italic;
+  padding: 6px 0;
+}
+
+.comment-item {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid #1a1a1a;
+  padding: 8px 10px;
+  border-radius: 2px;
+}
+
+.comment-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+  font-size: 12px;
+}
+
+.comment-author {
+  font-weight: 600;
+  color: #45B3CB;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.comment-date {
+  color: #696969;
+  font-size: 11px;
+  margin-left: auto;
+}
+
+.comment-del-btn {
+  background: none;
+  border: none;
+  color: #696969;
+  cursor: pointer;
+  padding: 0 4px;
+  font-size: 12px;
+  line-height: 1;
+  transition: color 0.15s;
+}
+
+.comment-del-btn:hover {
+  color: #C7243A;
+}
+
+.comment-text {
+  font-size: 13px;
+  line-height: 1.45;
+  color: #E0D8C8;
+  word-break: break-word;
+}
+
+/* Форма добавления комментария */
+.comments-form-wrap {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.08);
+}
+
+.comments-login-prompt {
+  font-size: 12px;
+  color: #888;
+  padding: 4px 0;
+}
+
+.comments-login-btn {
+  background: none;
+  border: none;
+  color: #45B3CB;
+  text-decoration: underline;
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+}
+
+.comments-login-btn:hover {
+  color: #fff;
+}
+
+.comments-form-author {
+  font-size: 11px;
+  color: #696969;
+  margin-bottom: 4px;
+}
+
+.comments-form-author strong {
+  color: #45B3CB;
+}
+
+.comments-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  background: #000;
+  border: 1px solid #333;
+  color: #E0D8C8;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  padding: 8px;
+  border-radius: 2px;
+  resize: vertical;
+  min-height: 48px;
+  transition: border-color 0.2s;
+}
+
+.comments-textarea:focus {
+  outline: none;
+  border-color: #45B3CB;
+}
+
+.comments-form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 6px;
+}
+
+.comments-form-msg {
+  font-size: 11px;
+  color: #696969;
+}
+
+.comments-form-msg.error {
+  color: #C7243A;
+}
+
+.comments-submit-btn {
+  padding: 5px 14px;
+  background: #000;
+  border: 1px solid #45B3CB;
+  color: #45B3CB;
+  font-family: 'Oswald', sans-serif;
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.2s;
+}
+
+.comments-submit-btn:hover:not(:disabled) {
+  background: rgba(69, 179, 203, 0.15);
+  box-shadow: 0 0 8px rgba(69, 179, 203, 0.3);
+}
+
+.comments-submit-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Кнопка открытия комментариев в карточках / контрактах */
+.ctrl-btn.ctrl-comment {
+  position: relative;
+}
+
+.ctrl-btn.ctrl-comment.has-comments {
+  border-color: #45B3CB;
+  color: #45B3CB;
+}
+
+.ctrl-btn.ctrl-comment .cm-badge {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 0 4px;
+  background: rgba(69, 179, 203, 0.2);
+  border-radius: 8px;
+  font-size: 10px;
+}

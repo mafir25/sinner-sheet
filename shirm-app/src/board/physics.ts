@@ -40,6 +40,7 @@ export class Physics {
     let structural = false, jumped = false;
     for (const it of Object.values(items)) {
       if (!isNode(it)) continue;
+      if (it.isComment || it.noPhysics) continue; // нефизические ноды не участвуют в симуляции
       seen.add(it.id);
       let n = this.nodes.get(it.id);
       if (!n) {
@@ -138,7 +139,11 @@ export class Physics {
 
   private scheduleRender() {
     if (this.raf) return;
-    this.raf = requestAnimationFrame(() => { this.raf = 0; this.render(this.nodes); });
+    if (typeof requestAnimationFrame !== 'undefined') {
+      this.raf = requestAnimationFrame(() => { this.raf = 0; this.render(this.nodes); });
+    } else {
+      this.raf = setTimeout(() => { this.raf = 0; this.render(this.nodes); }, 0) as any;
+    }
   }
 
   /** Узлы рамки не выходят за её края (кроме тех, что тащат прямо сейчас). */

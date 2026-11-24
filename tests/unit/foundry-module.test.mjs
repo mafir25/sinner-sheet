@@ -2,11 +2,12 @@ import { describe, it, expect, beforeAll } from 'vitest';
 import { execFileSync } from 'node:child_process';
 import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import JSZip from 'jszip';
 import { parsePackage } from '../../site/foundry-import.js';
 import { featItem, foundryMacro, buildPackage, importDataJson } from '../../site/foundry-export.js';
 
-const root = new URL('../..', import.meta.url).pathname;
+const root = fileURLToPath(new URL('../..', import.meta.url));
 const pkg = buildPackage([{ cat: 'feats', it: { Name: 'Ч', desc: 'x' }, ref: { key: 'Ч' } }], { origin: 'https://site.test', folders: { feats: 'Черты' } });
 
 describe('parsePackage — что вставили в окно импорта', () => {
@@ -26,7 +27,7 @@ describe('parsePackage — что вставили в окно импорта', 
 describe('модуль pm5e (собранный архив) на имитации Foundry', () => {
   let dir, manifest;
   beforeAll(async () => {
-    execFileSync('node', [join(root, 'scripts/build-foundry-module.mjs'), '1.2.3'], { cwd: root });
+    execFileSync(process.execPath, [join(root, 'scripts/build-foundry-module.mjs'), '1.2.3'], { cwd: root });
     const zip = await JSZip.loadAsync(readFileSync(join(root, 'dist-foundry/pm5e.zip')));
     dir = join(root, 'dist-foundry', 'unpacked');      // внутри проекта: Vite не импортирует файлы снаружи
     for (const [name, f] of Object.entries(zip.files)) {

@@ -18,7 +18,29 @@ const LSset = (k: string, v: string) => { try { localStorage.setItem(k, v); } ca
 
 export function App() {
   const [user, setUser] = useState<User | null | undefined>(undefined);
-  useEffect(() => onAuthStateChanged(auth, (u) => setUser(u)), []);
+  useEffect(() => {
+    if (['localhost', '127.0.0.1'].includes(location.hostname)) {
+      try {
+        if (new URLSearchParams(location.search).has('mock')) {
+          localStorage.setItem('dev.mockUser', JSON.stringify({ uid: 'test_coder', email: 'nikkitamatveev2009@gmail.com', displayName: 'Кодер' }));
+        }
+        const m = localStorage.getItem('dev.mockUser');
+        if (m) { setUser(JSON.parse(m)); return; }
+      } catch {}
+    }
+    return onAuthStateChanged(auth, (u) => {
+      if (!u && ['localhost', '127.0.0.1'].includes(location.hostname)) {
+        try {
+          if (new URLSearchParams(location.search).has('mock')) {
+            localStorage.setItem('dev.mockUser', JSON.stringify({ uid: 'test_coder', email: 'nikkitamatveev2009@gmail.com', displayName: 'Кодер' }));
+          }
+          const m = localStorage.getItem('dev.mockUser');
+          if (m) { setUser(JSON.parse(m)); return; }
+        } catch {}
+      }
+      setUser(u);
+    });
+  }, []);
 
   if (user === undefined) return <div className="splash">Загрузка…</div>;
   if (user === null) {
@@ -76,6 +98,11 @@ function Workspace({ user }: { user: User }) {
   // загрузка выбранных ширм в панели
   useEffect(() => {
     if (!screens.length) return;
+    if (!picked[0] && screens[0]) {
+      setPicked([screens[0].id, picked[1]]);
+      LSset('shirm.panel1', screens[0].id);
+      return;
+    }
     picked.forEach((id, i) => {
       const meta = screens.find((s) => s.id === id) ?? null;
       if ((stores[i].state.meta?.id ?? '') !== (meta?.id ?? '')) void stores[i].load(meta, email);

@@ -2,9 +2,10 @@ import { describe, it, expect, beforeAll } from 'vitest';
 import { execFileSync } from 'node:child_process';
 import { readFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import JSZip from 'jszip';
 
-const root = new URL('../..', import.meta.url).pathname;
+const root = fileURLToPath(new URL('../..', import.meta.url));
 
 /** Мини-Foundry: актёр с Active Effects, хуки, бой, чат. */
 function fakeWorld() {
@@ -42,7 +43,7 @@ function fakeWorld() {
 describe('модуль: статусы на имитации Foundry', () => {
   let S, W;
   beforeAll(async () => {
-    execFileSync('node', [join(root, 'scripts/build-foundry-module.mjs'), '9.9.9'], { cwd: root });
+    execFileSync(process.execPath, [join(root, 'scripts/build-foundry-module.mjs'), '9.9.9'], { cwd: root });
     const zip = await JSZip.loadAsync(readFileSync(join(root, 'dist-foundry/pm5e.zip')));
     const dir = join(root, 'dist-foundry', 'unpacked-st');
     for (const [name, f] of Object.entries(zip.files)) {

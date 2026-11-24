@@ -11,6 +11,14 @@ export function Minimap({ items, getTransform, zoomSubs, rootRef, onJump }: {
   const ref = useRef<HTMLCanvasElement>(null);
   const [hidden, setHidden] = useState(false);
   const [transform, setT] = useState<ZoomTransform>(getTransform());
+  const [commentsVisible, setCommentsVisibleState] = useState(() => {
+    try { return localStorage.getItem('site.comments.visible') !== '0'; } catch { return true; }
+  });
+  useEffect(() => {
+    const onVis = (e: any) => setCommentsVisibleState(e.detail?.visible ?? (localStorage.getItem('site.comments.visible') !== '0'));
+    window.addEventListener('site:comments-visibility', onVis);
+    return () => window.removeEventListener('site:comments-visibility', onVis);
+  }, []);
   useEffect(() => {
     let raf = 0;
     const f = (t: ZoomTransform) => { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => setT(t)); };
@@ -26,7 +34,10 @@ export function Minimap({ items, getTransform, zoomSubs, rootRef, onJump }: {
     let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
     const vals = Object.values(items);
     for (const it of vals) {
-      if (isNode(it)) { x0 = Math.min(x0, it.x); x1 = Math.max(x1, it.x); y0 = Math.min(y0, it.y); y1 = Math.max(y1, it.y); }
+      if (isNode(it)) {
+        if (!commentsVisible && (it.isComment || it.shape === 'comment')) continue;
+        x0 = Math.min(x0, it.x); x1 = Math.max(x1, it.x); y0 = Math.min(y0, it.y); y1 = Math.max(y1, it.y);
+      }
       else if (isFrame(it)) { x0 = Math.min(x0, it.x); x1 = Math.max(x1, it.x + it.w); y0 = Math.min(y0, it.y); y1 = Math.max(y1, it.y + it.h); }
     }
     const t = transform;
@@ -44,7 +55,10 @@ export function Minimap({ items, getTransform, zoomSubs, rootRef, onJump }: {
     }
     ctx.globalAlpha = 1;
     for (const it of vals) {
-      if (isNode(it)) { ctx.fillStyle = it.color; ctx.fillRect(X(it.x) - 1, Y(it.y) - 1, 2.5, 2.5); }
+      if (isNode(it)) {
+        if (!commentsVisible && (it.isComment || it.shape === 'comment')) continue;
+        ctx.fillStyle = it.color; ctx.fillRect(X(it.x) - 1, Y(it.y) - 1, 2.5, 2.5);
+      }
     }
     ctx.strokeStyle = '#F1C40F'; ctx.lineWidth = 1.5;
     ctx.strokeRect(X(vx0), Y(vy0), vw * s, vh * s);

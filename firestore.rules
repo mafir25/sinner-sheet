@@ -397,5 +397,29 @@ service cloud.firestore {
     match /gm_notes/{uid} {
       allow read, write: if signedIn() && request.auth.uid == uid;
     }
+
+    // ---------------- Комментарии в общественных местах (site/comments.js)
+    match /comments/{cid} {
+      function validComment(d) {
+        return d.keys().hasOnly(['targetId', 'page', 'authorUid', 'authorNick', 'authorEmail', 'text', 'createdAt', 'x', 'y', 'screenId', 'isNode', 'nodeId'])
+          && isShortString(d.targetId, 120)
+          && d.page in ['navigation', 'office', 'shirm']
+          && d.authorUid == request.auth.uid
+          && isShortString(d.authorNick, 80)
+          && d.authorEmail == myEmail()
+          && d.text is string && d.text.size() > 0 && d.text.size() <= 5000
+          && d.createdAt is number
+          && (!('x' in d) || d.x is number)
+          && (!('y' in d) || d.y is number)
+          && (!('screenId' in d) || isShortString(d.screenId, 120))
+          && (!('isNode' in d) || d.isNode is bool)
+          && (!('nodeId' in d) || isShortString(d.nodeId, 120));
+      }
+
+      allow read: if true;
+      allow create: if signedIn() && notBanned() && validComment(request.resource.data);
+      allow update: if signedIn() && notBanned() && (resource.data.authorUid == request.auth.uid || can('moderate')) && validComment(request.resource.data);
+      allow delete: if signedIn() && (resource.data.authorUid == request.auth.uid || can('moderate') || canAudit());
+    }
   }
 }
