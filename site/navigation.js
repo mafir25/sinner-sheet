@@ -151,11 +151,13 @@ function textPlain(it){
   return s;
 }
 
+const IS_V2 = !!window.SiteModule?.isV2();
+
 /* ============================================================
    3. КОНФИГ КАТЕГОРИЙ
    Добавить новую категорию = добавить объект сюда.
    ============================================================ */
-const CATS = {
+const V1_CATS = {
   /* Архетипы выбранного основного класса. Классы — из реестра (см. «Реестр классов» ниже):
      канонические архетипы лежат в файле класса, пользовательские ссылаются на класс полем Class. */
   classes: {
@@ -390,6 +392,86 @@ const CATS = {
     title:"Личный кабинет", sub:"Всё, что вы создали, — во всех разделах базы."
   }
 };
+const V2_CATS = {
+  bases: V1_CATS.bases,
+  classes: {
+    ...V1_CATS.classes,
+    label:"Аффилиации",
+    title:"База данных: аффилиации и классы (2.0)",
+    sub:"В редакции 2.0 традиционные подклассы заменены на Аффилиации (1, 3, 6, 10, 13, 17 ур.)."
+  },
+  races: {
+    label:"Расы", icon:"fa-dna", color:"#16A085", kind:"data",
+    title:"Расы и родословные (2.0)", src:"races.json",
+    sub:"Человек, Генетическая модификация, Родословная кровососов, Полу-Искажение и заготовки 2.0.",
+    sort:(a,b)=>String(a.Name).localeCompare(String(b.Name)),
+    card(it){
+      const meta = [it.Category, it.Size, it.Speed].filter(Boolean).join(" · ");
+      return {
+        title: it.Name,
+        meta: esc(meta), metaBelow:true,
+        body: (it.Desc ? `<div class="card-desc md">${md(it.Desc)}</div>` : "")
+          + arr(it.Traits).map(tr => subBlock(tr.name, tr.desc, "#16A085", null, true)).join("")
+      };
+    },
+    plain: it => `=== ${it.Name} ===\n${[it.Category, it.Size, it.Speed].filter(Boolean).join(" | ")}\n\n${it.Desc||""}\n`
+      + arr(it.Traits).map(tr => `\n[${tr.name}]\n${tr.desc}`).join("")
+  },
+  backgrounds: {
+    label:"Предыстории", icon:"fa-scroll", color:"#D35400", kind:"data",
+    title:"Предыстории персонажей (2.0)", src:"backgrounds.json",
+    sub:"Происхождение в Городе, Закоулках, Гнезде, Окраинах или на Великом Озере.",
+    sort:(a,b)=>String(a.Name).localeCompare(String(b.Name)),
+    card(it){
+      const lines = [
+        it.Skills ? `**Навыки:** ${it.Skills}` : "",
+        it.Tools ? `**Инструменты:** ${it.Tools}` : "",
+        it.Languages ? `**Языки:** ${it.Languages}` : "",
+        it.Equipment ? `**Снаряжение:** ${it.Equipment}` : ""
+      ].filter(Boolean).join("\n\n");
+      return {
+        title: it.Name,
+        body: (it.Desc ? `<div class="card-desc md">${md(it.Desc)}</div>` : "")
+          + (lines ? `<div class="md" style="margin-bottom:12px">${md(lines)}</div>` : "")
+          + arr(it.Features).map(f => subBlock(f.name, f.desc, "#D35400", null, true)).join("")
+      };
+    },
+    plain: it => `=== ${it.Name} ===\nНавыки: ${it.Skills||"—"}\nИнструменты: ${it.Tools||"—"}\nЯзыки: ${it.Languages||"—"}\nСнаряжение: ${it.Equipment||"—"}\n\n${it.Desc||""}\n`
+      + arr(it.Features).map(f => `\n[${f.name}]\n${f.desc}`).join("")
+  },
+  feats: V1_CATS.feats,
+  equipment: V1_CATS.equipment,
+  statuses: {
+    ...V1_CATS.statuses,
+    title:"Статус-эффекты (2.0)",
+    filters:[ { key:"Category", title:"Категория", dict:"statusCats" } ],
+    card:it => ({
+      title: it.Name,
+      badges: badges(it.Category,"statusCats"),
+      body:`<div class="md" style="margin-bottom:12px"><b>Эффект:</b><br>${md(it.Effect)}</div>`
+        + arr(it.SideEffects).map(se => subBlock(se.sideeffectname, se.sideeffect, "var(--color-yellow)")).join("")
+    })
+  },
+  rules: {
+    ...V1_CATS.rules,
+    title:"Базовые и вариантные правила (2.0)",
+    sub:"Core Rules и Variant Rules редакции Project Moon 5e 2.0."
+  },
+  ego2: {
+    label:"Э.Г.О. [WIP]", icon:"fa-gem", color:"#E67E22", kind:"data",
+    title:"Пробуждение Э.Г.О. (2.0 · В разработке)", src:"ego2.json",
+    sub:"Раздел подготовлен под модуль E.G.O Manifestation редакции 2.0.",
+    card: textCard("ruleTags"), plain: textPlain
+  },
+  lore: {
+    ...V1_CATS.lore,
+    label:"Мир и Лор",
+    title:"Мир Project Moon (2.0)",
+    sub:"Устройство Города, Крылья, Закоулки и заготовка разделов 2.0."
+  },
+  me: V1_CATS.me
+};
+const CATS = IS_V2 ? V2_CATS : V1_CATS;
 /* Схемы полей конструктора (builder) и поле «Синонимы» — в site/fields.js */
 const CAT_BY_CUSTOM = Object.fromEntries(
   Object.entries(CATS).filter(([,c]) => c.customType).map(([id,c]) => [c.customType, id])
@@ -403,7 +485,13 @@ const CAT_BY_CUSTOM = Object.fromEntries(
    Пользовательский архетип ссылается на класс полем Class (ключ канона или «c:<id>»);
    архетип без Class (старые записи) или со ссылкой на недоступный класс виден у всех классов.
    ============================================================ */
-const DEFAULT_SYSTEMS = [
+const DEFAULT_SYSTEMS = IS_V2 ? [
+  { id:"fighter", Name:"Боец", BaseTitle:"Боец (Fighter · 2.0)", Base:"fighter.json", Archetypes:"affiliations.json" },
+  { id:"vanguard", Name:"Авангард", BaseTitle:"Авангард (Vanguard · 2.0)", Base:"vanguard.json", Archetypes:"affiliations.json" },
+  { id:"marksman", Name:"Стрелок", BaseTitle:"Стрелок (Marksman · 2.0)", Base:"marksman.json", Archetypes:"affiliations.json" },
+  { id:"assassin", Name:"Убийца", BaseTitle:"Убийца (Assassin · 2.0)", Base:"assassin.json", Archetypes:"affiliations.json" },
+  { id:"adept", Name:"Адепт", BaseTitle:"Адепт (Adept · 2.0)", Base:"adept.json", Archetypes:"affiliations.json" }
+] : [
   { id:"fixer", Name:"Фиксер", BaseTitle:"Фиксер (основной класс)", Base:"fixer.json", Archetypes:"classes.json" },
   { id:"bloodfiend", Name:"Кровосос", BaseTitle:"Первородный кровосос (основной класс)", Base:"bloodfiend.json", Archetypes:"bloodarch.json" }
 ];
@@ -623,7 +711,7 @@ async function setCategory(id){
   const c = catCfg();
   applyTheme(c.color);
   renderTabs();
-  $("#page-title").textContent = c.title;
+  $("#page-title").innerHTML = esc(c.title) + (IS_V2 ? ' <span class="badge" style="display:inline-flex;vertical-align:middle;margin-left:8px;color:#F1C40F;border-color:#F1C40F;font-size:.75rem">2.0 · ТЕСТ</span>' : "");
   $("#page-sub").textContent = c.sub || "";
   $("#system-select").style.display = c.systems ? "" : "none";
   $("#btn-base").style.display = c.systems ? "" : "none";
@@ -3839,7 +3927,7 @@ function parseHash(){
   try { h = decodeURIComponent(h); } catch {}
   const i = h.indexOf("/");
   const cat = i < 0 ? h : h.slice(0, i);
-  return { cat: CATS[cat] ? cat : "classes", item: i < 0 ? "" : h.slice(i + 1) };
+  return { cat: CATS[cat] ? cat : (IS_V2 ? "bases" : "classes"), item: i < 0 ? "" : h.slice(i + 1) };
 }
 window.addEventListener("hashchange", async () => {
   const { cat, item } = parseHash();

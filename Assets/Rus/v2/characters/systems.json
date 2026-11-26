@@ -1,0 +1,51 @@
+[
+  {
+    "id": "fighter",
+    "Name": "Боец",
+    "BaseTitle": "Боец (Fighter · 2.0)",
+    "Base": "fighter.json",
+    "Archetypes": "affiliations.json"
+  },
+  {
+    "id": "vanguard",
+    "Name": "Авангард",
+    "BaseTitle": "Авангард (Vanguard · 2.0)",
+    "Base": "vanguard.json",
+    "Archetypes": "affiliations.json"
+  },
+  {
+    "id": "marksman",
+    "Name": "Стрелок",
+    "BaseTitle": "Стрелок (Marksman · 2.0)",
+    "Base": "marksman.json",
+    "Archetypes": "affiliations.json"
+  },
+  {
+    "id": "assassin",
+    "Name": "Убийца",
+    "BaseTitle": "Убийца (Assassin · 2.0)",
+    "Base": "assassin.json",
+    "Archetypes": "affiliations.json"
+  },
+  {
+    "id": "adept",
+    "Name": "Адепт",
+    "BaseTitle": "Адепт (Adept · 2.0)",
+    "Base": "adept.json",
+    "Archetypes": "affiliations.json"
+  },
+  {
+    "id": "brawler",
+    "Name": "Громила [WIP]",
+    "BaseTitle": "Громила (Brawler · В разработке)",
+    "Base": "brawler.json",
+    "Archetypes": "affiliations.json"
+  },
+  {
+    "id": "controller",
+    "Name": "Контролёр [WIP]",
+    "BaseTitle": "Контролёр (Controller · В разработке)",
+    "Base": "controller.json",
+    "Archetypes": "affiliations.json"
+  }
+]

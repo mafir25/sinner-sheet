@@ -67,6 +67,12 @@ export const DICT = {
     faction:{name:"Организации",color:"#45B3CB",fa:"fa-building"},
     timeline:{name:"Хронология",color:"#F1C40F",fa:"fa-hourglass-half"},
     people:{name:"Личности",color:"#9B59B6",fa:"fa-user-secret"}
+  },
+  statusCats: {
+    Negative:{name:"Негативные",color:"#C7243A",fa:"fa-skull"},
+    Positive:{name:"Позитивные",color:"#27AE60",fa:"fa-plus"},
+    Buff:{name:"Баффы",color:"#45B3CB",fa:"fa-arrow-up"},
+    Debuff:{name:"Дебаффы",color:"#E67E22",fa:"fa-arrow-down"}
   }
 };
 

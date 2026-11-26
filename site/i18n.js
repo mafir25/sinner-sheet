@@ -34,8 +34,11 @@
   var DATA_GROUPS = {
     'classes.json': 'characters', 'fixer.json': 'characters', 'bloodarch.json': 'characters',
     'bloodfiend.json': 'characters', 'feats.json': 'characters', 'systems.json': 'characters',
+    'races.json': 'characters', 'backgrounds.json': 'characters', 'affiliations.json': 'characters',
+    'fighter.json': 'characters', 'vanguard.json': 'characters', 'marksman.json': 'characters',
+    'assassin.json': 'characters', 'adept.json': 'characters', 'brawler.json': 'characters', 'controller.json': 'characters',
     'equipment.json': 'items', 'egogifts.json': 'items',
-    'statuses.json': 'mechanics', 'rules.json': 'mechanics',
+    'statuses.json': 'mechanics', 'rules.json': 'mechanics', 'ego2.json': 'mechanics',
     'lore.json': 'world', 'bestiary.json': 'world', 'world.json': 'world',
     'Builder_classes.json': 'builder', 'Builder_feats.json': 'builder', 'Builder_races.json': 'builder',
   };
@@ -52,6 +55,46 @@
     var rel = relOf(name);
     return langDirs().map(function (d) { return 'Assets/' + d + '/' + rel; });
   }
+
+  /* ---------------- Версия модуля (v1 Legacy / v2 2.0 · Тест) ---------------- */
+  var MOD_KEY = 'site.module';
+  var MOD_TEST_KEY = 'site.module.test';
+  var MOD_VERSIONS = { v1: 'Версия 1 (Legacy)', v2: 'Версия 2 (2.0 · Тест)' };
+  var mod = 'v1';
+  var modTestUnlocked = false;
+  try {
+    var sp = new URLSearchParams(location.search);
+    var mq = sp.get('module');
+    if (mq && MOD_VERSIONS[mq]) {
+      localStorage.setItem(MOD_KEY, mq);
+      if (mq === 'v2') localStorage.setItem(MOD_TEST_KEY, '1');
+    }
+    if (sp.get('test') === '1') localStorage.setItem(MOD_TEST_KEY, '1');
+    if (sp.get('test') === '0') localStorage.removeItem(MOD_TEST_KEY);
+    var savedMod = localStorage.getItem(MOD_KEY);
+    if (savedMod && MOD_VERSIONS[savedMod]) mod = savedMod;
+    modTestUnlocked = localStorage.getItem(MOD_TEST_KEY) === '1';
+  } catch (e) { /* приватный режим */ }
+  document.documentElement.dataset.module = mod;
+
+  function setModule(v) {
+    if (!MOD_VERSIONS[v] || v === mod) return;
+    try {
+      if (v === 'v1') localStorage.removeItem(MOD_KEY);
+      else localStorage.setItem(MOD_KEY, v);
+    } catch (e) { /* ignore */ }
+    var u = new URL(location.href);
+    u.searchParams.delete('module');
+    location.replace(u.toString());
+  }
+
+  window.SiteModule = {
+    VERSIONS: MOD_VERSIONS,
+    get: function () { return mod; },
+    set: setModule,
+    isV2: function () { return mod === 'v2'; },
+    isTestUnlocked: function () { return modTestUnlocked; },
+  };
 
   /* ---------------- Канон из Firestore ----------------
      canon/<Rus|Eng>__<группа>__<файл>        — { version, chunks, … } (манифест)
@@ -182,6 +225,14 @@
 
   async function fetchData(name, init) {
     var rel = relOf(name), dirs = langDirs(), last = null;
+    if (mod === 'v2' && rel.indexOf('v2/') !== 0) {
+      for (var j = 0; j < dirs.length; j++) {
+        try {
+          var v2res = await fetch('Assets/' + dirs[j] + '/v2/' + rel, init);
+          if (v2res.ok) return v2res;
+        } catch (e) { /* fallback */ }
+      }
+    }
     for (var i = 0; i < dirs.length; i++) {
       var c = await canonResponse(dirs[i], rel, init);
       if (c) return c;

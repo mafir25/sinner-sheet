@@ -99,6 +99,11 @@ function mount() {
         </label>
         <div class="su-hint">Показывать комментарии под постами (База, Офис) и нефизические ноды с комментариями (Ширма).</div>
       </div>
+      <div class="su-sec" id="su-module" hidden>
+        <div class="su-t">Версия модуля <span class="su-tag">ТЕСТ</span></div>
+        <div class="su-row" id="su-modules"></div>
+        <div class="su-hint">Переключение между первой (Legacy) и второй (2.0) версиями правил и базы знаний.</div>
+      </div>
       <div class="su-sec" id="su-account"></div>
     </div>`;
   document.body.appendChild(root);
@@ -120,6 +125,16 @@ function mount() {
     }
   }
 
+  const Mod = window.SiteModule;
+  if (Mod) {
+    const mods = root.querySelector('#su-modules');
+    for (const [code, label] of Object.entries(Mod.VERSIONS)) {
+      const b = el('button', { class: 'su-seg', type: 'button', 'data-su-module': code }, label);
+      b.addEventListener('click', () => { Mod.set(code); renderModule(); });
+      mods.appendChild(b);
+    }
+  }
+
   root.addEventListener('click', (e) => {
     if (e.target === root || e.target.closest('[data-su="close"]')) close();
   });
@@ -137,7 +152,18 @@ function mount() {
   }
 
   renderTheme();
+  renderModule();
   renderAccount();
+}
+
+// Переключатель версии модуля (Тестовый режим: виден Кодеру и Тестерам или при ?test=1)
+function renderModule() {
+  const sec = root?.querySelector('#su-module');
+  if (!sec) return;
+  const Mod = window.SiteModule;
+  sec.hidden = !Mod || !(state.tester || Mod.isTestUnlocked());
+  const cur = Mod?.get();
+  for (const b of sec.querySelectorAll('[data-su-module]')) b.setAttribute('aria-pressed', String(b.dataset.suModule === cur));
 }
 
 // Переключатель оформления (если страница подключила site/theme.js)
@@ -282,7 +308,7 @@ export function close() {
 onAuth((s) => {
   state = s;
   if (fab) fab.classList.toggle('su-in', !!s.user);
-  if (root) { renderTheme(); renderAccount(); }
+  if (root) { renderTheme(); renderModule(); renderAccount(); }
 });
 
 window.SiteUI = {
